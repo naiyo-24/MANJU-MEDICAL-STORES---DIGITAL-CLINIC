@@ -269,3 +269,95 @@ class LabBooking {
     status: json['status'],
   );
 }
+
+class LabReport {
+  final String id;
+  final String reportId;
+  final String patientName;
+  final String patientPhone;
+  final String patientAge;
+  final String patientGender;
+  final String referredBy;
+  final String testsPackageName;
+  final DateTime reportDate;
+  final String status; // Pending, In Processing, Ready, Delivered
+  final bool isSent;
+  final String sampleId;
+  final String sampleType;
+  final DateTime collectionDate;
+
+  LabReport({
+    required this.id,
+    required this.reportId,
+    required this.patientName,
+    required this.patientPhone,
+    required this.patientAge,
+    required this.patientGender,
+    this.referredBy = '',
+    required this.testsPackageName,
+    required this.reportDate,
+    required this.status,
+    this.isSent = false,
+    required this.sampleId,
+    this.sampleType = 'Whole Blood',
+    required this.collectionDate,
+  });
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'reportId': reportId,
+    'patientName': patientName,
+    'patientPhone': patientPhone,
+    'patientAge': patientAge,
+    'patientGender': patientGender,
+    'referredBy': referredBy,
+    'testsPackageName': testsPackageName,
+    'reportDate': reportDate.toIso8601String(),
+    'status': status,
+    'isSent': isSent,
+    'sampleId': sampleId,
+    'sampleType': sampleType,
+    'collectionDate': collectionDate.toIso8601String(),
+  };
+
+  factory LabReport.fromJson(Map<String, dynamic> json) => LabReport(
+    id: json['id'],
+    reportId: json['reportId'] ?? '',
+    patientName: json['patientName'],
+    patientPhone: json['patientPhone'] ?? '',
+    patientAge: json['patientAge'] ?? '',
+    patientGender: json['patientGender'] ?? '',
+    referredBy: json['referredBy'] ?? '',
+    testsPackageName: json['testsPackageName'] ?? '',
+    reportDate: DateTime.parse(json['reportDate']),
+    status: json['status'],
+    isSent: json['isSent'] ?? false,
+    sampleId: json['sampleId'] ?? '',
+    sampleType: json['sampleType'] ?? 'Whole Blood',
+    collectionDate: json['collectionDate'] != null ? DateTime.parse(json['collectionDate']) : DateTime.now(),
+  );
+}
+
+class LabActivity {
+  final String id;
+  final DateTime dateTime;
+  final String type;
+  final String description;
+  final String referenceId;
+  final String performedBy;
+  final String? patientName;
+  final String? patientPhone;
+  final String? message;
+
+  LabActivity({
+    required this.id,
+    required this.dateTime,
+    required this.type,
+    required this.description,
+    required this.referenceId,
+    required this.performedBy,
+    this.patientName,
+    this.patientPhone,
+    this.message,
+  });
+}

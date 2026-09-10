@@ -225,4 +225,85 @@ class LabDataService {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setStringList(_bookingsKey, bookings.map((b) => jsonEncode(b.toJson())).toList());
   }
+
+  // --- Reports ---
+  static const String _reportsKey = 'lab_reports';
+
+  static Future<List<LabReport>> getReports() async {
+    final prefs = await SharedPreferences.getInstance();
+    final jsonList = prefs.getStringList(_reportsKey) ?? [];
+    if (jsonList.isEmpty) {
+      return [
+        LabReport(
+          id: 'r1', reportId: 'RPT202609001', patientName: 'Rahul Das', patientPhone: '+91 98765 43210', patientAge: '32 Years', patientGender: 'Male',
+          referredBy: 'Dr. Anirban Sen', testsPackageName: 'CBC, ESR', reportDate: DateTime.parse('2026-09-09T16:20:00'),
+          status: 'Delivered', isSent: true, sampleId: 'S202609001', collectionDate: DateTime.parse('2026-09-09T09:30:00'),
+        ),
+        LabReport(
+          id: 'r2', reportId: 'RPT202609002', patientName: 'Priya Sharma', patientPhone: '+91 98300 11223', patientAge: '28 Years', patientGender: 'Female',
+          referredBy: 'Self', testsPackageName: 'Thyroid Profile', reportDate: DateTime.parse('2026-09-09T14:15:00'),
+          status: 'Ready', isSent: false, sampleId: 'S202609002', collectionDate: DateTime.parse('2026-09-09T09:45:00'),
+        ),
+        LabReport(
+          id: 'r3', reportId: 'RPT202609003', patientName: 'Suman Roy', patientPhone: '+91 98300 11223', patientAge: '45 Years', patientGender: 'Male',
+          referredBy: 'Dr. Sen', testsPackageName: 'Full Body Checkup', reportDate: DateTime.parse('2026-09-09T12:40:00'),
+          status: 'In Processing', isSent: false, sampleId: 'S202609003', collectionDate: DateTime.parse('2026-09-09T10:10:00'),
+        ),
+        LabReport(
+          id: 'r4', reportId: 'RPT202609004', patientName: 'Neha Patel', patientPhone: '+91 98765 43210', patientAge: '52 Years', patientGender: 'Female',
+          referredBy: 'Self', testsPackageName: 'Lipid Profile', reportDate: DateTime.parse('2026-09-09T11:10:00'),
+          status: 'Delivered', isSent: true, sampleId: 'S202609004', collectionDate: DateTime.parse('2026-09-09T10:25:00'),
+        ),
+        LabReport(
+          id: 'r5', reportId: 'RPT202609005', patientName: 'Karan Mehta', patientPhone: '+91 98765 43210', patientAge: '60 Years', patientGender: 'Male',
+          referredBy: 'Dr. Anirban Sen', testsPackageName: 'HbA1c', reportDate: DateTime.parse('2026-09-09T10:50:00'),
+          status: 'Pending', isSent: false, sampleId: 'S202609005', collectionDate: DateTime.parse('2026-09-09T11:00:00'),
+        ),
+        LabReport(
+          id: 'r6', reportId: 'RPT202609006', patientName: 'Anita Singh', patientPhone: '+91 98765 43210', patientAge: '30 Years', patientGender: 'Female',
+          referredBy: 'Self', testsPackageName: 'Vitamin D', reportDate: DateTime.parse('2026-09-08T17:30:00'),
+          status: 'Delivered', isSent: true, sampleId: 'S202609006', collectionDate: DateTime.parse('2026-09-08T11:20:00'),
+        ),
+        LabReport(
+          id: 'r7', reportId: 'RPT202609007', patientName: 'Deepak Shaw', patientPhone: '+91 98765 43210', patientAge: '40 Years', patientGender: 'Male',
+          referredBy: 'System', testsPackageName: 'Liver Function Test', reportDate: DateTime.parse('2026-09-08T16:10:00'),
+          status: 'Ready', isSent: false, sampleId: 'S202609007', collectionDate: DateTime.parse('2026-09-08T11:45:00'),
+        ),
+        LabReport(
+          id: 'r8', reportId: 'RPT202609008', patientName: 'Pooja Verma', patientPhone: '+91 98765 43210', patientAge: '25 Years', patientGender: 'Female',
+          referredBy: 'Self', testsPackageName: 'Diabetic Profile', reportDate: DateTime.parse('2026-09-08T13:25:00'),
+          status: 'In Processing', isSent: false, sampleId: 'S202609008', collectionDate: DateTime.parse('2026-09-08T12:10:00'),
+        ),
+        LabReport(
+          id: 'r9', reportId: 'RPT202609009', patientName: 'Amit Kumar', patientPhone: '+91 98765 43210', patientAge: '35 Years', patientGender: 'Male',
+          referredBy: 'Dr. Sen', testsPackageName: 'KFT', reportDate: DateTime.parse('2026-09-08T11:45:00'),
+          status: 'Delivered', isSent: true, sampleId: 'S202609009', collectionDate: DateTime.parse('2026-09-08T12:30:00'),
+        ),
+        LabReport(
+          id: 'r10', reportId: 'RPT202609010', patientName: 'Rita Ghosh', patientPhone: '+91 98765 43210', patientAge: '42 Years', patientGender: 'Female',
+          referredBy: 'Self', testsPackageName: 'Hormone Package', reportDate: DateTime.parse('2026-09-08T10:20:00'),
+          status: 'Ready', isSent: false, sampleId: 'S202609010', collectionDate: DateTime.parse('2026-09-08T12:45:00'),
+        ),
+      ];
+    }
+    return jsonList.map((j) => LabReport.fromJson(jsonDecode(j))).toList();
+  }
+
+  static Future<List<LabActivity>> getActivities() async {
+    return [
+      LabActivity(
+        id: 'a1', dateTime: DateTime.parse('2026-09-09T16:45:00'), type: 'Report Sent', description: 'Report sent via WhatsApp to Suman Roy', referenceId: 'RPT202609001', performedBy: 'Amit Kumar',
+        patientName: 'Suman Roy', patientPhone: '9830011223', message: 'Dear Suman Roy,\nYour lab report is ready. Please find the attached report.\n\nRegards,\nManju Diagnostic Lab',
+      ),
+      LabActivity(id: 'a2', dateTime: DateTime.parse('2026-09-09T16:20:00'), type: 'Report Generated', description: 'Lab report generated for Rahul Das', referenceId: 'RPT202609002', performedBy: 'Dr. Sen', patientName: 'Rahul Das', patientPhone: '9876543210'),
+      LabActivity(id: 'a3', dateTime: DateTime.parse('2026-09-09T15:10:00'), type: 'Sample Processed', description: 'Biochemistry tests processed', referenceId: 'SMP202609003', performedBy: 'Neha Patel'),
+      LabActivity(id: 'a4', dateTime: DateTime.parse('2026-09-09T11:25:00'), type: 'Sample Collected', description: 'Sample collected from Priya Sharma', referenceId: 'SMP202609004', performedBy: 'Amit Kumar', patientName: 'Priya Sharma', patientPhone: '9123456789'),
+      LabActivity(id: 'a5', dateTime: DateTime.parse('2026-09-09T10:15:00'), type: 'Booking Created', description: 'New booking created for Karan Mehta', referenceId: 'LB000126', performedBy: 'Reception', patientName: 'Karan Mehta', patientPhone: '9123044567'),
+      LabActivity(id: 'a6', dateTime: DateTime.parse('2026-09-08T18:30:00'), type: 'Report Delivered', description: 'Report delivered (Email) to Anita Singh', referenceId: 'RPT202609005', performedBy: 'System', patientName: 'Anita Singh', patientPhone: '9876509876'),
+      LabActivity(id: 'a7', dateTime: DateTime.parse('2026-09-08T16:10:00'), type: 'Status Updated', description: 'Sample status changed to In Processing', referenceId: 'SMP202609006', performedBy: 'Neha Patel'),
+      LabActivity(id: 'a8', dateTime: DateTime.parse('2026-09-08T12:05:00'), type: 'Payment Received', description: 'Payment received ₹1,200 (UPI)', referenceId: 'LB000127', performedBy: 'Reception'),
+      LabActivity(id: 'a9', dateTime: DateTime.parse('2026-09-08T10:50:00'), type: 'Template Used', description: 'Lipid Profile template used', referenceId: 'LB000128', performedBy: 'Dr. Sen'),
+      LabActivity(id: 'a10', dateTime: DateTime.parse('2026-09-08T09:30:00'), type: 'Login', description: 'User logged in', referenceId: '-', performedBy: 'Lab Admin'),
+    ];
+  }
 }

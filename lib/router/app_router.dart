@@ -139,8 +139,6 @@ final goRouter = GoRouter(
         StatefulShellBranch(routes: [GoRoute(path: '/lab/reports', builder: (context, state) => const LabReportsScreen())]),
         StatefulShellBranch(routes: [GoRoute(path: '/lab/send_reports', builder: (context, state) => const LabSendReportsScreen())]),
         StatefulShellBranch(routes: [GoRoute(path: '/lab/history', builder: (context, state) => const LabHistoryScreen())]),
-        StatefulShellBranch(routes: [GoRoute(path: '/lab/accounts', builder: (context, state) => const LabAccountsScreen())]),
-        StatefulShellBranch(routes: [GoRoute(path: '/lab/settings', builder: (context, state) => const LabSettingsScreen())]),
       ],
     ),
   ],

@@ -480,128 +480,128 @@ class _LabPackagesScreenState extends State<LabPackagesScreen> {
                 // Right Pane: Detail View
                 Expanded(
                   flex: 3,
-                  child: Column(
-                    children: [
-                      // Package Details Card
-                      Container(
-                        padding: const EdgeInsets.all(24),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: const Color(0xFFE2E8F0)),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Row(
-                                  children: [
-                                    Container(
-                                      padding: const EdgeInsets.all(8),
-                                      decoration: BoxDecoration(color: const Color(0xFFEA580C).withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
-                                      child: const Icon(Icons.inventory_2, color: Color(0xFFEA580C)),
+                  child: SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        // Package Details Card
+                        Container(
+                          padding: const EdgeInsets.all(24),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: const Color(0xFFE2E8F0)),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.all(8),
+                                        decoration: BoxDecoration(color: const Color(0xFFEA580C).withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
+                                        child: const Icon(Icons.inventory_2, color: Color(0xFFEA580C)),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      const Text('Package Details', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                                    ],
+                                  ),
+                                  OutlinedButton.icon(
+                                    onPressed: () {
+                                      if (_selectedPackage != null) _showAddPackageDialog(existingPackage: _selectedPackage!);
+                                    },
+                                    icon: const Icon(Icons.edit, size: 14),
+                                    label: const Text('Edit'),
+                                    style: OutlinedButton.styleFrom(
+                                      foregroundColor: const Color(0xFFEA580C),
+                                      side: const BorderSide(color: Color(0xFFE2E8F0)),
                                     ),
-                                    const SizedBox(width: 12),
-                                    const Text('Package Details', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 24),
+                              if (_selectedPackage != null) ...[
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          _buildDetailRow('Package Name', _selectedPackage!.name),
+                                          _buildDetailRow('Category', _selectedPackage!.category),
+                                          _buildDetailRow('Price (₹)', _selectedPackage!.discountedPrice.toStringAsFixed(2)),
+                                          Padding(
+                                            padding: const EdgeInsets.only(bottom: 12),
+                                            child: Row(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                const SizedBox(width: 100, child: Text('Status', style: TextStyle(color: Color(0xFF64748B), fontSize: 13))),
+                                                Container(
+                                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                                  decoration: BoxDecoration(color: _selectedPackage!.isActive ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1), borderRadius: BorderRadius.circular(4)),
+                                                  child: Row(
+                                                    mainAxisSize: MainAxisSize.min,
+                                                    children: [
+                                                      Container(width: 6, height: 6, decoration: BoxDecoration(color: _selectedPackage!.isActive ? Colors.green : Colors.red, shape: BoxShape.circle)),
+                                                      const SizedBox(width: 6),
+                                                      Text(_selectedPackage!.isActive ? 'Active' : 'Inactive', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: _selectedPackage!.isActive ? Colors.green : Colors.red)),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          _buildDetailRow('Total Tests', _selectedPackage!.testIds.length.toString()),
+                                        ],
+                                      ),
+                                    ),
+                                    // Mock graphic placeholder
+                                    Container(
+                                      width: 120,
+                                      height: 120,
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFEFF6FF),
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Column(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: const [
+                                          Icon(Icons.medical_services, color: Color(0xFF3B82F6), size: 40),
+                                          SizedBox(height: 8),
+                                          Text('Health Package', textAlign: TextAlign.center, style: TextStyle(color: Color(0xFF1E3A8A), fontWeight: FontWeight.bold, fontSize: 12)),
+                                        ],
+                                      ),
+                                    ),
                                   ],
                                 ),
-                                OutlinedButton.icon(
-                                  onPressed: () {
-                                    if (_selectedPackage != null) _showAddPackageDialog(existingPackage: _selectedPackage!);
-                                  },
-                                  icon: const Icon(Icons.edit, size: 14),
-                                  label: const Text('Edit'),
-                                  style: OutlinedButton.styleFrom(
-                                    foregroundColor: const Color(0xFFEA580C),
-                                    side: const BorderSide(color: Color(0xFFE2E8F0)),
-                                  ),
+                                const SizedBox(height: 16),
+                                const Text('Description', style: TextStyle(color: Color(0xFF64748B), fontSize: 13)),
+                                const SizedBox(height: 4),
+                                Text(_selectedPackage!.description, style: const TextStyle(color: Color(0xFF1E293B), fontSize: 13)),
+                                const SizedBox(height: 16),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                  children: [
+                                    _buildTrustBadge(Icons.verified, 'Accurate'),
+                                    _buildTrustBadge(Icons.local_offer, 'Affordable'),
+                                    _buildTrustBadge(Icons.favorite, 'Trusted'),
+                                  ],
                                 ),
+                              ] else ...[
+                                const Center(child: Padding(padding: EdgeInsets.all(32), child: Text('Select a package to view details', style: TextStyle(color: Color(0xFF94A3B8))))),
                               ],
-                            ),
-                            const SizedBox(height: 24),
-                            if (_selectedPackage != null) ...[
-                              Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        _buildDetailRow('Package Name', _selectedPackage!.name),
-                                        _buildDetailRow('Category', _selectedPackage!.category),
-                                        _buildDetailRow('Price (₹)', _selectedPackage!.discountedPrice.toStringAsFixed(2)),
-                                        Padding(
-                                          padding: const EdgeInsets.only(bottom: 12),
-                                          child: Row(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                              const SizedBox(width: 100, child: Text('Status', style: TextStyle(color: Color(0xFF64748B), fontSize: 13))),
-                                              Container(
-                                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                                decoration: BoxDecoration(color: _selectedPackage!.isActive ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1), borderRadius: BorderRadius.circular(4)),
-                                                child: Row(
-                                                  mainAxisSize: MainAxisSize.min,
-                                                  children: [
-                                                    Container(width: 6, height: 6, decoration: BoxDecoration(color: _selectedPackage!.isActive ? Colors.green : Colors.red, shape: BoxShape.circle)),
-                                                    const SizedBox(width: 6),
-                                                    Text(_selectedPackage!.isActive ? 'Active' : 'Inactive', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: _selectedPackage!.isActive ? Colors.green : Colors.red)),
-                                                  ],
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                        _buildDetailRow('Total Tests', _selectedPackage!.testIds.length.toString()),
-                                      ],
-                                    ),
-                                  ),
-                                  // Mock graphic placeholder
-                                  Container(
-                                    width: 120,
-                                    height: 120,
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFFEFF6FF),
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: Column(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: const [
-                                        Icon(Icons.medical_services, color: Color(0xFF3B82F6), size: 40),
-                                        SizedBox(height: 8),
-                                        Text('Health Package', textAlign: TextAlign.center, style: TextStyle(color: Color(0xFF1E3A8A), fontWeight: FontWeight.bold, fontSize: 12)),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 16),
-                              const Text('Description', style: TextStyle(color: Color(0xFF64748B), fontSize: 13)),
-                              const SizedBox(height: 4),
-                              Text(_selectedPackage!.description, style: const TextStyle(color: Color(0xFF1E293B), fontSize: 13)),
-                              const SizedBox(height: 16),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                                children: [
-                                  _buildTrustBadge(Icons.verified, 'Accurate'),
-                                  _buildTrustBadge(Icons.local_offer, 'Affordable'),
-                                  _buildTrustBadge(Icons.favorite, 'Trusted'),
-                                ],
-                              ),
-                            ] else ...[
-                              const Center(child: Padding(padding: EdgeInsets.all(32), child: Text('Select a package to view details', style: TextStyle(color: Color(0xFF94A3B8))))),
                             ],
-                          ],
+                          ),
                         ),
-                      ),
-                      
-                      const SizedBox(height: 24),
-                      
-                      // Tests included list
-                      if (_selectedPackage != null)
-                        Expanded(
-                          child: Container(
+                        
+                        const SizedBox(height: 24),
+                        
+                        // Tests included list
+                        if (_selectedPackage != null)
+                          Container(
                             decoration: BoxDecoration(
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(12),
@@ -638,32 +638,32 @@ class _LabPackagesScreenState extends State<LabPackagesScreen> {
                                   ),
                                 ),
                                 const Divider(height: 1, color: Color(0xFFE2E8F0)),
-                                Expanded(
-                                  child: ListView.separated(
-                                    itemCount: _selectedPackage!.testIds.length,
-                                    separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFE2E8F0)),
-                                    itemBuilder: (context, index) {
-                                      final testId = _selectedPackage!.testIds[index];
-                                      final test = _allTests.firstWhere((t) => t.id == testId, orElse: () => LabTest(id: '', name: 'Unknown Test', description: '', category: 'Unknown', price: 0, templateId: ''));
-                                      return Padding(
-                                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                                        child: Row(
-                                          children: [
-                                            SizedBox(width: 20, child: Text('${index + 1}', style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)))),
-                                            Expanded(flex: 3, child: Text(test.name, style: const TextStyle(fontSize: 12, color: Color(0xFF1E293B)))),
-                                            Expanded(flex: 2, child: Text(test.category, style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)))),
-                                            InkWell(onTap: () {}, child: Container(padding: const EdgeInsets.all(4), decoration: BoxDecoration(border: Border.all(color: Colors.red.shade100), borderRadius: BorderRadius.circular(4)), child: Icon(Icons.delete_outline, size: 14, color: Colors.red.shade400))),
-                                          ],
-                                        ),
-                                      );
-                                    },
-                                  ),
+                                ListView.separated(
+                                  shrinkWrap: true,
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  itemCount: _selectedPackage!.testIds.length,
+                                  separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFE2E8F0)),
+                                  itemBuilder: (context, index) {
+                                    final testId = _selectedPackage!.testIds[index];
+                                    final test = _allTests.firstWhere((t) => t.id == testId, orElse: () => LabTest(id: '', name: 'Unknown Test', description: '', category: 'Unknown', price: 0, templateId: ''));
+                                    return Padding(
+                                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                      child: Row(
+                                        children: [
+                                          SizedBox(width: 20, child: Text('${index + 1}', style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)))),
+                                          Expanded(flex: 3, child: Text(test.name, style: const TextStyle(fontSize: 12, color: Color(0xFF1E293B)))),
+                                          Expanded(flex: 2, child: Text(test.category, style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)))),
+                                          InkWell(onTap: () {}, child: Container(padding: const EdgeInsets.all(4), decoration: BoxDecoration(border: Border.all(color: Colors.red.shade100), borderRadius: BorderRadius.circular(4)), child: Icon(Icons.delete_outline, size: 14, color: Colors.red.shade400))),
+                                        ],
+                                      ),
+                                    );
+                                  },
                                 ),
                               ],
                             ),
                           ),
-                        ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ],

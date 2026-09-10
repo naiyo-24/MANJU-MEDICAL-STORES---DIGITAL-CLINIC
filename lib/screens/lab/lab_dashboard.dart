@@ -65,32 +65,29 @@ class _LabDashboardState extends State<LabDashboard> {
                 _buildNavItem(6, Icons.analytics_outlined, 'Reports'),
                 _buildNavItem(7, Icons.send_outlined, 'Send Reports'),
                 _buildNavItem(8, Icons.history_outlined, 'History'),
-                _buildNavItem(9, Icons.account_balance_wallet_outlined, 'Accounts'),
-                _buildNavItem(10, Icons.settings_outlined, 'Settings'),
               ],
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: InkWell(
-              onTap: () => context.go('/dashboard'),
-              child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                decoration: BoxDecoration(
-                  border: Border.all(color: const Color(0xFFE2E8F0)),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: const [
-                    Icon(Icons.logout, size: 18, color: Color(0xFF64748B)),
-                    SizedBox(width: 8),
-                    Text('Back to App', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF64748B))),
-                  ],
-                ),
+          const SizedBox(height: 16),
+          const Divider(color: Color(0xFFE2E8F0), thickness: 1, indent: 16, endIndent: 16),
+          const SizedBox(height: 8),
+          
+          InkWell(
+            onTap: () => context.go('/dashboard'),
+            borderRadius: BorderRadius.circular(12),
+            child: Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Row(
+                children: const [
+                  Icon(Icons.logout, color: Colors.red, size: 20),
+                  SizedBox(width: 12),
+                  Text('Logout', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 14)),
+                ],
               ),
             ),
           ),
+          const SizedBox(height: 24),
         ],
       ),
     );

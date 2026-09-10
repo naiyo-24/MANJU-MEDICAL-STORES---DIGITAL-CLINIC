@@ -271,8 +271,8 @@ class _CounterDashboardState extends State<CounterDashboard> {
                       
                       InkWell(
                         onTap: () {
-                          // Handle logout logic if needed (e.g. clearing tokens)
-                          context.go('/'); // Assuming '/' is the login screen
+                          // Go back to the module selection screen
+                          context.go('/dashboard');
                         },
                         borderRadius: BorderRadius.circular(12),
                         child: Container(
