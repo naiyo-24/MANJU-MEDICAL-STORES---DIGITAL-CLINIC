@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../models/lab_models.dart';
 
 import '../screens/splash/splash_screen.dart';
 import '../screens/home/dashboard_screen.dart';
@@ -17,6 +18,7 @@ import '../screens/lab/lab_dashboard.dart';
 import '../screens/lab/lab_dashboard_home.dart';
 import '../screens/lab/lab_tests_screen.dart';
 import '../screens/lab/lab_templates_screen.dart';
+import '../screens/lab/lab_create_template_screen.dart';
 import '../screens/lab/lab_packages_screen.dart';
 import '../screens/lab/lab_bookings_screen.dart';
 import '../screens/lab/lab_sample_tracking_screen.dart';
@@ -119,7 +121,18 @@ final goRouter = GoRouter(
       branches: [
         StatefulShellBranch(routes: [GoRoute(path: '/lab/dashboard', builder: (context, state) => const LabDashboardHome())]),
         StatefulShellBranch(routes: [GoRoute(path: '/lab/tests', builder: (context, state) => const LabTestsScreen())]),
-        StatefulShellBranch(routes: [GoRoute(path: '/lab/templates', builder: (context, state) => const LabTemplatesScreen())]),
+        StatefulShellBranch(routes: [
+          GoRoute(
+            path: '/lab/templates',
+            builder: (context, state) => const LabTemplatesScreen(),
+            routes: [
+              GoRoute(
+                path: 'create',
+                builder: (context, state) => LabCreateTemplateScreen(existingTemplate: state.extra as LabTemplate?),
+              ),
+            ],
+          ),
+        ]),
         StatefulShellBranch(routes: [GoRoute(path: '/lab/packages', builder: (context, state) => const LabPackagesScreen())]),
         StatefulShellBranch(routes: [GoRoute(path: '/lab/bookings', builder: (context, state) => const LabBookingsScreen())]),
         StatefulShellBranch(routes: [GoRoute(path: '/lab/tracking', builder: (context, state) => const LabSampleTrackingScreen())]),

@@ -15,6 +15,7 @@ class _LabPackagesScreenState extends State<LabPackagesScreen> {
   List<LabTest> _allTests = [];
   bool _isLoading = true;
   String _searchQuery = '';
+  LabPackage? _selectedPackage;
 
   @override
   void initState() {
@@ -29,21 +30,26 @@ class _LabPackagesScreenState extends State<LabPackagesScreen> {
     setState(() {
       _packages = packages;
       _allTests = tests;
+      if (_packages.isNotEmpty && _selectedPackage == null) {
+        _selectedPackage = _packages.first;
+      }
       _isLoading = false;
     });
   }
 
   void _showAddPackageDialog({LabPackage? existingPackage}) {
     final nameCtrl = TextEditingController(text: existingPackage?.name);
+    final categoryCtrl = TextEditingController(text: existingPackage?.category ?? 'Wellness');
     final descCtrl = TextEditingController(text: existingPackage?.description);
     final priceCtrl = TextEditingController(text: existingPackage?.discountedPrice.toString());
+    bool isActive = existingPackage?.isActive ?? true;
     List<String> selectedTestIds = existingPackage?.testIds.toList() ?? [];
 
     showDialog(
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
-          title: Text(existingPackage == null ? 'Create Package' : 'Edit Package'),
+          title: Text(existingPackage == null ? 'Create Package' : 'Edit Package', style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
           content: SizedBox(
             width: 500,
             child: SingleChildScrollView(
@@ -51,13 +57,33 @@ class _LabPackagesScreenState extends State<LabPackagesScreen> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  TextField(controller: nameCtrl, decoration: const InputDecoration(labelText: 'Package Name')),
+                  Row(
+                    children: [
+                      Expanded(child: TextField(controller: nameCtrl, decoration: const InputDecoration(labelText: 'Package Name', border: OutlineInputBorder(), isDense: true))),
+                      const SizedBox(width: 12),
+                      Expanded(child: TextField(controller: categoryCtrl, decoration: const InputDecoration(labelText: 'Category', border: OutlineInputBorder(), isDense: true))),
+                    ],
+                  ),
                   const SizedBox(height: 12),
-                  TextField(controller: descCtrl, decoration: const InputDecoration(labelText: 'Description'), maxLines: 2),
+                  TextField(controller: descCtrl, decoration: const InputDecoration(labelText: 'Description', border: OutlineInputBorder(), isDense: true), maxLines: 2),
                   const SizedBox(height: 12),
-                  TextField(controller: priceCtrl, decoration: const InputDecoration(labelText: 'Discounted Price (₹)'), keyboardType: TextInputType.number),
+                  Row(
+                    children: [
+                      Expanded(child: TextField(controller: priceCtrl, decoration: const InputDecoration(labelText: 'Price (₹)', border: OutlineInputBorder(), isDense: true), keyboardType: TextInputType.number)),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: SwitchListTile(
+                          title: const Text('Active Status', style: TextStyle(fontSize: 14)),
+                          value: isActive,
+                          onChanged: (val) => setDialogState(() => isActive = val),
+                          activeColor: const Color(0xFFEA580C),
+                          contentPadding: EdgeInsets.zero,
+                        ),
+                      ),
+                    ],
+                  ),
                   const SizedBox(height: 24),
-                  const Text('Select Tests Included:', style: TextStyle(fontWeight: FontWeight.bold)),
+                  const Text('Select Tests Included:', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
                   const SizedBox(height: 8),
                   Container(
                     height: 200,
@@ -69,9 +95,10 @@ class _LabPackagesScreenState extends State<LabPackagesScreen> {
                         final test = _allTests[index];
                         final isSelected = selectedTestIds.contains(test.id);
                         return CheckboxListTile(
-                          title: Text(test.name),
-                          subtitle: Text('₹${test.price.toStringAsFixed(2)}'),
+                          title: Text(test.name, style: const TextStyle(fontSize: 14)),
+                          subtitle: Text('₹${test.price.toStringAsFixed(2)}', style: const TextStyle(color: Color(0xFF64748B), fontSize: 12)),
                           value: isSelected,
+                          activeColor: const Color(0xFFEA580C),
                           onChanged: (val) {
                             setDialogState(() {
                               if (val == true) {
@@ -97,17 +124,18 @@ class _LabPackagesScreenState extends State<LabPackagesScreen> {
           actions: [
             TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
             ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFEA580C)),
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFEA580C), foregroundColor: Colors.white),
               onPressed: () async {
-                final price = double.tryParse(priceCtrl.text) ?? 0;
-                final package = LabPackage(
+                final pkg = LabPackage(
                   id: existingPackage?.id ?? const Uuid().v4(),
                   name: nameCtrl.text,
+                  category: categoryCtrl.text,
                   description: descCtrl.text,
                   testIds: selectedTestIds,
-                  discountedPrice: price,
+                  discountedPrice: double.tryParse(priceCtrl.text) ?? 0.0,
+                  isActive: isActive,
                 );
-                await LabDataService.savePackage(package);
+                await LabDataService.savePackage(pkg);
                 if (mounted) Navigator.pop(context);
                 _loadData();
               },
@@ -119,64 +147,347 @@ class _LabPackagesScreenState extends State<LabPackagesScreen> {
     );
   }
 
+  Widget _buildStatCard(IconData icon, String title, String value, Color color) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xFFE2E8F0)),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(color: color.withOpacity(0.1), shape: BoxShape.circle),
+              child: Icon(icon, color: color, size: 24),
+            ),
+            const SizedBox(width: 16),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(value, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                    const SizedBox(width: 8),
+                    const Text('↑+20%', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.green)),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(title, style: const TextStyle(fontSize: 13, color: Color(0xFF64748B))),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDropdown(String text) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE2E8F0)), borderRadius: BorderRadius.circular(8)),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(text, style: const TextStyle(color: Color(0xFF64748B), fontSize: 13)),
+          const SizedBox(width: 8),
+          const Icon(Icons.keyboard_arrow_down, size: 16, color: Color(0xFF64748B)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActionButton(IconData icon, String label, VoidCallback onTap) {
+    return OutlinedButton.icon(
+      onPressed: onTap,
+      icon: Icon(icon, size: 16, color: const Color(0xFF64748B)),
+      label: Text(label, style: const TextStyle(color: Color(0xFF1E293B), fontSize: 13)),
+      style: OutlinedButton.styleFrom(
+        side: const BorderSide(color: Color(0xFFE2E8F0)),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      ),
+    );
+  }
+
+  Widget _buildTableRowButton(IconData icon, String label) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE2E8F0)), borderRadius: BorderRadius.circular(4)),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: const Color(0xFF64748B)),
+          if (label.isNotEmpty) const SizedBox(width: 4),
+          if (label.isNotEmpty) Text(label, style: const TextStyle(fontSize: 12, color: Color(0xFF1E293B))),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuickAction(IconData icon, String title) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 24),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xFFE2E8F0)),
+        ),
+        child: Column(
+          children: [
+            Icon(icon, color: const Color(0xFFEA580C), size: 32),
+            const SizedBox(height: 12),
+            Text(title, style: const TextStyle(color: Color(0xFFEA580C), fontWeight: FontWeight.bold, fontSize: 14)),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final filteredPackages = _packages.where((p) => p.name.toLowerCase().contains(_searchQuery.toLowerCase())).toList();
+    int totalPackages = _packages.length;
+    int activePackages = _packages.where((p) => p.isActive).length;
+    int inactivePackages = totalPackages - activePackages;
 
-    return Padding(
-      padding: const EdgeInsets.all(32.0),
+    return Container(
+      padding: const EdgeInsets.all(32),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Header
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Health Packages', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(color: const Color(0xFFEA580C), borderRadius: BorderRadius.circular(12)),
+                    child: const Icon(Icons.inventory_2, color: Colors.white, size: 32),
+                  ),
+                  const SizedBox(width: 16),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: const [
+                      Text('Packages', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                      SizedBox(height: 4),
+                      Text('Create and manage test packages with custom pricing', style: TextStyle(fontSize: 14, color: Color(0xFF64748B))),
+                    ],
+                  ),
+                ],
+              ),
               ElevatedButton.icon(
                 onPressed: () => _showAddPackageDialog(),
-                icon: const Icon(Icons.add),
-                label: const Text('Create Package'),
+                icon: const Icon(Icons.add, size: 18),
+                label: const Text('Create New Package'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFFEA580C),
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  elevation: 0,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 24),
-          TextField(
-            onChanged: (v) => setState(() => _searchQuery = v),
-            decoration: InputDecoration(
-              hintText: 'Search packages...',
-              prefixIcon: const Icon(Icons.search),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
-              fillColor: Colors.white,
-              filled: true,
-            ),
+          const SizedBox(height: 32),
+
+          // Stats Row
+          Row(
+            children: [
+              _buildStatCard(Icons.inventory_2, 'Total Packages', totalPackages.toString(), const Color(0xFFEA580C)),
+              const SizedBox(width: 16),
+              _buildStatCard(Icons.check_circle, 'Active Packages', activePackages.toString(), Colors.green),
+              const SizedBox(width: 16),
+              _buildStatCard(Icons.pause_circle, 'Inactive Packages', inactivePackages.toString(), Colors.red),
+              const SizedBox(width: 16),
+              _buildStatCard(Icons.group, 'Package Tests Booked', '1,248', Colors.purple),
+            ],
           ),
           const SizedBox(height: 24),
+
+          // Main Content Layout
           Expanded(
-            child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : GridView.builder(
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      childAspectRatio: 2.5,
-                      crossAxisSpacing: 24,
-                      mainAxisSpacing: 24,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Left Pane: Data Table
+                Expanded(
+                  flex: 6,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: const Color(0xFFE2E8F0)),
                     ),
-                    itemCount: filteredPackages.length,
-                    itemBuilder: (context, index) {
-                      final package = filteredPackages[index];
-                      final includedTests = _allTests.where((t) => package.testIds.contains(t.id)).toList();
-                      final originalPrice = includedTests.fold(0.0, (sum, t) => sum + t.price);
-                      
-                      return Container(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Search & Filters
+                        Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                flex: 3,
+                                child: Container(
+                                  height: 40,
+                                  decoration: BoxDecoration(color: const Color(0xFFF8FAFC), borderRadius: BorderRadius.circular(8), border: Border.all(color: const Color(0xFFE2E8F0))),
+                                  child: TextField(
+                                    onChanged: (v) => setState(() => _searchQuery = v.toLowerCase()),
+                                    decoration: const InputDecoration(
+                                      hintText: 'Search package name...',
+                                      hintStyle: TextStyle(color: Color(0xFF94A3B8), fontSize: 13),
+                                      prefixIcon: Icon(Icons.search, color: Color(0xFF94A3B8), size: 20),
+                                      border: InputBorder.none,
+                                      contentPadding: EdgeInsets.symmetric(vertical: 12),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              _buildDropdown('All Categories'),
+                              const SizedBox(width: 12),
+                              _buildDropdown('All Status'),
+                              const SizedBox(width: 12),
+                              _buildActionButton(Icons.refresh, 'Reset', () {}),
+                              const SizedBox(width: 12),
+                              _buildActionButton(Icons.download, 'Export (Excel)', () {}),
+                            ],
+                          ),
+                        ),
+                        
+                        // Table Header
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                          color: const Color(0xFFF8FAFC),
+                          child: Row(
+                            children: const [
+                              SizedBox(width: 30, child: Text('#', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)))),
+                              Expanded(flex: 3, child: Text('Package Name', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)))),
+                              Expanded(flex: 2, child: Text('Category', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)))),
+                              Expanded(flex: 2, child: Text('Tests Included', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)))),
+                              Expanded(flex: 2, child: Text('Price (₹)', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)))),
+                              Expanded(flex: 2, child: Text('Status', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)))),
+                              Expanded(flex: 3, child: Center(child: Text('Action', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))))),
+                            ],
+                          ),
+                        ),
+                        const Divider(height: 1, color: Color(0xFFE2E8F0)),
+                        
+                        // Table Body
+                        Expanded(
+                          child: _isLoading ? const Center(child: CircularProgressIndicator(color: Color(0xFFEA580C))) : ListView.separated(
+                            itemCount: _packages.where((p) => p.name.toLowerCase().contains(_searchQuery)).length,
+                            separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFE2E8F0)),
+                            itemBuilder: (context, index) {
+                              final filtered = _packages.where((p) => p.name.toLowerCase().contains(_searchQuery)).toList();
+                              final package = filtered[index];
+                              final isSelected = _selectedPackage?.id == package.id;
+
+                              return InkWell(
+                                onTap: () => setState(() => _selectedPackage = package),
+                                child: Container(
+                                  color: isSelected ? const Color(0xFFFFF7ED) : Colors.white,
+                                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                                  child: Row(
+                                    children: [
+                                      SizedBox(width: 30, child: Text('${index + 1}', style: const TextStyle(fontSize: 13, color: Color(0xFF64748B)))),
+                                      Expanded(flex: 3, child: Text(package.name, style: TextStyle(fontSize: 13, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal, color: const Color(0xFF1E293B)))),
+                                      Expanded(flex: 2, child: Text(package.category, style: const TextStyle(fontSize: 13, color: Color(0xFF64748B)))),
+                                      Expanded(flex: 2, child: Text('${package.testIds.length} Tests', style: const TextStyle(fontSize: 13, color: Color(0xFF2563EB)))),
+                                      Expanded(flex: 2, child: Text(package.discountedPrice.toStringAsFixed(2), style: const TextStyle(fontSize: 13, color: Color(0xFF1E293B)))),
+                                      Expanded(
+                                        flex: 2,
+                                        child: Row(
+                                          children: [
+                                            Container(width: 8, height: 8, decoration: BoxDecoration(color: package.isActive ? Colors.green : Colors.red, shape: BoxShape.circle)),
+                                            const SizedBox(width: 6),
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                              decoration: BoxDecoration(color: package.isActive ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1), borderRadius: BorderRadius.circular(4)),
+                                              child: Text(package.isActive ? 'Active' : 'Inactive', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: package.isActive ? Colors.green : Colors.red)),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      Expanded(
+                                        flex: 3,
+                                        child: SingleChildScrollView(
+                                          scrollDirection: Axis.horizontal,
+                                          child: Row(
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            children: [
+                                              _buildTableRowButton(Icons.visibility, ''),
+                                              const SizedBox(width: 4),
+                                              InkWell(onTap: () => _showAddPackageDialog(existingPackage: package), child: _buildTableRowButton(Icons.edit, '')),
+                                              const SizedBox(width: 4),
+                                              _buildTableRowButton(Icons.copy, ''),
+                                              const SizedBox(width: 4),
+                                              InkWell(
+                                                onTap: () async {
+                                                  await LabDataService.deletePackage(package.id);
+                                                  _loadData();
+                                                },
+                                                child: _buildTableRowButton(Icons.delete, ''),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                        
+                        // Pagination
+                        const Divider(height: 1, color: Color(0xFFE2E8F0)),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text('Showing 1 to 10 of $totalPackages packages', style: const TextStyle(color: Color(0xFF64748B), fontSize: 13)),
+                              Row(
+                                children: [
+                                  Container(padding: const EdgeInsets.all(6), decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE2E8F0)), borderRadius: BorderRadius.circular(4)), child: const Icon(Icons.chevron_left, size: 16)),
+                                  const SizedBox(width: 8),
+                                  Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6), decoration: BoxDecoration(color: const Color(0xFFEA580C), borderRadius: BorderRadius.circular(4)), child: const Text('1', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
+                                  const SizedBox(width: 8),
+                                  Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6), decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE2E8F0)), borderRadius: BorderRadius.circular(4)), child: const Text('2', style: TextStyle(color: Color(0xFF1E293B)))),
+                                  const SizedBox(width: 8),
+                                  Container(padding: const EdgeInsets.all(6), decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE2E8F0)), borderRadius: BorderRadius.circular(4)), child: const Icon(Icons.chevron_right, size: 16)),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                
+                const SizedBox(width: 24),
+                
+                // Right Pane: Detail View
+                Expanded(
+                  flex: 3,
+                  child: Column(
+                    children: [
+                      // Package Details Card
+                      Container(
                         padding: const EdgeInsets.all(24),
                         decoration: BoxDecoration(
                           color: Colors.white,
-                          borderRadius: BorderRadius.circular(16),
+                          borderRadius: BorderRadius.circular(12),
                           border: Border.all(color: const Color(0xFFE2E8F0)),
                         ),
                         child: Column(
@@ -185,45 +496,237 @@ class _LabPackagesScreenState extends State<LabPackagesScreen> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Expanded(child: Text(package.name, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)))),
                                 Row(
                                   children: [
-                                    IconButton(icon: const Icon(Icons.edit, color: Colors.blue, size: 20), onPressed: () => _showAddPackageDialog(existingPackage: package), padding: EdgeInsets.zero, constraints: const BoxConstraints()),
-                                    const SizedBox(width: 8),
-                                    IconButton(icon: const Icon(Icons.delete, color: Colors.red, size: 20), onPressed: () async {
-                                      await LabDataService.deletePackage(package.id);
-                                      _loadData();
-                                    }, padding: EdgeInsets.zero, constraints: const BoxConstraints()),
+                                    Container(
+                                      padding: const EdgeInsets.all(8),
+                                      decoration: BoxDecoration(color: const Color(0xFFEA580C).withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
+                                      child: const Icon(Icons.inventory_2, color: Color(0xFFEA580C)),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    const Text('Package Details', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
                                   ],
-                                )
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            Text(package.description, style: const TextStyle(color: Color(0xFF64748B), fontSize: 12), maxLines: 2, overflow: TextOverflow.ellipsis),
-                            const Spacer(),
-                            const Divider(height: 1),
-                            const SizedBox(height: 12),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text('${includedTests.length} Tests Included', style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFFEA580C))),
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.end,
-                                  children: [
-                                    Text('₹${originalPrice.toStringAsFixed(2)}', style: const TextStyle(decoration: TextDecoration.lineThrough, color: Color(0xFF94A3B8), fontSize: 12)),
-                                    Text('₹${package.discountedPrice.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E293B), fontSize: 18)),
-                                  ],
+                                ),
+                                OutlinedButton.icon(
+                                  onPressed: () {
+                                    if (_selectedPackage != null) _showAddPackageDialog(existingPackage: _selectedPackage!);
+                                  },
+                                  icon: const Icon(Icons.edit, size: 14),
+                                  label: const Text('Edit'),
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: const Color(0xFFEA580C),
+                                    side: const BorderSide(color: Color(0xFFE2E8F0)),
+                                  ),
                                 ),
                               ],
                             ),
+                            const SizedBox(height: 24),
+                            if (_selectedPackage != null) ...[
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        _buildDetailRow('Package Name', _selectedPackage!.name),
+                                        _buildDetailRow('Category', _selectedPackage!.category),
+                                        _buildDetailRow('Price (₹)', _selectedPackage!.discountedPrice.toStringAsFixed(2)),
+                                        Padding(
+                                          padding: const EdgeInsets.only(bottom: 12),
+                                          child: Row(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              const SizedBox(width: 100, child: Text('Status', style: TextStyle(color: Color(0xFF64748B), fontSize: 13))),
+                                              Container(
+                                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                                decoration: BoxDecoration(color: _selectedPackage!.isActive ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1), borderRadius: BorderRadius.circular(4)),
+                                                child: Row(
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  children: [
+                                                    Container(width: 6, height: 6, decoration: BoxDecoration(color: _selectedPackage!.isActive ? Colors.green : Colors.red, shape: BoxShape.circle)),
+                                                    const SizedBox(width: 6),
+                                                    Text(_selectedPackage!.isActive ? 'Active' : 'Inactive', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: _selectedPackage!.isActive ? Colors.green : Colors.red)),
+                                                  ],
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        _buildDetailRow('Total Tests', _selectedPackage!.testIds.length.toString()),
+                                      ],
+                                    ),
+                                  ),
+                                  // Mock graphic placeholder
+                                  Container(
+                                    width: 120,
+                                    height: 120,
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFEFF6FF),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: const [
+                                        Icon(Icons.medical_services, color: Color(0xFF3B82F6), size: 40),
+                                        SizedBox(height: 8),
+                                        Text('Health Package', textAlign: TextAlign.center, style: TextStyle(color: Color(0xFF1E3A8A), fontWeight: FontWeight.bold, fontSize: 12)),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 16),
+                              const Text('Description', style: TextStyle(color: Color(0xFF64748B), fontSize: 13)),
+                              const SizedBox(height: 4),
+                              Text(_selectedPackage!.description, style: const TextStyle(color: Color(0xFF1E293B), fontSize: 13)),
+                              const SizedBox(height: 16),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                children: [
+                                  _buildTrustBadge(Icons.verified, 'Accurate'),
+                                  _buildTrustBadge(Icons.local_offer, 'Affordable'),
+                                  _buildTrustBadge(Icons.favorite, 'Trusted'),
+                                ],
+                              ),
+                            ] else ...[
+                              const Center(child: Padding(padding: EdgeInsets.all(32), child: Text('Select a package to view details', style: TextStyle(color: Color(0xFF94A3B8))))),
+                            ],
                           ],
                         ),
-                      );
-                    },
+                      ),
+                      
+                      const SizedBox(height: 24),
+                      
+                      // Tests included list
+                      if (_selectedPackage != null)
+                        Expanded(
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: const Color(0xFFE2E8F0)),
+                            ),
+                            child: Column(
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.all(16),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text('Tests in this Package (${_selectedPackage!.testIds.length})', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                                      ElevatedButton.icon(
+                                        onPressed: () {},
+                                        icon: const Icon(Icons.add, size: 14),
+                                        label: const Text('Add Test', style: TextStyle(fontSize: 12)),
+                                        style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFEA580C), foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8)),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                  color: const Color(0xFFF8FAFC),
+                                  child: Row(
+                                    children: const [
+                                      SizedBox(width: 20, child: Text('#', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold))),
+                                      Expanded(flex: 3, child: Text('Test Name', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold))),
+                                      Expanded(flex: 2, child: Text('Category', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold))),
+                                      Text('Action', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                                      SizedBox(width: 8),
+                                    ],
+                                  ),
+                                ),
+                                const Divider(height: 1, color: Color(0xFFE2E8F0)),
+                                Expanded(
+                                  child: ListView.separated(
+                                    itemCount: _selectedPackage!.testIds.length,
+                                    separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFE2E8F0)),
+                                    itemBuilder: (context, index) {
+                                      final testId = _selectedPackage!.testIds[index];
+                                      final test = _allTests.firstWhere((t) => t.id == testId, orElse: () => LabTest(id: '', name: 'Unknown Test', description: '', category: 'Unknown', price: 0, templateId: ''));
+                                      return Padding(
+                                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                        child: Row(
+                                          children: [
+                                            SizedBox(width: 20, child: Text('${index + 1}', style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)))),
+                                            Expanded(flex: 3, child: Text(test.name, style: const TextStyle(fontSize: 12, color: Color(0xFF1E293B)))),
+                                            Expanded(flex: 2, child: Text(test.category, style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)))),
+                                            InkWell(onTap: () {}, child: Container(padding: const EdgeInsets.all(4), decoration: BoxDecoration(border: Border.all(color: Colors.red.shade100), borderRadius: BorderRadius.circular(4)), child: Icon(Icons.delete_outline, size: 14, color: Colors.red.shade400))),
+                                          ],
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
+                ),
+              ],
+            ),
+          ),
+          
+          const SizedBox(height: 24),
+          
+          // Quick Actions Row
+          Row(
+            children: [
+              Container(
+                width: 250,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: const Color(0xFFE2E8F0))),
+                child: Row(
+                  children: [
+                    Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: const Color(0xFFEA580C), borderRadius: BorderRadius.circular(8)), child: const Icon(Icons.inventory_2, color: Colors.white)),
+                    const SizedBox(width: 12),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: const [
+                        Text('Quick Actions', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 16),
+              _buildQuickAction(Icons.add, 'Create Package'),
+              const SizedBox(width: 16),
+              _buildQuickAction(Icons.copy, 'Duplicate Package'),
+              const SizedBox(width: 16),
+              _buildQuickAction(Icons.upload, 'Import Packages'),
+              const SizedBox(width: 16),
+              _buildQuickAction(Icons.download, 'Download List'),
+            ],
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildDetailRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(width: 100, child: Text(label, style: const TextStyle(color: Color(0xFF64748B), fontSize: 13))),
+          Expanded(child: Text(value, style: const TextStyle(color: Color(0xFF1E293B), fontSize: 13, fontWeight: FontWeight.w500))),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTrustBadge(IconData icon, String label) {
+    return Column(
+      children: [
+        Icon(icon, color: const Color(0xFFEA580C), size: 24),
+        const SizedBox(height: 4),
+        Text(label, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF64748B))),
+      ],
     );
   }
 }

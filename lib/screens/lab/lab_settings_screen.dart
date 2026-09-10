@@ -25,11 +25,11 @@ class LabSettingsScreen extends StatelessWidget {
           ),
           const SizedBox(height: 24),
           Expanded(
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
+            child: Material(
+              color: Colors.white,
+              shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
+                side: const BorderSide(color: Color(0xFFE2E8F0)),
               ),
               child: ListView(
                 padding: const EdgeInsets.all(24),
