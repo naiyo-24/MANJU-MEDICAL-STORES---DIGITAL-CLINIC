@@ -130,7 +130,7 @@ class _RoleLoginScreenState extends State<RoleLoginScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     TextButton.icon(
-                      onPressed: () => Navigator.pop(context),
+                      onPressed: () => Navigator.pop(context, ),
                       icon: const Icon(Icons.arrow_back, color: Colors.white, size: 18),
                       label: const Text('Back', style: TextStyle(color: Colors.white)),
                     ),
@@ -363,6 +363,7 @@ class _RoleLoginScreenState extends State<RoleLoginScreen> {
             const SizedBox(height: 32),
             TextFormField(
               controller: _userIdController,
+              textInputAction: TextInputAction.next,
               decoration: InputDecoration(
                 hintText: 'User ID',
                 prefixIcon: const Icon(Icons.person, color: Color(0xFF94A3B8)),
@@ -383,6 +384,8 @@ class _RoleLoginScreenState extends State<RoleLoginScreen> {
             TextFormField(
               controller: _passwordController,
               obscureText: _obscurePassword,
+              textInputAction: TextInputAction.done,
+              onFieldSubmitted: (_) => _login(),
               decoration: InputDecoration(
                 hintText: 'Password',
                 prefixIcon: const Icon(Icons.lock, color: Color(0xFF94A3B8)),

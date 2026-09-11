@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../home/dashboard_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -16,10 +17,7 @@ class _LoginScreenState extends State<LoginScreen> {
     if (_formKey.currentState!.validate()) {
       // In a real app, you would verify the password securely
       if (_passwordController.text == 'password') { // Dummy password for now
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const DashboardScreen()),
-        );
+        context.go('/dashboard');
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Invalid password')),

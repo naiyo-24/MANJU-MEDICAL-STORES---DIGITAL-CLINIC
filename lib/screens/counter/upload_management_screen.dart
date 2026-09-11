@@ -131,7 +131,7 @@ class UploadManagementScreen extends StatelessWidget {
                 Row(
                   children: [
                     InkWell(
-                      onTap: () => context.pop(),
+                      onTap: () => Navigator.pop(context, ),
                       child: const Row(
                         children: [
                           Icon(Icons.arrow_back, color: Color(0xFF1E293B), size: 18),
@@ -332,7 +332,7 @@ class UploadManagementScreen extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 OutlinedButton(
-                  onPressed: () => context.pop(),
+                  onPressed: () => Navigator.pop(context, ),
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
                     side: const BorderSide(color: Color(0xFFE2E8F0)),

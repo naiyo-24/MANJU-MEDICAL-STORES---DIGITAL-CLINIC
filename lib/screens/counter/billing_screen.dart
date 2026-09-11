@@ -236,7 +236,7 @@ class _BillingScreenState extends State<BillingScreen> {
                                 _isDiscountPercentage = draft.isDiscountPercentage;
                                 _discountController.text = _discountValue > 0 ? _discountValue.toString() : '';
                               });
-                              Navigator.pop(context);
+                              Navigator.pop(context, );
                               ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Draft loaded successfully!')));
                             },
                           ),
@@ -246,7 +246,7 @@ class _BillingScreenState extends State<BillingScreen> {
               ),
               actions: [
                 TextButton(
-                  onPressed: () => Navigator.pop(context),
+                  onPressed: () => Navigator.pop(context, ),
                   child: const Text('Close'),
                 ),
               ],
@@ -287,7 +287,7 @@ class _BillingScreenState extends State<BillingScreen> {
                       Text('Bill Preview ($_selectedFormat)', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
                       IconButton(
                         icon: const Icon(Icons.close),
-                        onPressed: () => Navigator.pop(context),
+                        onPressed: () => Navigator.pop(context, ),
                       ),
                     ],
                   ),
@@ -441,13 +441,13 @@ class _BillingScreenState extends State<BillingScreen> {
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(context),
+              onPressed: () => Navigator.pop(context, ),
               child: const Text('Cancel', style: TextStyle(color: Color(0xFF64748B), fontWeight: FontWeight.bold)),
             ),
             ElevatedButton(
               onPressed: () {
                 if (nameController.text.isNotEmpty && phoneController.text.isNotEmpty) {
-                  Navigator.pop(context);
+                  Navigator.pop(context, );
                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Customer ${nameController.text} added successfully!')));
                 }
               },
@@ -698,7 +698,7 @@ class _BillingScreenState extends State<BillingScreen> {
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(context),
+              onPressed: () => Navigator.pop(context, ),
               child: const Text('Cancel', style: TextStyle(color: Color(0xFF64748B), fontWeight: FontWeight.bold)),
             ),
             ElevatedButton(
@@ -719,7 +719,7 @@ class _BillingScreenState extends State<BillingScreen> {
                       'total': qty * price,
                     });
                   });
-                  Navigator.pop(context);
+                  Navigator.pop(context, );
                 }
               },
               style: ElevatedButton.styleFrom(

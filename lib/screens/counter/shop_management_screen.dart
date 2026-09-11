@@ -143,7 +143,7 @@ class _ShopManagementScreenState extends State<ShopManagementScreen> {
               ),
               actions: [
                 TextButton(
-                  onPressed: () => Navigator.pop(context),
+                  onPressed: () => Navigator.pop(context, ),
                   child: const Text('Cancel', style: TextStyle(color: Color(0xFF64748B), fontWeight: FontWeight.bold)),
                 ),
                 ElevatedButton(
@@ -176,7 +176,7 @@ class _ShopManagementScreenState extends State<ShopManagementScreen> {
                         });
                       }
                     });
-                    Navigator.pop(context);
+                    Navigator.pop(context, );
                     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(isEditing ? 'Shop updated successfully!' : 'Shop added successfully!')));
                   },
                   style: ElevatedButton.styleFrom(

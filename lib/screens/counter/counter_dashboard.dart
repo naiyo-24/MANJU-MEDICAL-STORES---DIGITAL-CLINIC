@@ -131,39 +131,7 @@ class _CounterDashboardState extends State<CounterDashboard> {
                   ),
                 ),
                 
-                const SizedBox(width: 24),
-                
-                // Notifications
-                InkWell(
-                  onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Notifications clicked')),
-                    );
-                  },
-                  borderRadius: BorderRadius.circular(20),
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Stack(
-                      children: [
-                        const Icon(Icons.notifications_none, color: Color(0xFF64748B)),
-                        Positioned(
-                          right: 2,
-                          top: 2,
-                          child: Container(
-                            width: 8,
-                            height: 8,
-                            decoration: const BoxDecoration(
-                              color: Colors.red,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                
-                const SizedBox(width: 24),
+
                 
                 // Profile Pill
                 PopupMenuButton<String>(
@@ -171,20 +139,10 @@ class _CounterDashboardState extends State<CounterDashboard> {
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                   onSelected: (value) {
                     if (value == 'logout') {
-                      context.go('/login');
+                      context.go('/dashboard');
                     }
                   },
                   itemBuilder: (context) => [
-                    const PopupMenuItem(
-                      value: 'profile',
-                      child: Row(
-                        children: [
-                          Icon(Icons.person, size: 18, color: Color(0xFF64748B)),
-                          SizedBox(width: 8),
-                          Text('Profile', style: TextStyle(fontSize: 14)),
-                        ],
-                      ),
-                    ),
                     const PopupMenuItem(
                       value: 'logout',
                       child: Row(
@@ -196,21 +154,25 @@ class _CounterDashboardState extends State<CounterDashboard> {
                       ),
                     ),
                   ],
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
                     child: Row(
                       children: [
                         const CircleAvatar(
-                          radius: 16,
-                          backgroundColor: Color(0xFFE2E8F0),
-                          child: Icon(Icons.person, color: Color(0xFF64748B), size: 18),
+                          radius: 12,
+                          backgroundColor: Color(0xFFF1F5F9),
+                          child: Icon(Icons.person, size: 16, color: Color(0xFF64748B)),
                         ),
                         const SizedBox(width: 8),
                         const Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Admin', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF1E293B))),
+                            Text('Counter Admin', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF1E293B))),
                             Text('Counter', style: TextStyle(fontSize: 10, color: Color(0xFF64748B))),
                           ],
                         ),
@@ -242,11 +204,7 @@ class _CounterDashboardState extends State<CounterDashboard> {
                         padding: const EdgeInsets.all(24.0),
                         child: Row(
                           children: [
-                            InkWell(
-                              onTap: () => context.go('/dashboard'),
-                              child: const Icon(Icons.arrow_back, color: Color(0xFF1E293B), size: 20),
-                            ),
-                            const SizedBox(width: 12),
+
                             const Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [

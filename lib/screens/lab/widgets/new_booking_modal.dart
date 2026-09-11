@@ -81,7 +81,7 @@ class _NewBookingModalState extends State<NewBookingModal> {
 
     await LabDataService.saveBooking(newBooking);
     widget.onBookingCreated();
-    if (mounted) Navigator.pop(context);
+    if (mounted) Navigator.pop(context, );
   }
 
   @override
@@ -103,7 +103,7 @@ class _NewBookingModalState extends State<NewBookingModal> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Text('New Booking', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
-                IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(context)),
+                IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(context, )),
               ],
             ),
             const SizedBox(height: 24),

@@ -75,7 +75,7 @@ class _LabCreateTemplateScreenState extends State<LabCreateTemplateScreen> {
       fields: _fields.where((f) => f.name.isNotEmpty).toList(),
     );
     await LabDataService.saveTemplate(template);
-    if (mounted) context.pop();
+    if (mounted) Navigator.pop(context, );
   }
 
   @override
@@ -92,7 +92,7 @@ class _LabCreateTemplateScreenState extends State<LabCreateTemplateScreen> {
             child: Row(
               children: [
                 InkWell(
-                  onTap: () => context.pop(),
+                  onTap: () => Navigator.pop(context, ),
                   child: const Icon(Icons.arrow_back, color: Color(0xFFEA580C), size: 20),
                 ),
                 const SizedBox(width: 8),

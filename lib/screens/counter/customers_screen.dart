@@ -99,7 +99,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   TextButton(
-                    onPressed: () => Navigator.pop(context),
+                    onPressed: () => Navigator.pop(context, ),
                     style: TextButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12)),
                     child: const Text('Cancel', style: TextStyle(color: Color(0xFF64748B), fontWeight: FontWeight.bold)),
                   ),
@@ -118,7 +118,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
                       );
                       await CustomerService.saveCustomer(newCust);
                       if (context.mounted) {
-                        Navigator.pop(context);
+                        Navigator.pop(context, );
                         _loadCustomers();
                         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Customer Added Successfully!')));
                       }

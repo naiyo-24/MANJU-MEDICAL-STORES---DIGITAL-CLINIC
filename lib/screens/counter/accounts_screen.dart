@@ -237,7 +237,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+                    TextButton(onPressed: () => Navigator.pop(context, ), child: const Text('Cancel')),
                     const SizedBox(width: 12),
                     ElevatedButton(
                       onPressed: () async {
@@ -257,7 +257,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
 
                         await TransactionService.saveTransaction(newTxn);
                         if (context.mounted) {
-                          Navigator.pop(context);
+                          Navigator.pop(context, );
                           _loadTransactions();
                         }
                       },

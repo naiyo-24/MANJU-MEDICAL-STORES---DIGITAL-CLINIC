@@ -195,52 +195,18 @@ class _LabDashboardState extends State<LabDashboard> {
             ),
           ),
           
-          const SizedBox(width: 24),
-          
-          // Notifications
-          InkWell(
-            onTap: () {},
-            borderRadius: BorderRadius.circular(20),
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Stack(
-                children: [
-                  const Icon(Icons.notifications_none, color: Color(0xFF64748B)),
-                  Positioned(
-                    right: 2,
-                    top: 2,
-                    child: Container(
-                      width: 8,
-                      height: 8,
-                      decoration: const BoxDecoration(
-                        color: Colors.red,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          
-          const SizedBox(width: 24),
+
           
           // Profile Pill
           PopupMenuButton<String>(
             offset: const Offset(0, 45),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-            onSelected: (value) {},
+            onSelected: (value) {
+              if (value == 'logout') {
+                context.go('/dashboard');
+              }
+            },
             itemBuilder: (context) => [
-              const PopupMenuItem(
-                value: 'profile',
-                child: Row(
-                  children: [
-                    Icon(Icons.person, size: 18, color: Color(0xFF64748B)),
-                    SizedBox(width: 8),
-                    Text('Profile', style: TextStyle(fontSize: 14)),
-                  ],
-                ),
-              ),
               const PopupMenuItem(
                 value: 'logout',
                 child: Row(
@@ -252,14 +218,18 @@ class _LabDashboardState extends State<LabDashboard> {
                 ),
               ),
             ],
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                border: Border.all(color: const Color(0xFFE2E8F0)),
+                borderRadius: BorderRadius.circular(20),
+              ),
               child: Row(
                 children: [
                   const CircleAvatar(
-                    radius: 16,
-                    backgroundColor: Color(0xFFE2E8F0),
-                    child: Icon(Icons.person, color: Color(0xFF64748B), size: 18),
+                    radius: 12,
+                    backgroundColor: Color(0xFFF1F5F9),
+                    child: Icon(Icons.person, size: 16, color: Color(0xFF64748B)),
                   ),
                   const SizedBox(width: 8),
                   const Column(

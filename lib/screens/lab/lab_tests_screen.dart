@@ -104,7 +104,7 @@ class _LabTestsScreenState extends State<LabTestsScreen> {
             ),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+            TextButton(onPressed: () => Navigator.pop(context, ), child: const Text('Cancel')),
             ElevatedButton(
               onPressed: () async {
                 final test = LabTest(
@@ -120,7 +120,7 @@ class _LabTestsScreenState extends State<LabTestsScreen> {
                   isActive: isActive,
                 );
                 await LabDataService.saveTest(test);
-                if (mounted) Navigator.pop(context);
+                if (mounted) Navigator.pop(context, );
                 _loadData();
               },
               style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFEA580C), foregroundColor: Colors.white),

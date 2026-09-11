@@ -122,7 +122,7 @@ class _LabPackagesScreenState extends State<LabPackagesScreen> {
             ),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+            TextButton(onPressed: () => Navigator.pop(context, ), child: const Text('Cancel')),
             ElevatedButton(
               style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFEA580C), foregroundColor: Colors.white),
               onPressed: () async {
@@ -136,7 +136,7 @@ class _LabPackagesScreenState extends State<LabPackagesScreen> {
                   isActive: isActive,
                 );
                 await LabDataService.savePackage(pkg);
-                if (mounted) Navigator.pop(context);
+                if (mounted) Navigator.pop(context, );
                 _loadData();
               },
               child: const Text('Save'),
