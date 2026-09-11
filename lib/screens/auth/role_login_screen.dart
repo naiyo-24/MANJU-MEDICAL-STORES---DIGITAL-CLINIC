@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../services/auth_service.dart';
 
 class RoleLoginScreen extends StatefulWidget {
   final String roleName;
@@ -23,14 +24,51 @@ class _RoleLoginScreenState extends State<RoleLoginScreen> {
   final _formKey = GlobalKey<FormState>();
   bool _obscurePassword = true;
 
-  void _login() {
+  bool _isLoading = false;
+
+  Future<void> _login() async {
     if (_formKey.currentState!.validate()) {
-      if (_userIdController.text == 'admin' && _passwordController.text == 'password') {
-        context.go(widget.nextRoute);
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Invalid User ID or Password')),
+      setState(() {
+        _isLoading = true;
+      });
+      
+      try {
+        final success = await AuthService.adminLogin(
+          _userIdController.text, 
+          _passwordController.text
         );
+        
+        if (success && mounted) {
+          context.go(widget.nextRoute);
+        }
+      } catch (e) {
+        if (mounted) {
+          showDialog(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              title: const Row(
+                children: [
+                  Icon(Icons.error_outline, color: Colors.red),
+                  SizedBox(width: 8),
+                  Text('Login Failed', style: TextStyle(color: Colors.red)),
+                ],
+              ),
+              content: Text(e.toString().replaceAll('Exception: ', '')),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text('OK', style: TextStyle(color: Color(0xFF1E293B))),
+                ),
+              ],
+            ),
+          );
+        }
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
       }
     }
   }
@@ -418,7 +456,7 @@ class _RoleLoginScreenState extends State<RoleLoginScreen> {
               width: double.infinity,
               height: 50,
               child: ElevatedButton(
-                onPressed: _login,
+                onPressed: _isLoading ? null : _login,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: widget.themeColor,
                   foregroundColor: Colors.white,
@@ -427,14 +465,16 @@ class _RoleLoginScreenState extends State<RoleLoginScreen> {
                   ),
                   elevation: 0,
                 ),
-                child: const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text('LOGIN', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, letterSpacing: 1)),
-                    SizedBox(width: 8),
-                    Icon(Icons.arrow_forward, size: 18),
-                  ],
-                ),
+                child: _isLoading
+                    ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                    : const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text('LOGIN', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, letterSpacing: 1)),
+                          SizedBox(width: 8),
+                          Icon(Icons.arrow_forward, size: 18),
+                        ],
+                      ),
               ),
             ),
             const SizedBox(height: 24),

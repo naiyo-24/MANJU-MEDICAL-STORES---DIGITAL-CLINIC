@@ -16,6 +16,10 @@ class _CustomersScreenState extends State<CustomersScreen> {
   final int _itemsPerPage = 10;
   int _activeCustomerTab = 0;
   List<Map<String, dynamic>> _allCustomers = [];
+  String _searchQuery = '';
+  String _selectedStatus = 'All Status';
+  String _selectedCity = 'All Cities';
+  final TextEditingController _searchCtrl = TextEditingController();
 
   @override
   void initState() {
@@ -32,30 +36,31 @@ class _CustomersScreenState extends State<CustomersScreen> {
           : c.name.isNotEmpty ? c.name[0].toUpperCase() : 'C';
 
       return {
+        'full_id': c.id,
         'id': c.id.substring(c.id.length > 8 ? c.id.length - 8 : 0),
         'name': c.name,
         'initials': initials,
         'phone': c.phone,
-        'city': 'Local',
+        'email': c.email.isNotEmpty ? c.email : 'N/A',
+        'city': c.location.isNotEmpty ? c.location : 'Local',
         'totalPurchases': 0.0,
         'bills': 0,
         'lastPurchase': 'N/A',
-        'status': 'Active',
-        'email': 'N/A',
+        'status': c.isActive ? 'Active' : 'Inactive',
         'memberSince': 'Today',
-        'age': c.age,
       };
     }).toList();
 
     setState(() {
-      _allCustomers = [...mappedRealCustomers, ..._dummyCustomers];
+      _allCustomers = mappedRealCustomers;
     });
   }
 
   void _showAddCustomerDialog() {
     final nameCtrl = TextEditingController();
     final phoneCtrl = TextEditingController();
-    final ageCtrl = TextEditingController();
+    final emailCtrl = TextEditingController();
+    final locationCtrl = TextEditingController();
 
     showDialog(
       context: context,
@@ -93,7 +98,9 @@ class _CustomersScreenState extends State<CustomersScreen> {
               const SizedBox(height: 16),
               _buildModernTextField(phoneCtrl, 'Phone Number', Icons.phone_outlined, isNumber: true),
               const SizedBox(height: 16),
-              _buildModernTextField(ageCtrl, 'Age', Icons.calendar_today_outlined, isNumber: true),
+              _buildModernTextField(emailCtrl, 'Email Address', Icons.email_outlined),
+              const SizedBox(height: 16),
+              _buildModernTextField(locationCtrl, 'Location/City', Icons.location_on_outlined),
               const SizedBox(height: 32),
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
@@ -114,7 +121,9 @@ class _CustomersScreenState extends State<CustomersScreen> {
                         id: DateTime.now().millisecondsSinceEpoch.toString(),
                         name: nameCtrl.text,
                         phone: phoneCtrl.text,
-                        age: ageCtrl.text,
+                        email: emailCtrl.text,
+                        location: locationCtrl.text,
+                        isActive: true, // Defaults to true when adding
                       );
                       await CustomerService.saveCustomer(newCust);
                       if (context.mounted) {
@@ -141,6 +150,125 @@ class _CustomersScreenState extends State<CustomersScreen> {
     );
   }
 
+  void _showEditCustomerDialog(Map<String, dynamic> customerMap) {
+    final nameCtrl = TextEditingController(text: customerMap['name']);
+    final phoneCtrl = TextEditingController(text: customerMap['phone']);
+    final emailCtrl = TextEditingController(text: customerMap['email'] == 'N/A' ? '' : customerMap['email']);
+    final locationCtrl = TextEditingController(text: customerMap['city'] == 'Local' ? '' : customerMap['city']);
+    bool isActive = customerMap['status'] == 'Active';
+
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          elevation: 0,
+          backgroundColor: Colors.transparent,
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 20, offset: const Offset(0, 10)),
+              ],
+            ),
+            width: 400,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(color: const Color(0xFFE0F2FE), borderRadius: BorderRadius.circular(12)),
+                      child: const Icon(Icons.edit_outlined, color: Color(0xFF0369A1), size: 24),
+                    ),
+                    const SizedBox(width: 16),
+                    const Text('Edit Customer', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                _buildModernTextField(nameCtrl, 'Customer Name', Icons.person_outline),
+                const SizedBox(height: 16),
+                _buildModernTextField(phoneCtrl, 'Phone Number', Icons.phone_outlined, isNumber: true),
+                const SizedBox(height: 16),
+                _buildModernTextField(emailCtrl, 'Email Address', Icons.email_outlined),
+                const SizedBox(height: 16),
+                _buildModernTextField(locationCtrl, 'Location/City', Icons.location_on_outlined),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text('Active Status', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                    Switch(
+                      value: isActive,
+                      onChanged: (val) {
+                        setDialogState(() {
+                          isActive = val;
+                        });
+                      },
+                      activeColor: const Color(0xFF0369A1),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 32),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: TextButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12)),
+                      child: const Text('Cancel', style: TextStyle(color: Color(0xFF64748B), fontWeight: FontWeight.bold)),
+                    ),
+                    const SizedBox(width: 12),
+                    ElevatedButton(
+                      onPressed: () async {
+                        if (nameCtrl.text.isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Name is required')));
+                          return;
+                        }
+                        final updatedCust = Customer(
+                          id: customerMap['full_id'] ?? customerMap['id'], // We need the full UUID to update
+                          name: nameCtrl.text,
+                          phone: phoneCtrl.text,
+                          email: emailCtrl.text,
+                          location: locationCtrl.text,
+                          isActive: isActive,
+                        );
+                        try {
+                          await CustomerService.updateCustomer(updatedCust);
+                        if (context.mounted) {
+                          Navigator.pop(context);
+                          _loadCustomers();
+                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Customer Updated Successfully!')));
+                        }
+                      } catch (e) {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+                        }
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF0369A1),
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                    child: const Text('Save Changes', style: TextStyle(fontWeight: FontWeight.bold)),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+      ),
+    );
+  }
+
   Widget _buildModernTextField(TextEditingController controller, String hint, IconData icon, {bool isNumber = false}) {
     return TextFormField(
       controller: controller,
@@ -159,120 +287,23 @@ class _CustomersScreenState extends State<CustomersScreen> {
     );
   }
 
-  final List<Map<String, dynamic>> _dummyCustomers = [
-    {
-      'id': 'CUST0001',
-      'name': 'Rahul Das',
-      'initials': 'RD',
-      'phone': '+91 98765 43210',
-      'city': 'Kolkata',
-      'totalPurchases': 4250.00,
-      'bills': 12,
-      'lastPurchase': '09 Sep 2026',
-      'status': 'Active',
-      'email': 'rahul.das@gmail.com',
-      'memberSince': '12 Jan 2024'
-    },
-    {
-      'id': 'CUST0002',
-      'name': 'Priya Sharma',
-      'initials': 'PS',
-      'phone': '+91 91234 56789',
-      'city': 'Kolkata',
-      'totalPurchases': 2780.00,
-      'bills': 8,
-      'lastPurchase': '08 Sep 2026',
-      'status': 'Active',
-      'email': 'priya.s@yahoo.com',
-      'memberSince': '05 Feb 2024'
-    },
-    {
-      'id': 'CUST0003',
-      'name': 'Suman Roy',
-      'initials': 'SR',
-      'phone': '+91 98300 11223',
-      'city': 'Howrah',
-      'totalPurchases': 1980.00,
-      'bills': 5,
-      'lastPurchase': '07 Sep 2026',
-      'status': 'Active',
-      'email': 'sumanroy12@gmail.com',
-      'memberSince': '15 Mar 2024'
-    },
-    {
-      'id': 'CUST0004',
-      'name': 'Amit Mondal',
-      'initials': 'AM',
-      'phone': '+91 98760 44556',
-      'city': 'Kolkata',
-      'totalPurchases': 6320.00,
-      'bills': 20,
-      'lastPurchase': '09 Sep 2026',
-      'status': 'VIP',
-      'email': 'amit.mondal@company.in',
-      'memberSince': '01 Nov 2023'
-    },
-    {
-      'id': 'CUST0005',
-      'name': 'Neha Patel',
-      'initials': 'NP',
-      'phone': '+91 99011 22334',
-      'city': 'Kolkata',
-      'totalPurchases': 3150.00,
-      'bills': 10,
-      'lastPurchase': '08 Sep 2026',
-      'status': 'Active',
-      'email': 'neha.p99@gmail.com',
-      'memberSince': '20 Apr 2024'
-    },
-    {
-      'id': 'CUST0006',
-      'name': 'Karan Mehta',
-      'initials': 'KM',
-      'phone': '+91 91230 44567',
-      'city': 'Salt Lake',
-      'totalPurchases': 890.00,
-      'bills': 3,
-      'lastPurchase': '05 Sep 2026',
-      'status': 'Inactive',
-      'email': 'karan.m@gmail.com',
-      'memberSince': '10 May 2024'
-    },
-    {
-      'id': 'CUST0007',
-      'name': 'Anita Ghosh',
-      'initials': 'AG',
-      'phone': '+91 98001 99887',
-      'city': 'Howrah',
-      'totalPurchases': 5440.00,
-      'bills': 15,
-      'lastPurchase': '06 Sep 2026',
-      'status': 'Active',
-      'email': 'anita.g@rediffmail.com',
-      'memberSince': '22 Dec 2023'
-    },
-    {
-      'id': 'CUST0008',
-      'name': 'Debashis Sen',
-      'initials': 'DS',
-      'phone': '+91 98312 44567',
-      'city': 'Kolkata',
-      'totalPurchases': 2120.00,
-      'bills': 7,
-      'lastPurchase': '04 Sep 2026',
-      'status': 'Active',
-      'email': 'debashis.sen@gmail.com',
-      'memberSince': '30 Jan 2024'
-    },
-  ];
 
   @override
   Widget build(BuildContext context) {
-    final totalRecords = _allCustomers.length;
+    final filteredCustomers = _allCustomers.where((c) {
+      final matchesSearch = c['name'].toString().toLowerCase().contains(_searchQuery.toLowerCase()) ||
+                            c['phone'].toString().contains(_searchQuery) ||
+                            c['id'].toString().toLowerCase().contains(_searchQuery.toLowerCase());
+      final matchesStatus = _selectedStatus == 'All Status' || c['status'] == _selectedStatus;
+      final matchesCity = _selectedCity == 'All Cities' || c['city'] == _selectedCity;
+      return matchesSearch && matchesStatus && matchesCity;
+    }).toList();
+
+    final totalRecords = filteredCustomers.length;
     final totalPages = (totalRecords / _itemsPerPage).ceil() == 0 ? 1 : (totalRecords / _itemsPerPage).ceil();
     final startIdx = (_currentPage - 1) * _itemsPerPage;
     final endIdx = (startIdx + _itemsPerPage > totalRecords) ? totalRecords : startIdx + _itemsPerPage;
-    final pagedCustomers = _allCustomers.isNotEmpty ? _allCustomers.sublist(startIdx, endIdx) : <Map<String, dynamic>>[];
+    final pagedCustomers = filteredCustomers.isNotEmpty ? filteredCustomers.sublist(startIdx, endIdx) : <Map<String, dynamic>>[];
 
     return Container(
       color: const Color(0xFFF8FAFC), // Light gray background
@@ -323,13 +354,13 @@ class _CustomersScreenState extends State<CustomersScreen> {
           // Summary Cards
           Row(
             children: [
-              Expanded(child: _buildStatCard('Total Customers', '512', Icons.people, const Color(0xFFDCFCE7), const Color(0xFF166534))),
+              Expanded(child: _buildStatCard('Total Customers', '${_allCustomers.length}', Icons.people, const Color(0xFFDCFCE7), const Color(0xFF166534))),
               const SizedBox(width: 16),
-              Expanded(child: _buildStatCard('Active Customers', '428', Icons.check_circle_outline, const Color(0xFFE0F2FE), const Color(0xFF0369A1))),
+              Expanded(child: _buildStatCard('Active Customers', '${_allCustomers.length}', Icons.check_circle_outline, const Color(0xFFE0F2FE), const Color(0xFF0369A1))),
               const SizedBox(width: 16),
-              Expanded(child: _buildStatCard('New This Month', '76', Icons.person_add_alt_1, const Color(0xFFFFEDD5), const Color(0xFFC2410C))),
+              Expanded(child: _buildStatCard('New This Month', '0', Icons.person_add_alt_1, const Color(0xFFFFEDD5), const Color(0xFFC2410C))),
               const SizedBox(width: 16),
-              Expanded(child: _buildStatCard('Loyal Customers', '32', Icons.star, const Color(0xFFF3E8FF), const Color(0xFF7E22CE), subtitle: '(10+ purchases)')),
+              Expanded(child: _buildStatCard('Loyal Customers', '0', Icons.star, const Color(0xFFF3E8FF), const Color(0xFF7E22CE), subtitle: '(10+ purchases)')),
             ],
           ),
           const SizedBox(height: 24),
@@ -359,6 +390,11 @@ class _CustomersScreenState extends State<CustomersScreen> {
                               Expanded(
                                 flex: 2,
                                 child: TextField(
+                                  controller: _searchCtrl,
+                                  onChanged: (val) => setState(() {
+                                    _searchQuery = val;
+                                    _currentPage = 1;
+                                  }),
                                   decoration: InputDecoration(
                                     hintText: 'Search by name, phone, customer ID...',
                                     prefixIcon: const Icon(Icons.search, size: 20),
@@ -375,9 +411,14 @@ class _CustomersScreenState extends State<CustomersScreen> {
                                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
                                     contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 12),
                                   ),
-                                  value: 'All Status',
-                                  items: ['All Status', 'Active', 'Inactive', 'VIP'].map((s) => DropdownMenuItem(value: s, child: Text(s, style: const TextStyle(fontSize: 14)))).toList(),
-                                  onChanged: (val) {},
+                                  value: _selectedStatus,
+                                  items: ['All Status', ..._allCustomers.map((e) => e['status'].toString()).toSet()]
+                                      .map((s) => DropdownMenuItem(value: s, child: Text(s, style: const TextStyle(fontSize: 14))))
+                                      .toList(),
+                                  onChanged: (val) => setState(() {
+                                    _selectedStatus = val!;
+                                    _currentPage = 1;
+                                  }),
                                 ),
                               ),
                               const SizedBox(width: 12),
@@ -388,26 +429,27 @@ class _CustomersScreenState extends State<CustomersScreen> {
                                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
                                     contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 12),
                                   ),
-                                  value: 'All Cities',
-                                  items: ['All Cities', 'Kolkata', 'Howrah', 'Salt Lake'].map((s) => DropdownMenuItem(value: s, child: Text(s, style: const TextStyle(fontSize: 14)))).toList(),
-                                  onChanged: (val) {},
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              ElevatedButton.icon(
-                                onPressed: () {},
-                                icon: const Icon(Icons.filter_list, size: 18),
-                                label: const Text('Filter'),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFF22C55E),
-                                  foregroundColor: Colors.white,
-                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                  value: _selectedCity,
+                                  items: ['All Cities', ..._allCustomers.map((e) => e['city'].toString()).toSet()]
+                                      .map((s) => DropdownMenuItem(value: s, child: Text(s, style: const TextStyle(fontSize: 14))))
+                                      .toList(),
+                                  onChanged: (val) => setState(() {
+                                    _selectedCity = val!;
+                                    _currentPage = 1;
+                                  }),
                                 ),
                               ),
                               const SizedBox(width: 12),
                               OutlinedButton.icon(
-                                onPressed: () {},
+                                onPressed: () {
+                                  setState(() {
+                                    _searchCtrl.clear();
+                                    _searchQuery = '';
+                                    _selectedStatus = 'All Status';
+                                    _selectedCity = 'All Cities';
+                                    _currentPage = 1;
+                                  });
+                                },
                                 icon: const Icon(Icons.refresh, size: 18),
                                 label: const Text('Reset'),
                                 style: OutlinedButton.styleFrom(
@@ -674,9 +716,18 @@ class _CustomersScreenState extends State<CustomersScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Text('Customer Details', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                InkWell(
-                  onTap: () => setState(() => _selectedCustomer = null),
-                  child: const Icon(Icons.close, size: 20, color: Color(0xFF64748B)),
+                Row(
+                  children: [
+                    InkWell(
+                      onTap: () => _showEditCustomerDialog(customer),
+                      child: const Icon(Icons.edit_outlined, size: 20, color: Color(0xFF0369A1)),
+                    ),
+                    const SizedBox(width: 16),
+                    InkWell(
+                      onTap: () => setState(() => _selectedCustomer = null),
+                      child: const Icon(Icons.close, size: 20, color: Color(0xFF64748B)),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -826,11 +877,19 @@ class _CustomersScreenState extends State<CustomersScreen> {
                           ],
                         ),
                       ),
-                      _buildHistoryRow('09 Sep 2026', 'BIL000123', '₹ 245.00'),
-                      _buildHistoryRow('28 Aug 2026', 'BIL000110', '₹ 560.00'),
-                      _buildHistoryRow('15 Aug 2026', 'BIL000098', '₹ 420.00'),
-                      _buildHistoryRow('02 Aug 2026', 'BIL000087', '₹ 310.00'),
-                      _buildHistoryRow('18 Jul 2026', 'BIL000076', '₹ 685.00'),
+                      if (customer['bills'] > 0)
+                        // This would be replaced with actual history mapping when API is connected
+                        ...[]
+                      else
+                        const Padding(
+                          padding: EdgeInsets.all(32.0),
+                          child: Center(
+                            child: Text(
+                              'No purchases found',
+                              style: TextStyle(color: Color(0xFF94A3B8), fontSize: 13),
+                            ),
+                          ),
+                        ),
                     ],
                   )
                 : const Center(

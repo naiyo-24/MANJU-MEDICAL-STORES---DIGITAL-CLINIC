@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:printing/printing.dart';
 import 'package:file_saver/file_saver.dart';
 import 'dart:async';
-import 'package:printing/printing.dart';
-import 'package:pdf/pdf.dart';
-import '../../utils/pdf_generator.dart';
-import '../../services/draft_service.dart';
+import '../../services/inventory_service.dart';
 import '../../services/customer_service.dart';
+import '../../services/billing_service.dart';
+import '../../services/doctor_service.dart';
+import '../../services/draft_service.dart';
+import '../../utils/pdf_generator.dart';
 
 class BillingScreen extends StatefulWidget {
   const BillingScreen({super.key});
@@ -16,25 +20,11 @@ class BillingScreen extends StatefulWidget {
 }
 
 class _BillingScreenState extends State<BillingScreen> {
-  // Dummy Data for Available Medicines
-  final List<Map<String, dynamic>> _availableMedicines = [
-    {'name': 'Paracetamol 500mg', 'brand': 'Crocin', 'pack': '10 Tablets', 'mrp': 25.00, 'stock': 120},
-    {'name': 'Azithromycin 500mg', 'brand': 'Azithral', 'pack': '3 Tablets', 'mrp': 85.00, 'stock': 45},
-    {'name': 'Cetirizine 10mg', 'brand': 'Zyrtec', 'pack': '10 Tablets', 'mrp': 30.00, 'stock': 200},
-    {'name': 'Pantoprazole 40mg', 'brand': 'Pantocid', 'pack': '10 Tablets', 'mrp': 65.00, 'stock': 75},
-    {'name': 'Amoxicillin 500mg', 'brand': 'Mox', 'pack': '10 Capsules', 'mrp': 90.00, 'stock': 30},
-    {'name': 'ORS Powder', 'brand': 'Electral', 'pack': '21.8 gm', 'mrp': 22.00, 'stock': 150},
-    {'name': 'Vitamin D3 60K', 'brand': 'Uprise D3', 'pack': '4 Capsules', 'mrp': 120.00, 'stock': 60},
-    {'name': 'Calcium + D3', 'brand': 'Shelcal', 'pack': '15 Tablets', 'mrp': 110.00, 'stock': 80},
-  ];
+  List<Map<String, dynamic>> _medicines = [];
+  List<Map<String, dynamic>> _filteredMedicines = [];
 
   // Modifiable Data for Current Bill
-  List<Map<String, dynamic>> _currentBill = [
-    {'name': 'Paracetamol 500mg', 'brand': 'Crocin', 'qty': 2, 'price': 25.00, 'total': 50.00},
-    {'name': 'Cetirizine 10mg', 'brand': 'Zyrtec', 'qty': 1, 'price': 30.00, 'total': 30.00},
-    {'name': 'ORS Powder', 'brand': 'Electral', 'qty': 1, 'price': 22.00, 'total': 22.00},
-    {'name': 'Vitamin D3 60K', 'brand': 'Uprise D3', 'qty': 1, 'price': 120.00, 'total': 120.00},
-  ];
+  List<Map<String, dynamic>> _currentBill = [];
 
   final List<String> _categories = ['All', 'Tablets', 'Capsules', 'Syrups', 'Injections', 'Ointments', 'Others'];
   int _selectedCategoryIndex = 0;
@@ -42,24 +32,46 @@ class _BillingScreenState extends State<BillingScreen> {
   bool _isDiscountPercentage = true;
   double _discountValue = 0.0;
   final TextEditingController _discountController = TextEditingController();
+  
+  bool _isGstPercentage = true;
+  double _gstValue = 0.0;
+  final TextEditingController _gstController = TextEditingController();
+
   final TextEditingController _customerNameController = TextEditingController();
   final TextEditingController _customerPhoneController = TextEditingController();
   final TextEditingController _customerAgeController = TextEditingController();
   final TextEditingController _newDoctorController = TextEditingController();
-  final List<String> _doctorsList = ['Dr. Default', 'Dr. Smith', 'Dr. Adams', 'New Doctor'];
-  String _selectedDoctor = 'Dr. Default';
+  
+  List<Doctor> _doctorsList = [];
+  String? _selectedDoctorId;
+  String _selectedDoctorName = 'Walk-in';
+  
   DateTime _currentTime = DateTime.now();
   Timer? _timer;
   String _selectedFormat = 'A4'; // Default format
+  String? _savedCustomerId;
+  
+  bool _isGeneratingBill = false;
 
   @override
   void initState() {
     super.initState();
+    _startClock();
+    _fetchMedicines();
+    _fetchDoctors();
     _discountController.addListener(() {
       setState(() {
         _discountValue = double.tryParse(_discountController.text) ?? 0.0;
       });
     });
+    _gstController.addListener(() {
+      setState(() {
+        _gstValue = double.tryParse(_gstController.text) ?? 0.0;
+      });
+    });
+  }
+
+  void _startClock() {
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       setState(() {
         _currentTime = DateTime.now();
@@ -95,30 +107,7 @@ class _BillingScreenState extends State<BillingScreen> {
     return '$hour:$minute $period';
   }
 
-  // Computed properties for Bill Summary
-  int get _totalItems => _currentBill.length;
-  
-  double get _subtotal {
-    double total = 0.0;
-    for (var item in _currentBill) {
-      if (item['total'] != null) {
-        total += (item['total'] as num).toDouble();
-      }
-    }
-    return total;
-  }
-  
-  double get _discountAmount {
-    double discount = 0.0;
-    if (_isDiscountPercentage) {
-      discount = _subtotal * (_discountValue / 100);
-    } else {
-      discount = _discountValue;
-    }
-    return discount;
-  }
 
-  double get _grandTotal => _subtotal - _discountAmount;
 
   Future<void> _saveDraft() async {
     if (_currentBill.isEmpty) {
@@ -131,7 +120,7 @@ class _BillingScreenState extends State<BillingScreen> {
       customerName: _customerNameController.text,
       customerPhone: _customerPhoneController.text,
       customerAge: _customerAgeController.text,
-      doctorName: _selectedDoctor == 'New Doctor' ? _newDoctorController.text : _selectedDoctor,
+      doctorName: _selectedDoctorId == 'new' ? _newDoctorController.text : _selectedDoctorName,
       format: _selectedFormat,
       items: List.from(_currentBill),
       discountValue: _discountValue,
@@ -164,12 +153,81 @@ class _BillingScreenState extends State<BillingScreen> {
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       name: _customerNameController.text,
       phone: _customerPhoneController.text,
-      age: _customerAgeController.text,
     );
 
-    await CustomerService.saveCustomer(customer);
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Customer saved to database successfully!')));
+    try {
+      final savedCustomer = await CustomerService.saveCustomer(customer);
+      if (mounted) {
+        setState(() {
+          _savedCustomerId = savedCustomer.id;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Customer saved to database successfully!')));
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error saving customer: $e'), backgroundColor: Colors.red));
+      }
+    }
+  }
+
+  double get _subtotal {
+    return _currentBill.fold(0.0, (sum, item) => sum + (item['total'] as double));
+  }
+
+  int get _totalItems => _currentBill.length;
+
+  double get _discountAmount {
+    if (_isDiscountPercentage) {
+      return _subtotal * (_discountValue / 100);
+    }
+    return _discountValue;
+  }
+  
+  double get _gstAmount {
+    final amountAfterDiscount = _subtotal - _discountAmount;
+    if (_isGstPercentage) {
+      return amountAfterDiscount * (_gstValue / 100);
+    }
+    return _gstValue;
+  }
+
+  double get _grandTotal {
+    return _subtotal - _discountAmount + _gstAmount;
+  }
+
+  Future<void> _fetchMedicines() async {
+    try {
+      final fetchedMedicines = await InventoryService.fetchInventory();
+      if (mounted) {
+        setState(() {
+          _medicines = fetchedMedicines.map((item) => {
+            'inventory_item_id': item.id,
+            'name': item.name,
+            'brand': item.manufacturer,
+            'pack': item.sku,
+            'mrp': item.unitPrice,
+            'stock': item.stockQuantity,
+          }).toList();
+          _filteredMedicines = _medicines;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error loading inventory: $e'), backgroundColor: Colors.red));
+      }
+    }
+  }
+
+  Future<void> _fetchDoctors() async {
+    try {
+      final doctors = await DoctorService.fetchDoctors();
+      if (mounted) {
+        setState(() {
+          _doctorsList = doctors;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error fetching doctors: $e');
     }
   }
 
@@ -221,14 +279,21 @@ class _BillingScreenState extends State<BillingScreen> {
                                 _customerNameController.text = draft.customerName;
                                 _customerPhoneController.text = draft.customerPhone;
                                 _customerAgeController.text = draft.customerAge;
-                                if (_doctorsList.contains(draft.doctorName)) {
-                                  _selectedDoctor = draft.doctorName;
+                                final matchedDoctor = _doctorsList.cast<Doctor?>().firstWhere(
+                                  (d) => d?.name == draft.doctorName, 
+                                  orElse: () => null
+                                );
+                                if (matchedDoctor != null) {
+                                  _selectedDoctorId = matchedDoctor.id;
+                                  _selectedDoctorName = matchedDoctor.name;
                                   _newDoctorController.clear();
-                                } else if (draft.doctorName.isNotEmpty) {
-                                  _selectedDoctor = 'New Doctor';
+                                } else if (draft.doctorName.isNotEmpty && draft.doctorName != 'Walk-in') {
+                                  _selectedDoctorId = 'new';
+                                  _selectedDoctorName = 'New Doctor';
                                   _newDoctorController.text = draft.doctorName;
                                 } else {
-                                  _selectedDoctor = 'Dr. Default';
+                                  _selectedDoctorId = 'walk-in';
+                                  _selectedDoctorName = 'Walk-in';
                                   _newDoctorController.clear();
                                 }
                                 _selectedFormat = draft.format.isNotEmpty ? draft.format : 'A4';
@@ -299,12 +364,13 @@ class _BillingScreenState extends State<BillingScreen> {
                       items: _currentBill,
                       subtotal: _subtotal,
                       discount: _discountAmount,
+                      tax: _gstAmount,
                       grandTotal: _grandTotal,
                       invoiceNumber: invoiceNo,
                       customerName: _customerNameController.text.isNotEmpty ? _customerNameController.text : 'Walk-in Customer',
                       customerPhone: _customerPhoneController.text,
                       customerAge: _customerAgeController.text,
-                      doctorName: _selectedDoctor == 'New Doctor' ? _newDoctorController.text : _selectedDoctor,
+                      doctorName: _selectedDoctorId == 'new' ? _newDoctorController.text : _selectedDoctorName,
                       format: _selectedFormat,
                     ),
                     allowPrinting: true,
@@ -333,19 +399,39 @@ class _BillingScreenState extends State<BillingScreen> {
       return;
     }
 
+    setState(() {
+      _isGeneratingBill = true;
+    });
+
     try {
+      // 1. Send to Backend POS API
+      final checkoutItems = _currentBill.where((item) => item['inventory_item_id'] != null).toList();
+      
+      if (checkoutItems.isNotEmpty) {
+        await BillingService.checkout(
+          items: checkoutItems,
+          customerId: _savedCustomerId,
+          paymentMethod: 'CASH',
+        );
+      }
+
+      // 2. Refresh Inventory to reflect new stock
+      await _fetchMedicines();
+
+      // 3. Generate PDF and Save/Print
       final String invoiceNo = 'INV${DateTime.now().millisecondsSinceEpoch.toString().substring(5)}';
       
       final pdfBytes = await PdfGenerator.generateBill(
         items: _currentBill,
         subtotal: _subtotal,
         discount: _discountAmount,
+        tax: _gstAmount,
         grandTotal: _grandTotal,
         invoiceNumber: invoiceNo,
         customerName: _customerNameController.text.isNotEmpty ? _customerNameController.text : 'Walk-in Customer',
         customerPhone: _customerPhoneController.text,
         customerAge: _customerAgeController.text,
-        doctorName: _selectedDoctor == 'New Doctor' ? _newDoctorController.text : _selectedDoctor,
+        doctorName: _selectedDoctorId == 'new' ? _newDoctorController.text : _selectedDoctorName,
         format: _selectedFormat,
       );
 
@@ -367,12 +453,21 @@ class _BillingScreenState extends State<BillingScreen> {
         onLayout: (PdfPageFormat format) async => pdfBytes,
         name: 'Bill_$invoiceNo.pdf',
       );
+      
+      // Clear after successful checkout
+      _clearCart();
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text('Error generating bill: $e'),
           backgroundColor: Colors.red,
         ));
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isGeneratingBill = false;
+        });
       }
     }
   }
@@ -502,6 +597,7 @@ class _BillingScreenState extends State<BillingScreen> {
         _currentBill[existingIndex]['total'] = _currentBill[existingIndex]['qty'] * _currentBill[existingIndex]['price'];
       } else {
         _currentBill.add({
+          'inventory_item_id': item['inventory_item_id'],
           'name': item['name'],
           'brand': item['brand'],
           'qty': 1,
@@ -945,10 +1041,10 @@ class _BillingScreenState extends State<BillingScreen> {
                           // Medicines Table Body
                           Expanded(
                             child: ListView.separated(
-                              itemCount: _availableMedicines.length,
+                              itemCount: _filteredMedicines.length,
                               separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFE2E8F0)),
                               itemBuilder: (context, index) {
-                                final item = _availableMedicines[index];
+                                final item = _filteredMedicines[index];
                                 return Padding(
                                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                                   child: Row(
@@ -1151,20 +1247,34 @@ class _BillingScreenState extends State<BillingScreen> {
                                                   decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE2E8F0)), borderRadius: BorderRadius.circular(4)),
                                                   child: DropdownButtonHideUnderline(
                                                     child: DropdownButton<String>(
-                                                      value: _selectedDoctor,
+                                                      value: _selectedDoctorId,
                                                       isExpanded: true,
                                                       icon: const Icon(Icons.keyboard_arrow_down, size: 14),
                                                       style: const TextStyle(fontSize: 10, color: Color(0xFF1E293B)),
                                                       onChanged: (String? newValue) {
                                                         if (newValue != null) {
-                                                          setState(() => _selectedDoctor = newValue);
+                                                          setState(() {
+                                                            _selectedDoctorId = newValue;
+                                                            if (newValue == 'walk-in') {
+                                                              _selectedDoctorName = 'Walk-in';
+                                                            } else if (newValue == 'new') {
+                                                              _selectedDoctorName = 'New Doctor';
+                                                            } else {
+                                                              final doc = _doctorsList.firstWhere((d) => d.id == newValue);
+                                                              _selectedDoctorName = doc.name;
+                                                            }
+                                                          });
                                                         }
                                                       },
-                                                      items: _doctorsList.map((doc) => DropdownMenuItem(value: doc, child: Text(doc))).toList(),
+                                                      items: [
+                                                        const DropdownMenuItem(value: 'walk-in', child: Text('Walk-in')),
+                                                        ..._doctorsList.map((doc) => DropdownMenuItem(value: doc.id, child: Text(doc.name))),
+                                                        const DropdownMenuItem(value: 'new', child: Text('+ Add New Doctor')),
+                                                      ],
                                                     ),
                                                   ),
                                                 ),
-                                                if (_selectedDoctor == 'New Doctor') ...[
+                                                if (_selectedDoctorId == 'new') ...[
                                                   const SizedBox(height: 4),
                                                   Container(
                                                     height: 32,
@@ -1279,9 +1389,52 @@ class _BillingScreenState extends State<BillingScreen> {
                                 const SizedBox(height: 8),
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: const [
-                                    Text('Tax (GST)', style: TextStyle(color: Color(0xFF64748B), fontSize: 12)),
-                                    Text('₹ 0.00', style: TextStyle(color: Color(0xFF1E293B), fontWeight: FontWeight.bold, fontSize: 12)),
+                                  children: [
+                                    Row(
+                                      children: [
+                                        const Text('Tax (GST)', style: TextStyle(color: Color(0xFF64748B), fontSize: 12)),
+                                        const SizedBox(width: 8),
+                                        Container(
+                                          height: 24,
+                                          decoration: BoxDecoration(color: const Color(0xFFF1F5F9), borderRadius: BorderRadius.circular(4)),
+                                          child: Row(
+                                            children: [
+                                              InkWell(
+                                                onTap: () => setState(() => _isGstPercentage = true),
+                                                child: Container(
+                                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                                  decoration: BoxDecoration(color: _isGstPercentage ? const Color(0xFF22C55E) : Colors.transparent, borderRadius: BorderRadius.circular(4)),
+                                                  child: Text('%', style: TextStyle(color: _isGstPercentage ? Colors.white : const Color(0xFF64748B), fontSize: 10, fontWeight: FontWeight.bold)),
+                                                ),
+                                              ),
+                                              InkWell(
+                                                onTap: () => setState(() => _isGstPercentage = false),
+                                                child: Container(
+                                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                                  decoration: BoxDecoration(color: !_isGstPercentage ? const Color(0xFF22C55E) : Colors.transparent, borderRadius: BorderRadius.circular(4)),
+                                                  child: Text('₹', style: TextStyle(color: !_isGstPercentage ? Colors.white : const Color(0xFF64748B), fontSize: 10, fontWeight: FontWeight.bold)),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        SizedBox(
+                                          width: 60,
+                                          height: 24,
+                                          child: TextField(
+                                            controller: _gstController,
+                                            keyboardType: TextInputType.number,
+                                            style: const TextStyle(fontSize: 12),
+                                            decoration: InputDecoration(
+                                              contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+                                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(4)),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    Text('₹ ${_gstAmount.toStringAsFixed(2)}', style: const TextStyle(color: Color(0xFF1E293B), fontWeight: FontWeight.bold, fontSize: 12)),
                                   ],
                                 ),
                                 const SizedBox(height: 12),
@@ -1386,9 +1539,11 @@ class _BillingScreenState extends State<BillingScreen> {
                                     Expanded(
                                       flex: 2,
                                       child: ElevatedButton.icon(
-                                        onPressed: _generateAndSaveBill,
-                                        icon: const Icon(Icons.print, size: 16),
-                                        label: const Text('Generate Bill', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                                        onPressed: _isGeneratingBill ? null : _generateAndSaveBill,
+                                        icon: _isGeneratingBill 
+                                            ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                                            : const Icon(Icons.print, size: 16),
+                                        label: Text(_isGeneratingBill ? 'Generating...' : 'Generate Bill', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
                                         style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF22C55E), foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 16)),
                                       ),
                                     ),

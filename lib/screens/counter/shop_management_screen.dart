@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import '../../services/shop_service.dart';
+import '../../services/export_service.dart';
 
 class ShopManagementScreen extends StatefulWidget {
   const ShopManagementScreen({super.key});
@@ -11,45 +14,42 @@ class _ShopManagementScreenState extends State<ShopManagementScreen> {
   String _searchQuery = '';
   String _selectedStatus = 'All Status';
   String _selectedCity = 'All Cities';
+  bool _isLoading = true;
+  String _sortField = 'name';
+  bool _sortAscending = true;
 
-  final List<Map<String, dynamic>> _shops = [
-    {
-      'id': 1,
-      'name': 'Main Branch',
-      'isPrimary': true,
-      'subtitle': 'Manju Medical Stores',
-      'code': 'SHOP001',
-      'location': 'G.T. Road',
-      'city': 'Kolkata',
-      'contact': '+91 98765 43210',
-      'status': 'Active',
-    },
-    {
-      'id': 2,
-      'name': 'Salt Lake Branch',
-      'isPrimary': false,
-      'subtitle': 'Manju Medical Stores',
-      'code': 'SHOP002',
-      'location': 'Salt Lake Sector V',
-      'city': 'Kolkata',
-      'contact': '+91 98765 43211',
-      'status': 'Active',
-    },
-    {
-      'id': 3,
-      'name': 'Howrah Branch',
-      'isPrimary': false,
-      'subtitle': 'Manju Medical Stores',
-      'code': 'SHOP003',
-      'location': 'Howrah Station Road',
-      'city': 'Howrah',
-      'contact': '+91 98765 43212',
-      'status': 'Inactive',
-    },
-  ];
+  List<Map<String, dynamic>> _shops = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchShops();
+  }
+
+  Future<void> _fetchShops() async {
+    try {
+      setState(() => _isLoading = true);
+      final shops = await ShopService.getShops();
+      setState(() {
+        _shops = shops.map((s) => s.toMap()).toList();
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() => _isLoading = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error loading shops: $e')));
+      }
+    }
+  }
+
+  List<String> get _dynamicCities {
+    final cities = _shops.map((s) => s['city'].toString()).toSet().toList();
+    cities.sort();
+    return ['All Cities', ...cities];
+  }
 
   List<Map<String, dynamic>> get _filteredShops {
-    return _shops.where((shop) {
+    var filtered = _shops.where((shop) {
       final matchesSearch = shop['name'].toString().toLowerCase().contains(_searchQuery.toLowerCase()) ||
           shop['code'].toString().toLowerCase().contains(_searchQuery.toLowerCase()) ||
           shop['location'].toString().toLowerCase().contains(_searchQuery.toLowerCase());
@@ -57,6 +57,14 @@ class _ShopManagementScreenState extends State<ShopManagementScreen> {
       final matchesCity = _selectedCity == 'All Cities' || shop['city'] == _selectedCity;
       return matchesSearch && matchesStatus && matchesCity;
     }).toList();
+
+    filtered.sort((a, b) {
+      var valA = (a[_sortField] ?? '').toString().toLowerCase();
+      var valB = (b[_sortField] ?? '').toString().toLowerCase();
+      return _sortAscending ? valA.compareTo(valB) : valB.compareTo(valA);
+    });
+
+    return filtered;
   }
 
   void _showAddEditDialog({Map<String, dynamic>? shop}) {
@@ -67,6 +75,7 @@ class _ShopManagementScreenState extends State<ShopManagementScreen> {
     final cityController = TextEditingController(text: isEditing ? shop['city'] : '');
     final contactController = TextEditingController(text: isEditing ? shop['contact'] : '');
     String status = isEditing ? shop['status'] : 'Active';
+    bool isPrimary = isEditing ? shop['isPrimary'] : false;
 
     showDialog(
       context: context,
@@ -102,7 +111,15 @@ class _ShopManagementScreenState extends State<ShopManagementScreen> {
                       const SizedBox(height: 16),
                       Row(
                         children: [
-                          Expanded(child: _buildDialogField('Contact', contactController)),
+                          Expanded(
+                            child: _buildDialogField(
+                              'Contact', 
+                              contactController,
+                              maxLength: 10,
+                              keyboardType: TextInputType.phone,
+                              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                            ),
+                          ),
                           const SizedBox(width: 16),
                           Expanded(
                             child: Column(
@@ -137,6 +154,24 @@ class _ShopManagementScreenState extends State<ShopManagementScreen> {
                           ),
                         ],
                       ),
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Theme(
+                            data: ThemeData(unselectedWidgetColor: const Color(0xFF94A3B8)),
+                            child: Checkbox(
+                              value: isPrimary,
+                              activeColor: const Color(0xFF22C55E),
+                              onChanged: (value) {
+                                if (value != null) {
+                                  setDialogState(() => isPrimary = value);
+                                }
+                              },
+                            ),
+                          ),
+                          const Text('Set as Main Shop (Primary)', style: TextStyle(fontSize: 13, color: Color(0xFF1E293B), fontWeight: FontWeight.bold)),
+                        ],
+                      ),
                     ],
                   ),
                 ),
@@ -147,37 +182,38 @@ class _ShopManagementScreenState extends State<ShopManagementScreen> {
                   child: const Text('Cancel', style: TextStyle(color: Color(0xFF64748B), fontWeight: FontWeight.bold)),
                 ),
                 ElevatedButton(
-                  onPressed: () {
-                    setState(() {
-                      if (isEditing) {
-                        final index = _shops.indexWhere((s) => s['id'] == shop['id']);
-                        if (index >= 0) {
-                          _shops[index] = {
-                            ..._shops[index],
-                            'name': nameController.text,
-                            'code': codeController.text,
-                            'location': locationController.text,
-                            'city': cityController.text,
-                            'contact': contactController.text,
-                            'status': status,
-                          };
+                  onPressed: () async {
+                    try {
+                      if (!isEditing) {
+                        // For now we only implement add new shop based on the backend
+                        final newShop = await ShopService.createShop(
+                          name: nameController.text,
+                          code: codeController.text,
+                          address: locationController.text,
+                          city: cityController.text,
+                          contactNumber: contactController.text,
+                          status: status,
+                          isPrimary: isPrimary,
+                        );
+                        
+                        setState(() {
+                          _shops.add(newShop.toMap());
+                        });
+                        
+                        if (mounted) {
+                          Navigator.pop(context);
+                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Shop added successfully!')));
                         }
                       } else {
-                        _shops.add({
-                          'id': DateTime.now().millisecondsSinceEpoch,
-                          'name': nameController.text,
-                          'isPrimary': false,
-                          'subtitle': 'Manju Medical Stores',
-                          'code': codeController.text,
-                          'location': locationController.text,
-                          'city': cityController.text,
-                          'contact': contactController.text,
-                          'status': status,
-                        });
+                        // Editing is not yet supported in backend, just close
+                        Navigator.pop(context);
+                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Editing not supported by backend yet')));
                       }
-                    });
-                    Navigator.pop(context, );
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(isEditing ? 'Shop updated successfully!' : 'Shop added successfully!')));
+                    } catch (e) {
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to save shop: $e')));
+                      }
+                    }
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF22C55E),
@@ -196,7 +232,7 @@ class _ShopManagementScreenState extends State<ShopManagementScreen> {
     );
   }
 
-  Widget _buildDialogField(String label, TextEditingController controller) {
+  Widget _buildDialogField(String label, TextEditingController controller, {int? maxLength, TextInputType? keyboardType, List<TextInputFormatter>? inputFormatters}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -206,8 +242,12 @@ class _ShopManagementScreenState extends State<ShopManagementScreen> {
           height: 40,
           child: TextField(
             controller: controller,
+            maxLength: maxLength,
+            keyboardType: keyboardType,
+            inputFormatters: inputFormatters,
             style: const TextStyle(fontSize: 12),
             decoration: InputDecoration(
+              counterText: '', // hide the default char counter if maxLength is used
               filled: true,
               fillColor: Colors.white,
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
@@ -220,39 +260,46 @@ class _ShopManagementScreenState extends State<ShopManagementScreen> {
     );
   }
 
-  Widget _buildStatCard(String value, String label, Color bgColor, Color iconColor, IconData icon) {
+  Widget _buildStatCard(String value, String label, Color bgColor, Color iconColor, IconData icon, VoidCallback onTap) {
     return Expanded(
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: bgColor,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
           borderRadius: BorderRadius.circular(12),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Row(
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: bgColor,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(icon, color: iconColor, size: 20),
-                ),
-                const SizedBox(width: 16),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                Row(
                   children: [
-                    Text(value, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
-                    Text(label, style: const TextStyle(fontSize: 12, color: Color(0xFF475569))),
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(icon, color: iconColor, size: 20),
+                    ),
+                    const SizedBox(width: 16),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(value, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                        Text(label, style: const TextStyle(fontSize: 12, color: Color(0xFF475569))),
+                      ],
+                    ),
                   ],
                 ),
+                Icon(Icons.chevron_right, color: iconColor.withOpacity(0.5)),
               ],
             ),
-            Icon(Icons.chevron_right, color: iconColor.withOpacity(0.5)),
-          ],
+          ),
         ),
       ),
     );
@@ -292,17 +339,63 @@ class _ShopManagementScreenState extends State<ShopManagementScreen> {
                   ),
                 ],
               ),
-              ElevatedButton.icon(
-                onPressed: () => _showAddEditDialog(),
-                icon: const Icon(Icons.add, size: 18),
-                label: const Text('Add New Shop', style: TextStyle(fontWeight: FontWeight.bold)),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF22C55E),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                  elevation: 0,
-                ),
+              Row(
+                children: [
+                  PopupMenuButton<String>(
+                    onSelected: (value) async {
+                      final filename = 'shops_export_${DateTime.now().millisecondsSinceEpoch}';
+                      try {
+                        if (value == 'csv') {
+                          await ExportService.exportToCSV(_filteredShops, filename);
+                        } else if (value == 'excel') {
+                          await ExportService.exportToExcel(_filteredShops, filename);
+                        } else if (value == 'pdf') {
+                          await ExportService.exportToPDF(_filteredShops, filename);
+                        }
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Export successful!')));
+                        }
+                      } catch (e) {
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Export failed: $e')));
+                        }
+                      }
+                    },
+                    itemBuilder: (context) => [
+                      const PopupMenuItem(value: 'csv', child: Text('Export to CSV')),
+                      const PopupMenuItem(value: 'excel', child: Text('Export to Excel')),
+                      const PopupMenuItem(value: 'pdf', child: Text('Export to PDF')),
+                    ],
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Row(
+                        children: [
+                          Icon(Icons.download, size: 18, color: Color(0xFF1E293B)),
+                          SizedBox(width: 8),
+                          Text('Export', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  ElevatedButton.icon(
+                    onPressed: () => _showAddEditDialog(),
+                    icon: const Icon(Icons.add, size: 18),
+                    label: const Text('Add New Shop', style: TextStyle(fontWeight: FontWeight.bold)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF22C55E),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      elevation: 0,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -311,13 +404,36 @@ class _ShopManagementScreenState extends State<ShopManagementScreen> {
           // Stats Row
           Row(
             children: [
-              _buildStatCard('${_shops.length}', 'Total Shops', const Color(0xFFE8F5E9), const Color(0xFF22C55E), Icons.store),
+              _buildStatCard('${_shops.length}', 'Total Shops', const Color(0xFFE8F5E9), const Color(0xFF22C55E), Icons.store, () {
+                setState(() {
+                  _selectedStatus = 'All Status';
+                  _selectedCity = 'All Cities';
+                  _searchQuery = '';
+                });
+              }),
               const SizedBox(width: 16),
-              _buildStatCard('$activeCount', 'Active Shops', const Color(0xFFE3F2FD), const Color(0xFF3B82F6), Icons.check_circle),
+              _buildStatCard('$activeCount', 'Active Shops', const Color(0xFFE3F2FD), const Color(0xFF3B82F6), Icons.check_circle, () {
+                setState(() {
+                  _selectedStatus = 'Active';
+                  _selectedCity = 'All Cities';
+                  _searchQuery = '';
+                });
+              }),
               const SizedBox(width: 16),
-              _buildStatCard('$inactiveCount', 'Inactive Shop', const Color(0xFFFFF3E0), const Color(0xFFF97316), Icons.pause_circle),
+              _buildStatCard('$inactiveCount', 'Inactive Shop', const Color(0xFFFFF3E0), const Color(0xFFF97316), Icons.pause_circle, () {
+                setState(() {
+                  _selectedStatus = 'Inactive';
+                  _selectedCity = 'All Cities';
+                  _searchQuery = '';
+                });
+              }),
               const SizedBox(width: 16),
-              _buildStatCard('$citiesCount', 'Total Locations', const Color(0xFFF3E8FF), const Color(0xFFA855F7), Icons.location_on),
+              _buildStatCard('$citiesCount', 'Total Locations', const Color(0xFFF3E8FF), const Color(0xFFA855F7), Icons.location_on, () {
+                setState(() {
+                  _selectedStatus = 'All Status';
+                  _searchQuery = '';
+                });
+              }),
             ],
           ),
           const SizedBox(height: 24),
@@ -350,16 +466,35 @@ class _ShopManagementScreenState extends State<ShopManagementScreen> {
               const SizedBox(width: 16),
               _buildDropdownFilter('All Status', ['All Status', 'Active', 'Inactive'], _selectedStatus, (val) => setState(() => _selectedStatus = val!)),
               const SizedBox(width: 16),
-              _buildDropdownFilter('All Cities', ['All Cities', 'Kolkata', 'Howrah'], _selectedCity, (val) => setState(() => _selectedCity = val!)),
+              _buildDropdownFilter('All Cities', _dynamicCities, _selectedCity, (val) => setState(() => _selectedCity = val!)),
               const Spacer(),
-              OutlinedButton.icon(
-                onPressed: () {},
-                icon: const Icon(Icons.sort, color: Color(0xFF1E293B), size: 16),
-                label: const Text('Sort By', style: TextStyle(color: Color(0xFF1E293B), fontWeight: FontWeight.bold)),
-                style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: Color(0xFFE2E8F0)),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              PopupMenuButton<String>(
+                onSelected: (value) {
+                  setState(() {
+                    if (_sortField == value) {
+                      _sortAscending = !_sortAscending;
+                    } else {
+                      _sortField = value;
+                      _sortAscending = true;
+                    }
+                  });
+                },
+                itemBuilder: (context) => [
+                  const PopupMenuItem(value: 'name', child: Text('Sort by Name')),
+                  const PopupMenuItem(value: 'code', child: Text('Sort by Code')),
+                  const PopupMenuItem(value: 'city', child: Text('Sort by City')),
+                  const PopupMenuItem(value: 'status', child: Text('Sort by Status')),
+                ],
+                child: OutlinedButton.icon(
+                  onPressed: null, // Tap handled by PopupMenuButton
+                  icon: Icon(_sortAscending ? Icons.arrow_upward : Icons.arrow_downward, color: const Color(0xFF1E293B), size: 16),
+                  label: Text('Sort By: ${_sortField.toUpperCase()}', style: const TextStyle(color: Color(0xFF1E293B), fontWeight: FontWeight.bold)),
+                  style: OutlinedButton.styleFrom(
+                    disabledForegroundColor: const Color(0xFF1E293B),
+                    side: const BorderSide(color: Color(0xFFE2E8F0)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  ),
                 ),
               ),
             ],
@@ -428,9 +563,8 @@ class _ShopManagementScreenState extends State<ShopManagementScreen> {
                                         ],
                                       ],
                                     ),
-                                    const SizedBox(height: 2),
-                                    Text(shop['subtitle'], style: const TextStyle(color: Color(0xFF64748B), fontSize: 11)),
-                                  ],
+                                     Text(shop['subtitle'] ?? 'Manju Medical Stores', style: const TextStyle(color: Color(0xFF64748B), fontSize: 11)),
+                                   ],
                                 ),
                               ),
                               Expanded(flex: 1, child: Text(shop['code'], style: const TextStyle(color: Color(0xFF475569), fontSize: 13))),

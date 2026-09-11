@@ -9,6 +9,7 @@ class PdfGenerator {
     required List<Map<String, dynamic>> items,
     required double subtotal,
     required double discount,
+    required double tax,
     required double grandTotal,
     required String invoiceNumber,
     required String customerName,
@@ -110,6 +111,14 @@ class PdfGenerator {
                   children: [
                     pw.Text('Discount:', style: const pw.TextStyle(fontSize: 8)),
                     pw.Text(discount.toStringAsFixed(2), style: const pw.TextStyle(fontSize: 8)),
+                  ]
+                ),
+                pw.SizedBox(height: 2),
+                pw.Row(
+                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                  children: [
+                    pw.Text('Tax (GST):', style: const pw.TextStyle(fontSize: 8)),
+                    pw.Text(tax.toStringAsFixed(2), style: const pw.TextStyle(fontSize: 8)),
                   ]
                 ),
                 pw.SizedBox(height: 2),
@@ -295,7 +304,10 @@ class PdfGenerator {
                                 pw.Text('Discount', style: const pw.TextStyle(fontSize: 7)), pw.Text(discount.toStringAsFixed(2), style: const pw.TextStyle(fontSize: 7))
                               ]),
                               pw.Row(mainAxisAlignment: pw.MainAxisAlignment.spaceBetween, children: [
-                                pw.Text('Grand Total', style: const pw.TextStyle(fontSize: 7)), pw.Text((subtotal - discount).toStringAsFixed(2), style: const pw.TextStyle(fontSize: 7))
+                                pw.Text('Tax (GST)', style: const pw.TextStyle(fontSize: 7)), pw.Text(tax.toStringAsFixed(2), style: const pw.TextStyle(fontSize: 7))
+                              ]),
+                              pw.Row(mainAxisAlignment: pw.MainAxisAlignment.spaceBetween, children: [
+                                pw.Text('Grand Total', style: const pw.TextStyle(fontSize: 7)), pw.Text(grandTotal.toStringAsFixed(2), style: const pw.TextStyle(fontSize: 7))
                               ]),
                               pw.Row(mainAxisAlignment: pw.MainAxisAlignment.spaceBetween, children: [
                                 pw.Text('Round Off', style: const pw.TextStyle(fontSize: 7)), pw.Text('0.00', style: const pw.TextStyle(fontSize: 7))
