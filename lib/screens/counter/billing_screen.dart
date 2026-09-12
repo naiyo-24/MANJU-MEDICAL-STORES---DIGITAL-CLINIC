@@ -10,6 +10,7 @@ import '../../services/customer_service.dart';
 import '../../services/billing_service.dart';
 import '../../services/doctor_service.dart';
 import '../../services/draft_service.dart';
+import '../../services/billing_history_service.dart';
 import '../../utils/pdf_generator.dart';
 
 class BillingScreen extends StatefulWidget {
@@ -449,13 +450,30 @@ class _BillingScreenState extends State<BillingScreen> {
         ));
       }
 
+      // Save to local billing history FIRST
+      await BillingHistoryService.saveBill(
+        SavedBill(
+          id: DateTime.now().millisecondsSinceEpoch.toString(),
+          invoiceNo: invoiceNo,
+          customerName: _customerNameController.text.isNotEmpty ? _customerNameController.text : 'Walk-in Customer',
+          customerPhone: _customerPhoneController.text,
+          doctorName: _selectedDoctorId == 'new' ? _newDoctorController.text : _selectedDoctorName,
+          subtotal: _subtotal,
+          discount: _discountAmount,
+          tax: _gstAmount,
+          grandTotal: _grandTotal,
+          items: List.from(_currentBill),
+          createdAt: DateTime.now(),
+        ),
+      );
+
+      // Clear after successful checkout
+      _clearCart();
+
       await Printing.layoutPdf(
         onLayout: (PdfPageFormat format) async => pdfBytes,
         name: 'Bill_$invoiceNo.pdf',
       );
-      
-      // Clear after successful checkout
-      _clearCart();
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(

@@ -4,8 +4,12 @@ import 'package:excel/excel.dart' hide Border;
 import 'package:file_saver/file_saver.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
+import 'package:printing/printing.dart';
 import '../../widgets/custom_date_range_picker.dart';
 import '../../widgets/custom_pagination.dart';
+import '../../services/billing_history_service.dart';
+import '../../utils/pdf_generator.dart';
+import 'package:intl/intl.dart';
 
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
@@ -21,108 +25,56 @@ class _HistoryScreenState extends State<HistoryScreen> {
   String _searchQuery = '';
   int _currentPage = 1;
 
-  final List<Map<String, dynamic>> _transactions = [
-    {
-      'date': '09 Sep 2026', 'time': '12:45 PM',
-      'refNo': 'BIL000123',
-      'customerName': 'Rahul Das', 'customerPhone': '+91 98765 43210',
-      'type': 'Sale',
-      'items': 3,
-      'amount': 245.00,
-      'paymentMode': 'Cash',
-      'status': 'Completed',
-    },
-    {
-      'date': '09 Sep 2026', 'time': '11:20 AM',
-      'refNo': 'BIL000122',
-      'customerName': 'Priya Sharma', 'customerPhone': '+91 91234 56789',
-      'type': 'Sale',
-      'items': 5,
-      'amount': 560.00,
-      'paymentMode': 'UPI',
-      'status': 'Completed',
-    },
-    {
-      'date': '09 Sep 2026', 'time': '10:15 AM',
-      'refNo': 'BIL000121',
-      'customerName': 'Suman Roy', 'customerPhone': '+91 98300 11223',
-      'type': 'Sale',
-      'items': 2,
-      'amount': 180.00,
-      'paymentMode': 'Card',
-      'status': 'Completed',
-    },
-    {
-      'date': '09 Sep 2026', 'time': '09:40 AM',
-      'refNo': 'RET00008',
-      'customerName': 'Amit Mondal', 'customerPhone': '+91 98760 44556',
-      'type': 'Return',
-      'items': 1,
-      'amount': -90.00,
-      'paymentMode': 'Cash',
-      'status': 'Completed',
-    },
-    {
-      'date': '08 Sep 2026', 'time': '06:30 PM',
-      'refNo': 'BIL000120',
-      'customerName': 'Neha Patel', 'customerPhone': '+91 99011 22334',
-      'type': 'Sale',
-      'items': 4,
-      'amount': 420.00,
-      'paymentMode': 'UPI',
-      'status': 'Completed',
-    },
-    {
-      'date': '08 Sep 2026', 'time': '04:10 PM',
-      'refNo': 'ADJ00015',
-      'customerName': 'Stock Adjustment', 'customerPhone': '',
-      'type': 'Adjustment',
-      'items': 2,
-      'amount': 0.0,
-      'paymentMode': '-',
-      'status': 'Completed',
-    },
-    {
-      'date': '08 Sep 2026', 'time': '02:20 PM',
-      'refNo': 'BIL000119',
-      'customerName': 'Karan Mehta', 'customerPhone': '+91 91230 44567',
-      'type': 'Sale',
-      'items': 6,
-      'amount': 780.00,
-      'paymentMode': 'Card',
-      'status': 'Completed',
-    },
-    {
-      'date': '07 Sep 2026', 'time': '01:15 PM',
-      'refNo': 'PUR00022',
-      'customerName': 'Supplier Purchase', 'customerPhone': '',
-      'type': 'Purchase',
-      'items': 20,
-      'amount': 2450.00,
-      'paymentMode': 'Bank Transfer',
-      'status': 'Completed',
-    },
-    {
-      'date': '07 Sep 2026', 'time': '11:05 AM',
-      'refNo': 'BIL000118',
-      'customerName': 'Anita Ghosh', 'customerPhone': '+91 98001 99887',
-      'type': 'Sale',
-      'items': 1,
-      'amount': 95.00,
-      'paymentMode': 'Cash',
-      'status': 'Completed',
-    },
-    {
-      'date': '06 Sep 2026', 'time': '05:45 PM',
-      'refNo': 'BIL000117',
-      'customerName': 'Debashis Sen', 'customerPhone': '+91 98312 44567',
-      'type': 'Sale',
-      'items': 5,
-      'amount': 615.00,
-      'paymentMode': 'UPI',
-      'status': 'Completed',
-    },
-  ];
+  List<Map<String, dynamic>> _transactions = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadHistory();
+    BillingHistoryService.historyUpdated.addListener(_loadHistory);
+  }
+
+  @override
+  void dispose() {
+    BillingHistoryService.historyUpdated.removeListener(_loadHistory);
+    super.dispose();
+  }
+
+  Future<void> _loadHistory() async {
+    setState(() => _isLoading = true);
+    try {
+      final savedBills = await BillingHistoryService.getBillingHistory();
+      
+      if (mounted) {
+        setState(() {
+          _transactions = savedBills.map((bill) {
+            return {
+              'date': DateFormat('dd MMM yyyy').format(bill.createdAt),
+              'time': DateFormat('hh:mm a').format(bill.createdAt),
+              'refNo': bill.invoiceNo,
+              'customerName': bill.customerName.isEmpty ? 'Walk-in' : bill.customerName,
+              'customerPhone': bill.customerPhone,
+              'type': 'Sale',
+              'items': bill.items.length,
+              'amount': bill.grandTotal,
+              'paymentMode': 'Cash', // Default for now since we don't store it yet
+              'status': 'Completed',
+              'originalBill': bill,
+            };
+          }).toList();
+          _isLoading = false;
+        });
+      }
+    } catch (e, stack) {
+      print('Error loading history: $e');
+      print(stack);
+      if (mounted) {
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error loading history: $e')));
+      }
+    }
+  }
 
   List<Map<String, dynamic>> get _filteredTransactions {
     return _transactions.where((tx) {
@@ -221,6 +173,66 @@ class _HistoryScreenState extends State<HistoryScreen> {
       bytes: fileBytes,
       fileExtension: 'pdf',
       mimeType: MimeType.pdf,
+    );
+  }
+
+  void _viewBill(SavedBill bill) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          insetPadding: const EdgeInsets.all(20),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          child: SizedBox(
+            width: 800,
+            height: MediaQuery.of(context).size.height * 0.9,
+            child: Column(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  decoration: const BoxDecoration(
+                    color: Color(0xFFF8FAFC),
+                    borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
+                    border: Border(bottom: BorderSide(color: Color(0xFFE2E8F0))),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('Bill View - ${bill.invoiceNo}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                      IconButton(
+                        icon: const Icon(Icons.close),
+                        onPressed: () => Navigator.of(context).pop(),
+                      ),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: PdfPreview(
+                    build: (format) async {
+                      return await PdfGenerator.generateBill(
+                        items: bill.items,
+                        subtotal: bill.subtotal,
+                        discount: bill.discount,
+                        tax: bill.tax,
+                        grandTotal: bill.grandTotal,
+                        invoiceNumber: bill.invoiceNo,
+                        customerName: bill.customerName,
+                        customerPhone: bill.customerPhone,
+                        doctorName: bill.doctorName,
+                        format: 'A4',
+                      );
+                    },
+                    allowSharing: true,
+                    allowPrinting: true,
+                    canChangeOrientation: false,
+                    canChangePageFormat: false,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -442,13 +454,13 @@ class _HistoryScreenState extends State<HistoryScreen> {
           // Stats Row
           Row(
             children: [
-              _buildStatCard('524', 'Total Bills', const Color(0xFFE8F5E9), const Color(0xFF22C55E), Icons.shopping_cart, '+12%'),
+              _buildStatCard('${_transactions.length}', 'Total Bills', const Color(0xFFE8F5E9), const Color(0xFF22C55E), Icons.shopping_cart, '+12%'),
               const SizedBox(width: 16),
-              _buildStatCard('₹ 1,24,560', 'Total Sales', const Color(0xFFE3F2FD), const Color(0xFF3B82F6), Icons.currency_rupee, '+18%'),
+              _buildStatCard('₹ ${_transactions.fold(0.0, (sum, tx) => sum + (tx['amount'] as double)).toStringAsFixed(2)}', 'Total Sales', const Color(0xFFE3F2FD), const Color(0xFF3B82F6), Icons.currency_rupee, '+18%'),
               const SizedBox(width: 16),
-              _buildStatCard('312', 'Customers Served', const Color(0xFFFFF3E0), const Color(0xFFF97316), Icons.people, '+9%'),
+              _buildStatCard('${_transactions.where((t) => t['customerName'] != 'Walk-in').length}', 'Customers Served', const Color(0xFFFFF3E0), const Color(0xFFF97316), Icons.people, '+9%'),
               const SizedBox(width: 16),
-              _buildStatCard('1,245', 'Items Sold', const Color(0xFFF3E8FF), const Color(0xFFA855F7), Icons.inventory_2, '+15%'),
+              _buildStatCard('${_transactions.fold(0, (sum, tx) => sum + (tx['items'] as int))}', 'Items Sold', const Color(0xFFF3E8FF), const Color(0xFFA855F7), Icons.inventory_2, '+15%'),
             ],
           ),
           const SizedBox(height: 24),
@@ -559,7 +571,11 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   const Divider(height: 1, color: Color(0xFFE2E8F0)),
                   // Table Body
                   Expanded(
-                    child: ListView.separated(
+                    child: _isLoading 
+                      ? const Center(child: CircularProgressIndicator())
+                      : filtered.isEmpty 
+                        ? const Center(child: Text('No history found'))
+                        : ListView.separated(
                       itemCount: filtered.length,
                       separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFF1F5F9)),
                       itemBuilder: (context, index) {
@@ -622,7 +638,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                 child: Row(
                                   children: [
                                     OutlinedButton.icon(
-                                      onPressed: () {},
+                                      onPressed: () => _viewBill(tx['originalBill']),
                                       icon: const Icon(Icons.visibility, size: 14, color: Color(0xFF1E293B)),
                                       label: const Text('View', style: TextStyle(color: Color(0xFF1E293B), fontWeight: FontWeight.bold, fontSize: 11)),
                                       style: OutlinedButton.styleFrom(
@@ -663,7 +679,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         Text('Showing 1 to ${filtered.length} of ${_transactions.length} records', style: const TextStyle(color: Color(0xFF64748B), fontSize: 12)),
                         CustomPagination(
                           currentPage: _currentPage,
-                          totalPages: 53, // Mocked total pages based on screenshot
+                          totalPages: 1, // Only 1 page for now since it's local
                           onPageChanged: (page) {
                             setState(() {
                               _currentPage = page;
