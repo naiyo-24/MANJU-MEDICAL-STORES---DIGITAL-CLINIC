@@ -8,6 +8,7 @@ import 'package:printing/printing.dart';
 import '../../widgets/custom_date_range_picker.dart';
 import '../../widgets/custom_pagination.dart';
 import '../../services/billing_history_service.dart';
+import '../../services/billing_service.dart';
 import '../../utils/pdf_generator.dart';
 import 'package:intl/intl.dart';
 
@@ -24,8 +25,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
   String _selectedPaymentMode = 'All';
   String _searchQuery = '';
   int _currentPage = 1;
-
   List<Map<String, dynamic>> _transactions = [];
+  Map<String, dynamic> _summary = {};
   bool _isLoading = true;
 
   @override
@@ -44,31 +45,58 @@ class _HistoryScreenState extends State<HistoryScreen> {
   Future<void> _loadHistory() async {
     setState(() => _isLoading = true);
     try {
-      final savedBills = await BillingHistoryService.getBillingHistory();
+      final response = await BillingService.getPosHistory();
       
       if (mounted) {
         setState(() {
-          _transactions = savedBills.map((bill) {
-            return {
-              'date': DateFormat('dd MMM yyyy').format(bill.createdAt),
-              'time': DateFormat('hh:mm a').format(bill.createdAt),
-              'refNo': bill.invoiceNo,
-              'customerName': bill.customerName.isEmpty ? 'Walk-in' : bill.customerName,
-              'customerPhone': bill.customerPhone,
-              'type': 'Sale',
-              'items': bill.items.length,
-              'amount': bill.grandTotal,
-              'paymentMode': 'Cash', // Default for now since we don't store it yet
-              'status': 'Completed',
-              'originalBill': bill,
+          if (response['summary'] != null) {
+            _summary = response['summary'];
+          }
+          final historyList = response['history'] as List? ?? [];
+          
+          _transactions = historyList.map((item) {
+            String dateStr = item['date'].toString();
+            if (!dateStr.endsWith('Z')) dateStr += 'Z';
+            final dt = (DateTime.tryParse(dateStr) ?? DateTime.now()).toLocal();
+              final itemsList = (item['items_detail'] as List?)?.map((i) => Map<String, dynamic>.from(i)).toList() ?? [];
+              double calculatedSubtotal = 0.0;
+              for (var i in itemsList) {
+                calculatedSubtotal += ((i['price'] as num?)?.toDouble() ?? 0.0) * ((i['qty'] as num?)?.toInt() ?? 1);
+              }
+              double grandTotalVal = (item['amount'] as num?)?.toDouble() ?? 0.0;
+              double calculatedDiscount = calculatedSubtotal > grandTotalVal ? calculatedSubtotal - grandTotalVal : 0.0;
+
+              return {
+                'date': DateFormat('dd MMM yyyy').format(dt),
+                'time': DateFormat('hh:mm a').format(dt),
+                'createdAtDate': dt,
+                'refNo': item['bill_no'],
+                'customerName': item['customer_name']?.isEmpty ?? true ? 'Walk-in' : item['customer_name'],
+                'customerPhone': item['customer_phone'] ?? '',
+                'type': item['type'] ?? 'Sale',
+                'items': item['items'] ?? 0,
+                'amount': grandTotalVal,
+                'paymentMode': item['payment_mode'] ?? 'Cash',
+                'status': item['status'] ?? 'Completed',
+                'originalBill': SavedBill(
+                  id: item['id'].toString(),
+                  invoiceNo: item['bill_no'].toString(),
+                  customerName: item['customer_name']?.isEmpty ?? true ? 'Walk-in' : item['customer_name'],
+                  customerPhone: item['customer_phone']?.toString() ?? '',
+                  doctorName: '',
+                  subtotal: calculatedSubtotal > 0 ? calculatedSubtotal : grandTotalVal,
+                  discount: calculatedDiscount,
+                  tax: 0.0,
+                  grandTotal: grandTotalVal,
+                  items: itemsList,
+                createdAt: dt,
+              ),
             };
           }).toList();
           _isLoading = false;
         });
       }
-    } catch (e, stack) {
-      print('Error loading history: $e');
-      print(stack);
+    } catch (e) {
       if (mounted) {
         setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error loading history: $e')));
@@ -79,13 +107,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
   List<Map<String, dynamic>> get _filteredTransactions {
     final now = DateTime.now();
     return _transactions.where((tx) {
-      final bill = tx['originalBill'];
-      DateTime date;
-      if (bill != null) {
-        date = bill.createdAt;
-      } else {
-        date = now; // Fallback
-      }
+      DateTime date = tx['createdAtDate'] ?? now;
       
       bool matchesDate = false;
       switch (_activeDateRange) {
@@ -294,8 +316,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
               children: [
                 Row(
                   children: [
-                    const Icon(Icons.arrow_upward, color: Color(0xFF22C55E), size: 12),
-                    Text(percentage, style: const TextStyle(color: Color(0xFF22C55E), fontWeight: FontWeight.bold, fontSize: 12)),
+                    Icon(percentage.startsWith('+') ? Icons.arrow_upward : (percentage == '0%' ? Icons.horizontal_rule : Icons.arrow_downward), color: percentage.startsWith('+') ? const Color(0xFF22C55E) : (percentage == '0%' ? const Color(0xFF94A3B8) : Colors.red), size: 12),
+                    Text(percentage, style: TextStyle(color: percentage.startsWith('+') ? const Color(0xFF22C55E) : (percentage == '0%' ? const Color(0xFF94A3B8) : Colors.red), fontWeight: FontWeight.bold, fontSize: 12)),
                   ],
                 ),
                 const Text('vs last month', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 9)),
@@ -492,13 +514,13 @@ class _HistoryScreenState extends State<HistoryScreen> {
           // Stats Row
           Row(
             children: [
-              _buildStatCard('${_transactions.length}', 'Total Bills', const Color(0xFFE8F5E9), const Color(0xFF22C55E), Icons.shopping_cart, '+12%'),
+              _buildStatCard('${_summary['total_bills'] ?? 0}', 'Total Bills', const Color(0xFFE8F5E9), const Color(0xFF22C55E), Icons.shopping_cart, _summary['growth_bills']?.toString() ?? '+0.0%'),
               const SizedBox(width: 16),
-              _buildStatCard('₹ ${_transactions.fold(0.0, (sum, tx) => sum + (tx['amount'] as double)).toStringAsFixed(2)}', 'Total Sales', const Color(0xFFE3F2FD), const Color(0xFF3B82F6), Icons.currency_rupee, '+18%'),
+              _buildStatCard('₹ ${((_summary['total_sales'] as num?) ?? 0.0).toStringAsFixed(2)}', 'Total Sales', const Color(0xFFE3F2FD), const Color(0xFF3B82F6), Icons.currency_rupee, _summary['growth_sales']?.toString() ?? '+0.0%'),
               const SizedBox(width: 16),
-              _buildStatCard('${_transactions.where((t) => t['customerName'] != 'Walk-in').length}', 'Customers Served', const Color(0xFFFFF3E0), const Color(0xFFF97316), Icons.people, '+9%'),
+              _buildStatCard('${_summary['customers_served'] ?? 0}', 'Customers Served', const Color(0xFFFFF3E0), const Color(0xFFF97316), Icons.people, _summary['growth_customers']?.toString() ?? '+0.0%'),
               const SizedBox(width: 16),
-              _buildStatCard('${_transactions.fold(0, (sum, tx) => sum + (tx['items'] as int))}', 'Items Sold', const Color(0xFFF3E8FF), const Color(0xFFA855F7), Icons.inventory_2, '+15%'),
+              _buildStatCard('${_summary['items_sold'] ?? 0}', 'Items Sold', const Color(0xFFF3E8FF), const Color(0xFFA855F7), Icons.inventory_2, _summary['growth_items']?.toString() ?? '+0.0%'),
             ],
           ),
           const SizedBox(height: 24),
@@ -676,7 +698,13 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                 child: Row(
                                   children: [
                                     OutlinedButton.icon(
-                                      onPressed: () => _viewBill(tx['originalBill']),
+                                      onPressed: () {
+                                        if (tx['originalBill'] != null) {
+                                          _viewBill(tx['originalBill']);
+                                        } else {
+                                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Detailed view not available for synced backend bills yet.')));
+                                        }
+                                      },
                                       icon: const Icon(Icons.visibility, size: 14, color: Color(0xFF1E293B)),
                                       label: const Text('View', style: TextStyle(color: Color(0xFF1E293B), fontWeight: FontWeight.bold, fontSize: 11)),
                                       style: OutlinedButton.styleFrom(

@@ -11,6 +11,11 @@ import 'package:intl/intl.dart';
 import '../../services/transaction_service.dart';
 import '../../services/account_service.dart';
 
+import 'widgets/receivables_view.dart';
+import 'widgets/payables_view.dart';
+import 'widgets/ledger_view.dart';
+import 'widgets/reports_view.dart';
+
 class AccountsScreen extends StatefulWidget {
   const AccountsScreen({super.key});
 
@@ -138,12 +143,15 @@ class _AccountsScreenState extends State<AccountsScreen> {
       }
     }
     
-    double income = 0;
-    double expenses = 0;
-    
+    double runningBal = 0.0;
+    for (int i = filteredTxns.length - 1; i >= 0; i--) {
+      final txn = filteredTxns[i];
+      if (txn.type == 'Income') runningBal += txn.amount;
+      else if (txn.type == 'Expense') runningBal -= txn.amount;
+      txn.runningBalance = runningBal;
+    }
+
     final summary = await AccountService.getSummary();
-    double cash = summary.cashInHand;
-    double bank = summary.bankBalance;
 
     if (mounted) {
       setState(() {
@@ -395,10 +403,11 @@ class _AccountsScreenState extends State<AccountsScreen> {
                           ),
                         ),
                         
-                        // Filters
-                        Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Row(
+                        if (_activeTab == 0) ...[
+                          // Filters
+                          Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: Row(
                             children: [
                               _buildDynamicDropdown(_selectedPeriod, _periods, (String? newValue) {
                                 if (newValue != null) {
@@ -534,19 +543,36 @@ class _AccountsScreenState extends State<AccountsScreen> {
                                     Expanded(flex: 3, child: Text(txn.description, style: const TextStyle(fontSize: 12))),
                                     Expanded(flex: 1, child: Text(txn.type == 'Expense' ? _fmt(txn.amount) : '-', style: const TextStyle(fontSize: 12), textAlign: TextAlign.right)),
                                     Expanded(flex: 1, child: Text(txn.type == 'Income' ? _fmt(txn.amount) : '-', style: const TextStyle(fontSize: 12), textAlign: TextAlign.right)),
-                                    Expanded(flex: 1, child: Text('-', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold), textAlign: TextAlign.right)),
+                                    Expanded(flex: 1, child: Text(_fmt(txn.runningBalance), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold), textAlign: TextAlign.right)),
                                     SizedBox(
                                       width: 100,
                                       child: Row(
                                         mainAxisAlignment: MainAxisAlignment.center,
                                         children: [
-                                          IconButton(icon: const Icon(Icons.remove_red_eye_outlined, size: 16, color: Color(0xFF64748B)), onPressed: () {}, constraints: const BoxConstraints(), padding: EdgeInsets.zero),
+                                          IconButton(icon: const Icon(Icons.remove_red_eye_outlined, size: 16, color: Color(0xFF64748B)), onPressed: () {
+                                            _showTransactionDetails(txn);
+                                          }, constraints: const BoxConstraints(), padding: EdgeInsets.zero),
                                           const SizedBox(width: 8),
-                                          IconButton(icon: const Icon(Icons.edit_outlined, size: 16, color: Color(0xFF64748B)), onPressed: () {}, constraints: const BoxConstraints(), padding: EdgeInsets.zero),
-                                          const SizedBox(width: 8),
-                                          IconButton(icon: const Icon(Icons.delete_outline, size: 16, color: Color(0xFF64748B)), onPressed: () async {
-                                            await TransactionService.deleteTransaction(txn.id);
-                                            _loadTransactions();
+                                          IconButton(icon: const Icon(Icons.delete_outline, size: 16, color: Color(0xFF64748B)), onPressed: () {
+                                            showDialog(
+                                              context: context,
+                                              builder: (context) => AlertDialog(
+                                                title: const Text('Delete Transaction'),
+                                                content: const Text('Are you sure you want to delete this transaction? This action cannot be undone.'),
+                                                actions: [
+                                                  TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+                                                  ElevatedButton(
+                                                    style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                                                    onPressed: () async {
+                                                      Navigator.pop(context);
+                                                      await TransactionService.deleteTransaction(txn.id);
+                                                      _loadTransactions();
+                                                    },
+                                                    child: const Text('Delete', style: TextStyle(color: Colors.white)),
+                                                  ),
+                                                ],
+                                              ),
+                                            );
                                           }, constraints: const BoxConstraints(), padding: EdgeInsets.zero),
                                         ],
                                       ),
@@ -575,6 +601,15 @@ class _AccountsScreenState extends State<AccountsScreen> {
                             ],
                           ),
                         ),
+                        ] else if (_activeTab == 1) ...[
+                          const ReceivablesView(),
+                        ] else if (_activeTab == 2) ...[
+                          const PayablesView(),
+                        ] else if (_activeTab == 3) ...[
+                          const LedgerView(),
+                        ] else if (_activeTab == 4) ...[
+                          const ReportsView(),
+                        ],
                       ],
                     ),
                   ),
@@ -757,21 +792,86 @@ class _AccountsScreenState extends State<AccountsScreen> {
     );
   }
 
-  Widget _buildActionBtn(String label, IconData icon, Color bgColor, Color color, VoidCallback onTap) {
+  Widget _buildActionBtn(String label, IconData icon, Color bgColor, Color fgColor, VoidCallback onTap) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(12),
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(8)),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        decoration: BoxDecoration(
+          color: bgColor,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: fgColor.withOpacity(0.2)),
+        ),
+        child: Column(
           children: [
-            Icon(icon, size: 14, color: color),
-            const SizedBox(width: 6),
-            Text(label, style: TextStyle(fontSize: 10, color: color, fontWeight: FontWeight.bold)),
+            Icon(icon, color: fgColor, size: 28),
+            const SizedBox(height: 8),
+            Text(label, style: TextStyle(color: fgColor, fontWeight: FontWeight.bold, fontSize: 13)),
           ],
         ),
+      ),
+    );
+  }
+
+  void _showTransactionDetails(TransactionModel txn) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Container(
+          width: 400,
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('Transaction Details', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(context)),
+                ],
+              ),
+              const Divider(),
+              const SizedBox(height: 16),
+              _buildDetailRow('Date & Time', "${txn.date} ${txn.time}"),
+              _buildDetailRow('Type', txn.type),
+              _buildDetailRow('Category', txn.category),
+              _buildDetailRow('Payment Mode', txn.paymentMode),
+              _buildDetailRow('Amount', _fmt(txn.amount)),
+              const SizedBox(height: 16),
+              const Text('Description', style: TextStyle(color: Colors.grey, fontSize: 12)),
+              const SizedBox(height: 4),
+              Text(txn.description, style: const TextStyle(fontSize: 14)),
+              const SizedBox(height: 24),
+              Align(
+                alignment: Alignment.centerRight,
+                child: ElevatedButton(
+                  onPressed: () => Navigator.pop(context),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF16A34A),
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  ),
+                  child: const Text('Close', style: TextStyle(color: Colors.white)),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDetailRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: const TextStyle(color: Colors.grey, fontSize: 14)),
+          Text(value, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+        ],
       ),
     );
   }

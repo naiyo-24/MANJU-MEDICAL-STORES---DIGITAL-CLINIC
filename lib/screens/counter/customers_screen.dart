@@ -3,6 +3,10 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../widgets/custom_pagination.dart';
 import '../../services/customer_service.dart';
+import '../../services/billing_service.dart';
+import 'package:printing/printing.dart';
+import '../../utils/pdf_generator.dart';
+import '../../services/billing_history_service.dart';
 
 class CustomersScreen extends StatefulWidget {
   const CustomersScreen({super.key});
@@ -30,11 +34,41 @@ class _CustomersScreenState extends State<CustomersScreen> {
 
   Future<void> _loadCustomers() async {
     final realCustomers = await CustomerService.getCustomers();
+    
+    List<dynamic> historyList = [];
+    try {
+      final response = await BillingService.getPosHistory();
+      historyList = response['history'] as List? ?? [];
+    } catch (e) {
+      // ignore
+    }
+
     final List<Map<String, dynamic>> mappedRealCustomers = realCustomers.map((c) {
       final names = c.name.split(' ');
       final initials = names.length > 1 
           ? '${names[0][0]}${names[1][0]}'.toUpperCase() 
           : c.name.isNotEmpty ? c.name[0].toUpperCase() : 'C';
+
+      final custHistory = historyList.where((h) {
+        if (c.phone.isNotEmpty && h['customer_phone'] == c.phone) return true;
+        if (c.name.isNotEmpty && h['customer_name'] == c.name) return true;
+        return false;
+      }).toList();
+      
+      double totalPurchases = 0.0;
+      DateTime? lastPurchaseDate;
+      
+      for (var h in custHistory) {
+        totalPurchases += (h['amount'] as num?)?.toDouble() ?? 0.0;
+        String dateStr = h['date'].toString();
+        if (!dateStr.endsWith('Z')) dateStr += 'Z';
+        final dt = DateTime.tryParse(dateStr)?.toLocal();
+        if (dt != null) {
+          if (lastPurchaseDate == null || dt.isAfter(lastPurchaseDate!)) {
+            lastPurchaseDate = dt;
+          }
+        }
+      }
 
       return {
         'full_id': c.id,
@@ -44,17 +78,84 @@ class _CustomersScreenState extends State<CustomersScreen> {
         'phone': c.phone,
         'email': c.email.isNotEmpty ? c.email : 'N/A',
         'city': c.location.isNotEmpty ? c.location : 'Local',
-        'totalPurchases': 0.0,
-        'bills': 0,
-        'lastPurchase': 'N/A',
+        'totalPurchases': totalPurchases,
+        'bills': custHistory.length,
+        'lastPurchase': lastPurchaseDate != null ? DateFormat('dd MMM yyyy').format(lastPurchaseDate!) : 'N/A',
         'status': c.isActive ? 'Active' : 'Inactive',
         'memberSince': c.createdAt != null ? DateFormat('MMM yyyy').format(DateTime.parse(c.createdAt!)) : 'Unknown',
+        'history': custHistory,
       };
     }).toList();
 
     setState(() {
       _allCustomers = mappedRealCustomers;
+      if (_selectedCustomer != null) {
+        final updatedCust = mappedRealCustomers.where((c) => c['full_id'] == _selectedCustomer!['full_id']).firstOrNull;
+        if (updatedCust != null) {
+          _selectedCustomer = updatedCust;
+        }
+      }
     });
+  }
+
+  void _viewBill(SavedBill bill) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          insetPadding: const EdgeInsets.all(20),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          child: SizedBox(
+            width: 800,
+            height: MediaQuery.of(context).size.height * 0.9,
+            child: Column(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  decoration: const BoxDecoration(
+                    color: Color(0xFFF8FAFC),
+                    borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
+                    border: Border(bottom: BorderSide(color: Color(0xFFE2E8F0))),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('Bill View - ${bill.invoiceNo}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                      IconButton(
+                        icon: const Icon(Icons.close),
+                        onPressed: () => Navigator.of(context).pop(),
+                      ),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: PdfPreview(
+                    build: (format) async {
+                      return await PdfGenerator.generateBill(
+                        items: bill.items,
+                        subtotal: bill.subtotal,
+                        discount: bill.discount,
+                        tax: bill.tax,
+                        grandTotal: bill.grandTotal,
+                        invoiceNumber: bill.invoiceNo,
+                        customerName: bill.customerName,
+                        customerPhone: bill.customerPhone,
+                        doctorName: bill.doctorName,
+                        format: 'A4',
+                      );
+                    },
+                    allowSharing: true,
+                    allowPrinting: true,
+                    canChangeOrientation: false,
+                    canChangePageFormat: false,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   void _showAddCustomerDialog() {
@@ -631,7 +732,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
               ),
             ),
             Expanded(flex: 2, child: Text(customer['lastPurchase'], style: const TextStyle(fontSize: 13, color: Color(0xFF334155)))),
-            Expanded(flex: 2, child: _buildStatusChip(customer['status'])),
+            Expanded(flex: 2, child: Align(alignment: Alignment.centerLeft, child: _buildStatusChip(customer['status']))),
             SizedBox(
               width: 80,
               child: Row(
@@ -889,8 +990,51 @@ class _CustomersScreenState extends State<CustomersScreen> {
                         ),
                       ),
                       if (customer['bills'] > 0)
-                        // This would be replaced with actual history mapping when API is connected
-                        ...[]
+                        ...((customer['history'] as List).map((h) {
+                          String dateStrRaw = h['date'].toString();
+                          if (!dateStrRaw.endsWith('Z')) dateStrRaw += 'Z';
+                          final date = DateTime.tryParse(dateStrRaw)?.toLocal();
+                          final dateStr = date != null ? DateFormat('dd MMM yyyy').format(date) : h['date'].toString();
+                          final amt = (h['amount'] as num?)?.toDouble() ?? 0.0;
+                          return InkWell(
+                            onTap: () {
+                              final dt = date ?? DateTime.now();
+                              final itemsList = (h['items_detail'] as List?)?.map((i) => Map<String, dynamic>.from(i)).toList() ?? [];
+                              double calculatedSubtotal = 0.0;
+                              for (var i in itemsList) {
+                                calculatedSubtotal += ((i['price'] as num?)?.toDouble() ?? 0.0) * ((i['qty'] as num?)?.toInt() ?? 1);
+                              }
+                              double grandTotalVal = (h['amount'] as num?)?.toDouble() ?? 0.0;
+                              double calculatedDiscount = calculatedSubtotal > grandTotalVal ? calculatedSubtotal - grandTotalVal : 0.0;
+
+                              final bill = SavedBill(
+                                id: h['id'].toString(),
+                                invoiceNo: h['bill_no'].toString(),
+                                customerName: h['customer_name']?.isEmpty ?? true ? 'Walk-in' : h['customer_name'],
+                                customerPhone: h['customer_phone']?.toString() ?? '',
+                                doctorName: '',
+                                subtotal: calculatedSubtotal > 0 ? calculatedSubtotal : grandTotalVal,
+                                discount: calculatedDiscount,
+                                tax: 0.0,
+                                grandTotal: grandTotalVal,
+                                items: itemsList,
+                                createdAt: dt,
+                              );
+                              _viewBill(bill);
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                              child: Row(
+                                children: [
+                                  Expanded(flex: 2, child: Text(dateStr, style: const TextStyle(fontSize: 12))),
+                                  Expanded(flex: 2, child: Text(h['bill_no']?.toString() ?? 'N/A', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold))),
+                                  Expanded(flex: 2, child: Text('₹ ${amt.toStringAsFixed(2)}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)))),
+                                  const SizedBox(width: 40, child: Icon(Icons.chevron_right, size: 16, color: Color(0xFF94A3B8))),
+                                ],
+                              ),
+                            ),
+                          );
+                        }).toList())
                       else
                         const Padding(
                           padding: EdgeInsets.all(32.0),

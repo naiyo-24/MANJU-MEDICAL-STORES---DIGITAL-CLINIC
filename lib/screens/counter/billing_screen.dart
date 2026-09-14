@@ -42,6 +42,8 @@ class _BillingScreenState extends State<BillingScreen> {
   final TextEditingController _customerNameController = TextEditingController();
   final TextEditingController _customerPhoneController = TextEditingController();
 
+  String _paymentMethod = 'CASH'; // CASH, UPI, CARD
+
   final TextEditingController _newDoctorController = TextEditingController();
   
   List<Doctor> _doctorsList = [];
@@ -411,14 +413,43 @@ class _BillingScreenState extends State<BillingScreen> {
   }
 
   Future<void> _generateAndSaveBill() async {
+    if (_isGeneratingBill) return; // Prevent double clicks
+    
     if (_currentBill.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please add items to the bill first.')));
       return;
     }
 
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+
     setState(() {
       _isGeneratingBill = true;
     });
+
+    BuildContext? dialogContext;
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext ctx) {
+        dialogContext = ctx;
+        return const Dialog(
+          child: Padding(
+            padding: EdgeInsets.all(20.0),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(width: 20),
+                Text("Generating bill..."),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+
+    // Yield to the event loop so the dialog can render and start spinning
+    await Future.delayed(const Duration(milliseconds: 100));
 
     try {
       // 0. Save Customer if new
@@ -443,8 +474,9 @@ class _BillingScreenState extends State<BillingScreen> {
       if (checkoutItems.isNotEmpty) {
         await BillingService.checkout(
           items: checkoutItems,
+          totalAmount: _grandTotal,
           customerId: _savedCustomerId,
-          paymentMethod: 'CASH',
+          paymentMethod: _paymentMethod,
         );
       }
 
@@ -476,7 +508,7 @@ class _BillingScreenState extends State<BillingScreen> {
       );
       
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        scaffoldMessenger.showSnackBar(const SnackBar(
           content: Text('Bill generated and saved successfully! Preparing to print...'),
           backgroundColor: Colors.green,
         ));
@@ -502,18 +534,36 @@ class _BillingScreenState extends State<BillingScreen> {
       // Clear after successful checkout
       _clearCart();
 
-      await Printing.layoutPdf(
+      // Dismiss the loading dialog BEFORE printing to prevent it from getting stuck behind the print dialog
+      if (dialogContext != null && dialogContext!.mounted) {
+        Navigator.pop(dialogContext!);
+        dialogContext = null;
+      }
+      if (mounted) {
+        setState(() {
+          _isGeneratingBill = false;
+        });
+      }
+
+      // Do NOT await this, so execution doesn't block if the print preview stays open
+      Printing.layoutPdf(
         onLayout: (PdfPageFormat format) async => pdfBytes,
         name: 'Bill_$invoiceNo.pdf',
       );
+      
+      return; // Exit here since we already cleaned up
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        scaffoldMessenger.showSnackBar(SnackBar(
           content: Text('Error generating bill: $e'),
           backgroundColor: Colors.red,
         ));
       }
     } finally {
+      // Fallback cleanup in case of errors
+      if (dialogContext != null && dialogContext!.mounted) {
+        Navigator.pop(dialogContext!); 
+      }
       if (mounted) {
         setState(() {
           _isGeneratingBill = false;
@@ -698,7 +748,7 @@ class _BillingScreenState extends State<BillingScreen> {
                 ),
                 const SizedBox(height: 16),
                 
-                // Brand & Pack Size
+                // Brand & SKU / Barcode
                 Row(
                   children: [
                     Expanded(
@@ -726,7 +776,7 @@ class _BillingScreenState extends State<BillingScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('Pack Size', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                          const Text('SKU / Barcode', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
                           const SizedBox(height: 8),
                           TextField(
                             controller: packController,
@@ -1083,7 +1133,7 @@ class _BillingScreenState extends State<BillingScreen> {
                               children: [
                                 Expanded(flex: 3, child: Text('Medicine Name', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 12))),
                                 Expanded(flex: 2, child: Text('Brand', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 12))),
-                                Expanded(flex: 2, child: Text('Pack Size', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 12))),
+                                Expanded(flex: 2, child: Text('SKU / Barcode', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 12))),
                                 Expanded(flex: 2, child: Text('MRP (₹)', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 12))),
                                 Expanded(flex: 1, child: Text('Stock', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 12))),
                                 SizedBox(width: 80, child: Text('Action', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 12))),
@@ -1392,40 +1442,41 @@ class _BillingScreenState extends State<BillingScreen> {
                                 const SizedBox(height: 8),
                                 Row(
                                   children: [
-                                    const Text('Discount', style: TextStyle(color: Color(0xFF64748B), fontSize: 12)),
-                                    const SizedBox(width: 8),
-                                    InkWell(
-                                      onTap: () => setState(() => _isDiscountPercentage = true),
-                                      child: Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                                        decoration: BoxDecoration(color: _isDiscountPercentage ? const Color(0xFF22C55E) : const Color(0xFFF1F5F9), borderRadius: BorderRadius.circular(4)),
-                                        child: Text('%', style: TextStyle(color: _isDiscountPercentage ? Colors.white : const Color(0xFF64748B), fontSize: 10, fontWeight: FontWeight.bold)),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 8),
+                                    const SizedBox(width: 80, child: Text('Discount', style: TextStyle(color: Color(0xFF64748B), fontSize: 12))),
                                     Container(
-                                      width: 60,
-                                      decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE2E8F0)), borderRadius: BorderRadius.circular(4)),
+                                      width: 80,
+                                      height: 32,
+                                      decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE2E8F0)), borderRadius: BorderRadius.circular(6)),
                                       child: TextField(
                                         controller: _discountController,
                                         keyboardType: TextInputType.number,
                                         style: const TextStyle(fontSize: 12),
-                                        decoration: const InputDecoration(
-                                          border: InputBorder.none,
-                                          isDense: true,
-                                          contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                                          hintText: '0.00',
-                                          hintStyle: TextStyle(fontSize: 10),
-                                        ),
+                                        decoration: const InputDecoration(border: InputBorder.none, isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8), hintText: '0.00'),
                                       ),
                                     ),
                                     const SizedBox(width: 8),
-                                    InkWell(
-                                      onTap: () => setState(() => _isDiscountPercentage = false),
-                                      child: Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                                        decoration: BoxDecoration(color: !_isDiscountPercentage ? const Color(0xFF22C55E) : const Color(0xFFF1F5F9), borderRadius: BorderRadius.circular(4)),
-                                        child: Text('₹', style: TextStyle(color: !_isDiscountPercentage ? Colors.white : const Color(0xFF64748B), fontSize: 10, fontWeight: FontWeight.bold)),
+                                    Container(
+                                      height: 32,
+                                      decoration: BoxDecoration(color: const Color(0xFFF1F5F9), borderRadius: BorderRadius.circular(6)),
+                                      child: Row(
+                                        children: [
+                                          InkWell(
+                                            onTap: () => setState(() => _isDiscountPercentage = true),
+                                            child: Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                              decoration: BoxDecoration(color: _isDiscountPercentage ? const Color(0xFF22C55E) : Colors.transparent, borderRadius: BorderRadius.circular(6)),
+                                              child: Text('%', style: TextStyle(color: _isDiscountPercentage ? Colors.white : const Color(0xFF64748B), fontSize: 12, fontWeight: FontWeight.bold)),
+                                            ),
+                                          ),
+                                          InkWell(
+                                            onTap: () => setState(() => _isDiscountPercentage = false),
+                                            child: Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                              decoration: BoxDecoration(color: !_isDiscountPercentage ? const Color(0xFF22C55E) : Colors.transparent, borderRadius: BorderRadius.circular(6)),
+                                              child: Text('₹', style: TextStyle(color: !_isDiscountPercentage ? Colors.white : const Color(0xFF64748B), fontSize: 12, fontWeight: FontWeight.bold)),
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ),
                                     const Spacer(),
@@ -1434,52 +1485,45 @@ class _BillingScreenState extends State<BillingScreen> {
                                 ),
                                 const SizedBox(height: 8),
                                 Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Row(
-                                      children: [
-                                        const Text('Tax (GST)', style: TextStyle(color: Color(0xFF64748B), fontSize: 12)),
-                                        const SizedBox(width: 8),
-                                        Container(
-                                          height: 24,
-                                          decoration: BoxDecoration(color: const Color(0xFFF1F5F9), borderRadius: BorderRadius.circular(4)),
-                                          child: Row(
-                                            children: [
-                                              InkWell(
-                                                onTap: () => setState(() => _isGstPercentage = true),
-                                                child: Container(
-                                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                                  decoration: BoxDecoration(color: _isGstPercentage ? const Color(0xFF22C55E) : Colors.transparent, borderRadius: BorderRadius.circular(4)),
-                                                  child: Text('%', style: TextStyle(color: _isGstPercentage ? Colors.white : const Color(0xFF64748B), fontSize: 10, fontWeight: FontWeight.bold)),
-                                                ),
-                                              ),
-                                              InkWell(
-                                                onTap: () => setState(() => _isGstPercentage = false),
-                                                child: Container(
-                                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                                  decoration: BoxDecoration(color: !_isGstPercentage ? const Color(0xFF22C55E) : Colors.transparent, borderRadius: BorderRadius.circular(4)),
-                                                  child: Text('₹', style: TextStyle(color: !_isGstPercentage ? Colors.white : const Color(0xFF64748B), fontSize: 10, fontWeight: FontWeight.bold)),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                        const SizedBox(width: 8),
-                                        SizedBox(
-                                          width: 60,
-                                          height: 24,
-                                          child: TextField(
-                                            controller: _gstController,
-                                            keyboardType: TextInputType.number,
-                                            style: const TextStyle(fontSize: 12),
-                                            decoration: InputDecoration(
-                                              contentPadding: const EdgeInsets.symmetric(horizontal: 8),
-                                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(4)),
+                                    const SizedBox(width: 80, child: Text('Tax (GST)', style: TextStyle(color: Color(0xFF64748B), fontSize: 12))),
+                                    Container(
+                                      width: 80,
+                                      height: 32,
+                                      decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE2E8F0)), borderRadius: BorderRadius.circular(6)),
+                                      child: TextField(
+                                        controller: _gstController,
+                                        keyboardType: TextInputType.number,
+                                        style: const TextStyle(fontSize: 12),
+                                        decoration: const InputDecoration(border: InputBorder.none, isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8), hintText: '0.00'),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Container(
+                                      height: 32,
+                                      decoration: BoxDecoration(color: const Color(0xFFF1F5F9), borderRadius: BorderRadius.circular(6)),
+                                      child: Row(
+                                        children: [
+                                          InkWell(
+                                            onTap: () => setState(() => _isGstPercentage = true),
+                                            child: Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                              decoration: BoxDecoration(color: _isGstPercentage ? const Color(0xFF22C55E) : Colors.transparent, borderRadius: BorderRadius.circular(6)),
+                                              child: Text('%', style: TextStyle(color: _isGstPercentage ? Colors.white : const Color(0xFF64748B), fontSize: 12, fontWeight: FontWeight.bold)),
                                             ),
                                           ),
-                                        ),
-                                      ],
+                                          InkWell(
+                                            onTap: () => setState(() => _isGstPercentage = false),
+                                            child: Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                              decoration: BoxDecoration(color: !_isGstPercentage ? const Color(0xFF22C55E) : Colors.transparent, borderRadius: BorderRadius.circular(6)),
+                                              child: Text('₹', style: TextStyle(color: !_isGstPercentage ? Colors.white : const Color(0xFF64748B), fontSize: 12, fontWeight: FontWeight.bold)),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
                                     ),
+                                    const Spacer(),
                                     Text('₹ ${_gstAmount.toStringAsFixed(2)}', style: const TextStyle(color: Color(0xFF1E293B), fontWeight: FontWeight.bold, fontSize: 12)),
                                   ],
                                 ),
@@ -1494,6 +1538,52 @@ class _BillingScreenState extends State<BillingScreen> {
                                       Text('₹ ${_grandTotal.toStringAsFixed(2)}', style: const TextStyle(color: Color(0xFF166534), fontWeight: FontWeight.w900, fontSize: 16)),
                                     ],
                                   ),
+                                ),
+                                const SizedBox(height: 16),
+                                Row(
+                                  children: [
+                                    const Text('Payment:', style: TextStyle(color: Color(0xFF64748B), fontSize: 12, fontWeight: FontWeight.bold)),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Container(
+                                        height: 36,
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFFF1F5F9),
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                        child: Row(
+                                          children: ['CASH', 'UPI', 'CARD'].map((method) {
+                                            bool isSelected = _paymentMethod == method;
+                                            return Expanded(
+                                              child: InkWell(
+                                                onTap: () {
+                                                  setState(() {
+                                                    _paymentMethod = method;
+                                                  });
+                                                },
+                                                borderRadius: BorderRadius.circular(8),
+                                                child: Container(
+                                                  alignment: Alignment.center,
+                                                  decoration: BoxDecoration(
+                                                    color: isSelected ? const Color(0xFF16A34A) : Colors.transparent,
+                                                    borderRadius: BorderRadius.circular(8),
+                                                  ),
+                                                  child: Text(
+                                                    method,
+                                                    style: TextStyle(
+                                                      color: isSelected ? Colors.white : const Color(0xFF64748B),
+                                                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                                      fontSize: 12,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            );
+                                          }).toList(),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                                 const SizedBox(height: 16),
                                 Row(

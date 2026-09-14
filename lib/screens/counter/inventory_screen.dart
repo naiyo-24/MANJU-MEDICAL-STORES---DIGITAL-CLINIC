@@ -188,8 +188,13 @@ class _InventoryScreenState extends State<InventoryScreen> {
 
     switch (status) {
       case 'In Stock':
+      case 'OK':
         bgColor = const Color(0xFFDCFCE7);
         textColor = const Color(0xFF166534);
+        break;
+      case 'Medium Stock':
+        bgColor = const Color(0xFFDBEAFE); // Blueish
+        textColor = const Color(0xFF1E40AF);
         break;
       case 'Low Stock':
         bgColor = const Color(0xFFFEF9C3);
@@ -359,7 +364,11 @@ class _InventoryScreenState extends State<InventoryScreen> {
                                         itemBuilder: (context, index) {
                                           final medicine = _medicines[index];
                                           // Simple status logic based on stock
-                                          final status = medicine.stockQuantity <= 0 ? 'Out of Stock' : (medicine.stockQuantity <= (medicine.lowStockThreshold ?? 10) ? 'Low Stock' : 'In Stock');
+                                          final status = medicine.stockQuantity <= 0 
+                                              ? 'Out of Stock' 
+                                              : (medicine.stockQuantity <= (medicine.lowStockThreshold ?? 10) 
+                                                  ? 'Low Stock' 
+                                                  : (medicine.stockQuantity <= 50 ? 'Medium Stock' : 'OK'));
                                           
                                           return Padding(
                                             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
@@ -410,7 +419,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
                                                           ? const Color(0xFFDC2626) // Red
                                                           : (medicine.stockQuantity <= (medicine.lowStockThreshold ?? 10) 
                                                               ? const Color(0xFFD97706) // Yellow/Orange
-                                                              : const Color(0xFF16A34A)), // Green
+                                                              : (medicine.stockQuantity <= 50 ? const Color(0xFF2563EB) : const Color(0xFF16A34A))), // Blue / Green
                                                       fontWeight: FontWeight.bold,
                                                       fontSize: 12,
                                                     ),
@@ -418,7 +427,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
                                                 ),
                                                 Expanded(flex: 2, child: Text('₹${medicine.unitPrice.toStringAsFixed(2)}', style: const TextStyle(color: Color(0xFF1E293B), fontSize: 12, fontWeight: FontWeight.bold))),
                                                 Expanded(flex: 2, child: Text(medicine.expiryDate, style: const TextStyle(color: Color(0xFF64748B), fontSize: 12))),
-                                                Expanded(flex: 2, child: Align(alignment: Alignment.centerLeft, child: _buildStatusBadge(status, '${medicine.stockQuantity} Units'))),
+                                                Expanded(flex: 2, child: Align(alignment: Alignment.centerLeft, child: _buildStatusBadge(status))),
                                                 SizedBox(
                                                   width: 40,
                                                   child: PopupMenuButton<String>(

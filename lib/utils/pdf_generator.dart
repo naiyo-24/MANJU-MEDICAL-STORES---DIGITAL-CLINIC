@@ -131,11 +131,13 @@ class PdfGenerator {
                 ),
                 pw.SizedBox(height: 10),
                 pw.BarcodeWidget(
-                  data: 'upi://pay?pa=manju@upi&pn=ManjuMedical&am=$grandTotal',
+                  data: 'https://manjumedical.com/verify/$invoiceNumber',
                   barcode: pw.Barcode.qrCode(),
                   width: 50,
                   height: 50,
                 ),
+                pw.SizedBox(height: 2),
+                pw.Text('Scan for online PDF', style: const pw.TextStyle(fontSize: 8)),
                 pw.SizedBox(height: 5),
                 pw.Text('Thank you! Visit again.', style: const pw.TextStyle(fontSize: 8, fontStyle: pw.FontStyle.italic)),
               ],
@@ -354,6 +356,26 @@ class PdfGenerator {
                       pw.Expanded(
                         flex: 1,
                         child: pw.Container(
+                          padding: const pw.EdgeInsets.all(4),
+                          alignment: pw.Alignment.bottomCenter,
+                          child: pw.Column(
+                            mainAxisSize: pw.MainAxisSize.min,
+                            children: [
+                              pw.BarcodeWidget(
+                                data: 'https://manjumedical.com/verify/$invoiceNumber',
+                                barcode: pw.Barcode.qrCode(),
+                                width: 40,
+                                height: 40,
+                              ),
+                              pw.SizedBox(height: 2),
+                              pw.Text('Scan for PDF', style: const pw.TextStyle(fontSize: 6, color: primaryGreen)),
+                            ],
+                          ),
+                        ),
+                      ),
+                      pw.Expanded(
+                        flex: 1,
+                        child: pw.Container(
                           padding: const pw.EdgeInsets.all(2),
                           alignment: pw.Alignment.bottomRight,
                           child: pw.Text('For Manju Medical Stores Authorized Signature', style: const pw.TextStyle(fontSize: 6, color: primaryGreen)),
@@ -414,7 +436,7 @@ class PdfGenerator {
                   pw.TableRow(
                     decoration: const pw.BoxDecoration(color: lightGreen),
                     children: [
-                      'SN', 'Items', 'Batch', 'Exp', 'MRP', 'Rate', 'Disc', 'CGST', 'SGST', 'Total'
+                      'SN', 'Items', 'Batch', 'Exp', 'Qty', 'MRP', 'Disc', 'CGST', 'SGST', 'Total'
                     ].map((h) => pw.Padding(
                       padding: const pw.EdgeInsets.symmetric(vertical: 2, horizontal: 4),
                       child: pw.Text(h, style: pw.TextStyle(fontSize: 7, fontWeight: pw.FontWeight.bold, color: primaryGreen), textAlign: pw.TextAlign.center),
@@ -430,9 +452,9 @@ class PdfGenerator {
                       children: [
                         '${index + 1}',
                         item['name'],
-                        'B123',
-                        '12/26',
-                        price.toStringAsFixed(2),
+                        item['batch'] ?? '-',
+                        item['exp'] ?? '-',
+                        qty.toString(),
                         price.toStringAsFixed(2),
                         '0.00',
                         '0.00',

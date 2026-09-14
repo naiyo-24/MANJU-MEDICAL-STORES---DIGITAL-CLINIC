@@ -13,6 +13,7 @@ class TransactionModel {
   final String description;
   final double amount;
   final String paymentMode;
+  double runningBalance = 0.0; // Initialized to prevent null errors
 
   TransactionModel({
     required this.id,
@@ -23,6 +24,7 @@ class TransactionModel {
     required this.description,
     required this.amount,
     required this.paymentMode,
+    this.runningBalance = 0.0,
   });
 
   factory TransactionModel.fromJson(Map<String, dynamic> json) {
