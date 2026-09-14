@@ -10,6 +10,7 @@ class Customer {
   final String email;
   final String location;
   final bool isActive;
+  final String? createdAt;
 
   Customer({
     required this.id,
@@ -18,6 +19,7 @@ class Customer {
     this.email = '',
     this.location = '',
     this.isActive = true,
+    this.createdAt,
   });
 
   Map<String, dynamic> toJson() {
@@ -39,6 +41,7 @@ class Customer {
       email: json['email'] ?? '',
       location: json['location'] ?? '',
       isActive: json['is_active'] ?? true,
+      createdAt: json['created_at'],
     );
   }
 }

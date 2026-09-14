@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import '../../widgets/custom_pagination.dart';
 import '../../services/customer_service.dart';
 
@@ -47,7 +48,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
         'bills': 0,
         'lastPurchase': 'N/A',
         'status': c.isActive ? 'Active' : 'Inactive',
-        'memberSince': 'Today',
+        'memberSince': c.createdAt != null ? DateFormat('MMM yyyy').format(DateTime.parse(c.createdAt!)) : 'Unknown',
       };
     }).toList();
 
@@ -336,17 +337,27 @@ class _CustomersScreenState extends State<CustomersScreen> {
                   ),
                 ],
               ),
-              ElevatedButton.icon(
-                onPressed: _showAddCustomerDialog,
-                icon: const Icon(Icons.add, size: 18),
-                label: const Text('Add Customer'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF166534),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            Row(
+              children: [
+                IconButton(
+                  onPressed: () => _loadCustomers(),
+                  icon: const Icon(Icons.refresh, color: Color(0xFF64748B)),
+                  tooltip: 'Refresh',
                 ),
-              ),
+                const SizedBox(width: 8),
+                ElevatedButton.icon(
+                  onPressed: _showAddCustomerDialog,
+                  icon: const Icon(Icons.add, size: 18),
+                  label: const Text('Add Customer'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF166534),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                ),
+              ],
+            ),
             ],
           ),
           const SizedBox(height: 24),

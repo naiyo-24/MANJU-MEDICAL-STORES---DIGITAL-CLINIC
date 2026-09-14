@@ -383,18 +383,28 @@ class _ShopManagementScreenState extends State<ShopManagementScreen> {
                     ),
                   ),
                   const SizedBox(width: 16),
-                  ElevatedButton.icon(
-                    onPressed: () => _showAddEditDialog(),
-                    icon: const Icon(Icons.add, size: 18),
-                    label: const Text('Add New Shop', style: TextStyle(fontWeight: FontWeight.bold)),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF22C55E),
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                      elevation: 0,
-                    ),
+            Row(
+              children: [
+                IconButton(
+                  onPressed: () => _fetchShops(),
+                  icon: const Icon(Icons.refresh, color: Color(0xFF64748B)),
+                  tooltip: 'Refresh',
+                ),
+                const SizedBox(width: 8),
+                ElevatedButton.icon(
+                  onPressed: () => _showAddEditDialog(),
+                  icon: const Icon(Icons.add, size: 18),
+                  label: const Text('Add New Shop', style: TextStyle(fontWeight: FontWeight.bold)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF22C55E),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    elevation: 0,
                   ),
+                ),
+              ],
+            ),
                 ],
               ),
             ],

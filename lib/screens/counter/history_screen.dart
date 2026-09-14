@@ -77,7 +77,35 @@ class _HistoryScreenState extends State<HistoryScreen> {
   }
 
   List<Map<String, dynamic>> get _filteredTransactions {
+    final now = DateTime.now();
     return _transactions.where((tx) {
+      final bill = tx['originalBill'];
+      DateTime date;
+      if (bill != null) {
+        date = bill.createdAt;
+      } else {
+        date = now; // Fallback
+      }
+      
+      bool matchesDate = false;
+      switch (_activeDateRange) {
+        case 'Today':
+          matchesDate = date.year == now.year && date.month == now.month && date.day == now.day;
+          break;
+        case 'This Week':
+          final startOfWeek = now.subtract(Duration(days: now.weekday - 1));
+          matchesDate = date.isAfter(startOfWeek.subtract(const Duration(days: 1)));
+          break;
+        case 'This Month':
+          matchesDate = date.year == now.year && date.month == now.month;
+          break;
+        case 'This Year':
+          matchesDate = date.year == now.year;
+          break;
+        default:
+          matchesDate = true;
+      }
+
       final matchesSearch = tx['refNo'].toString().toLowerCase().contains(_searchQuery.toLowerCase()) ||
           tx['customerName'].toString().toLowerCase().contains(_searchQuery.toLowerCase()) ||
           tx['customerPhone'].toString().toLowerCase().contains(_searchQuery.toLowerCase());
@@ -85,7 +113,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
       final matchesType = _selectedType == 'All' || tx['type'] == _selectedType;
       final matchesMode = _selectedPaymentMode == 'All' || tx['paymentMode'] == _selectedPaymentMode;
       
-      return matchesSearch && matchesType && matchesMode;
+      return matchesDate && matchesSearch && matchesType && matchesMode;
     }).toList();
   }
 
@@ -418,33 +446,43 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   ),
                 ],
               ),
-              PopupMenuButton<String>(
-                onSelected: (value) {
-                  if (value == 'Excel') _exportToExcel();
-                  if (value == 'PDF') _exportToPdf();
-                },
-                offset: const Offset(0, 50),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                  decoration: BoxDecoration(
-                    border: Border.all(color: const Color(0xFF22C55E)),
-                    borderRadius: BorderRadius.circular(8),
+              Row(
+                children: [
+                  IconButton(
+                    onPressed: () => _loadHistory(),
+                    icon: const Icon(Icons.refresh, color: Color(0xFF64748B)),
+                    tooltip: 'Refresh',
                   ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Icons.download, size: 16, color: Color(0xFF166534)),
-                      const SizedBox(width: 8),
-                      const Text('Export', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF166534))),
-                      const SizedBox(width: 4),
-                      const Icon(Icons.arrow_drop_down, size: 18, color: Color(0xFF166534)),
+                  const SizedBox(width: 8),
+                  PopupMenuButton<String>(
+                    onSelected: (value) {
+                      if (value == 'Excel') _exportToExcel();
+                      if (value == 'PDF') _exportToPdf();
+                    },
+                    offset: const Offset(0, 50),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: const Color(0xFF22C55E)),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.download, size: 16, color: Color(0xFF166534)),
+                          const SizedBox(width: 8),
+                          const Text('Export', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF166534))),
+                          const SizedBox(width: 4),
+                          const Icon(Icons.arrow_drop_down, size: 18, color: Color(0xFF166534)),
+                        ],
+                      ),
+                    ),
+                    itemBuilder: (context) => [
+                      const PopupMenuItem(value: 'Excel', child: Row(children: [Icon(Icons.table_chart_outlined, color: Color(0xFF22C55E), size: 18), SizedBox(width: 8), Text('Export as Excel')])),
+                      const PopupMenuItem(value: 'PDF', child: Row(children: [Icon(Icons.picture_as_pdf_outlined, color: Colors.red, size: 18), SizedBox(width: 8), Text('Export as PDF')])),
                     ],
                   ),
-                ),
-                itemBuilder: (context) => [
-                  const PopupMenuItem(value: 'Excel', child: Row(children: [Icon(Icons.table_chart_outlined, color: Color(0xFF22C55E), size: 18), SizedBox(width: 8), Text('Export as Excel')])),
-                  const PopupMenuItem(value: 'PDF', child: Row(children: [Icon(Icons.picture_as_pdf_outlined, color: Colors.red, size: 18), SizedBox(width: 8), Text('Export as PDF')])),
                 ],
               ),
             ],
@@ -528,8 +566,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   const SizedBox(height: 8),
                   OutlinedButton.icon(
                     onPressed: _resetFilters,
-                    icon: const Icon(Icons.refresh, color: Color(0xFF1E293B), size: 16),
-                    label: const Text('Reset', style: TextStyle(color: Color(0xFF1E293B), fontWeight: FontWeight.bold)),
+                    icon: const Icon(Icons.clear, color: Color(0xFF1E293B), size: 16),
+                    label: const Text('Reset Filters', style: TextStyle(color: Color(0xFF1E293B), fontWeight: FontWeight.bold)),
                     style: OutlinedButton.styleFrom(
                       side: const BorderSide(color: Color(0xFFE2E8F0)),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),

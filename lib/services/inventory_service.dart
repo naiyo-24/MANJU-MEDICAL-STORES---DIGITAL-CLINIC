@@ -13,6 +13,7 @@ class InventoryItem {
   final int stockQuantity;
   final double unitPrice;
   final String expiryDate;
+  final int? lowStockThreshold;
   final String? imageUrl;
 
   InventoryItem({
@@ -24,6 +25,7 @@ class InventoryItem {
     required this.stockQuantity,
     required this.unitPrice,
     required this.expiryDate,
+    this.lowStockThreshold,
     this.imageUrl,
   });
 
@@ -37,6 +39,7 @@ class InventoryItem {
       stockQuantity: json['stock_quantity'] ?? 0,
       unitPrice: (json['unit_price'] ?? 0).toDouble(),
       expiryDate: json['expiry_date'] ?? '',
+      lowStockThreshold: json['low_stock_threshold'] != null ? int.tryParse(json['low_stock_threshold'].toString()) : null,
       imageUrl: json['image_url'],
     );
   }

@@ -9,6 +9,7 @@ import '../../services/transaction_service.dart';
 
 import 'package:intl/intl.dart';
 import '../../services/transaction_service.dart';
+import '../../services/account_service.dart';
 
 class AccountsScreen extends StatefulWidget {
   const AccountsScreen({super.key});
@@ -41,6 +42,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
   double _netProfit = 0;
   double _cashInHand = 0;
   double _bankBalance = 0;
+  double _outstandingReceivables = 0;
 
   int _currentPage = 1;
   final int _itemsPerPage = 10;
@@ -138,30 +140,21 @@ class _AccountsScreenState extends State<AccountsScreen> {
     
     double income = 0;
     double expenses = 0;
-    double cash = 28450.0; // Base cash
-    double bank = 112300.0; // Base bank
-
-    for (var t in filteredTxns) {
-      if (t.type == 'Income') {
-        income += t.amount;
-        if (t.paymentMode == 'Cash') cash += t.amount;
-        else bank += t.amount;
-      } else {
-        expenses += t.amount;
-        if (t.paymentMode == 'Cash') cash -= t.amount;
-        else bank -= t.amount;
-      }
-    }
+    
+    final summary = await AccountService.getSummary();
+    double cash = summary.cashInHand;
+    double bank = summary.bankBalance;
 
     if (mounted) {
       setState(() {
         _categories = loadedCategories;
         _transactions = filteredTxns;
-        _totalIncome = income;
-        _totalExpenses = expenses;
-        _netProfit = income - expenses;
-        _cashInHand = cash;
-        _bankBalance = bank;
+        _totalIncome = summary.totalIncome;
+        _totalExpenses = summary.totalExpenses;
+        _netProfit = summary.netProfit;
+        _cashInHand = summary.cashInHand;
+        _bankBalance = summary.bankBalance;
+        _outstandingReceivables = 0; // Replace with backend value if added later
         _isLoading = false;
       });
     }
@@ -244,18 +237,14 @@ class _AccountsScreenState extends State<AccountsScreen> {
                         if (amountCtrl.text.isEmpty || categoryCtrl.text.isEmpty) return;
                         
                         final now = DateTime.now();
-                        final newTxn = TransactionModel(
-                          id: now.millisecondsSinceEpoch.toString(),
-                          date: DateFormat('dd MMM yyyy').format(now),
-                          time: DateFormat('hh:mm a').format(now),
-                          type: typeCtrl.text,
-                          category: categoryCtrl.text,
-                          description: descriptionCtrl.text,
-                          amount: double.tryParse(amountCtrl.text) ?? 0.0,
-                          paymentMode: paymentModeCtrl.text,
-                        );
+                        final payload = {
+                          "date": now.toUtc().toIso8601String(),
+                          "amount": double.tryParse(amountCtrl.text) ?? 0.0,
+                          "transaction_type": typeCtrl.text.toUpperCase(),
+                          "description": descriptionCtrl.text,
+                        };
 
-                        await TransactionService.saveTransaction(newTxn);
+                        await TransactionService.saveTransaction(payload);
                         if (context.mounted) {
                           Navigator.pop(context, );
                           _loadTransactions();
@@ -321,16 +310,26 @@ class _AccountsScreenState extends State<AccountsScreen> {
                         ),
                       ],
                     ),
-                    ElevatedButton.icon(
-                      onPressed: () => _showAddTransactionDialog(),
-                      icon: const Icon(Icons.add, size: 18),
-                      label: const Text('Add Transaction'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF22C55E),
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                      ),
+                    Row(
+                      children: [
+                        IconButton(
+                          onPressed: () => _loadTransactions(),
+                          icon: const Icon(Icons.refresh, color: Color(0xFF64748B)),
+                          tooltip: 'Refresh',
+                        ),
+                        const SizedBox(width: 8),
+                        ElevatedButton.icon(
+                          onPressed: () => _showAddTransactionDialog(),
+                          icon: const Icon(Icons.add, size: 18),
+                          label: const Text('Add Transaction'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF22C55E),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -345,7 +344,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                     const SizedBox(width: 16),
                     Expanded(child: _buildStatCard('Net Profit', _fmt(_netProfit), Icons.bar_chart, const Color(0xFFE0F2FE), const Color(0xFF0369A1))),
                     const SizedBox(width: 16),
-                    Expanded(child: _buildStatCard('Outstanding Receivables', _fmt(138500.0), Icons.people_alt, const Color(0xFFF3E8FF), const Color(0xFF7E22CE))),
+                    Expanded(child: _buildStatCard('Outstanding Receivables', _fmt(_outstandingReceivables), Icons.people_alt, const Color(0xFFF3E8FF), const Color(0xFF7E22CE))),
                   ],
                 ),
                 const SizedBox(height: 24),

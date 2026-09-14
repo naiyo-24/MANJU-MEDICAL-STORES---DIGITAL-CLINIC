@@ -22,6 +22,7 @@ class BillingScreen extends StatefulWidget {
 
 class _BillingScreenState extends State<BillingScreen> {
   List<Map<String, dynamic>> _medicines = [];
+  List<Customer> _allCustomers = [];
   List<Map<String, dynamic>> _filteredMedicines = [];
 
   // Modifiable Data for Current Bill
@@ -40,7 +41,7 @@ class _BillingScreenState extends State<BillingScreen> {
 
   final TextEditingController _customerNameController = TextEditingController();
   final TextEditingController _customerPhoneController = TextEditingController();
-  final TextEditingController _customerAgeController = TextEditingController();
+
   final TextEditingController _newDoctorController = TextEditingController();
   
   List<Doctor> _doctorsList = [];
@@ -60,6 +61,7 @@ class _BillingScreenState extends State<BillingScreen> {
     _startClock();
     _fetchMedicines();
     _fetchDoctors();
+    _fetchCustomers();
     _discountController.addListener(() {
       setState(() {
         _discountValue = double.tryParse(_discountController.text) ?? 0.0;
@@ -85,7 +87,7 @@ class _BillingScreenState extends State<BillingScreen> {
     _discountController.dispose();
     _customerNameController.dispose();
     _customerPhoneController.dispose();
-    _customerAgeController.dispose();
+
     _newDoctorController.dispose();
     _timer?.cancel();
     super.dispose();
@@ -120,7 +122,8 @@ class _BillingScreenState extends State<BillingScreen> {
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       customerName: _customerNameController.text,
       customerPhone: _customerPhoneController.text,
-      customerAge: _customerAgeController.text,
+      customerAge: '',
+
       doctorName: _selectedDoctorId == 'new' ? _newDoctorController.text : _selectedDoctorName,
       format: _selectedFormat,
       items: List.from(_currentBill),
@@ -136,7 +139,7 @@ class _BillingScreenState extends State<BillingScreen> {
       _currentBill.clear();
       _customerNameController.clear();
       _customerPhoneController.clear();
-      _customerAgeController.clear();
+
       _newDoctorController.clear();
       _discountValue = 0.0;
       _discountController.clear();
@@ -194,6 +197,19 @@ class _BillingScreenState extends State<BillingScreen> {
 
   double get _grandTotal {
     return _subtotal - _discountAmount + _gstAmount;
+  }
+
+  Future<void> _fetchCustomers() async {
+    try {
+      final customers = await CustomerService.getCustomers();
+      if (mounted) {
+        setState(() {
+          _allCustomers = customers;
+        });
+      }
+    } catch (e) {
+      print('Error fetching customers: $e');
+    }
   }
 
   Future<void> _fetchMedicines() async {
@@ -279,7 +295,7 @@ class _BillingScreenState extends State<BillingScreen> {
                                 _currentBill = List.from(draft.items);
                                 _customerNameController.text = draft.customerName;
                                 _customerPhoneController.text = draft.customerPhone;
-                                _customerAgeController.text = draft.customerAge;
+
                                 final matchedDoctor = _doctorsList.cast<Doctor?>().firstWhere(
                                   (d) => d?.name == draft.doctorName, 
                                   orElse: () => null
@@ -370,7 +386,7 @@ class _BillingScreenState extends State<BillingScreen> {
                       invoiceNumber: invoiceNo,
                       customerName: _customerNameController.text.isNotEmpty ? _customerNameController.text : 'Walk-in Customer',
                       customerPhone: _customerPhoneController.text,
-                      customerAge: _customerAgeController.text,
+
                       doctorName: _selectedDoctorId == 'new' ? _newDoctorController.text : _selectedDoctorName,
                       format: _selectedFormat,
                     ),
@@ -405,6 +421,22 @@ class _BillingScreenState extends State<BillingScreen> {
     });
 
     try {
+      // 0. Save Customer if new
+      if (_customerNameController.text.isNotEmpty) {
+        final existingCust = _allCustomers.where((c) => c.name.toLowerCase() == _customerNameController.text.toLowerCase()).toList();
+        if (existingCust.isNotEmpty) {
+          _savedCustomerId = existingCust.first.id;
+        } else {
+          final newCust = await CustomerService.saveCustomer(Customer(
+            id: DateTime.now().millisecondsSinceEpoch.toString(),
+            name: _customerNameController.text,
+            phone: _customerPhoneController.text,
+          ));
+          _savedCustomerId = newCust.id;
+          _allCustomers.add(newCust); // Keep local list updated
+        }
+      }
+
       // 1. Send to Backend POS API
       final checkoutItems = _currentBill.where((item) => item['inventory_item_id'] != null).toList();
       
@@ -431,7 +463,7 @@ class _BillingScreenState extends State<BillingScreen> {
         invoiceNumber: invoiceNo,
         customerName: _customerNameController.text.isNotEmpty ? _customerNameController.text : 'Walk-in Customer',
         customerPhone: _customerPhoneController.text,
-        customerAge: _customerAgeController.text,
+
         doctorName: _selectedDoctorId == 'new' ? _newDoctorController.text : _selectedDoctorName,
         format: _selectedFormat,
       );
@@ -604,6 +636,9 @@ class _BillingScreenState extends State<BillingScreen> {
   void _clearCart() {
     setState(() {
       _currentBill.clear();
+      _customerNameController.clear();
+      _customerPhoneController.clear();
+      _savedCustomerId = null;
     });
   }
 
@@ -1240,6 +1275,8 @@ class _BillingScreenState extends State<BillingScreen> {
                                   padding: const EdgeInsets.all(12.0),
                                   child: Column(
                                     children: [
+                                      _buildCustomerSearchField(),
+                                      const SizedBox(height: 8),
                                       Row(
                                         children: [
                                           Expanded(child: _buildCompactField('Name', _customerNameController)),
@@ -1248,16 +1285,10 @@ class _BillingScreenState extends State<BillingScreen> {
                                         ],
                                       ),
                                       const SizedBox(height: 8),
-                                      Row(
+                                      Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
-                                          Expanded(child: _buildCompactField('Age', _customerAgeController, isNumber: true)),
-                                          const SizedBox(width: 8),
-                                          Expanded(
-                                            child: Column(
-                                              crossAxisAlignment: CrossAxisAlignment.start,
-                                              children: [
-                                                const Text('Doctor Name', style: TextStyle(fontSize: 10, color: Color(0xFF64748B), fontWeight: FontWeight.bold)),
+                                          const Text('Doctor Name', style: TextStyle(fontSize: 10, color: Color(0xFF64748B), fontWeight: FontWeight.bold)),
                                                 const SizedBox(height: 4),
                                                 Container(
                                                   height: 32,
@@ -1311,9 +1342,6 @@ class _BillingScreenState extends State<BillingScreen> {
                                                     ),
                                                   ),
                                                 ],
-                                              ],
-                                            ),
-                                          ),
                                         ],
                                       ),
                                       const SizedBox(height: 12),
@@ -1580,6 +1608,95 @@ class _BillingScreenState extends State<BillingScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildCustomerSearchField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('Search Customer', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF64748B))),
+        const SizedBox(height: 4),
+        Container(
+          height: 36,
+          decoration: BoxDecoration(
+            color: const Color(0xFFF8FAFC),
+            border: Border.all(color: const Color(0xFFE2E8F0)),
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: RawAutocomplete<Customer>(
+            optionsBuilder: (TextEditingValue textEditingValue) {
+              if (textEditingValue.text.isEmpty) {
+                return const Iterable<Customer>.empty();
+              }
+              return _allCustomers.where((Customer customer) {
+                return customer.name.toLowerCase().contains(textEditingValue.text.toLowerCase()) || 
+                       customer.phone.contains(textEditingValue.text);
+              });
+            },
+            displayStringForOption: (Customer option) => option.name,
+            onSelected: (Customer selection) {
+              _customerNameController.text = selection.name;
+              _customerPhoneController.text = selection.phone;
+              setState(() {
+                _savedCustomerId = selection.id;
+              });
+            },
+            fieldViewBuilder: (context, textEditingController, focusNode, onFieldSubmitted) {
+              return TextField(
+                controller: textEditingController,
+                focusNode: focusNode,
+                style: const TextStyle(fontSize: 12),
+                decoration: const InputDecoration(
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+                  isDense: true,
+                  hintText: 'Type name or phone number...',
+                  hintStyle: TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
+                  prefixIcon: Icon(Icons.search, size: 16, color: Color(0xFF94A3B8)),
+                ),
+              );
+            },
+            optionsViewBuilder: (context, onSelected, options) {
+              return Align(
+                alignment: Alignment.topLeft,
+                child: Material(
+                  elevation: 4,
+                  borderRadius: BorderRadius.circular(8),
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxHeight: 200, maxWidth: 300),
+                    child: ListView.builder(
+                      padding: EdgeInsets.zero,
+                      shrinkWrap: true,
+                      itemCount: options.length,
+                      itemBuilder: (context, index) {
+                        final option = options.elementAt(index);
+                        return InkWell(
+                          onTap: () {
+                            onSelected(option);
+                            // Hide options after selection
+                            FocusScope.of(context).unfocus();
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.all(12),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(option.name, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                                Text(option.phone, style: const TextStyle(fontSize: 10, color: Colors.grey)),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 }

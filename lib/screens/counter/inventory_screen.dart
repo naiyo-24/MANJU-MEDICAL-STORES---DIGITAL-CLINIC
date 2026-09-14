@@ -182,7 +182,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
     );
   }
 
-  Widget _buildStatusBadge(String status) {
+  Widget _buildStatusBadge(String status, [String? text]) {
     Color bgColor;
     Color textColor;
 
@@ -211,7 +211,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
         borderRadius: BorderRadius.circular(12),
       ),
       child: Text(
-        status,
+        text ?? status,
         style: TextStyle(color: textColor, fontSize: 10, fontWeight: FontWeight.bold),
       ),
     );
@@ -282,18 +282,28 @@ class _InventoryScreenState extends State<InventoryScreen> {
                       ),
                     ),
                     const SizedBox(width: 16),
-                    ElevatedButton.icon(
-                      onPressed: () => context.go('/counter/inventory/upload'),
-                      icon: const Icon(Icons.add, size: 16),
-                      label: const Text('Add New Medicine', style: TextStyle(fontWeight: FontWeight.bold)),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF22C55E),
-                        foregroundColor: Colors.white,
-                        elevation: 0,
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  Row(
+                    children: [
+                      IconButton(
+                        onPressed: () => _fetchData(),
+                        icon: const Icon(Icons.refresh, color: Color(0xFF64748B)),
+                        tooltip: 'Refresh',
                       ),
-                    ),
+                      const SizedBox(width: 8),
+                      ElevatedButton.icon(
+                        onPressed: () => context.go('/counter/inventory/upload'),
+                        icon: const Icon(Icons.add, size: 16),
+                        label: const Text('Add New Medicine', style: TextStyle(fontWeight: FontWeight.bold)),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF22C55E),
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        ),
+                      ),
+                    ],
+                  ),
                   ],
                 ),
               ],
@@ -349,7 +359,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
                                         itemBuilder: (context, index) {
                                           final medicine = _medicines[index];
                                           // Simple status logic based on stock
-                                          final status = medicine.stockQuantity <= 0 ? 'Out of Stock' : (medicine.stockQuantity < 50 ? 'Low Stock' : 'In Stock');
+                                          final status = medicine.stockQuantity <= 0 ? 'Out of Stock' : (medicine.stockQuantity <= (medicine.lowStockThreshold ?? 10) ? 'Low Stock' : 'In Stock');
                                           
                                           return Padding(
                                             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
@@ -396,7 +406,11 @@ class _InventoryScreenState extends State<InventoryScreen> {
                                                   child: Text(
                                                     medicine.stockQuantity.toString(),
                                                     style: TextStyle(
-                                                      color: medicine.stockQuantity <= 0 ? const Color(0xFF991B1B) : const Color(0xFF1E293B),
+                                                      color: medicine.stockQuantity <= 0 
+                                                          ? const Color(0xFFDC2626) // Red
+                                                          : (medicine.stockQuantity <= (medicine.lowStockThreshold ?? 10) 
+                                                              ? const Color(0xFFD97706) // Yellow/Orange
+                                                              : const Color(0xFF16A34A)), // Green
                                                       fontWeight: FontWeight.bold,
                                                       fontSize: 12,
                                                     ),
@@ -404,7 +418,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
                                                 ),
                                                 Expanded(flex: 2, child: Text('₹${medicine.unitPrice.toStringAsFixed(2)}', style: const TextStyle(color: Color(0xFF1E293B), fontSize: 12, fontWeight: FontWeight.bold))),
                                                 Expanded(flex: 2, child: Text(medicine.expiryDate, style: const TextStyle(color: Color(0xFF64748B), fontSize: 12))),
-                                                Expanded(flex: 2, child: Align(alignment: Alignment.centerLeft, child: _buildStatusBadge(status))),
+                                                Expanded(flex: 2, child: Align(alignment: Alignment.centerLeft, child: _buildStatusBadge(status, '${medicine.stockQuantity} Units'))),
                                                 SizedBox(
                                                   width: 40,
                                                   child: PopupMenuButton<String>(
