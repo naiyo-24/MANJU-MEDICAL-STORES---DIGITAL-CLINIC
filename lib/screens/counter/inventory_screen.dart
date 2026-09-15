@@ -233,8 +233,11 @@ class _InventoryScreenState extends State<InventoryScreen> {
           Container(
             padding: const EdgeInsets.all(32.0),
             color: Colors.white,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            child: Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 16,
+              runSpacing: 16,
               children: [
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -255,7 +258,10 @@ class _InventoryScreenState extends State<InventoryScreen> {
                     ),
                   ],
                 ),
-                Row(
+                Wrap(
+                  spacing: 16,
+                  runSpacing: 16,
+                  crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     // Search Bar
                     Container(
@@ -287,7 +293,8 @@ class _InventoryScreenState extends State<InventoryScreen> {
                       ),
                     ),
                     const SizedBox(width: 16),
-                  Row(
+                  Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
                       IconButton(
                         onPressed: () => _fetchData(),

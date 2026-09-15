@@ -1,7 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:file_saver/file_saver.dart';
+import 'package:excel/excel.dart' hide Border;
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'dart:convert';
+import 'dart:typed_data';
 import '../../models/lab_models.dart';
 import '../../services/lab_data_service.dart';
+import '../../services/pdf_generator_service.dart';
 import 'package:uuid/uuid.dart';
+import 'package:printing/printing.dart';
 
 class LabTestsScreen extends StatefulWidget {
   const LabTestsScreen({super.key});
@@ -13,10 +22,23 @@ class LabTestsScreen extends StatefulWidget {
 class _LabTestsScreenState extends State<LabTestsScreen> {
   List<LabTest> _tests = [];
   List<LabTemplate> _templates = [];
+  List<LabPackage> _packages = [];
+  List<String> _customCategories = [];
   bool _isLoading = true;
   String _searchQuery = '';
+  int _currentPage = 1;
+  final int _itemsPerPage = 10;
+  final TextEditingController _searchController = TextEditingController();
   int _selectedTabIndex = 0;
+  String? _selectedCategory;
+  String? _selectedStatus;
+  String? _selectedTemplate;
   LabTest? _selectedTest;
+
+  List<String> get _allCategories {
+    final fromTests = _tests.map((t) => t.category).where((c) => c.isNotEmpty).toSet().toList();
+    return {...fromTests, ..._customCategories}.toList()..sort();
+  }
 
   @override
   void initState() {
@@ -28,9 +50,13 @@ class _LabTestsScreenState extends State<LabTestsScreen> {
     setState(() => _isLoading = true);
     final tests = await LabDataService.getTests();
     final templates = await LabDataService.getTemplates();
+    final packages = await LabDataService.getPackages();
+    final custom = await LabDataService.getCustomCategories();
     setState(() {
       _tests = tests;
       _templates = templates;
+      _packages = packages;
+      _customCategories = custom;
       if (_tests.isNotEmpty && _selectedTest == null) {
         _selectedTest = _tests.first;
       }
@@ -38,11 +64,17 @@ class _LabTestsScreenState extends State<LabTestsScreen> {
     });
   }
 
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
   void _showAddTestDialog({LabTest? existingTest}) {
     final nameCtrl = TextEditingController(text: existingTest?.name);
     final codeCtrl = TextEditingController(text: existingTest?.testCode);
     final descCtrl = TextEditingController(text: existingTest?.description);
-    final catCtrl = TextEditingController(text: existingTest?.category ?? 'Hematology');
+    String selectedCategory = existingTest?.category ?? (_allCategories.isNotEmpty ? _allCategories.first : 'Uncategorized');
     final priceCtrl = TextEditingController(text: existingTest?.price.toString());
     final sampleCtrl = TextEditingController(text: existingTest?.sampleType ?? 'Blood');
     final timeCtrl = TextEditingController(text: existingTest?.reportingTime ?? '24 hours');
@@ -70,7 +102,20 @@ class _LabTestsScreenState extends State<LabTestsScreen> {
                   const SizedBox(height: 12),
                   Row(
                     children: [
-                      Expanded(child: TextField(controller: catCtrl, decoration: const InputDecoration(labelText: 'Category', isDense: true, border: OutlineInputBorder()))),
+                      Expanded(
+                        child: _allCategories.isNotEmpty 
+                          ? DropdownButtonFormField<String>(
+                              value: _allCategories.contains(selectedCategory) ? selectedCategory : _allCategories.first,
+                              decoration: const InputDecoration(labelText: 'Category', isDense: true, border: OutlineInputBorder()),
+                              items: _allCategories.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
+                              onChanged: (v) => setDialogState(() => selectedCategory = v!),
+                            )
+                          : TextField(
+                              controller: TextEditingController(text: selectedCategory),
+                              decoration: const InputDecoration(labelText: 'Category', isDense: true, border: OutlineInputBorder()),
+                              onChanged: (v) => selectedCategory = v,
+                            ),
+                      ),
                       const SizedBox(width: 12),
                       Expanded(child: TextField(controller: priceCtrl, decoration: const InputDecoration(labelText: 'Price (₹)', isDense: true, border: OutlineInputBorder()), keyboardType: TextInputType.number)),
                     ],
@@ -104,7 +149,7 @@ class _LabTestsScreenState extends State<LabTestsScreen> {
             ),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(context, ), child: const Text('Cancel')),
+            TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
             ElevatedButton(
               onPressed: () async {
                 final test = LabTest(
@@ -112,7 +157,7 @@ class _LabTestsScreenState extends State<LabTestsScreen> {
                   name: nameCtrl.text,
                   testCode: codeCtrl.text,
                   description: descCtrl.text,
-                  category: catCtrl.text,
+                  category: selectedCategory,
                   price: double.tryParse(priceCtrl.text) ?? 0,
                   templateId: selectedTemplate,
                   sampleType: sampleCtrl.text,
@@ -132,8 +177,142 @@ class _LabTestsScreenState extends State<LabTestsScreen> {
     );
   }
 
+  void _exportCSV() async {
+    String csv = 'ID,Code,Name,Category,Price,Sample Type,Reporting Time,Status\n';
+    for (var test in _tests) {
+      csv += '${test.id},${test.testCode},${test.name},${test.category},${test.price},${test.sampleType},${test.reportingTime},${test.isActive ? 'Active' : 'Inactive'}\n';
+    }
+    final bytes = utf8.encode(csv);
+    await FileSaver.instance.saveFile(name: 'lab_tests_export.csv', bytes: bytes);
+    if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('CSV exported successfully!')));
+  }
+
+  void _exportExcel() async {
+    var excel = Excel.createExcel();
+    var sheet = excel['Sheet1'];
+    sheet.appendRow([
+      TextCellValue('ID'), TextCellValue('Code'), TextCellValue('Name'), TextCellValue('Category'), 
+      TextCellValue('Price'), TextCellValue('Sample Type'), TextCellValue('Reporting Time'), TextCellValue('Status')
+    ]);
+    
+    for (var test in _tests) {
+      sheet.appendRow([
+        TextCellValue(test.id), TextCellValue(test.testCode), TextCellValue(test.name), TextCellValue(test.category),
+        TextCellValue(test.price.toString()), TextCellValue(test.sampleType), TextCellValue(test.reportingTime), 
+        TextCellValue(test.isActive ? 'Active' : 'Inactive')
+      ]);
+    }
+    
+    final bytes = excel.encode();
+    if (bytes != null) {
+      await FileSaver.instance.saveFile(name: 'lab_tests_export.xlsx', bytes: Uint8List.fromList(bytes));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Excel exported successfully!')));
+    }
+  }
+
+  void _exportPDF() async {
+    final pdf = pw.Document();
+    
+    pdf.addPage(
+      pw.Page(
+        pageFormat: PdfPageFormat.a4,
+        build: (pw.Context context) {
+          return pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              pw.Text('Manju Medical Stores - Lab Catalog', style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold)),
+              pw.SizedBox(height: 20),
+              pw.TableHelper.fromTextArray(
+                headers: ['Code', 'Name', 'Category', 'Price', 'Sample'],
+                data: _tests.map((t) => [t.testCode, t.name, t.category, t.price.toString(), t.sampleType]).toList(),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+    
+    final bytes = await pdf.save();
+    await FileSaver.instance.saveFile(name: 'lab_tests_export.pdf', bytes: bytes);
+    if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('PDF exported successfully!')));
+  }
+
+  void _showExportOptions() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Select Export Format', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.table_chart, color: Colors.green),
+              title: const Text('Export as CSV'),
+              onTap: () { Navigator.pop(context); _exportCSV(); },
+            ),
+            const Divider(height: 1),
+            ListTile(
+              leading: const Icon(Icons.grid_on, color: Colors.blue),
+              title: const Text('Export as Excel (.xlsx)'),
+              onTap: () { Navigator.pop(context); _exportExcel(); },
+            ),
+            const Divider(height: 1),
+            ListTile(
+              leading: const Icon(Icons.picture_as_pdf, color: Colors.red),
+              title: const Text('Export as PDF'),
+              onTap: () { Navigator.pop(context); _exportPDF(); },
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+          ),
+        ],
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
+  }
+
+  void _showCategoriesDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => _CategoriesDialog(
+        tests: _tests,
+        onUpdate: _loadData,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final filteredTests = _tests.where((t) {
+      final matchesSearch = t.name.toLowerCase().contains(_searchQuery.toLowerCase()) || t.testCode.toLowerCase().contains(_searchQuery.toLowerCase());
+      final matchesCategory = _selectedCategory == null || t.category == _selectedCategory;
+      final matchesStatus = _selectedStatus == null || (_selectedStatus == 'Active' && t.isActive) || (_selectedStatus == 'Inactive' && !t.isActive);
+      
+      String? templateIdFilter;
+      if (_selectedTemplate != null) {
+        templateIdFilter = _templates.where((temp) => temp.name == _selectedTemplate).firstOrNull?.id;
+      }
+      final matchesTemplate = _selectedTemplate == null || t.templateId == templateIdFilter;
+      
+      bool matchesTab = true;
+      if (_selectedTabIndex == 3) {
+        matchesTab = !t.isActive;
+      }
+      
+      return matchesSearch && matchesCategory && matchesStatus && matchesTemplate && matchesTab;
+    }).toList();
+
+    final totalPages = (filteredTests.length + _itemsPerPage - 1) ~/ _itemsPerPage;
+    if (_currentPage > totalPages && totalPages > 0) _currentPage = totalPages;
+    final startIndex = filteredTests.isEmpty ? 0 : (_currentPage - 1) * _itemsPerPage;
+    final endIndex = (startIndex + _itemsPerPage).clamp(0, filteredTests.length);
+    final paginatedTests = filteredTests.isEmpty ? <LabTest>[] : filteredTests.sublist(startIndex, endIndex);
+
+
     return Container(
       padding: const EdgeInsets.all(32),
       child: Column(
@@ -186,15 +365,15 @@ class _LabTestsScreenState extends State<LabTestsScreen> {
           // Stats Row
           Row(
             children: [
-              _buildStatCard(Icons.science, 'Total Tests', '256', '+12% vs last month', Colors.green),
+              _buildStatCard(Icons.science, 'Total Tests', '${_tests.length}', '', Colors.green),
               const SizedBox(width: 16),
-              _buildStatCard(Icons.category, 'Categories', '18', '+2%', Colors.green),
+              _buildStatCard(Icons.category, 'Categories', '${_tests.map((t) => t.category).toSet().length}', '', Colors.green),
               const SizedBox(width: 16),
-              _buildStatCard(Icons.description, 'Templates', '42', '+16%', Colors.green),
+              _buildStatCard(Icons.description, 'Templates', '0', '', Colors.green),
               const SizedBox(width: 16),
-              _buildStatCard(Icons.inventory_2, 'Active Packages', '12', '+8%', Colors.green),
+              _buildStatCard(Icons.inventory_2, 'Active Packages', '0', '', Colors.green),
               const SizedBox(width: 16),
-              _buildStatCard(Icons.bar_chart, 'Tests Performed', '1,245', '+20%', Colors.green),
+              _buildStatCard(Icons.bar_chart, 'Tests Performed', '0', '', Colors.green),
             ],
           ),
           const SizedBox(height: 24),
@@ -235,11 +414,35 @@ class _LabTestsScreenState extends State<LabTestsScreen> {
                               ),
                               Row(
                                 children: [
-                                  _buildActionButton(Icons.upload, 'Import (Excel)', () {}),
+                                  _buildActionButton(Icons.upload, 'Import (Excel)', () async {
+                                    FilePickerResult? result = await FilePicker.platform.pickFiles(
+                                      type: FileType.custom,
+                                      allowedExtensions: ['csv'],
+                                      withData: true,
+                                    );
+                                    
+                                    if (result != null && mounted) {
+                                      setState(() => _isLoading = true);
+                                      final bytes = result.files.single.bytes;
+                                      final name = result.files.single.name;
+                                      if (bytes != null) {
+                                        final success = await LabDataService.uploadCSV(bytes, name);
+                                        if (success && mounted) {
+                                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Tests imported successfully!')));
+                                          _loadData();
+                                        } else if (mounted) {
+                                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Failed to import tests. Please check CSV format.')));
+                                          setState(() => _isLoading = false);
+                                        }
+                                      } else {
+                                        setState(() => _isLoading = false);
+                                      }
+                                    }
+                                  }),
                                   const SizedBox(width: 8),
-                                  _buildActionButton(Icons.download, 'Export', () {}),
+                                  _buildActionButton(Icons.download, 'Export', _showExportOptions),
                                   const SizedBox(width: 8),
-                                  _buildActionButton(Icons.settings, 'Categories', () {}),
+                                  _buildActionButton(Icons.settings, 'Categories', _showCategoriesDialog),
                                 ],
                               )
                             ],
@@ -258,6 +461,7 @@ class _LabTestsScreenState extends State<LabTestsScreen> {
                                   height: 40,
                                   decoration: BoxDecoration(color: const Color(0xFFF8FAFC), borderRadius: BorderRadius.circular(8), border: Border.all(color: const Color(0xFFE2E8F0))),
                                   child: TextField(
+                                    controller: _searchController,
                                     onChanged: (v) => setState(() => _searchQuery = v.toLowerCase()),
                                     decoration: const InputDecoration(
                                       hintText: 'Search test name, code or keyword...',
@@ -270,22 +474,34 @@ class _LabTestsScreenState extends State<LabTestsScreen> {
                                 ),
                               ),
                               const SizedBox(width: 12),
-                              _buildDropdown('All Categories'),
+                              _buildDropdown('All Categories', _allCategories, _selectedCategory, (v) => setState(() => _selectedCategory = v)),
                               const SizedBox(width: 12),
-                              _buildDropdown('All Status'),
+                              _buildDropdown('All Status', ['Active', 'Inactive'], _selectedStatus, (v) => setState(() => _selectedStatus = v)),
                               const SizedBox(width: 12),
-                              _buildDropdown('All Templates'),
+                              _buildDropdown('All Templates', _templates.map((t) => t.name).toList(), _selectedTemplate, (v) => setState(() => _selectedTemplate = v)),
                               const SizedBox(width: 12),
-                              Container(
-                                height: 40,
-                                padding: const EdgeInsets.symmetric(horizontal: 16),
-                                decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE2E8F0)), borderRadius: BorderRadius.circular(8)),
-                                child: Row(
-                                  children: const [
-                                    Icon(Icons.refresh, size: 16, color: Color(0xFF64748B)),
-                                    SizedBox(width: 8),
-                                    Text('Reset', style: TextStyle(color: Color(0xFF1E293B))),
-                                  ],
+                              InkWell(
+                                onTap: () {
+                                  setState(() {
+                                    _searchController.clear();
+                                    _searchQuery = '';
+                                    _selectedCategory = null;
+                                    _selectedStatus = null;
+                                    _selectedTemplate = null;
+                                  });
+                                },
+                                borderRadius: BorderRadius.circular(8),
+                                child: Container(
+                                  height: 40,
+                                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                                  decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE2E8F0)), borderRadius: BorderRadius.circular(8)),
+                                  child: Row(
+                                    children: const [
+                                      Icon(Icons.refresh, size: 16, color: Color(0xFF64748B)),
+                                      SizedBox(width: 8),
+                                      Text('Reset', style: TextStyle(color: Color(0xFF1E293B))),
+                                    ],
+                                  ),
                                 ),
                               ),
                             ],
@@ -314,11 +530,10 @@ class _LabTestsScreenState extends State<LabTestsScreen> {
                         // Table Body
                         Expanded(
                           child: _isLoading ? const Center(child: CircularProgressIndicator(color: Color(0xFFEA580C))) : ListView.separated(
-                            itemCount: _tests.where((t) => t.name.toLowerCase().contains(_searchQuery) || t.testCode.toLowerCase().contains(_searchQuery)).length,
+                            itemCount: paginatedTests.length,
                             separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFE2E8F0)),
                             itemBuilder: (context, index) {
-                              final filtered = _tests.where((t) => t.name.toLowerCase().contains(_searchQuery) || t.testCode.toLowerCase().contains(_searchQuery)).toList();
-                              final test = filtered[index];
+                              final test = paginatedTests[index];
                               final isSelected = _selectedTest?.id == test.id;
                               
                               final templateName = _templates.where((t) => t.id == test.templateId).firstOrNull?.name ?? 'Unknown';
@@ -330,7 +545,7 @@ class _LabTestsScreenState extends State<LabTestsScreen> {
                                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
                                   child: Row(
                                     children: [
-                                      SizedBox(width: 30, child: Text('${index + 1}', style: const TextStyle(fontSize: 13, color: Color(0xFF64748B)))),
+                                      SizedBox(width: 30, child: Text('${startIndex + index + 1}', style: const TextStyle(fontSize: 13, color: Color(0xFF64748B)))),
                                       Expanded(flex: 3, child: Text(test.name, style: TextStyle(fontSize: 13, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal, color: const Color(0xFF1E293B)))),
                                       Expanded(flex: 2, child: Text(test.testCode.isEmpty ? '-' : test.testCode, style: const TextStyle(fontSize: 13, color: Color(0xFF64748B)))),
                                       Expanded(flex: 2, child: Text(test.category, style: const TextStyle(fontSize: 13, color: Color(0xFF64748B)))),
@@ -353,11 +568,64 @@ class _LabTestsScreenState extends State<LabTestsScreen> {
                                           child: Row(
                                             mainAxisAlignment: MainAxisAlignment.center,
                                             children: [
-                                              _buildTableRowButton(Icons.visibility, 'View'),
+                                              _buildTableRowButton(
+                                                Icons.visibility, 
+                                                'View', 
+                                                onTap: () {
+                                                  setState(() => _selectedTest = test);
+                                                  showDialog(
+                                                    context: context,
+                                                    builder: (context) => AlertDialog(
+                                                      title: const Text('Test Details', style: TextStyle(fontWeight: FontWeight.bold)),
+                                                      content: SizedBox(
+                                                        width: 400,
+                                                        child: Column(
+                                                          mainAxisSize: MainAxisSize.min,
+                                                          children: [
+                                                            _buildDetailRow('Name', test.name),
+                                                            _buildDetailRow('Code', test.testCode),
+                                                            _buildDetailRow('Category', test.category),
+                                                            _buildDetailRow('Price', '₹${test.price}'),
+                                                            _buildDetailRow('Sample Type', test.sampleType),
+                                                            _buildDetailRow('Reporting Time', test.reportingTime),
+                                                            _buildDetailRow('Status', test.isActive ? 'Active' : 'Inactive'),
+                                                            _buildDetailRow('Description', test.description),
+                                                          ],
+                                                        ),
+                                                      ),
+                                                      actions: [
+                                                        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Close'))
+                                                      ]
+                                                    )
+                                                  );
+                                                }
+                                              ),
                                               const SizedBox(width: 4),
-                                              InkWell(onTap: () => _showAddTestDialog(existingTest: test), child: _buildTableRowButton(Icons.edit, 'Edit')),
+                                              _buildTableRowButton(
+                                                Icons.edit, 
+                                                'Edit', 
+                                                onTap: () => _showAddTestDialog(existingTest: test)
+                                              ),
                                               const SizedBox(width: 4),
-                                              _buildTableRowButton(Icons.copy, 'Clone'),
+                                              _buildTableRowButton(
+                                                Icons.copy, 
+                                                'Clone', 
+                                                onTap: () {
+                                                  final cloned = LabTest(
+                                                    id: '',
+                                                    name: '${test.name} - Copy',
+                                                    testCode: '${test.testCode}_COPY',
+                                                    description: test.description,
+                                                    category: test.category,
+                                                    price: test.price,
+                                                    templateId: test.templateId,
+                                                    sampleType: test.sampleType,
+                                                    reportingTime: test.reportingTime,
+                                                    isActive: test.isActive,
+                                                  );
+                                                  _showAddTestDialog(existingTest: cloned);
+                                                }
+                                              ),
                                             ],
                                           ),
                                         ),
@@ -377,18 +645,37 @@ class _LabTestsScreenState extends State<LabTestsScreen> {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Text('Showing 1 to 10 of 256 tests', style: TextStyle(color: Color(0xFF64748B), fontSize: 13)),
-                              Row(
+                              Text('Showing ${filteredTests.isEmpty ? 0 : startIndex + 1} to $endIndex of ${filteredTests.length} tests', style: const TextStyle(color: Color(0xFF64748B), fontSize: 13)),
+                              if (totalPages > 1) Row(
                                 children: [
-                                  Container(padding: const EdgeInsets.all(6), decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE2E8F0)), borderRadius: BorderRadius.circular(4)), child: const Icon(Icons.chevron_left, size: 16)),
+                                  InkWell(
+                                    onTap: _currentPage > 1 ? () => setState(() => _currentPage--) : null,
+                                    child: Container(padding: const EdgeInsets.all(6), decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE2E8F0)), borderRadius: BorderRadius.circular(4)), child: Icon(Icons.chevron_left, size: 16, color: _currentPage > 1 ? const Color(0xFF1E293B) : const Color(0xFF94A3B8))),
+                                  ),
                                   const SizedBox(width: 8),
-                                  Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6), decoration: BoxDecoration(color: const Color(0xFFEA580C), borderRadius: BorderRadius.circular(4)), child: const Text('1', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
-                                  const SizedBox(width: 8),
-                                  Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6), decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE2E8F0)), borderRadius: BorderRadius.circular(4)), child: const Text('2', style: TextStyle(color: Color(0xFF1E293B)))),
-                                  const SizedBox(width: 8),
-                                  const Text('...', style: TextStyle(color: Color(0xFF64748B))),
-                                  const SizedBox(width: 8),
-                                  Container(padding: const EdgeInsets.all(6), decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE2E8F0)), borderRadius: BorderRadius.circular(4)), child: const Icon(Icons.chevron_right, size: 16)),
+                                  ...List.generate(totalPages, (i) {
+                                    final page = i + 1;
+                                    final isSelected = page == _currentPage;
+                                    return Padding(
+                                      padding: const EdgeInsets.only(right: 8.0),
+                                      child: InkWell(
+                                        onTap: () => setState(() => _currentPage = page),
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6), 
+                                          decoration: BoxDecoration(
+                                            color: isSelected ? const Color(0xFFEA580C) : Colors.transparent, 
+                                            border: isSelected ? null : Border.all(color: const Color(0xFFE2E8F0)), 
+                                            borderRadius: BorderRadius.circular(4)
+                                          ), 
+                                          child: Text('$page', style: TextStyle(color: isSelected ? Colors.white : const Color(0xFF1E293B), fontWeight: isSelected ? FontWeight.bold : FontWeight.normal))
+                                        ),
+                                      ),
+                                    );
+                                  }),
+                                  InkWell(
+                                    onTap: _currentPage < totalPages ? () => setState(() => _currentPage++) : null,
+                                    child: Container(padding: const EdgeInsets.all(6), decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE2E8F0)), borderRadius: BorderRadius.circular(4)), child: Icon(Icons.chevron_right, size: 16, color: _currentPage < totalPages ? const Color(0xFF1E293B) : const Color(0xFF94A3B8))),
+                                  ),
                                 ],
                               ),
                             ],
@@ -466,7 +753,9 @@ class _LabTestsScreenState extends State<LabTestsScreen> {
                           SizedBox(
                             width: double.infinity,
                             child: ElevatedButton.icon(
-                              onPressed: () {},
+                              onPressed: () {
+                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Booking feature coming soon!')));
+                              },
                               icon: const Icon(Icons.science, size: 16),
                               label: const Text('Book This Test'),
                               style: ElevatedButton.styleFrom(
@@ -483,17 +772,108 @@ class _LabTestsScreenState extends State<LabTestsScreen> {
                           const SizedBox(height: 16),
                           Row(
                             children: [
-                              Expanded(child: _buildQuickActionCard(Icons.edit, 'Edit Test', const Color(0xFFEA580C))),
+                              Expanded(
+                                child: _buildQuickActionCard(
+                                  Icons.edit, 
+                                  'Edit Test', 
+                                  const Color(0xFFEA580C),
+                                  onTap: () {
+                                    if (_selectedTest != null) {
+                                      _showAddTestDialog(existingTest: _selectedTest);
+                                    }
+                                  }
+                                ),
+                              ),
                               const SizedBox(width: 8),
-                              Expanded(child: _buildQuickActionCard(Icons.copy, 'Clone Test', const Color(0xFFEA580C))),
+                              Expanded(
+                                child: _buildQuickActionCard(
+                                  Icons.copy, 
+                                  'Clone Test', 
+                                  const Color(0xFFEA580C),
+                                  onTap: () {
+                                    if (_selectedTest != null) {
+                                      final cloned = LabTest(
+                                        id: '',
+                                        name: '${_selectedTest!.name} - Copy',
+                                        testCode: '${_selectedTest!.testCode}_COPY',
+                                        description: _selectedTest!.description,
+                                        category: _selectedTest!.category,
+                                        price: _selectedTest!.price,
+                                        templateId: _selectedTest!.templateId,
+                                        sampleType: _selectedTest!.sampleType,
+                                        reportingTime: _selectedTest!.reportingTime,
+                                        isActive: _selectedTest!.isActive,
+                                      );
+                                      _showAddTestDialog(existingTest: cloned);
+                                    }
+                                  }
+                                ),
+                              ),
                             ],
                           ),
                           const SizedBox(height: 8),
                           Row(
                             children: [
-                              Expanded(child: _buildQuickActionCard(Icons.description, 'Manage Template', const Color(0xFFEA580C))),
+                              Expanded(
+                                child: _buildQuickActionCard(
+                                  Icons.description, 
+                                  'Manage Template', 
+                                  const Color(0xFFEA580C),
+                                  onTap: () {
+                                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please navigate to the Templates tab to manage templates.')));
+                                  }
+                                ),
+                              ),
                               const SizedBox(width: 8),
-                              Expanded(child: _buildQuickActionCard(Icons.analytics, 'View Reports', const Color(0xFFEA580C))),
+                              Expanded(
+                                child: _buildQuickActionCard(
+                                  Icons.analytics, 
+                                  'View Reports', 
+                                  const Color(0xFFEA580C),
+                                  onTap: () async {
+                                    try {
+                                      final template = _templates.firstWhere((t) => t.id == _selectedTest!.templateId, orElse: () => LabTemplate(id: '', name: 'Empty Template'));
+                                      
+                                      final patientData = {
+                                        'patientName': 'Chitra Paul',
+                                        'age': '63',
+                                        'gender': 'Female',
+                                        'patientId': 'PID-2026',
+                                        'referredBy': 'Dr. Anunita Mitra Banerjee',
+                                        'sampleId': 'SID-478',
+                                        'sampleType': _selectedTest!.sampleType,
+                                        'collectionDate': '22/06/2026',
+                                        'reportingDate': '22/06/2026',
+                                      };
+                                      
+                                      final pdfBytes = await PdfGeneratorService.generateReport(_selectedTest!, template, patientData);
+                                      
+                                      if (!context.mounted) return;
+                                      
+                                      showDialog(
+                                        context: context,
+                                        builder: (context) => Dialog(
+                                          child: SizedBox(
+                                            width: 800,
+                                            height: 800,
+                                            child: PdfPreview(
+                                              build: (format) => pdfBytes,
+                                              canChangeOrientation: false,
+                                              canChangePageFormat: false,
+                                              canDebug: false,
+                                              allowSharing: true,
+                                              allowPrinting: true,
+                                            )
+                                          )
+                                        )
+                                      );
+                                    } catch (e) {
+                                      print(e);
+                                      if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error generating report: $e')));
+                                    }
+                                  }
+                                ),
+                              ),
                             ],
                           ),
                           
@@ -506,9 +886,10 @@ class _LabTestsScreenState extends State<LabTestsScreen> {
                             ],
                           ),
                           const SizedBox(height: 16),
-                          _buildRelatedPackage('Full Body Checkup', '32 Tests', '2,500'),
-                          _buildRelatedPackage('Health Checkup Basic', '18 Tests', '1,499'),
-                          _buildRelatedPackage('Diabetic Profile', '12 Tests', '999'),
+                          if (_packages.where((p) => p.testIds.contains(_selectedTest!.id)).isEmpty)
+                            const Text('No related packages found.', style: TextStyle(color: Colors.grey, fontSize: 13))
+                          else
+                            ..._packages.where((p) => p.testIds.contains(_selectedTest!.id)).take(3).map((pkg) => _buildRelatedPackage(pkg.name, '${pkg.testIds.length} Tests', pkg.discountedPrice.toString())),
                         ],
                       ),
                     ),
@@ -620,34 +1001,47 @@ class _LabTestsScreenState extends State<LabTestsScreen> {
     );
   }
 
-  Widget _buildDropdown(String hint) {
+  Widget _buildDropdown(String hint, List<String> items, String? value, ValueChanged<String?> onChanged) {
     return Expanded(
       flex: 2,
       child: Container(
         height: 40,
         padding: const EdgeInsets.symmetric(horizontal: 12),
         decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE2E8F0)), borderRadius: BorderRadius.circular(8)),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(hint, style: const TextStyle(fontSize: 13, color: Color(0xFF64748B))),
-            const Icon(Icons.keyboard_arrow_down, size: 16, color: Color(0xFF64748B)),
-          ],
+        child: DropdownButtonHideUnderline(
+          child: DropdownButton<String>(
+            isExpanded: true,
+            hint: Text(hint, style: const TextStyle(fontSize: 13, color: Color(0xFF64748B))),
+            value: value,
+            icon: const Icon(Icons.keyboard_arrow_down, size: 16, color: Color(0xFF64748B)),
+            items: [
+              DropdownMenuItem<String>(value: null, child: Text(hint, style: const TextStyle(fontSize: 13, color: Color(0xFF1E293B)))),
+              ...items.map((item) => DropdownMenuItem<String>(
+                value: item,
+                child: Text(item, style: const TextStyle(fontSize: 13, color: Color(0xFF1E293B)), overflow: TextOverflow.ellipsis),
+              ))
+            ],
+            onChanged: onChanged,
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildTableRowButton(IconData icon, String label) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE2E8F0)), borderRadius: BorderRadius.circular(4)),
-      child: Row(
-        children: [
-          Icon(icon, size: 12, color: const Color(0xFF64748B)),
-          const SizedBox(width: 4),
-          Text(label, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF1E293B))),
-        ],
+  Widget _buildTableRowButton(IconData icon, String label, {VoidCallback? onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE2E8F0)), borderRadius: BorderRadius.circular(4)),
+        child: Row(
+          children: [
+            Icon(icon, size: 12, color: const Color(0xFF64748B)),
+            const SizedBox(width: 4),
+            Text(label, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF1E293B))),
+          ],
+        ),
       ),
     );
   }
@@ -665,17 +1059,21 @@ class _LabTestsScreenState extends State<LabTestsScreen> {
     );
   }
 
-  Widget _buildQuickActionCard(IconData icon, String label, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-      decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE2E8F0)), borderRadius: BorderRadius.circular(8), color: const Color(0xFFFFF7ED).withOpacity(0.5)),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, size: 14, color: color),
-          const SizedBox(width: 6),
-          Text(label, style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: color)),
-        ],
+  Widget _buildQuickActionCard(IconData icon, String label, Color color, {VoidCallback? onTap}) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+        decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE2E8F0)), borderRadius: BorderRadius.circular(8), color: const Color(0xFFFFF7ED).withOpacity(0.5)),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 14, color: color),
+            const SizedBox(width: 6),
+            Text(label, style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: color)),
+          ],
+        ),
       ),
     );
   }
@@ -740,6 +1138,188 @@ class _LabTestsScreenState extends State<LabTestsScreen> {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _CategoriesDialog extends StatefulWidget {
+  final List<LabTest> tests;
+  final VoidCallback onUpdate;
+
+  const _CategoriesDialog({Key? key, required this.tests, required this.onUpdate}) : super(key: key);
+
+  @override
+  _CategoriesDialogState createState() => _CategoriesDialogState();
+}
+
+class _CategoriesDialogState extends State<_CategoriesDialog> {
+  List<String> _customCategories = [];
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCategories();
+  }
+
+  Future<void> _loadCategories() async {
+    final custom = await LabDataService.getCustomCategories();
+    if (mounted) {
+      setState(() {
+        _customCategories = custom;
+      });
+    }
+  }
+
+  List<String> get _allCategories {
+    final fromTests = widget.tests.map((t) => t.category).where((c) => c.isNotEmpty).toSet().toList();
+    return {...fromTests, ..._customCategories}.toList()..sort();
+  }
+
+  void _addCategory() {
+    final ctrl = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('New Category'),
+        content: TextField(controller: ctrl, decoration: const InputDecoration(hintText: 'Category Name')),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          ElevatedButton(
+            onPressed: () async {
+              if (ctrl.text.trim().isNotEmpty) {
+                await LabDataService.saveCustomCategory(ctrl.text.trim());
+                if (mounted) Navigator.pop(ctx);
+                _loadCategories();
+                widget.onUpdate();
+              }
+            },
+            child: const Text('Add'),
+          )
+        ],
+      )
+    );
+  }
+
+  void _editCategory(String oldName) {
+    final ctrl = TextEditingController(text: oldName);
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Rename Category'),
+        content: TextField(controller: ctrl, decoration: const InputDecoration(hintText: 'Category Name')),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          ElevatedButton(
+            onPressed: () async {
+              final newName = ctrl.text.trim();
+              if (newName.isNotEmpty && newName != oldName) {
+                Navigator.pop(ctx);
+                setState(() => _isLoading = true);
+                
+                await LabDataService.renameCustomCategory(oldName, newName);
+                
+                // Bulk update tests
+                final testsToUpdate = widget.tests.where((t) => t.category == oldName).toList();
+                for (var test in testsToUpdate) {
+                  test.category = newName;
+                  await LabDataService.saveTest(test);
+                }
+                
+                _loadCategories();
+                widget.onUpdate();
+                if (mounted) setState(() => _isLoading = false);
+              }
+            },
+            child: const Text('Rename'),
+          )
+        ],
+      )
+    );
+  }
+
+  void _deleteCategory(String name) {
+    final testCount = widget.tests.where((t) => t.category == name).length;
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete Category?'),
+        content: Text(testCount > 0 
+          ? 'This will move $testCount tests to "Uncategorized". Are you sure?'
+          : 'Are you sure you want to delete this category?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () async {
+              Navigator.pop(ctx);
+              setState(() => _isLoading = true);
+              
+              await LabDataService.deleteCustomCategory(name);
+              
+              final testsToUpdate = widget.tests.where((t) => t.category == name).toList();
+              for (var test in testsToUpdate) {
+                test.category = 'Uncategorized';
+                await LabDataService.saveTest(test);
+              }
+              
+              _loadCategories();
+              widget.onUpdate();
+              if (mounted) setState(() => _isLoading = false);
+            },
+            child: const Text('Delete', style: TextStyle(color: Colors.white)),
+          )
+        ],
+      )
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final categories = _allCategories;
+    
+    return AlertDialog(
+      title: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          const Text('Manage Categories', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          IconButton(icon: const Icon(Icons.add, color: Color(0xFFEA580C)), onPressed: _addCategory),
+        ],
+      ),
+      content: SizedBox(
+        width: 400,
+        height: 400,
+        child: _isLoading 
+          ? const Center(child: CircularProgressIndicator())
+          : categories.isEmpty 
+            ? const Center(child: Text('No categories found', style: TextStyle(color: Colors.grey)))
+            : ListView.separated(
+              itemCount: categories.length,
+              separatorBuilder: (context, index) => const Divider(height: 1),
+              itemBuilder: (context, index) {
+                final cat = categories[index];
+                final count = widget.tests.where((t) => t.category == cat).length;
+                return ListTile(
+                  leading: const Icon(Icons.folder, color: Color(0xFFEA580C)),
+                  title: Text(cat),
+                  subtitle: Text('$count tests', style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(icon: const Icon(Icons.edit, size: 18, color: Colors.blue), onPressed: () => _editCategory(cat)),
+                      IconButton(icon: const Icon(Icons.delete, size: 18, color: Colors.red), onPressed: () => _deleteCategory(cat)),
+                    ],
+                  ),
+                );
+              },
+            ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Done'),
+        ),
+      ],
     );
   }
 }

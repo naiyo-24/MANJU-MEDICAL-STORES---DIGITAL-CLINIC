@@ -28,6 +28,38 @@ class _RoleLoginScreenState extends State<RoleLoginScreen> {
 
   Future<void> _login() async {
     if (_formKey.currentState!.validate()) {
+      final userId = _userIdController.text.trim();
+      
+      String expectedUserId = '';
+      if (widget.roleName == 'Counter') expectedUserId = 'admin_counter';
+      else if (widget.roleName == 'Lab Test') expectedUserId = 'admin_lab';
+      else if (widget.roleName == 'CRM') expectedUserId = 'admin_crm';
+
+      if (expectedUserId.isNotEmpty && userId != expectedUserId) {
+        if (mounted) {
+          showDialog(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              title: const Row(
+                children: [
+                  Icon(Icons.error_outline, color: Colors.red),
+                  SizedBox(width: 8),
+                  Text('Access Denied', style: TextStyle(color: Colors.red)),
+                ],
+              ),
+              content: Text('Invalid User ID for the ${widget.roleName} module.'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text('OK', style: TextStyle(color: Color(0xFF1E293B))),
+                ),
+              ],
+            ),
+          );
+        }
+        return;
+      }
+
       setState(() {
         _isLoading = true;
       });

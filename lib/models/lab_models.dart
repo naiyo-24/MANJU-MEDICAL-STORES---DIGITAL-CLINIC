@@ -3,7 +3,7 @@ class LabTest {
   final String name;
   final String testCode;
   final String description;
-  final String category;
+  String category;
   final double price;
   final String templateId;
   final String sampleType;
@@ -24,29 +24,30 @@ class LabTest {
   });
 
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'name': name,
-    'testCode': testCode,
+    // 'id': id,
+    'type': 'SINGLE_TEST',
+    'title': name,
+    'test_code': testCode,
     'description': description,
     'category': category,
     'price': price,
-    'templateId': templateId,
-    'sampleType': sampleType,
-    'reportingTime': reportingTime,
-    'isActive': isActive,
+    'template_id': templateId,
+    'sample_type': sampleType,
+    'turnaround_time': reportingTime,
+    'is_active': isActive,
   };
 
   factory LabTest.fromJson(Map<String, dynamic> json) => LabTest(
     id: json['id'],
-    name: json['name'],
-    testCode: json['testCode'] ?? '',
-    description: json['description'],
-    category: json['category'],
-    price: json['price'].toDouble(),
-    templateId: json['templateId'],
-    sampleType: json['sampleType'] ?? 'Blood',
-    reportingTime: json['reportingTime'] ?? '24 hours',
-    isActive: json['isActive'] ?? true,
+    name: json['title'] ?? '',
+    testCode: json['test_code'] ?? '',
+    description: json['description'] ?? '',
+    category: json['category'] ?? 'General',
+    price: (json['price'] as num?)?.toDouble() ?? 0.0,
+    templateId: json['template_id'] ?? '',
+    sampleType: json['sample_type'] ?? 'Blood',
+    reportingTime: json['turnaround_time'] ?? '24 hours',
+    isActive: json['is_active'] ?? true,
   );
 }
 
@@ -86,6 +87,112 @@ class TemplateField {
   );
 }
 
+class DoctorSignature {
+  final String doctorName;
+  final String qualifications;
+  final String designation;
+  final String signatureImageUrl;
+
+  DoctorSignature({
+    required this.doctorName,
+    required this.qualifications,
+    required this.designation,
+    this.signatureImageUrl = '',
+  });
+
+  Map<String, dynamic> toJson() => {
+    'doctorName': doctorName,
+    'qualifications': qualifications,
+    'designation': designation,
+    'signatureImageUrl': signatureImageUrl,
+  };
+
+  factory DoctorSignature.fromJson(Map<String, dynamic> json) => DoctorSignature(
+    doctorName: json['doctorName'] ?? '',
+    qualifications: json['qualifications'] ?? '',
+    designation: json['designation'] ?? '',
+    signatureImageUrl: json['signatureImageUrl'] ?? '',
+  );
+}
+
+class ReportLayoutConfig {
+  String clinicName;
+  String clinicAddress;
+  String clinicPhone;
+  String clinicEmail;
+  String headerLogoUrl;
+  List<DoctorSignature> signatures;
+  String qrCodeUrl;
+  String playStoreUrl;
+  String footerBannerUrl;
+  String footerColorHex;
+
+  ReportLayoutConfig({
+    this.clinicName = 'Manju Medical Stores & Digital Clinic',
+    this.clinicAddress = '123, Main Road, Kolkata - 700001',
+    this.clinicPhone = '+91 98765 43210',
+    this.clinicEmail = 'lab@manjumedical.com',
+    this.headerLogoUrl = '',
+    this.signatures = const [],
+    this.qrCodeUrl = '',
+    this.playStoreUrl = '',
+    this.footerBannerUrl = '',
+    this.footerColorHex = '#EA580C',
+  });
+
+  Map<String, dynamic> toJson() => {
+    'clinicName': clinicName,
+    'clinicAddress': clinicAddress,
+    'clinicPhone': clinicPhone,
+    'clinicEmail': clinicEmail,
+    'headerLogoUrl': headerLogoUrl,
+    'signatures': signatures.map((x) => x.toJson()).toList(),
+    'qrCodeUrl': qrCodeUrl,
+    'playStoreUrl': playStoreUrl,
+    'footerBannerUrl': footerBannerUrl,
+    'footerColorHex': footerColorHex,
+  };
+
+  factory ReportLayoutConfig.fromJson(Map<String, dynamic> json) => ReportLayoutConfig(
+    clinicName: json['clinicName'] ?? 'Manju Medical Stores & Digital Clinic',
+    clinicAddress: json['clinicAddress'] ?? '123, Main Road, Kolkata - 700001',
+    clinicPhone: json['clinicPhone'] ?? '+91 98765 43210',
+    clinicEmail: json['clinicEmail'] ?? 'lab@manjumedical.com',
+    headerLogoUrl: json['headerLogoUrl'] ?? '',
+    signatures: json['signatures'] != null ? List<DoctorSignature>.from(json['signatures'].map((x) => DoctorSignature.fromJson(x))) : [],
+    qrCodeUrl: json['qrCodeUrl'] ?? '',
+    playStoreUrl: json['playStoreUrl'] ?? '',
+    footerBannerUrl: json['footerBannerUrl'] ?? '',
+    footerColorHex: json['footerColorHex'] ?? '#EA580C',
+  );
+
+  ReportLayoutConfig copyWith({
+    String? clinicName,
+    String? clinicAddress,
+    String? clinicPhone,
+    String? clinicEmail,
+    String? headerLogoUrl,
+    List<DoctorSignature>? signatures,
+    String? qrCodeUrl,
+    String? playStoreUrl,
+    String? footerBannerUrl,
+    String? footerColorHex,
+  }) {
+    return ReportLayoutConfig(
+      clinicName: clinicName ?? this.clinicName,
+      clinicAddress: clinicAddress ?? this.clinicAddress,
+      clinicPhone: clinicPhone ?? this.clinicPhone,
+      clinicEmail: clinicEmail ?? this.clinicEmail,
+      headerLogoUrl: headerLogoUrl ?? this.headerLogoUrl,
+      signatures: signatures ?? this.signatures,
+      qrCodeUrl: qrCodeUrl ?? this.qrCodeUrl,
+      playStoreUrl: playStoreUrl ?? this.playStoreUrl,
+      footerBannerUrl: footerBannerUrl ?? this.footerBannerUrl,
+      footerColorHex: footerColorHex ?? this.footerColorHex,
+    );
+  }
+}
+
 class LabTemplate {
   final String id;
   final String name;
@@ -101,6 +208,7 @@ class LabTemplate {
   final bool showRemarksSection;
   final String defaultRemarks;
   final List<TemplateField> fields;
+  final ReportLayoutConfig layoutConfig;
 
   LabTemplate({
     required this.id,
@@ -114,10 +222,11 @@ class LabTemplate {
     this.showPatientDetails = true,
     this.showReferrals = true,
     this.showLabLogo = true,
-    this.showRemarksSection = false,
+    this.showRemarksSection = true,
     this.defaultRemarks = '',
-    required this.fields,
-  });
+    this.fields = const [],
+    ReportLayoutConfig? layoutConfig,
+  }) : this.layoutConfig = layoutConfig ?? ReportLayoutConfig();
 
   Map<String, dynamic> toJson() => {
     'id': id,
@@ -134,6 +243,7 @@ class LabTemplate {
     'showRemarksSection': showRemarksSection,
     'defaultRemarks': defaultRemarks,
     'fields': fields.map((e) => e.toJson()).toList(),
+    'layoutConfig': layoutConfig.toJson(),
   };
 
   factory LabTemplate.fromJson(Map<String, dynamic> json) => LabTemplate(
@@ -151,7 +261,44 @@ class LabTemplate {
     showRemarksSection: json['showRemarksSection'] ?? false,
     defaultRemarks: json['defaultRemarks'] ?? '',
     fields: (json['fields'] as List).map((e) => TemplateField.fromJson(e)).toList(),
+    layoutConfig: json['layoutConfig'] != null ? ReportLayoutConfig.fromJson(json['layoutConfig']) : null,
   );
+
+  LabTemplate copyWith({
+    String? id,
+    String? name,
+    String? testName,
+    String? category,
+    String? type,
+    String? reportFormat,
+    bool? isActive,
+    String? description,
+    bool? showPatientDetails,
+    bool? showReferrals,
+    bool? showLabLogo,
+    bool? showRemarksSection,
+    String? defaultRemarks,
+    List<TemplateField>? fields,
+    ReportLayoutConfig? layoutConfig,
+  }) {
+    return LabTemplate(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      testName: testName ?? this.testName,
+      category: category ?? this.category,
+      type: type ?? this.type,
+      reportFormat: reportFormat ?? this.reportFormat,
+      isActive: isActive ?? this.isActive,
+      description: description ?? this.description,
+      showPatientDetails: showPatientDetails ?? this.showPatientDetails,
+      showReferrals: showReferrals ?? this.showReferrals,
+      showLabLogo: showLabLogo ?? this.showLabLogo,
+      showRemarksSection: showRemarksSection ?? this.showRemarksSection,
+      defaultRemarks: defaultRemarks ?? this.defaultRemarks,
+      fields: fields ?? this.fields,
+      layoutConfig: layoutConfig ?? this.layoutConfig,
+    );
+  }
 }
 
 class LabPackage {
@@ -174,23 +321,24 @@ class LabPackage {
   });
 
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'name': name,
+    // 'id': id,
+    'type': 'PACKAGE',
+    'title': name,
     'category': category,
     'description': description,
-    'testIds': testIds,
-    'discountedPrice': discountedPrice,
-    'isActive': isActive,
+    'includes': testIds,
+    'price': discountedPrice,
+    'is_active': isActive,
   };
 
   factory LabPackage.fromJson(Map<String, dynamic> json) => LabPackage(
     id: json['id'],
-    name: json['name'],
+    name: json['title'] ?? '',
     category: json['category'] ?? 'Wellness',
-    description: json['description'],
-    testIds: List<String>.from(json['testIds']),
-    discountedPrice: json['discountedPrice'].toDouble(),
-    isActive: json['isActive'] ?? true,
+    description: json['description'] ?? '',
+    testIds: json['includes'] != null ? List<String>.from(json['includes']) : [],
+    discountedPrice: (json['price'] as num?)?.toDouble() ?? 0.0,
+    isActive: json['is_active'] ?? true,
   );
 }
 

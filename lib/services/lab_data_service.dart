@@ -1,136 +1,267 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
 import '../models/lab_models.dart';
-
-class LabDataService {
+import '../config/api_constants.dart';
+import 'auth_service.dart';class LabDataService {
   static const String _testsKey = 'lab_tests';
   static const String _templatesKey = 'lab_templates';
   static const String _packagesKey = 'lab_packages';
+  static const String _customCategoriesKey = 'custom_categories';
+
+  // --- Custom Categories (API) ---
+  static Future<String?> _getCategoryIdByName(String name) async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.get(Uri.parse('${ApiConstants.baseUrl}/api/admin/lab-category/'), headers: headers);
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        for (var item in data) {
+          if (item['name'] == name) return item['id'];
+        }
+      }
+    } catch (e) {
+      print('Error getting category ID: $e');
+    }
+    return null;
+  }
+
+  static Future<List<String>> getCustomCategories() async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.get(Uri.parse('${ApiConstants.baseUrl}/api/admin/lab-category/'), headers: headers);
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        return data.map((e) => e['name'].toString()).toList();
+      }
+    } catch (e) {
+      print('Error getting categories: $e');
+    }
+    return [];
+  }
+
+  static Future<void> saveCustomCategory(String category) async {
+    try {
+      final headers = await _getHeaders();
+      await http.post(
+        Uri.parse('${ApiConstants.baseUrl}/api/admin/lab-category/'),
+        headers: headers,
+        body: json.encode({'name': category}),
+      );
+    } catch (e) {
+      print('Error saving category: $e');
+    }
+  }
+
+  static Future<void> deleteCustomCategory(String category) async {
+    final id = await _getCategoryIdByName(category);
+    if (id != null) {
+      try {
+        final headers = await _getHeaders();
+        await http.delete(Uri.parse('${ApiConstants.baseUrl}/api/admin/lab-category/$id'), headers: headers);
+      } catch (e) {
+        print('Error deleting category: $e');
+      }
+    }
+  }
+  
+  static Future<void> renameCustomCategory(String oldName, String newName) async {
+    final id = await _getCategoryIdByName(oldName);
+    if (id != null) {
+      try {
+        final headers = await _getHeaders();
+        await http.patch(
+          Uri.parse('${ApiConstants.baseUrl}/api/admin/lab-category/$id'),
+          headers: headers,
+          body: json.encode({'name': newName}),
+        );
+      } catch (e) {
+        print('Error renaming category: $e');
+      }
+    } else {
+      await saveCustomCategory(newName);
+    }
+  }
+
+  // --- Common HTTP ---
+  static Future<Map<String, String>> _getHeaders() async {
+    final token = await AuthService.getToken();
+    return {
+      'Content-Type': 'application/json',
+      if (token != null) 'Authorization': 'Bearer $token',
+    };
+  }
 
   // --- Tests ---
   static Future<List<LabTest>> getTests() async {
-    final prefs = await SharedPreferences.getInstance();
-    final jsonList = prefs.getStringList(_testsKey) ?? [];
-    if (jsonList.isEmpty) {
-      // Return some dummy data
-      return [
-        LabTest(id: 't1', testCode: 'T001', name: 'Complete Blood Count (CBC)', description: 'Measures different components of blood including RBC, WBC, Hemoglobin, Platelets, etc.', category: 'Hematology', price: 350.0, templateId: 'temp_cbc', sampleType: 'Blood', reportingTime: '6 - 8 hours', isActive: true),
-        LabTest(id: 't2', testCode: 'T002', name: 'Lipid Profile', description: 'Measures the amount of cholesterol and triglycerides in your blood.', category: 'Biochemistry', price: 1200.0, templateId: 'temp_lipid', sampleType: 'Blood', reportingTime: '12 hours', isActive: true),
-        LabTest(id: 't3', testCode: 'T003', name: 'Thyroid Profile (T3, T4, TSH)', description: 'Checks how well your thyroid is working.', category: 'Hormones', price: 950.0, templateId: 'temp_thyroid', sampleType: 'Blood', reportingTime: '24 hours', isActive: true),
-        LabTest(id: 't4', testCode: 'T004', name: 'HbA1c', description: 'Measures average blood sugar levels over the past 3 months.', category: 'Diabetes', price: 650.0, templateId: 'temp_hba1c', sampleType: 'Blood', reportingTime: '6 hours', isActive: true),
-        LabTest(id: 't5', testCode: 'T005', name: 'Vitamin D (25-OH)', description: 'Measures the level of Vitamin D in your blood.', category: 'Vitamins', price: 850.0, templateId: 'temp_vitd', sampleType: 'Blood', reportingTime: '24 hours', isActive: true),
-      ];
+    try {
+      final headers = await _getHeaders();
+      final response = await http.get(Uri.parse('${ApiConstants.baseUrl}/api/admin/lab-catalog/'), headers: headers);
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        return data.where((item) => item['type'] == 'SINGLE_TEST').map((j) => LabTest.fromJson(j)).toList();
+      }
+    } catch (e) {
+      print('Error fetching tests: $e');
     }
-    return jsonList.map((j) => LabTest.fromJson(jsonDecode(j))).toList();
+    return [];
   }
 
   static Future<void> saveTest(LabTest test) async {
-    final tests = await getTests();
-    final index = tests.indexWhere((t) => t.id == test.id);
-    if (index >= 0) {
-      tests[index] = test;
-    } else {
-      tests.add(test);
+    try {
+      final headers = await _getHeaders();
+      final body = json.encode(test.toJson());
+      
+      if (test.id.isEmpty) {
+        await http.post(
+          Uri.parse('${ApiConstants.baseUrl}/api/admin/lab-catalog/'),
+          headers: headers,
+          body: body,
+        );
+        return;
+      }
+      
+      final patchResponse = await http.patch(
+        Uri.parse('${ApiConstants.baseUrl}/api/admin/lab-catalog/${test.id}'),
+        headers: headers,
+        body: body,
+      );
+      
+      if (patchResponse.statusCode == 404 || patchResponse.statusCode == 422 || patchResponse.statusCode == 405) {
+        await http.post(
+          Uri.parse('${ApiConstants.baseUrl}/api/admin/lab-catalog/'),
+          headers: headers,
+          body: body,
+        );
+      }
+    } catch (e) {
+      print('Error saving test: $e');
     }
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setStringList(_testsKey, tests.map((t) => jsonEncode(t.toJson())).toList());
+  }
+
+  static Future<bool> uploadCSV(List<int> fileBytes, String fileName) async {
+    try {
+      final token = await AuthService.getToken();
+      var request = http.MultipartRequest('POST', Uri.parse('${ApiConstants.baseUrl}/api/admin/lab-catalog/upload-csv'));
+      if (token != null) {
+        request.headers['Authorization'] = 'Bearer $token';
+      }
+      
+      request.files.add(http.MultipartFile.fromBytes(
+        'file', 
+        fileBytes,
+        filename: fileName,
+      ));
+      
+      var response = await request.send();
+      return response.statusCode == 200;
+    } catch (e) {
+      print('CSV upload error: $e');
+      return false;
+    }
   }
 
   static Future<void> deleteTest(String id) async {
-    final tests = await getTests();
-    tests.removeWhere((t) => t.id == id);
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setStringList(_testsKey, tests.map((t) => jsonEncode(t.toJson())).toList());
+    try {
+      final headers = await _getHeaders();
+      await http.delete(Uri.parse('${ApiConstants.baseUrl}/api/admin/lab-catalog/$id'), headers: headers);
+    } catch (e) {
+      print('Error deleting test: $e');
+    }
   }
 
   // --- Templates ---
   static Future<List<LabTemplate>> getTemplates() async {
-    final prefs = await SharedPreferences.getInstance();
-    final jsonList = prefs.getStringList(_templatesKey) ?? [];
-    if (jsonList.isEmpty) {
-      return [
-        LabTemplate(id: 'temp_cbc', name: 'CBC Template', testName: 'Complete Blood Count (CBC)', category: 'Hematology', type: 'Tabular', reportFormat: 'A4 Portrait', isActive: true, description: 'Complete Blood Count with RBC, WBC, Hemoglobin, Platelets etc.', showPatientDetails: true, showReferrals: true, showLabLogo: true, showRemarksSection: false, defaultRemarks: 'Kindly correlate clinically.', fields: [
-          TemplateField(name: 'Hemoglobin', shortCode: 'Hb', unit: 'g/dL', normalRange: '13.0 - 17.0', resultType: 'Numeric', decimals: 1),
-          TemplateField(name: 'Total WBC Count', shortCode: 'WBC', unit: '10^3/uL', normalRange: '4.0 - 11.0', resultType: 'Numeric', decimals: 1),
-          TemplateField(name: 'RBC Count', shortCode: 'RBC', unit: '10^6/uL', normalRange: '4.5 - 5.9', resultType: 'Numeric', decimals: 2),
-          TemplateField(name: 'Platelet Count', shortCode: 'PLT', unit: '10^3/uL', normalRange: '150 - 450', resultType: 'Numeric', decimals: 0),
-        ]),
-        LabTemplate(id: 'temp_lipid', name: 'Lipid Profile Template', testName: 'Lipid Profile', category: 'Biochemistry', type: 'Tabular', reportFormat: 'A4 Portrait', isActive: true, description: '', showPatientDetails: true, showReferrals: true, showLabLogo: true, showRemarksSection: false, defaultRemarks: '', fields: [
-          TemplateField(name: 'Total Cholesterol', shortCode: 'TC', unit: 'mg/dL', normalRange: '< 200', resultType: 'Numeric', decimals: 1),
-          TemplateField(name: 'HDL Cholesterol', shortCode: 'HDL', unit: 'mg/dL', normalRange: '> 40', resultType: 'Numeric', decimals: 1),
-          TemplateField(name: 'LDL Cholesterol', shortCode: 'LDL', unit: 'mg/dL', normalRange: '< 100', resultType: 'Numeric', decimals: 1),
-          TemplateField(name: 'Triglycerides', shortCode: 'TG', unit: 'mg/dL', normalRange: '< 150', resultType: 'Numeric', decimals: 1),
-        ]),
-        LabTemplate(id: 'temp_thyroid', name: 'Thyroid Profile Template', category: 'Hormones', type: 'Tabular', isActive: true, fields: [
-          TemplateField(name: 'T3', unit: 'ng/dL', normalRange: '80 - 200'),
-          TemplateField(name: 'T4', unit: 'ug/dL', normalRange: '5.1 - 14.1'),
-          TemplateField(name: 'TSH', unit: 'uIU/mL', normalRange: '0.27 - 4.2'),
-        ]),
-        LabTemplate(id: 'temp_serology', name: 'Serology Template', category: 'Serology', type: 'Tabular', isActive: false, fields: [
-          TemplateField(name: 'Widal Test', unit: 'Titer', normalRange: '< 1:80'),
-          TemplateField(name: 'CRP', unit: 'mg/L', normalRange: '< 6.0'),
-        ]),
-      ];
+    try {
+      final headers = await _getHeaders();
+      final response = await http.get(Uri.parse('${ApiConstants.baseUrl}/api/admin/lab-template/'), headers: headers);
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        return data.map((j) => LabTemplate.fromJson(j)).toList();
+      }
+    } catch (e) {
+      print('Error getting templates: $e');
     }
-    return jsonList.map((j) => LabTemplate.fromJson(jsonDecode(j))).toList();
+    return [];
   }
 
   static Future<void> saveTemplate(LabTemplate template) async {
-    final templates = await getTemplates();
-    final index = templates.indexWhere((t) => t.id == template.id);
-    if (index >= 0) {
-      templates[index] = template;
-    } else {
-      templates.add(template);
+    try {
+      final headers = await _getHeaders();
+      final body = json.encode(template.toJson());
+      
+      final patchResponse = await http.patch(
+        Uri.parse('${ApiConstants.baseUrl}/api/admin/lab-template/${template.id}'),
+        headers: headers,
+        body: body,
+      );
+      
+      if (patchResponse.statusCode == 404 || patchResponse.statusCode == 405) {
+        await http.post(
+          Uri.parse('${ApiConstants.baseUrl}/api/admin/lab-template/'),
+          headers: headers,
+          body: body,
+        );
+      }
+    } catch (e) {
+      print('Error saving template: $e');
     }
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setStringList(_templatesKey, templates.map((t) => jsonEncode(t.toJson())).toList());
   }
 
   static Future<void> deleteTemplate(String id) async {
-    final templates = await getTemplates();
-    templates.removeWhere((t) => t.id == id);
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setStringList(_templatesKey, templates.map((t) => jsonEncode(t.toJson())).toList());
+    try {
+      final headers = await _getHeaders();
+      await http.delete(Uri.parse('${ApiConstants.baseUrl}/api/admin/lab-template/$id'), headers: headers);
+    } catch (e) {
+      print('Error deleting template: $e');
+    }
   }
 
   // --- Packages ---
   static Future<List<LabPackage>> getPackages() async {
-    final prefs = await SharedPreferences.getInstance();
-    final jsonList = prefs.getStringList(_packagesKey) ?? [];
-    if (jsonList.isEmpty) {
-      return [
-        LabPackage(id: 'pkg1', name: 'Full Body Checkup', category: 'Wellness', description: 'A complete health checkup package to assess your overall health and wellness.', testIds: List.generate(32, (i) => 't$i'), discountedPrice: 2500.0, isActive: true),
-        LabPackage(id: 'pkg2', name: 'Health Checkup Basic', category: 'Wellness', description: 'Basic tests for general wellness.', testIds: List.generate(18, (i) => 't$i'), discountedPrice: 1499.0, isActive: true),
-        LabPackage(id: 'pkg3', name: 'Diabetic Profile', category: 'Diabetes', description: 'Comprehensive screening for diabetes and related complications.', testIds: List.generate(12, (i) => 't$i'), discountedPrice: 999.0, isActive: true),
-        LabPackage(id: 'pkg4', name: 'Thyroid Package', category: 'Hormones', description: 'Complete thyroid function test.', testIds: List.generate(5, (i) => 't$i'), discountedPrice: 799.0, isActive: true),
-        LabPackage(id: 'pkg5', name: 'Women Wellness', category: 'Wellness', description: 'Specialized health checkup for women.', testIds: List.generate(28, (i) => 't$i'), discountedPrice: 2200.0, isActive: true),
-        LabPackage(id: 'pkg6', name: 'Cardiac Risk Profile', category: 'Cardiology', description: 'Assess risk factors for heart diseases.', testIds: List.generate(15, (i) => 't$i'), discountedPrice: 1799.0, isActive: true),
-        LabPackage(id: 'pkg7', name: 'Senior Citizen Health', category: 'Wellness', description: 'Extensive screening for seniors.', testIds: List.generate(40, (i) => 't$i'), discountedPrice: 3000.0, isActive: true),
-        LabPackage(id: 'pkg8', name: 'Vitamin Profile', category: 'Vitamins', description: 'Check essential vitamin levels.', testIds: List.generate(10, (i) => 't$i'), discountedPrice: 850.0, isActive: false),
-        LabPackage(id: 'pkg9', name: 'Kidney Health Package', category: 'Nephrology', description: 'Complete assessment of kidney function.', testIds: List.generate(14, (i) => 't$i'), discountedPrice: 1600.0, isActive: true),
-      ];
+    try {
+      final headers = await _getHeaders();
+      final response = await http.get(Uri.parse('${ApiConstants.baseUrl}/api/admin/lab-catalog/'), headers: headers);
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        return data.where((item) => item['type'] == 'PACKAGE').map((j) => LabPackage.fromJson(j)).toList();
+      }
+    } catch (e) {
+      print('Error fetching packages: $e');
     }
-    return jsonList.map((j) => LabPackage.fromJson(jsonDecode(j))).toList();
+    return [];
   }
 
   static Future<void> savePackage(LabPackage pkg) async {
-    final packages = await getPackages();
-    final index = packages.indexWhere((p) => p.id == pkg.id);
-    if (index >= 0) {
-      packages[index] = pkg;
-    } else {
-      packages.add(pkg);
+    try {
+      final headers = await _getHeaders();
+      final body = json.encode(pkg.toJson());
+      
+      final patchResponse = await http.patch(
+        Uri.parse('${ApiConstants.baseUrl}/api/admin/lab-catalog/${pkg.id}'),
+        headers: headers,
+        body: body,
+      );
+      
+      if (patchResponse.statusCode == 404 || patchResponse.statusCode == 422) {
+        await http.post(
+          Uri.parse('${ApiConstants.baseUrl}/api/admin/lab-catalog/'),
+          headers: headers,
+          body: body,
+        );
+      }
+    } catch (e) {
+      print('Error saving package: $e');
     }
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setStringList(_packagesKey, packages.map((p) => jsonEncode(p.toJson())).toList());
   }
 
   static Future<void> deletePackage(String id) async {
-    final packages = await getPackages();
-    packages.removeWhere((p) => p.id == id);
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setStringList(_packagesKey, packages.map((p) => jsonEncode(p.toJson())).toList());
+    try {
+      final headers = await _getHeaders();
+      await http.delete(Uri.parse('${ApiConstants.baseUrl}/api/admin/lab-catalog/$id'), headers: headers);
+    } catch (e) {
+      print('Error deleting package: $e');
+    }
   }
 
   // --- Bookings ---

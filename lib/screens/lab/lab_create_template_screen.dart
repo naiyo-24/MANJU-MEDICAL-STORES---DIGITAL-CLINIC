@@ -21,6 +21,16 @@ class _LabCreateTemplateScreenState extends State<LabCreateTemplateScreen> {
   late TextEditingController _categoryCtrl;
   late TextEditingController _descCtrl;
   late TextEditingController _remarksCtrl;
+
+  late TextEditingController _clinicNameCtrl;
+  late TextEditingController _clinicAddressCtrl;
+  late TextEditingController _clinicPhoneCtrl;
+  late TextEditingController _clinicEmailCtrl;
+  late TextEditingController _footerColorCtrl;
+  late TextEditingController _qrCodeCtrl;
+  late TextEditingController _playStoreCtrl;
+  
+  late ReportLayoutConfig _layoutConfig;
   
   String _selectedType = 'Tabular';
   String _selectedFormat = 'A4 Portrait';
@@ -43,6 +53,16 @@ class _LabCreateTemplateScreenState extends State<LabCreateTemplateScreen> {
     _descCtrl = TextEditingController(text: t?.description);
     _remarksCtrl = TextEditingController(text: t?.defaultRemarks);
     
+    _layoutConfig = t?.layoutConfig ?? ReportLayoutConfig();
+    _clinicNameCtrl = TextEditingController(text: _layoutConfig.clinicName);
+    _clinicAddressCtrl = TextEditingController(text: _layoutConfig.clinicAddress);
+    _clinicPhoneCtrl = TextEditingController(text: _layoutConfig.clinicPhone);
+    _clinicEmailCtrl = TextEditingController(text: _layoutConfig.clinicEmail);
+    _footerColorCtrl = TextEditingController(text: _layoutConfig.footerColorHex);
+    _qrCodeCtrl = TextEditingController(text: _layoutConfig.qrCodeUrl);
+    _playStoreCtrl = TextEditingController(text: _layoutConfig.playStoreUrl);
+
+    
     if (t != null) {
       _selectedType = t.type;
       _selectedFormat = t.reportFormat;
@@ -58,6 +78,14 @@ class _LabCreateTemplateScreenState extends State<LabCreateTemplateScreen> {
   }
 
   Future<void> _saveTemplate() async {
+    _layoutConfig.clinicName = _clinicNameCtrl.text;
+    _layoutConfig.clinicAddress = _clinicAddressCtrl.text;
+    _layoutConfig.clinicPhone = _clinicPhoneCtrl.text;
+    _layoutConfig.clinicEmail = _clinicEmailCtrl.text;
+    _layoutConfig.footerColorHex = _footerColorCtrl.text;
+    _layoutConfig.qrCodeUrl = _qrCodeCtrl.text;
+    _layoutConfig.playStoreUrl = _playStoreCtrl.text;
+
     final template = LabTemplate(
       id: widget.existingTemplate?.id ?? const Uuid().v4(),
       name: _nameCtrl.text,
@@ -73,6 +101,7 @@ class _LabCreateTemplateScreenState extends State<LabCreateTemplateScreen> {
       showRemarksSection: _showRemarksSection,
       defaultRemarks: _remarksCtrl.text,
       fields: _fields.where((f) => f.name.isNotEmpty).toList(),
+      layoutConfig: _layoutConfig,
     );
     await LabDataService.saveTemplate(template);
     if (mounted) Navigator.pop(context, );
@@ -122,7 +151,7 @@ class _LabCreateTemplateScreenState extends State<LabCreateTemplateScreen> {
                           const SizedBox(width: 16),
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
-                            children: const [
+                            children: [
                               Text('Create / Edit Template', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
                               Text('Design custom report template for your lab test', style: TextStyle(fontSize: 14, color: Color(0xFF64748B))),
                             ],
@@ -179,10 +208,11 @@ class _LabCreateTemplateScreenState extends State<LabCreateTemplateScreen> {
                                     child: Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
-                                        // Form Row 1
-                                        Row(
-                                          children: [
-                                            Expanded(child: _buildTextField('Template Name *', _nameCtrl)),
+                                        if (_selectedTab == 0 || _selectedTab == 1) ...[
+                                          // Form Row 1
+                                          Row(
+                                            children: [
+                                              Expanded(child: _buildTextField('Template Name *', _nameCtrl)),
                                             const SizedBox(width: 16),
                                             Expanded(child: _buildTextField('Test Name *', _testNameCtrl)),
                                             const SizedBox(width: 16),
@@ -266,7 +296,7 @@ class _LabCreateTemplateScreenState extends State<LabCreateTemplateScreen> {
                                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                                           color: const Color(0xFFF8FAFC),
                                           child: Row(
-                                            children: const [
+                                            children: [
                                               SizedBox(width: 30, child: Text('#', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold))),
                                               Expanded(flex: 3, child: Text('Parameter Name', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold))),
                                               Expanded(flex: 2, child: Text('Short Code', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold))),
@@ -306,6 +336,34 @@ class _LabCreateTemplateScreenState extends State<LabCreateTemplateScreen> {
                                         
                                         const SizedBox(height: 32),
                                         
+                                        ],
+                                        if (_selectedTab == 0 || _selectedTab == 2) ...[
+                                          const SizedBox(height: 32),
+                                          const Text('Clinic Details (Header)', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                                          const SizedBox(height: 16),
+                                          _buildTextField('Clinic Name', _clinicNameCtrl, onChanged: (v) => setState((){})),
+                                          const SizedBox(height: 12),
+                                          _buildTextField('Clinic Address', _clinicAddressCtrl, onChanged: (v) => setState((){})),
+                                          const SizedBox(height: 12),
+                                          _buildTextField('Clinic Phone', _clinicPhoneCtrl, onChanged: (v) => setState((){})),
+                                          const SizedBox(height: 12),
+                                          _buildTextField('Clinic Email', _clinicEmailCtrl, onChanged: (v) => setState((){})),
+                                          const SizedBox(height: 24),
+                                          const Text('Styling', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                                          const SizedBox(height: 16),
+                                          _buildTextField('Footer Color (Hex)', _footerColorCtrl, onChanged: (v) => setState((){})),
+                                        ],
+                                        if (_selectedTab == 0 || _selectedTab == 3) ...[
+                                          const SizedBox(height: 32),
+                                          const Text('Footer Links', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                                          const SizedBox(height: 16),
+                                          _buildTextField('QR Code Value', _qrCodeCtrl, onChanged: (v) => setState((){})),
+                                          const SizedBox(height: 12),
+                                          _buildTextField('Play Store URL', _playStoreCtrl, onChanged: (v) => setState((){})),
+                                        ],
+                                        
+                                        const SizedBox(height: 32),
+                                        if (_selectedTab == 0 || _selectedTab == 2)
                                         // Additional Options
                                         Row(
                                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -380,7 +438,7 @@ class _LabCreateTemplateScreenState extends State<LabCreateTemplateScreen> {
                                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                                     decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE2E8F0)), borderRadius: BorderRadius.circular(4), color: Colors.white),
                                     child: Row(
-                                      children: const [
+                                      children: [
                                         Text('Change Template Style', style: TextStyle(fontSize: 12)),
                                         Icon(Icons.arrow_drop_down, size: 16),
                                       ],
@@ -408,10 +466,10 @@ class _LabCreateTemplateScreenState extends State<LabCreateTemplateScreen> {
                                           const SizedBox(width: 16),
                                           Column(
                                             crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: const [
-                                              Text('Manju Medical Stores & Digital Clinic', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFFEA580C))),
-                                              Text('123, Main Road, Kolkata - 700001', style: TextStyle(fontSize: 10, color: Color(0xFF64748B))),
-                                              Text('Phone: +91 98765 43210  |  Email: lab@manjumedical.com', style: TextStyle(fontSize: 10, color: Color(0xFF64748B))),
+                                            children: [
+                                              Text(_clinicNameCtrl.text.isNotEmpty ? _clinicNameCtrl.text : 'Manju Medical Stores & Digital Clinic', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFFEA580C))),
+                                              Text(_clinicAddressCtrl.text.isNotEmpty ? _clinicAddressCtrl.text : '123, Main Road, Kolkata - 700001', style: const TextStyle(fontSize: 10, color: Color(0xFF64748B))),
+                                              Text('Phone: ${_clinicPhoneCtrl.text}  |  Email: ${_clinicEmailCtrl.text}', style: const TextStyle(fontSize: 10, color: Color(0xFF64748B))),
                                             ],
                                           ),
                                         ],
@@ -460,7 +518,7 @@ class _LabCreateTemplateScreenState extends State<LabCreateTemplateScreen> {
                                               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                                               color: const Color(0xFFF8FAFC),
                                               child: Row(
-                                                children: const [
+                                                children: [
                                                   Expanded(flex: 3, child: Text('Parameter', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold))),
                                                   Expanded(flex: 2, child: Text('Result', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold))),
                                                   Expanded(flex: 2, child: Text('Unit', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold))),
@@ -499,7 +557,7 @@ class _LabCreateTemplateScreenState extends State<LabCreateTemplateScreen> {
                                         children: [
                                           Column(
                                             crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: const [
+                                            children: [
                                               Icon(Icons.qr_code_2, size: 48),
                                               Text('Scan to verify report', style: TextStyle(fontSize: 8)),
                                               SizedBox(height: 4),
@@ -508,7 +566,7 @@ class _LabCreateTemplateScreenState extends State<LabCreateTemplateScreen> {
                                           ),
                                           Column(
                                             crossAxisAlignment: CrossAxisAlignment.center,
-                                            children: const [
+                                            children: [
                                               Icon(Icons.draw, size: 32, color: Color(0xFF1E293B)), // Mock signature
                                               SizedBox(height: 4),
                                               SizedBox(width: 120, child: Divider(color: Color(0xFF94A3B8))),
@@ -524,12 +582,12 @@ class _LabCreateTemplateScreenState extends State<LabCreateTemplateScreen> {
                                       Row(
                                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                         children: [
-                                          Row(children: const [Icon(Icons.phone, size: 10, color: Color(0xFFEA580C)), SizedBox(width: 4), Text('+91 98765 43210', style: TextStyle(fontSize: 8))]),
-                                          Row(children: const [Icon(Icons.email, size: 10, color: Color(0xFFEA580C)), SizedBox(width: 4), Text('lab@manjumedical.com', style: TextStyle(fontSize: 8))]),
-                                          Row(children: const [Icon(Icons.language, size: 10, color: Color(0xFFEA580C)), SizedBox(width: 4), Text('www.manjudiagnostic.com', style: TextStyle(fontSize: 8))]),
+                                          Row(children: [Icon(Icons.phone, size: 10, color: Color(0xFFEA580C)), SizedBox(width: 4), Text('+91 98765 43210', style: TextStyle(fontSize: 8))]),
+                                          Row(children: [Icon(Icons.email, size: 10, color: Color(0xFFEA580C)), SizedBox(width: 4), Text('lab@manjumedical.com', style: TextStyle(fontSize: 8))]),
+                                          Row(children: [Icon(Icons.language, size: 10, color: Color(0xFFEA580C)), SizedBox(width: 4), Text('www.manjudiagnostic.com', style: TextStyle(fontSize: 8))]),
                                           Column(
                                             crossAxisAlignment: CrossAxisAlignment.end,
-                                            children: const [
+                                            children: [
                                               Text('Better Care', style: TextStyle(fontSize: 10, color: Color(0xFFEA580C), fontWeight: FontWeight.bold)),
                                               Text('Brighter Tomorrows', style: TextStyle(fontSize: 10, color: Color(0xFFEA580C))),
                                             ],
@@ -587,7 +645,7 @@ class _LabCreateTemplateScreenState extends State<LabCreateTemplateScreen> {
     );
   }
 
-  Widget _buildTextField(String label, TextEditingController controller, {int maxLines = 1}) {
+  Widget _buildTextField(String label, TextEditingController controller, {int maxLines = 1, Function(String)? onChanged}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -595,8 +653,11 @@ class _LabCreateTemplateScreenState extends State<LabCreateTemplateScreen> {
         const SizedBox(height: 8),
         TextField(
           controller: controller,
+          onChanged: (val) {
+            if (onChanged != null) onChanged(val);
+            setState(() {});
+          },
           maxLines: maxLines,
-          onChanged: (_) => setState(() {}),
           decoration: InputDecoration(isDense: true, border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Color(0xFFE2E8F0)))),
         ),
       ],
@@ -641,6 +702,17 @@ class _LabCreateTemplateScreenState extends State<LabCreateTemplateScreen> {
         ),
       ],
     );
+  }
+
+
+  Color _parseColor(String hexColor) {
+    try {
+      hexColor = hexColor.toUpperCase().replaceAll("#", "");
+      if (hexColor.length == 6) hexColor = "FF$hexColor";
+      return Color(int.parse("0x$hexColor"));
+    } catch (e) {
+      return const Color(0xFFEA580C);
+    }
   }
 
   Widget _buildToggle(String label, bool value, Function(bool) onChanged) {
