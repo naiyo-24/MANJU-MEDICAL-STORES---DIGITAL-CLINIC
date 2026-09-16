@@ -478,11 +478,12 @@ class _AccountsScreenState extends State<AccountsScreen> {
                         ),
                         
                         LayoutBuilder(builder: (context, constraints) {
-                            return SingleChildScrollView(
-                              scrollDirection: Axis.horizontal,
-                              child: ConstrainedBox(
-                                constraints: BoxConstraints(minWidth: 1000, maxWidth: constraints.maxWidth > 1000 ? constraints.maxWidth : 1000),
-                                child: Column(
+                          final tableWidth = constraints.maxWidth > 800 ? constraints.maxWidth : 800.0;
+                          return SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: SizedBox(
+                              width: tableWidth,
+                              child: Column(
                                   children: [
                                     // Table Headers
                                     Container(

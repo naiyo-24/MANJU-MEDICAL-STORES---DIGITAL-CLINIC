@@ -17,6 +17,8 @@ class _LabTemplatesScreenState extends State<LabTemplatesScreen> {
   List<LabTemplate> _templates = [];
   bool _isLoading = true;
   String _searchQuery = '';
+  int _currentPage = 1;
+  final int _itemsPerPage = 10;
   int _selectedTabIndex = 0;
   LabTemplate? _selectedTemplate;
 
@@ -45,76 +47,148 @@ class _LabTemplatesScreenState extends State<LabTemplatesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final filteredTemplates = _templates.where((t) => t.name.toLowerCase().contains(_searchQuery)).toList();
+    final totalPages = (filteredTemplates.length + _itemsPerPage - 1) ~/ _itemsPerPage;
+    if (_currentPage > totalPages && totalPages > 0) _currentPage = totalPages;
+    final startIndex = filteredTemplates.isEmpty ? 0 : (_currentPage - 1) * _itemsPerPage;
+    final endIndex = (startIndex + _itemsPerPage).clamp(0, filteredTemplates.length);
+    final paginatedTemplates = filteredTemplates.isEmpty ? <LabTemplate>[] : filteredTemplates.sublist(startIndex, endIndex);
+
     return Container(
       padding: const EdgeInsets.all(32),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
           // Header
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(color: const Color(0xFFEA580C), borderRadius: BorderRadius.circular(12)),
-                    child: const Icon(Icons.description, color: Colors.white, size: 32),
-                  ),
-                  const SizedBox(width: 16),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: const [
-                      Text('Templates', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
-                      SizedBox(height: 4),
-                      Text('Create and customize report templates for each test', style: TextStyle(fontSize: 14, color: Color(0xFF64748B))),
-                    ],
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  _buildActionButton(Icons.upload, 'Import Template', () {}),
-                  const SizedBox(width: 16),
-                  ElevatedButton.icon(
-                    onPressed: () => _navigateToCreateTemplate(),
-                    icon: const Icon(Icons.add, size: 18),
-                    label: const Text('Create New Template'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFEA580C),
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                      elevation: 0,
+          Responsive.isMobile(context)
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(color: const Color(0xFFEA580C), borderRadius: BorderRadius.circular(12)),
+                          child: const Icon(Icons.description, color: Colors.white, size: 32),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: const [
+                              Text('Templates', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                              SizedBox(height: 4),
+                              Text('Create and customize report templates for each test', style: TextStyle(fontSize: 14, color: Color(0xFF64748B))),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                ],
-              ),
-            ],
-          ),
+                    const SizedBox(height: 16),
+                    Wrap(
+                      spacing: 12,
+                      runSpacing: 12,
+                      children: [
+                        _buildActionButton(Icons.upload, 'Import Template', () {}),
+                        ElevatedButton.icon(
+                          onPressed: () => _navigateToCreateTemplate(),
+                          icon: const Icon(Icons.add, size: 18),
+                          label: const Text('New Template'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFEA580C),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            elevation: 0,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                )
+              : Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(color: const Color(0xFFEA580C), borderRadius: BorderRadius.circular(12)),
+                            child: const Icon(Icons.description, color: Colors.white, size: 32),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: const [
+                                Text('Templates', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                                SizedBox(height: 4),
+                                Text('Create and customize report templates for each test', style: TextStyle(fontSize: 14, color: Color(0xFF64748B))),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Row(
+                      children: [
+                        _buildActionButton(Icons.upload, 'Import Template', () {}),
+                        const SizedBox(width: 16),
+                        ElevatedButton.icon(
+                          onPressed: () => _navigateToCreateTemplate(),
+                          icon: const Icon(Icons.add, size: 18),
+                          label: const Text('Create New Template'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFEA580C),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            elevation: 0,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
           const SizedBox(height: 32),
 
           // Stats Row
-          Row(
-            children: [
-              _buildStatCard(Icons.description, 'Total Templates', '${_templates.length}', Colors.red),
-              const SizedBox(width: 16),
-              _buildStatCard(Icons.check_circle, 'Active Templates', '${_templates.where((t) => t.isActive).length}', Colors.green),
-              const SizedBox(width: 16),
-              _buildStatCard(Icons.schedule, 'Inactive Templates', '${_templates.where((t) => !t.isActive).length}', Colors.orange),
-              const SizedBox(width: 16),
-              _buildStatCard(Icons.group, 'Assigned to Tests', '0', Colors.purple),
-            ],
-          ),
+          !Responsive.isDesktop(context)
+              ? SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      SizedBox(width: 240, child: _buildStatCard(Icons.description, 'Total Templates', '${_templates.length}', Colors.red)),
+                      const SizedBox(width: 16),
+                      SizedBox(width: 240, child: _buildStatCard(Icons.check_circle, 'Active Templates', '${_templates.where((t) => t.isActive).length}', Colors.green)),
+                      const SizedBox(width: 16),
+                      SizedBox(width: 240, child: _buildStatCard(Icons.schedule, 'Inactive Templates', '${_templates.where((t) => !t.isActive).length}', Colors.orange)),
+                      const SizedBox(width: 16),
+                      SizedBox(width: 240, child: _buildStatCard(Icons.group, 'Assigned to Tests', '0', Colors.purple)),
+                    ],
+                  ),
+                )
+              : Row(
+                  children: [
+                    Expanded(child: _buildStatCard(Icons.description, 'Total Templates', '${_templates.length}', Colors.red)),
+                    const SizedBox(width: 16),
+                    Expanded(child: _buildStatCard(Icons.check_circle, 'Active Templates', '${_templates.where((t) => t.isActive).length}', Colors.green)),
+                    const SizedBox(width: 16),
+                    Expanded(child: _buildStatCard(Icons.schedule, 'Inactive Templates', '${_templates.where((t) => !t.isActive).length}', Colors.orange)),
+                    const SizedBox(width: 16),
+                    Expanded(child: _buildStatCard(Icons.group, 'Assigned to Tests', '0', Colors.purple)),
+                  ],
+                ),
           const SizedBox(height: 24),
 
           // Main Layout
-          Expanded(
-            child: ResponsiveSplitView(
-              leftFlex: 5,
-              rightFlex: 4,
-              showRightPane: _selectedTemplate != null,
-              leftPane: Container(
+          ResponsiveSplitView(
+            leftFlex: 5,
+            rightFlex: 4,
+            showRightPane: _selectedTemplate != null,
+            leftPane: Container(
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(12),
@@ -178,13 +252,13 @@ class _LabTemplatesScreenState extends State<LabTemplatesScreen> {
                         const Divider(height: 1, color: Color(0xFFE2E8F0)),
                         
                         // Table Body
-                        Expanded(
-                          child: _isLoading ? const Center(child: CircularProgressIndicator(color: Color(0xFFEA580C))) : ListView.separated(
-                            itemCount: _templates.where((t) => t.name.toLowerCase().contains(_searchQuery)).length,
-                            separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFE2E8F0)),
-                            itemBuilder: (context, index) {
-                              final filtered = _templates.where((t) => t.name.toLowerCase().contains(_searchQuery)).toList();
-                              final template = filtered[index];
+                        _isLoading ? const Center(child: Padding(padding: EdgeInsets.all(32), child: CircularProgressIndicator(color: Color(0xFFEA580C)))) : ListView.separated(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: paginatedTemplates.length,
+                          separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFE2E8F0)),
+                          itemBuilder: (context, index) {
+                              final template = paginatedTemplates[index];
                               final isSelected = _selectedTemplate?.id == template.id;
 
                               return InkWell(
@@ -194,7 +268,7 @@ class _LabTemplatesScreenState extends State<LabTemplatesScreen> {
                                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
                                   child: Row(
                                     children: [
-                                      SizedBox(width: 30, child: Text('${index + 1}', style: const TextStyle(fontSize: 13, color: Color(0xFF64748B)))),
+                                      SizedBox(width: 30, child: Text('${startIndex + index + 1}', style: const TextStyle(fontSize: 13, color: Color(0xFF64748B)))),
                                       Expanded(flex: 3, child: Text(template.name, style: TextStyle(fontSize: 13, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal, color: const Color(0xFF1E293B)))),
                                       Expanded(flex: 3, child: Text(template.category, style: const TextStyle(fontSize: 13, color: Color(0xFF64748B)))),
                                       Expanded(flex: 2, child: Text(template.type, style: const TextStyle(fontSize: 13, color: Color(0xFF64748B)))),
@@ -257,31 +331,45 @@ class _LabTemplatesScreenState extends State<LabTemplatesScreen> {
                               );
                             },
                           ),
-                        ),
                         
                         // Pagination stub
                         const Divider(height: 1, color: Color(0xFFE2E8F0)),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          child: Wrap(
+                            alignment: WrapAlignment.spaceBetween,
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            runSpacing: 12,
                             children: [
-                              const Text('Showing 1 to 12 of 42 templates', style: TextStyle(color: Color(0xFF64748B), fontSize: 13)),
-                              Row(
+                              Text('Showing ${filteredTemplates.isEmpty ? 0 : startIndex + 1} to $endIndex of ${filteredTemplates.length} templates', style: const TextStyle(color: Color(0xFF64748B), fontSize: 13)),
+                              if (totalPages > 1) Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
                                 children: [
-                                  Container(padding: const EdgeInsets.all(6), decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE2E8F0)), borderRadius: BorderRadius.circular(4)), child: const Icon(Icons.chevron_left, size: 16)),
-                                  const SizedBox(width: 8),
-                                  Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6), decoration: BoxDecoration(color: const Color(0xFFEA580C), borderRadius: BorderRadius.circular(4)), child: const Text('1', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
-                                  const SizedBox(width: 8),
-                                  Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6), decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE2E8F0)), borderRadius: BorderRadius.circular(4)), child: const Text('2', style: TextStyle(color: Color(0xFF1E293B)))),
-                                  const SizedBox(width: 8),
-                                  Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6), decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE2E8F0)), borderRadius: BorderRadius.circular(4)), child: const Text('3', style: TextStyle(color: Color(0xFF1E293B)))),
-                                  const SizedBox(width: 8),
-                                  Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6), decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE2E8F0)), borderRadius: BorderRadius.circular(4)), child: const Text('4', style: TextStyle(color: Color(0xFF1E293B)))),
-                                  const SizedBox(width: 8),
-                                  Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6), decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE2E8F0)), borderRadius: BorderRadius.circular(4)), child: const Text('5', style: TextStyle(color: Color(0xFF1E293B)))),
-                                  const SizedBox(width: 8),
-                                  Container(padding: const EdgeInsets.all(6), decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE2E8F0)), borderRadius: BorderRadius.circular(4)), child: const Icon(Icons.chevron_right, size: 16)),
+                                  InkWell(
+                                    onTap: _currentPage > 1 ? () => setState(() => _currentPage--) : null,
+                                    child: Container(padding: const EdgeInsets.all(6), decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE2E8F0)), borderRadius: BorderRadius.circular(4)), child: Icon(Icons.chevron_left, size: 16, color: _currentPage > 1 ? const Color(0xFF1E293B) : const Color(0xFF94A3B8))),
+                                  ),
+                                  ...List.generate(totalPages, (i) {
+                                    final page = i + 1;
+                                    final isSelected = page == _currentPage;
+                                    return InkWell(
+                                      onTap: () => setState(() => _currentPage = page),
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6), 
+                                        decoration: BoxDecoration(
+                                          color: isSelected ? const Color(0xFFEA580C) : Colors.transparent, 
+                                          border: isSelected ? null : Border.all(color: const Color(0xFFE2E8F0)), 
+                                          borderRadius: BorderRadius.circular(4)
+                                        ), 
+                                        child: Text('$page', style: TextStyle(color: isSelected ? Colors.white : const Color(0xFF1E293B), fontWeight: isSelected ? FontWeight.bold : FontWeight.normal))
+                                      ),
+                                    );
+                                  }),
+                                  InkWell(
+                                    onTap: _currentPage < totalPages ? () => setState(() => _currentPage++) : null,
+                                    child: Container(padding: const EdgeInsets.all(6), decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE2E8F0)), borderRadius: BorderRadius.circular(4)), child: Icon(Icons.chevron_right, size: 16, color: _currentPage < totalPages ? const Color(0xFF1E293B) : const Color(0xFF94A3B8))),
+                                  ),
                                 ],
                               ),
                             ],
@@ -308,11 +396,10 @@ class _LabTemplatesScreenState extends State<LabTemplatesScreen> {
                         ),
                         const Divider(height: 1, color: Color(0xFFE2E8F0)),
                         
-                        Expanded(
-                          child: SingleChildScrollView(
-                            padding: const EdgeInsets.all(24),
-                            child: _buildSelectedTabContent(),
-                          ),
+                        SingleChildScrollView(
+                          physics: const NeverScrollableScrollPhysics(),
+                          padding: const EdgeInsets.all(24),
+                          child: _buildSelectedTabContent(),
                         ),
                         
                         // Bottom Actions
@@ -350,39 +437,39 @@ class _LabTemplatesScreenState extends State<LabTemplatesScreen> {
                       ],
                     ),
                   ),
-            ),
           ),
         ],
+      ),
       ),
     );
   }
 
   Widget _buildStatCard(IconData icon, String title, String value, Color iconColor) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: const Color(0xFFE2E8F0)),
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(color: iconColor.withOpacity(0.1), shape: BoxShape.circle),
-              child: Icon(icon, color: iconColor, size: 24),
-            ),
-            const SizedBox(width: 16),
-            Column(
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(color: iconColor.withOpacity(0.1), shape: BoxShape.circle),
+            child: Icon(icon, color: iconColor, size: 24),
+          ),
+          const SizedBox(width: 16),
+          Flexible(
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(value, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
                 Text(title, style: const TextStyle(fontSize: 13, color: Color(0xFF64748B))),
               ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

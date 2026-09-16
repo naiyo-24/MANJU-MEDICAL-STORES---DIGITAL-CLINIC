@@ -255,21 +255,23 @@ class _LabDashboardHomeState extends State<LabDashboardHome> {
             child: Icon(icon, color: iconColor, size: 28),
           ),
           const SizedBox(width: 16),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(value, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
-              const SizedBox(height: 4),
-              Text(title, style: const TextStyle(fontSize: 14, color: Color(0xFF64748B))),
-              const SizedBox(height: 4),
-              Row(
-                children: [
-                  const Icon(Icons.arrow_upward, size: 12, color: Color(0xFF22C55E)),
-                  const SizedBox(width: 4),
-                  Text('$trend vs last week', style: const TextStyle(fontSize: 12, color: Color(0xFF22C55E), fontWeight: FontWeight.w500)),
-                ],
-              ),
-            ],
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(value, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                const SizedBox(height: 4),
+                Text(title, style: const TextStyle(fontSize: 14, color: Color(0xFF64748B))),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    const Icon(Icons.arrow_upward, size: 12, color: Color(0xFF22C55E)),
+                    const SizedBox(width: 4),
+                    Text('$trend vs last week', style: const TextStyle(fontSize: 12, color: Color(0xFF22C55E), fontWeight: FontWeight.w500)),
+                  ],
+                ),
+              ],
+            ),
           ),
         ],
       ),

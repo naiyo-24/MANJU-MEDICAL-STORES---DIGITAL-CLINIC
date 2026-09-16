@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../utils/responsive.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:file_saver/file_saver.dart';
@@ -9,18 +10,19 @@ import 'dart:convert';
 import 'dart:typed_data';
 import '../../models/lab_models.dart';
 import '../../services/lab_data_service.dart';
+import '../../providers/lab_providers.dart';
 import '../../services/pdf_generator_service.dart';
 import 'package:uuid/uuid.dart';
 import 'package:printing/printing.dart';
 
-class LabTestsScreen extends StatefulWidget {
+class LabTestsScreen extends ConsumerStatefulWidget {
   const LabTestsScreen({super.key});
 
   @override
-  State<LabTestsScreen> createState() => _LabTestsScreenState();
+  ConsumerState<LabTestsScreen> createState() => _LabTestsScreenState();
 }
 
-class _LabTestsScreenState extends State<LabTestsScreen> {
+class _LabTestsScreenState extends ConsumerState<LabTestsScreen> {
   List<LabTest> _tests = [];
   List<LabTemplate> _templates = [];
   List<LabPackage> _packages = [];
@@ -49,18 +51,11 @@ class _LabTestsScreenState extends State<LabTestsScreen> {
 
   Future<void> _loadData() async {
     setState(() => _isLoading = true);
-    final tests = await LabDataService.getTests();
-    final templates = await LabDataService.getTemplates();
-    final packages = await LabDataService.getPackages();
-    final custom = await LabDataService.getCustomCategories();
+    await ref.read(labTestsProvider.notifier).loadTests();
+    await ref.read(labTemplatesProvider.notifier).loadTemplates();
+    await ref.read(labPackagesProvider.notifier).loadPackages();
+    await ref.read(labCustomCategoriesProvider.notifier).loadCategories();
     setState(() {
-      _tests = tests;
-      _templates = templates;
-      _packages = packages;
-      _customCategories = custom;
-      if (_tests.isNotEmpty && _selectedTest == null) {
-        _selectedTest = _tests.first;
-      }
       _isLoading = false;
     });
   }
@@ -165,7 +160,7 @@ class _LabTestsScreenState extends State<LabTestsScreen> {
                   reportingTime: timeCtrl.text,
                   isActive: isActive,
                 );
-                await LabDataService.saveTest(test);
+                await ref.read(labTestsProvider.notifier).addOrUpdateTest(test);
                 if (mounted) Navigator.pop(context, );
                 _loadData();
               },
@@ -288,6 +283,23 @@ class _LabTestsScreenState extends State<LabTestsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final testsAsync = ref.watch(labTestsProvider);
+    final templatesAsync = ref.watch(labTemplatesProvider);
+    final packagesAsync = ref.watch(labPackagesProvider);
+    final customCategoriesAsync = ref.watch(labCustomCategoriesProvider);
+    
+    _tests = testsAsync.value ?? [];
+    _templates = templatesAsync.value ?? [];
+    _packages = packagesAsync.value ?? [];
+    _customCategories = customCategoriesAsync.value ?? [];
+
+    if (_tests.isNotEmpty && _selectedTest == null) {
+      _selectedTest = _tests.first;
+    }
+
+    if (testsAsync.isLoading || templatesAsync.isLoading || packagesAsync.isLoading || customCategoriesAsync.isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
     final filteredTests = _tests.where((t) {
       final matchesSearch = t.name.toLowerCase().contains(_searchQuery.toLowerCase()) || t.testCode.toLowerCase().contains(_searchQuery.toLowerCase());
       final matchesCategory = _selectedCategory == null || t.category == _selectedCategory;
@@ -315,76 +327,147 @@ class _LabTestsScreenState extends State<LabTestsScreen> {
 
 
     return Container(
-      padding: const EdgeInsets.all(32),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+      color: const Color(0xFFF8FAFC),
+      padding: const EdgeInsets.all(24.0),
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
           // Header
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(color: const Color(0xFFEA580C), borderRadius: BorderRadius.circular(12)),
-                    child: const Icon(Icons.science, color: Colors.white, size: 32),
-                  ),
-                  const SizedBox(width: 16),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: const [
-                      Text('Lab Tests', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
-                      SizedBox(height: 4),
-                      Text('Manage laboratory tests, pricing, templates and configurations', style: TextStyle(fontSize: 14, color: Color(0xFF64748B))),
-                    ],
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  const Text('Dashboard > Lab Tests', style: TextStyle(color: Color(0xFF64748B))),
-                  const SizedBox(width: 16),
-                  ElevatedButton.icon(
-                    onPressed: () => _showAddTestDialog(),
-                    icon: const Icon(Icons.add, size: 18),
-                    label: const Text('Add New Test'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFEA580C),
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                      elevation: 0,
+          Responsive.isMobile(context)
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(color: const Color(0xFFEA580C), borderRadius: BorderRadius.circular(12)),
+                          child: const Icon(Icons.science, color: Colors.white, size: 32),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: const [
+                              Text('Lab Tests', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                              SizedBox(height: 4),
+                              Text('Manage laboratory tests, pricing, templates and configurations', style: TextStyle(fontSize: 14, color: Color(0xFF64748B))),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                ],
-              ),
-            ],
-          ),
+                    const SizedBox(height: 16),
+                    Wrap(
+                      spacing: 16,
+                      runSpacing: 16,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      alignment: WrapAlignment.spaceBetween,
+                      children: [
+                        const Text('Dashboard > Lab Tests', style: TextStyle(color: Color(0xFF64748B))),
+                        ElevatedButton.icon(
+                          onPressed: () => _showAddTestDialog(),
+                          icon: const Icon(Icons.add, size: 18),
+                          label: const Text('Add New Test'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFEA580C),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            elevation: 0,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                )
+              : Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(color: const Color(0xFFEA580C), borderRadius: BorderRadius.circular(12)),
+                            child: const Icon(Icons.science, color: Colors.white, size: 32),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: const [
+                                Text('Lab Tests', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                                SizedBox(height: 4),
+                                Text('Manage laboratory tests, pricing, templates and configurations', style: TextStyle(fontSize: 14, color: Color(0xFF64748B))),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Row(
+                      children: [
+                        const Text('Dashboard > Lab Tests', style: TextStyle(color: Color(0xFF64748B))),
+                        const SizedBox(width: 24),
+                        ElevatedButton.icon(
+                          onPressed: () => _showAddTestDialog(),
+                          icon: const Icon(Icons.add, size: 18),
+                          label: const Text('Add New Test'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFEA580C),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            elevation: 0,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
           const SizedBox(height: 32),
 
           // Stats Row
-          Row(
-            children: [
-              _buildStatCard(Icons.science, 'Total Tests', '${_tests.length}', '', Colors.green),
-              const SizedBox(width: 16),
-              _buildStatCard(Icons.category, 'Categories', '${_tests.map((t) => t.category).toSet().length}', '', Colors.green),
-              const SizedBox(width: 16),
-              _buildStatCard(Icons.description, 'Templates', '0', '', Colors.green),
-              const SizedBox(width: 16),
-              _buildStatCard(Icons.inventory_2, 'Active Packages', '0', '', Colors.green),
-              const SizedBox(width: 16),
-              _buildStatCard(Icons.bar_chart, 'Tests Performed', '0', '', Colors.green),
-            ],
-          ),
+          !Responsive.isDesktop(context)
+              ? SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      SizedBox(width: 200, child: _buildStatCard(Icons.science, 'Total Tests', '${_tests.length}', '', Colors.green)),
+                      const SizedBox(width: 16),
+                      SizedBox(width: 200, child: _buildStatCard(Icons.category, 'Categories', '${_tests.map((t) => t.category).toSet().length}', '', Colors.green)),
+                      const SizedBox(width: 16),
+                      SizedBox(width: 200, child: _buildStatCard(Icons.description, 'Templates', '0', '', Colors.green)),
+                      const SizedBox(width: 16),
+                      SizedBox(width: 200, child: _buildStatCard(Icons.inventory_2, 'Active Packages', '0', '', Colors.green)),
+                      const SizedBox(width: 16),
+                      SizedBox(width: 200, child: _buildStatCard(Icons.bar_chart, 'Tests Performed', '0', '', Colors.green)),
+                    ],
+                  ),
+                )
+              : Row(
+                  children: [
+                    Expanded(child: _buildStatCard(Icons.science, 'Total Tests', '${_tests.length}', '', Colors.green)),
+                    const SizedBox(width: 16),
+                    Expanded(child: _buildStatCard(Icons.category, 'Categories', '${_tests.map((t) => t.category).toSet().length}', '', Colors.green)),
+                    const SizedBox(width: 16),
+                    Expanded(child: _buildStatCard(Icons.description, 'Templates', '0', '', Colors.green)),
+                    const SizedBox(width: 16),
+                    Expanded(child: _buildStatCard(Icons.inventory_2, 'Active Packages', '0', '', Colors.green)),
+                    const SizedBox(width: 16),
+                    Expanded(child: _buildStatCard(Icons.bar_chart, 'Tests Performed', '0', '', Colors.green)),
+                  ],
+                ),
           const SizedBox(height: 24),
 
           // Main Layout
-          Expanded(
-            child: ResponsiveSplitView(
-              leftFlex: 12,
-              rightFlex: 4,
-              showRightPane: _selectedTest != null,
+          ResponsiveSplitView(
+            leftFlex: 12,
+            rightFlex: 4,
+            showRightPane: _selectedTest != null,
               leftPane: Container(
                     decoration: BoxDecoration(
                       color: Colors.white,
@@ -397,288 +480,379 @@ class _LabTestsScreenState extends State<LabTestsScreen> {
                         // Tabs and Action buttons
                         Padding(
                           padding: const EdgeInsets.only(left: 24, right: 24, top: 16),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Row(
-                                children: [
-                                  _buildTab('All Tests', 0),
-                                  const SizedBox(width: 24),
-                                  _buildTab('By Category', 1),
-                                  const SizedBox(width: 24),
-                                  _buildTab('By Template', 2),
-                                  const SizedBox(width: 24),
-                                  _buildTab('Inactive Tests', 3),
-                                ],
-                              ),
-                              Row(
-                                children: [
-                                  _buildActionButton(Icons.upload, 'Import (Excel)', () async {
-                                    FilePickerResult? result = await FilePicker.platform.pickFiles(
-                                      type: FileType.custom,
-                                      allowedExtensions: ['csv'],
-                                      withData: true,
-                                    );
-                                    
-                                    if (result != null && mounted) {
-                                      setState(() => _isLoading = true);
-                                      final bytes = result.files.single.bytes;
-                                      final name = result.files.single.name;
-                                      if (bytes != null) {
-                                        final success = await LabDataService.uploadCSV(bytes, name);
-                                        if (success && mounted) {
-                                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Tests imported successfully!')));
-                                          _loadData();
-                                        } else if (mounted) {
-                                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Failed to import tests. Please check CSV format.')));
-                                          setState(() => _isLoading = false);
+                          child: Responsive.isMobile(context)
+                              ? Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    SingleChildScrollView(
+                                      scrollDirection: Axis.horizontal,
+                                      child: Row(
+                                        children: [
+                                          _buildTab('All Tests', 0),
+                                          const SizedBox(width: 24),
+                                          _buildTab('By Category', 1),
+                                          const SizedBox(width: 24),
+                                          _buildTab('By Template', 2),
+                                          const SizedBox(width: 24),
+                                          _buildTab('Inactive Tests', 3),
+                                        ],
+                                      ),
+                                    ),
+                                    const SizedBox(height: 16),
+                                    Wrap(
+                                      spacing: 8,
+                                      runSpacing: 8,
+                                      children: [
+                                        _buildActionButton(Icons.upload, 'Import (Excel)', () async {
+                                          FilePickerResult? result = await FilePicker.platform.pickFiles(
+                                            type: FileType.custom,
+                                            allowedExtensions: ['csv'],
+                                            withData: true,
+                                          );
+                                          
+                                          if (result != null && mounted) {
+                                            setState(() => _isLoading = true);
+                                            final bytes = result.files.single.bytes;
+                                            final name = result.files.single.name;
+                                            if (bytes != null) {
+                                              final success = await LabDataService.uploadCSV(bytes, name);
+                                              if (success && mounted) {
+                                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Tests imported successfully!')));
+                                                _loadData();
+                                              } else if (mounted) {
+                                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Failed to import tests. Please check CSV format.')));
+                                                setState(() => _isLoading = false);
+                                              }
+                                            }
+                                          }
+                                        }),
+                                        _buildActionButton(Icons.download, 'Export', () {
+                                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Export functionality coming soon')));
+                                        }),
+                                        _buildActionButton(Icons.settings, 'Categories', _showCategoriesDialog),
+                                      ],
+                                    ),
+                                  ],
+                                )
+                              : SingleChildScrollView(
+                                  scrollDirection: Axis.horizontal,
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                    children: [
+                                      _buildTab('All Tests', 0),
+                                      const SizedBox(width: 24),
+                                      _buildTab('By Category', 1),
+                                      const SizedBox(width: 24),
+                                      _buildTab('By Template', 2),
+                                      const SizedBox(width: 24),
+                                      _buildTab('Inactive Tests', 3),
+                                      const SizedBox(width: 24),
+                                      _buildActionButton(Icons.upload, 'Import (Excel)', () async {
+                                        FilePickerResult? result = await FilePicker.platform.pickFiles(
+                                          type: FileType.custom,
+                                          allowedExtensions: ['csv'],
+                                          withData: true,
+                                        );
+                                        
+                                        if (result != null && mounted) {
+                                          setState(() => _isLoading = true);
+                                          final bytes = result.files.single.bytes;
+                                          final name = result.files.single.name;
+                                          if (bytes != null) {
+                                            final success = await LabDataService.uploadCSV(bytes, name);
+                                            if (success && mounted) {
+                                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Tests imported successfully!')));
+                                              _loadData();
+                                            } else if (mounted) {
+                                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Failed to import tests. Please check CSV format.')));
+                                              setState(() => _isLoading = false);
+                                            }
+                                          }
                                         }
-                                      } else {
-                                        setState(() => _isLoading = false);
-                                      }
-                                    }
-                                  }),
-                                  const SizedBox(width: 8),
-                                  _buildActionButton(Icons.download, 'Export', _showExportOptions),
-                                  const SizedBox(width: 8),
-                                  _buildActionButton(Icons.settings, 'Categories', _showCategoriesDialog),
-                                ],
-                              )
-                            ],
-                          ),
+                                      }),
+                                      const SizedBox(width: 8),
+                                      _buildActionButton(Icons.download, 'Export', () {
+                                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Export functionality coming soon')));
+                                      }),
+                                      const SizedBox(width: 8),
+                                      _buildActionButton(Icons.settings, 'Categories', _showCategoriesDialog),
+                                    ],
+                                  ),
+                                ),
                         ),
                         const Divider(height: 1, color: Color(0xFFE2E8F0)),
                         
                         // Filters
                         Padding(
                           padding: const EdgeInsets.all(16),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                flex: 3,
-                                child: Container(
-                                  height: 40,
-                                  decoration: BoxDecoration(color: const Color(0xFFF8FAFC), borderRadius: BorderRadius.circular(8), border: Border.all(color: const Color(0xFFE2E8F0))),
-                                  child: TextField(
-                                    controller: _searchController,
-                                    onChanged: (v) => setState(() => _searchQuery = v.toLowerCase()),
-                                    decoration: const InputDecoration(
-                                      hintText: 'Search test name, code or keyword...',
-                                      hintStyle: TextStyle(color: Color(0xFF94A3B8), fontSize: 13),
-                                      prefixIcon: Icon(Icons.search, color: Color(0xFF94A3B8), size: 18),
-                                      border: InputBorder.none,
-                                      contentPadding: EdgeInsets.symmetric(vertical: 11),
+                          child: Responsive.isMobile(context)
+                              ? Wrap(
+                                  spacing: 16,
+                                  runSpacing: 16,
+                                  children: [
+                                    Container(
+                                      width: double.infinity,
+                                      height: 40,
+                                      decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE2E8F0)), borderRadius: BorderRadius.circular(8)),
+                                      child: TextField(
+                                        controller: _searchController,
+                                        onChanged: (val) => setState(() => _searchQuery = val),
+                                        decoration: const InputDecoration(hintText: 'Search test name, code or keyword...', hintStyle: TextStyle(fontSize: 13, color: Color(0xFF94A3B8)), prefixIcon: Icon(Icons.search, size: 18, color: Color(0xFF94A3B8)), border: InputBorder.none, contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12)),
+                                      ),
                                     ),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              _buildDropdown('All Categories', _allCategories, _selectedCategory, (v) => setState(() => _selectedCategory = v)),
-                              const SizedBox(width: 12),
-                              _buildDropdown('All Status', ['Active', 'Inactive'], _selectedStatus, (v) => setState(() => _selectedStatus = v)),
-                              const SizedBox(width: 12),
-                              _buildDropdown('All Templates', _templates.map((t) => t.name).toList(), _selectedTemplate, (v) => setState(() => _selectedTemplate = v)),
-                              const SizedBox(width: 12),
-                              InkWell(
-                                onTap: () {
-                                  setState(() {
-                                    _searchController.clear();
-                                    _searchQuery = '';
-                                    _selectedCategory = null;
-                                    _selectedStatus = null;
-                                    _selectedTemplate = null;
-                                  });
-                                },
-                                borderRadius: BorderRadius.circular(8),
-                                child: Container(
-                                  height: 40,
-                                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                                  decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE2E8F0)), borderRadius: BorderRadius.circular(8)),
+                                    _buildDropdown('All Categories', _allCategories, _selectedCategory, (v) => setState(() => _selectedCategory = v)),
+                                    _buildDropdown('All Status', ['Active', 'Inactive'], _selectedStatus, (v) => setState(() => _selectedStatus = v)),
+                                    _buildDropdown('All Templates', _templates.map((t) => t.name).toList(), _selectedTemplate, (v) => setState(() => _selectedTemplate = v)),
+                                    if (_searchQuery.isNotEmpty || _selectedCategory != null || _selectedStatus != null || _selectedTemplate != null)
+                                      InkWell(
+                                        onTap: () {
+                                          setState(() {
+                                            _searchController.clear();
+                                            _searchQuery = '';
+                                            _selectedCategory = null;
+                                            _selectedStatus = null;
+                                            _selectedTemplate = null;
+                                          });
+                                        },
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                          child: const Row(mainAxisSize: MainAxisSize.min, children: [Icon(Icons.refresh, size: 16, color: Color(0xFF64748B)), SizedBox(width: 8), Text('Reset', style: TextStyle(color: Color(0xFF64748B), fontWeight: FontWeight.bold))]),
+                                        ),
+                                      ),
+                                  ],
+                                )
+                              : SingleChildScrollView(
+                                  scrollDirection: Axis.horizontal,
                                   child: Row(
-                                    children: const [
-                                      Icon(Icons.refresh, size: 16, color: Color(0xFF64748B)),
-                                      SizedBox(width: 8),
-                                      Text('Reset', style: TextStyle(color: Color(0xFF1E293B))),
+                                    children: [
+                                      Container(
+                                        width: 250,
+                                        height: 40,
+                                        decoration: BoxDecoration(color: const Color(0xFFF8FAFC), borderRadius: BorderRadius.circular(8), border: Border.all(color: const Color(0xFFE2E8F0))),
+                                        child: TextField(
+                                          controller: _searchController,
+                                          onChanged: (val) => setState(() => _searchQuery = val),
+                                          decoration: const InputDecoration(hintText: 'Search test name, code or keyword...', hintStyle: TextStyle(fontSize: 13, color: Color(0xFF94A3B8)), prefixIcon: Icon(Icons.search, size: 18, color: Color(0xFF94A3B8)), border: InputBorder.none, contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12)),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 16),
+                                      _buildDropdown('All Categories', _allCategories, _selectedCategory, (v) => setState(() => _selectedCategory = v)),
+                                      const SizedBox(width: 16),
+                                      _buildDropdown('All Status', ['Active', 'Inactive'], _selectedStatus, (v) => setState(() => _selectedStatus = v)),
+                                      const SizedBox(width: 16),
+                                      _buildDropdown('All Templates', _templates.map((t) => t.name).toList(), _selectedTemplate, (v) => setState(() => _selectedTemplate = v)),
+                                      if (_searchQuery.isNotEmpty || _selectedCategory != null || _selectedStatus != null || _selectedTemplate != null) ...[
+                                        const SizedBox(width: 16),
+                                        InkWell(
+                                          onTap: () {
+                                            setState(() {
+                                              _searchController.clear();
+                                              _searchQuery = '';
+                                              _selectedCategory = null;
+                                              _selectedStatus = null;
+                                              _selectedTemplate = null;
+                                            });
+                                          },
+                                          child: Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                            child: const Row(mainAxisSize: MainAxisSize.min, children: [Icon(Icons.refresh, size: 16, color: Color(0xFF64748B)), SizedBox(width: 8), Text('Reset', style: TextStyle(color: Color(0xFF64748B), fontWeight: FontWeight.bold))]),
+                                          ),
+                                        ),
+                                      ]
                                     ],
                                   ),
                                 ),
-                              ),
-                            ],
-                          ),
                         ),
                         
-                        // Table Header
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                          color: const Color(0xFFF8FAFC),
-                          child: Row(
-                            children: const [
-                              SizedBox(width: 30, child: Text('#', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)))),
-                              Expanded(flex: 3, child: Text('Test Name', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)))),
-                              Expanded(flex: 2, child: Text('Test Code', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)))),
-                              Expanded(flex: 2, child: Text('Category', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)))),
-                              Expanded(flex: 2, child: Text('Price (₹)', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)))),
-                              Expanded(flex: 2, child: Text('Template', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)))),
-                              Expanded(flex: 2, child: Text('Status', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)))),
-                              Expanded(flex: 3, child: Center(child: Text('Actions', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))))),
-                            ],
-                          ),
-                        ),
-                        const Divider(height: 1, color: Color(0xFFE2E8F0)),
-                        
-                        // Table Body
-                        Expanded(
-                          child: _isLoading ? const Center(child: CircularProgressIndicator(color: Color(0xFFEA580C))) : ListView.separated(
-                            itemCount: paginatedTests.length,
-                            separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFE2E8F0)),
-                            itemBuilder: (context, index) {
-                              final test = paginatedTests[index];
-                              final isSelected = _selectedTest?.id == test.id;
-                              
-                              final templateName = _templates.where((t) => t.id == test.templateId).firstOrNull?.name ?? 'Unknown';
-
-                              return InkWell(
-                                onTap: () => setState(() => _selectedTest = test),
-                                child: Container(
-                                  color: isSelected ? const Color(0xFFFFF7ED) : Colors.white,
-                                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                                  child: Row(
-                                    children: [
-                                      SizedBox(width: 30, child: Text('${startIndex + index + 1}', style: const TextStyle(fontSize: 13, color: Color(0xFF64748B)))),
-                                      Expanded(flex: 3, child: Text(test.name, style: TextStyle(fontSize: 13, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal, color: const Color(0xFF1E293B)))),
-                                      Expanded(flex: 2, child: Text(test.testCode.isEmpty ? '-' : test.testCode, style: const TextStyle(fontSize: 13, color: Color(0xFF64748B)))),
-                                      Expanded(flex: 2, child: Text(test.category, style: const TextStyle(fontSize: 13, color: Color(0xFF64748B)))),
-                                      Expanded(flex: 2, child: Text(test.price.toStringAsFixed(2), style: const TextStyle(fontSize: 13, color: Color(0xFF1E293B)))),
-                                      Expanded(flex: 2, child: Text(templateName, style: const TextStyle(fontSize: 13, color: Color(0xFF64748B)))),
-                                      Expanded(
-                                        flex: 2,
-                                        child: Row(
-                                          children: [
-                                            Container(width: 8, height: 8, decoration: BoxDecoration(color: test.isActive ? Colors.green : Colors.red, shape: BoxShape.circle)),
-                                            const SizedBox(width: 6),
-                                            Text(test.isActive ? 'Active' : 'Inactive', style: TextStyle(fontSize: 13, color: test.isActive ? Colors.green : Colors.red)),
-                                          ],
-                                        ),
+                        // Table Header & Body
+                        LayoutBuilder(
+                          builder: (context, constraints) {
+                            final tableWidth = constraints.maxWidth > 800 ? constraints.maxWidth : 800.0;
+                            return SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: SizedBox(
+                                width: tableWidth,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                                      color: const Color(0xFFF8FAFC),
+                                      child: Row(
+                                        children: const [
+                                          SizedBox(width: 30, child: Text('#', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)))),
+                                          Expanded(flex: 3, child: Text('Test Name', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)))),
+                                          Expanded(flex: 2, child: Text('Test Code', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)))),
+                                          Expanded(flex: 2, child: Text('Category', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)))),
+                                          Expanded(flex: 2, child: Text('Price (₹)', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)))),
+                                          Expanded(flex: 2, child: Text('Template', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)))),
+                                          Expanded(flex: 2, child: Text('Status', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)))),
+                                          Expanded(flex: 3, child: Center(child: Text('Actions', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))))),
+                                        ],
                                       ),
-                                      Expanded(
-                                        flex: 3,
-                                        child: SingleChildScrollView(
-                                          scrollDirection: Axis.horizontal,
-                                          child: Row(
-                                            mainAxisAlignment: MainAxisAlignment.center,
-                                            children: [
-                                              _buildTableRowButton(
-                                                Icons.visibility, 
-                                                'View', 
-                                                onTap: () {
-                                                  setState(() => _selectedTest = test);
-                                                  showDialog(
-                                                    context: context,
-                                                    builder: (context) => AlertDialog(
-                                                      title: const Text('Test Details', style: TextStyle(fontWeight: FontWeight.bold)),
-                                                      content: SizedBox(
-                                                        width: 400,
-                                                        child: Column(
-                                                          mainAxisSize: MainAxisSize.min,
-                                                          children: [
-                                                            _buildDetailRow('Name', test.name),
-                                                            _buildDetailRow('Code', test.testCode),
-                                                            _buildDetailRow('Category', test.category),
-                                                            _buildDetailRow('Price', '₹${test.price}'),
-                                                            _buildDetailRow('Sample Type', test.sampleType),
-                                                            _buildDetailRow('Reporting Time', test.reportingTime),
-                                                            _buildDetailRow('Status', test.isActive ? 'Active' : 'Inactive'),
-                                                            _buildDetailRow('Description', test.description),
-                                                          ],
-                                                        ),
+                                    ),
+                                    const Divider(height: 1, color: Color(0xFFE2E8F0)),
+                                    
+                                    // Table Body
+                                    _isLoading ? const Padding(padding: EdgeInsets.all(32), child: Center(child: CircularProgressIndicator(color: Color(0xFFEA580C)))) : ListView.separated(
+                                      shrinkWrap: true,
+                                      physics: const NeverScrollableScrollPhysics(),
+                                      itemCount: paginatedTests.length,
+                                      separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFE2E8F0)),
+                                      itemBuilder: (context, index) {
+                                          final test = paginatedTests[index];
+                                          final isSelected = _selectedTest?.id == test.id;
+                                          
+                                          final templateName = _templates.where((t) => t.id == test.templateId).firstOrNull?.name ?? 'Unknown';
+
+                                          return InkWell(
+                                            onTap: () => setState(() => _selectedTest = test),
+                                            child: Container(
+                                              color: isSelected ? const Color(0xFFFFF7ED) : Colors.white,
+                                              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                                              child: Row(
+                                                children: [
+                                                  SizedBox(width: 30, child: Text('${startIndex + index + 1}', style: const TextStyle(fontSize: 13, color: Color(0xFF64748B)))),
+                                                  Expanded(flex: 3, child: Text(test.name, style: TextStyle(fontSize: 13, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal, color: const Color(0xFF1E293B)))),
+                                                  Expanded(flex: 2, child: Text(test.testCode.isEmpty ? '-' : test.testCode, style: const TextStyle(fontSize: 13, color: Color(0xFF64748B)))),
+                                                  Expanded(flex: 2, child: Text(test.category, style: const TextStyle(fontSize: 13, color: Color(0xFF64748B)))),
+                                                  Expanded(flex: 2, child: Text(test.price.toStringAsFixed(2), style: const TextStyle(fontSize: 13, color: Color(0xFF1E293B)))),
+                                                  Expanded(flex: 2, child: Text(templateName, style: const TextStyle(fontSize: 13, color: Color(0xFF64748B)))),
+                                                  Expanded(
+                                                    flex: 2,
+                                                    child: Row(
+                                                      children: [
+                                                        Container(width: 8, height: 8, decoration: BoxDecoration(color: test.isActive ? Colors.green : Colors.red, shape: BoxShape.circle)),
+                                                        const SizedBox(width: 6),
+                                                        Text(test.isActive ? 'Active' : 'Inactive', style: TextStyle(fontSize: 13, color: test.isActive ? Colors.green : Colors.red)),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                  Expanded(
+                                                    flex: 3,
+                                                    child: SingleChildScrollView(
+                                                      scrollDirection: Axis.horizontal,
+                                                      child: Row(
+                                                        mainAxisAlignment: MainAxisAlignment.center,
+                                                        children: [
+                                                          _buildTableRowButton(
+                                                            Icons.visibility, 
+                                                            'View', 
+                                                            onTap: () {
+                                                              setState(() => _selectedTest = test);
+                                                              showDialog(
+                                                                context: context,
+                                                                builder: (context) => AlertDialog(
+                                                                  title: const Text('Test Details', style: TextStyle(fontWeight: FontWeight.bold)),
+                                                                  content: SizedBox(
+                                                                    width: 400,
+                                                                    child: Column(
+                                                                      mainAxisSize: MainAxisSize.min,
+                                                                      children: [
+                                                                        _buildDetailRow('Name', test.name),
+                                                                        _buildDetailRow('Code', test.testCode),
+                                                                        _buildDetailRow('Category', test.category),
+                                                                        _buildDetailRow('Price', '₹${test.price}'),
+                                                                        _buildDetailRow('Sample Type', test.sampleType),
+                                                                        _buildDetailRow('Reporting Time', test.reportingTime),
+                                                                        _buildDetailRow('Status', test.isActive ? 'Active' : 'Inactive'),
+                                                                        _buildDetailRow('Description', test.description),
+                                                                      ],
+                                                                    ),
+                                                                  ),
+                                                                  actions: [
+                                                                    TextButton(onPressed: () => Navigator.pop(context), child: const Text('Close'))
+                                                                  ]
+                                                                )
+                                                              );
+                                                            }
+                                                          ),
+                                                          const SizedBox(width: 4),
+                                                          _buildTableRowButton(
+                                                            Icons.edit, 
+                                                            'Edit', 
+                                                            onTap: () => _showAddTestDialog(existingTest: test)
+                                                          ),
+                                                          const SizedBox(width: 4),
+                                                          _buildTableRowButton(
+                                                            Icons.copy, 
+                                                            'Clone', 
+                                                            onTap: () {
+                                                              final cloned = LabTest(
+                                                                id: '',
+                                                                name: '${test.name} - Copy',
+                                                                testCode: '${test.testCode}_COPY',
+                                                                description: test.description,
+                                                                category: test.category,
+                                                                price: test.price,
+                                                                templateId: test.templateId,
+                                                                sampleType: test.sampleType,
+                                                                reportingTime: test.reportingTime,
+                                                                isActive: test.isActive,
+                                                              );
+                                                              _showAddTestDialog(existingTest: cloned);
+                                                            }
+                                                          ),
+                                                        ],
                                                       ),
-                                                      actions: [
-                                                        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Close'))
-                                                      ]
-                                                    )
-                                                  );
-                                                }
+                                                    ),
+                                                  ),
+                                                ],
                                               ),
-                                              const SizedBox(width: 4),
-                                              _buildTableRowButton(
-                                                Icons.edit, 
-                                                'Edit', 
-                                                onTap: () => _showAddTestDialog(existingTest: test)
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    
+                                    // Pagination stub
+                                    const Divider(height: 1, color: Color(0xFFE2E8F0)),
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                                      child: Wrap(
+                                        alignment: WrapAlignment.spaceBetween,
+                                        crossAxisAlignment: WrapCrossAlignment.center,
+                                        runSpacing: 12,
+                                        children: [
+                                          Text('Showing ${filteredTests.isEmpty ? 0 : startIndex + 1} to $endIndex of ${filteredTests.length} tests', style: const TextStyle(color: Color(0xFF64748B), fontSize: 13)),
+                                          if (totalPages > 1) Wrap(
+                                            spacing: 8,
+                                            runSpacing: 8,
+                                            children: [
+                                              InkWell(
+                                                onTap: _currentPage > 1 ? () => setState(() => _currentPage--) : null,
+                                                child: Container(padding: const EdgeInsets.all(6), decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE2E8F0)), borderRadius: BorderRadius.circular(4)), child: Icon(Icons.chevron_left, size: 16, color: _currentPage > 1 ? const Color(0xFF1E293B) : const Color(0xFF94A3B8))),
                                               ),
-                                              const SizedBox(width: 4),
-                                              _buildTableRowButton(
-                                                Icons.copy, 
-                                                'Clone', 
-                                                onTap: () {
-                                                  final cloned = LabTest(
-                                                    id: '',
-                                                    name: '${test.name} - Copy',
-                                                    testCode: '${test.testCode}_COPY',
-                                                    description: test.description,
-                                                    category: test.category,
-                                                    price: test.price,
-                                                    templateId: test.templateId,
-                                                    sampleType: test.sampleType,
-                                                    reportingTime: test.reportingTime,
-                                                    isActive: test.isActive,
-                                                  );
-                                                  _showAddTestDialog(existingTest: cloned);
-                                                }
+                                              ...List.generate(totalPages, (i) {
+                                                final page = i + 1;
+                                                final isSelected = page == _currentPage;
+                                                return InkWell(
+                                                  onTap: () => setState(() => _currentPage = page),
+                                                  child: Container(
+                                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6), 
+                                                    decoration: BoxDecoration(
+                                                      color: isSelected ? const Color(0xFFEA580C) : Colors.transparent, 
+                                                      border: isSelected ? null : Border.all(color: const Color(0xFFE2E8F0)), 
+                                                      borderRadius: BorderRadius.circular(4)
+                                                    ), 
+                                                    child: Text('$page', style: TextStyle(color: isSelected ? Colors.white : const Color(0xFF1E293B), fontWeight: isSelected ? FontWeight.bold : FontWeight.normal))
+                                                  ),
+                                                );
+                                              }),
+                                              InkWell(
+                                                onTap: _currentPage < totalPages ? () => setState(() => _currentPage++) : null,
+                                                child: Container(padding: const EdgeInsets.all(6), decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE2E8F0)), borderRadius: BorderRadius.circular(4)), child: Icon(Icons.chevron_right, size: 16, color: _currentPage < totalPages ? const Color(0xFF1E293B) : const Color(0xFF94A3B8))),
                                               ),
                                             ],
                                           ),
-                                        ),
+                                        ],
                                       ),
-                                    ],
-                                  ),
+                                    ),
+                                  ],
                                 ),
-                              );
-                            },
-                          ),
-                        ),
-                        
-                        // Pagination stub
-                        const Divider(height: 1, color: Color(0xFFE2E8F0)),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text('Showing ${filteredTests.isEmpty ? 0 : startIndex + 1} to $endIndex of ${filteredTests.length} tests', style: const TextStyle(color: Color(0xFF64748B), fontSize: 13)),
-                              if (totalPages > 1) Row(
-                                children: [
-                                  InkWell(
-                                    onTap: _currentPage > 1 ? () => setState(() => _currentPage--) : null,
-                                    child: Container(padding: const EdgeInsets.all(6), decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE2E8F0)), borderRadius: BorderRadius.circular(4)), child: Icon(Icons.chevron_left, size: 16, color: _currentPage > 1 ? const Color(0xFF1E293B) : const Color(0xFF94A3B8))),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  ...List.generate(totalPages, (i) {
-                                    final page = i + 1;
-                                    final isSelected = page == _currentPage;
-                                    return Padding(
-                                      padding: const EdgeInsets.only(right: 8.0),
-                                      child: InkWell(
-                                        onTap: () => setState(() => _currentPage = page),
-                                        child: Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6), 
-                                          decoration: BoxDecoration(
-                                            color: isSelected ? const Color(0xFFEA580C) : Colors.transparent, 
-                                            border: isSelected ? null : Border.all(color: const Color(0xFFE2E8F0)), 
-                                            borderRadius: BorderRadius.circular(4)
-                                          ), 
-                                          child: Text('$page', style: TextStyle(color: isSelected ? Colors.white : const Color(0xFF1E293B), fontWeight: isSelected ? FontWeight.bold : FontWeight.normal))
-                                        ),
-                                      ),
-                                    );
-                                  }),
-                                  InkWell(
-                                    onTap: _currentPage < totalPages ? () => setState(() => _currentPage++) : null,
-                                    child: Container(padding: const EdgeInsets.all(6), decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE2E8F0)), borderRadius: BorderRadius.circular(4)), child: Icon(Icons.chevron_right, size: 16, color: _currentPage < totalPages ? const Color(0xFF1E293B) : const Color(0xFF94A3B8))),
-                                  ),
-                                ],
                               ),
-                            ],
-                          ),
+                            );
+                          },
                         ),
                       ],
                     ),
@@ -689,13 +863,17 @@ class _LabTestsScreenState extends State<LabTestsScreen> {
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(color: const Color(0xFFE2E8F0)),
                     ),
-                    child: SingleChildScrollView(
+                    child: _selectedTest == null
+                        ? const Padding(padding: EdgeInsets.all(48), child: Text('Select a test to view details', textAlign: TextAlign.center, style: TextStyle(color: Color(0xFF94A3B8))))
+                        : SingleChildScrollView(
                       padding: const EdgeInsets.all(24),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          Wrap(
+                            alignment: WrapAlignment.spaceBetween,
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            runSpacing: 8,
                             children: [
                               const Text('Test Details', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
                               InkWell(
@@ -704,6 +882,7 @@ class _LabTestsScreenState extends State<LabTestsScreen> {
                                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                                   decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE2E8F0)), borderRadius: BorderRadius.circular(4)),
                                   child: Row(
+                                    mainAxisSize: MainAxisSize.min,
                                     children: const [
                                       Icon(Icons.edit, size: 14, color: Color(0xFFEA580C)),
                                       SizedBox(width: 6),
@@ -873,7 +1052,8 @@ class _LabTestsScreenState extends State<LabTestsScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: const [
-                              Text('Related Packages', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                              Expanded(child: Text('Related Packages', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)))),
+                              SizedBox(width: 8),
                               Text('View All', style: TextStyle(fontSize: 12, color: Color(0xFFEA580C), fontWeight: FontWeight.bold)),
                             ],
                           ),
@@ -887,33 +1067,49 @@ class _LabTestsScreenState extends State<LabTestsScreen> {
                     ),
                   ),
             ),
-          ),
           
           // Bottom Summary Cards
           const SizedBox(height: 24),
-          Row(
-            children: [
-              Expanded(child: _buildBottomSummaryCard(Icons.description, 'Custom Templates', 'Create and customize report templates for each test')),
-              const SizedBox(width: 16),
-              Expanded(child: _buildBottomSummaryCard(Icons.inventory_2, 'Test Packages', 'Group tests with special pricing')),
-              const SizedBox(width: 16),
-              Expanded(child: _buildBottomSummaryCard(Icons.science, 'Sample Tracking', 'Track samples from collection to reporting')),
-              const SizedBox(width: 16),
-              Expanded(child: _buildBottomSummaryCard(Icons.analytics, 'Report Generation', 'Generate professional reports with your templates')),
-              const SizedBox(width: 16),
-              Expanded(child: _buildBottomSummaryCard(Icons.send, 'Send Reports', 'Send reports via WhatsApp, Email or SMS')),
-            ],
-          ),
+          !Responsive.isDesktop(context)
+              ? SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      SizedBox(width: 240, child: _buildBottomSummaryCard(Icons.description, 'Custom Templates', 'Create and customize report templates for each test')),
+                      const SizedBox(width: 16),
+                      SizedBox(width: 240, child: _buildBottomSummaryCard(Icons.inventory_2, 'Test Packages', 'Group tests with special pricing')),
+                      const SizedBox(width: 16),
+                      SizedBox(width: 240, child: _buildBottomSummaryCard(Icons.science, 'Sample Tracking', 'Track samples from collection to reporting')),
+                      const SizedBox(width: 16),
+                      SizedBox(width: 240, child: _buildBottomSummaryCard(Icons.analytics, 'Report Generation', 'Generate professional reports with your templates')),
+                      const SizedBox(width: 16),
+                      SizedBox(width: 240, child: _buildBottomSummaryCard(Icons.send, 'Send Reports', 'Send reports via WhatsApp, Email or SMS')),
+                    ],
+                  ),
+                )
+              : Row(
+                  children: [
+                    Expanded(child: _buildBottomSummaryCard(Icons.description, 'Custom Templates', 'Create and customize report templates for each test')),
+                    const SizedBox(width: 16),
+                    Expanded(child: _buildBottomSummaryCard(Icons.inventory_2, 'Test Packages', 'Group tests with special pricing')),
+                    const SizedBox(width: 16),
+                    Expanded(child: _buildBottomSummaryCard(Icons.science, 'Sample Tracking', 'Track samples from collection to reporting')),
+                    const SizedBox(width: 16),
+                    Expanded(child: _buildBottomSummaryCard(Icons.analytics, 'Report Generation', 'Generate professional reports with your templates')),
+                    const SizedBox(width: 16),
+                    Expanded(child: _buildBottomSummaryCard(Icons.send, 'Send Reports', 'Send reports via WhatsApp, Email or SMS')),
+                  ],
+                ),
         ],
+      ),
       ),
     );
   }
 
   Widget _buildStatCard(IconData icon, String title, String value, String trend, Color trendColor) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: const Color(0xFFE2E8F0)),
@@ -949,7 +1145,6 @@ class _LabTestsScreenState extends State<LabTestsScreen> {
             ),
           ],
         ),
-      ),
     );
   }
 
@@ -981,6 +1176,7 @@ class _LabTestsScreenState extends State<LabTestsScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE2E8F0)), borderRadius: BorderRadius.circular(4)),
         child: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
             Icon(icon, size: 14, color: const Color(0xFFEA580C)),
             const SizedBox(width: 6),
@@ -992,11 +1188,10 @@ class _LabTestsScreenState extends State<LabTestsScreen> {
   }
 
   Widget _buildDropdown(String hint, List<String> items, String? value, ValueChanged<String?> onChanged) {
-    return Expanded(
-      flex: 2,
-      child: Container(
-        height: 40,
-        padding: const EdgeInsets.symmetric(horizontal: 12),
+    return Container(
+      width: 180,
+      height: 40,
+      padding: const EdgeInsets.symmetric(horizontal: 12),
         decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE2E8F0)), borderRadius: BorderRadius.circular(8)),
         child: DropdownButtonHideUnderline(
           child: DropdownButton<String>(
@@ -1014,7 +1209,6 @@ class _LabTestsScreenState extends State<LabTestsScreen> {
             onChanged: onChanged,
           ),
         ),
-      ),
     );
   }
 
@@ -1025,7 +1219,8 @@ class _LabTestsScreenState extends State<LabTestsScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE2E8F0)), borderRadius: BorderRadius.circular(4)),
-        child: Row(
+        child: Wrap(
+          crossAxisAlignment: WrapCrossAlignment.center,
           children: [
             Icon(icon, size: 12, color: const Color(0xFF64748B)),
             const SizedBox(width: 4),
@@ -1042,8 +1237,9 @@ class _LabTestsScreenState extends State<LabTestsScreen> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(width: 100, child: Text(label, style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)))),
-          Expanded(child: Text(value, style: const TextStyle(fontSize: 12, color: Color(0xFF1E293B), fontWeight: FontWeight.w500))),
+          Expanded(flex: 2, child: Text(label, style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)))),
+          const SizedBox(width: 8),
+          Expanded(flex: 3, child: Text(value, style: const TextStyle(fontSize: 12, color: Color(0xFF1E293B), fontWeight: FontWeight.w500))),
         ],
       ),
     );
@@ -1061,7 +1257,12 @@ class _LabTestsScreenState extends State<LabTestsScreen> {
           children: [
             Icon(icon, size: 14, color: color),
             const SizedBox(width: 6),
-            Text(label, style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: color)),
+            Flexible(
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(label, style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: color)),
+              ),
+            ),
           ],
         ),
       ),
@@ -1088,12 +1289,19 @@ class _LabTestsScreenState extends State<LabTestsScreen> {
               ],
             ),
           ),
-          Text('₹ $price', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
-          const SizedBox(width: 12),
-          Container(
-            padding: const EdgeInsets.all(4),
-            decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE2E8F0)), borderRadius: BorderRadius.circular(4)),
-            child: const Icon(Icons.add, size: 14, color: Color(0xFFEA580C)),
+          Flexible(
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Flexible(child: Text('₹ $price', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)))),
+                const SizedBox(width: 12),
+                Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE2E8F0)), borderRadius: BorderRadius.circular(4)),
+                  child: const Icon(Icons.add, size: 14, color: Color(0xFFEA580C)),
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -1132,17 +1340,17 @@ class _LabTestsScreenState extends State<LabTestsScreen> {
   }
 }
 
-class _CategoriesDialog extends StatefulWidget {
+class _CategoriesDialog extends ConsumerStatefulWidget {
   final List<LabTest> tests;
   final VoidCallback onUpdate;
 
   const _CategoriesDialog({Key? key, required this.tests, required this.onUpdate}) : super(key: key);
 
   @override
-  _CategoriesDialogState createState() => _CategoriesDialogState();
+  ConsumerState<_CategoriesDialog> createState() => _CategoriesDialogState();
 }
 
-class _CategoriesDialogState extends State<_CategoriesDialog> {
+class _CategoriesDialogState extends ConsumerState<_CategoriesDialog> {
   List<String> _customCategories = [];
   bool _isLoading = false;
 
@@ -1178,7 +1386,7 @@ class _CategoriesDialogState extends State<_CategoriesDialog> {
           ElevatedButton(
             onPressed: () async {
               if (ctrl.text.trim().isNotEmpty) {
-                await LabDataService.saveCustomCategory(ctrl.text.trim());
+                await ref.read(labCustomCategoriesProvider.notifier).addCategory(ctrl.text.trim());
                 if (mounted) Navigator.pop(ctx);
                 _loadCategories();
                 widget.onUpdate();
@@ -1207,13 +1415,13 @@ class _CategoriesDialogState extends State<_CategoriesDialog> {
                 Navigator.pop(ctx);
                 setState(() => _isLoading = true);
                 
-                await LabDataService.renameCustomCategory(oldName, newName);
+                await ref.read(labCustomCategoriesProvider.notifier).renameCategory(oldName, newName);
                 
                 // Bulk update tests
                 final testsToUpdate = widget.tests.where((t) => t.category == oldName).toList();
                 for (var test in testsToUpdate) {
                   test.category = newName;
-                  await LabDataService.saveTest(test);
+                  await ref.read(labTestsProvider.notifier).addOrUpdateTest(test);
                 }
                 
                 _loadCategories();
@@ -1245,12 +1453,12 @@ class _CategoriesDialogState extends State<_CategoriesDialog> {
               Navigator.pop(ctx);
               setState(() => _isLoading = true);
               
-              await LabDataService.deleteCustomCategory(name);
+              await ref.read(labCustomCategoriesProvider.notifier).deleteCategory(name);
               
               final testsToUpdate = widget.tests.where((t) => t.category == name).toList();
               for (var test in testsToUpdate) {
                 test.category = 'Uncategorized';
-                await LabDataService.saveTest(test);
+                await ref.read(labTestsProvider.notifier).addOrUpdateTest(test);
               }
               
               _loadCategories();

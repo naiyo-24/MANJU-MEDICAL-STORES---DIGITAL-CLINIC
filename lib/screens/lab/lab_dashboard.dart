@@ -154,37 +154,39 @@ class _LabDashboardState extends State<LabDashboard> {
           Row(
             children: [
               Image.asset('assets/LOGO.png', height: 40, cacheHeight: 120),
-              const SizedBox(width: 12),
-              const Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Manju Medical Stores',
-                    style: TextStyle(
-                      color: Color(0xFF166534),
-                      fontWeight: FontWeight.w900,
-                      fontSize: 16,
-                      letterSpacing: -0.5,
+              if (isDesktop) ...[
+                const SizedBox(width: 12),
+                const Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Manju Medical Stores',
+                      style: TextStyle(
+                        color: Color(0xFF166534),
+                        fontWeight: FontWeight.w900,
+                        fontSize: 16,
+                        letterSpacing: -0.5,
+                      ),
                     ),
-                  ),
-                  Text(
-                    '& Digital Clinic',
-                    style: TextStyle(
-                      color: Color(0xFF64748B),
-                      fontWeight: FontWeight.w600,
-                      fontSize: 12,
+                    Text(
+                      '& Digital Clinic',
+                      style: TextStyle(
+                        color: Color(0xFF64748B),
+                        fontWeight: FontWeight.w600,
+                        fontSize: 12,
+                      ),
                     ),
-                  ),
-                ],
-              ),
+                  ],
+                ),
+              ],
             ],
           ),
           
           Expanded(
             child: Center(
               child: Container(
-                width: 600,
+                constraints: const BoxConstraints(maxWidth: 600),
                 height: 40,
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 decoration: BoxDecoration(

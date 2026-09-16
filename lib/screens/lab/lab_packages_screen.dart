@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../utils/responsive.dart';
 import '../../models/lab_models.dart';
 import '../../services/lab_data_service.dart';
+import '../../providers/lab_providers.dart';
 import 'package:uuid/uuid.dart';
 
-class LabPackagesScreen extends StatefulWidget {
+class LabPackagesScreen extends ConsumerStatefulWidget {
   const LabPackagesScreen({super.key});
 
   @override
-  State<LabPackagesScreen> createState() => _LabPackagesScreenState();
+  ConsumerState<LabPackagesScreen> createState() => _LabPackagesScreenState();
 }
 
-class _LabPackagesScreenState extends State<LabPackagesScreen> {
+class _LabPackagesScreenState extends ConsumerState<LabPackagesScreen> {
   List<LabPackage> _packages = [];
   List<LabTest> _allTests = [];
   bool _isLoading = true;
@@ -26,14 +28,9 @@ class _LabPackagesScreenState extends State<LabPackagesScreen> {
 
   Future<void> _loadData() async {
     setState(() => _isLoading = true);
-    final packages = await LabDataService.getPackages();
-    final tests = await LabDataService.getTests();
+    await ref.read(labPackagesProvider.notifier).loadPackages();
+    await ref.read(labTestsProvider.notifier).loadTests();
     setState(() {
-      _packages = packages;
-      _allTests = tests;
-      if (_packages.isNotEmpty && _selectedPackage == null) {
-        _selectedPackage = _packages.first;
-      }
       _isLoading = false;
     });
   }
@@ -136,7 +133,7 @@ class _LabPackagesScreenState extends State<LabPackagesScreen> {
                   discountedPrice: double.tryParse(priceCtrl.text) ?? 0.0,
                   isActive: isActive,
                 );
-                await LabDataService.savePackage(pkg);
+                await ref.read(labPackagesProvider.notifier).addOrUpdatePackage(pkg);
                 if (mounted) Navigator.pop(context, );
                 _loadData();
               },
@@ -251,6 +248,20 @@ class _LabPackagesScreenState extends State<LabPackagesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final packagesAsync = ref.watch(labPackagesProvider);
+    final testsAsync = ref.watch(labTestsProvider);
+    
+    _packages = packagesAsync.value ?? [];
+    _allTests = testsAsync.value ?? [];
+    
+    if (_packages.isNotEmpty && _selectedPackage == null) {
+      _selectedPackage = _packages.first;
+    }
+
+    if (packagesAsync.isLoading || testsAsync.isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
     int totalPackages = _packages.length;
     int activePackages = _packages.where((p) => p.isActive).length;
     int inactivePackages = totalPackages - activePackages;
@@ -430,8 +441,8 @@ class _LabPackagesScreenState extends State<LabPackagesScreen> {
                                               const SizedBox(width: 4),
                                               InkWell(
                                                 onTap: () async {
-                                                  await LabDataService.deletePackage(package.id);
-                                                  _loadData();
+                                                  await ref.read(labPackagesProvider.notifier).deletePackage(package.id);
+                                                  if (context.mounted) Navigator.pop(context);
                                                 },
                                                 child: _buildTableRowButton(Icons.delete, ''),
                                               ),

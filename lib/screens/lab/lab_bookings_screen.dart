@@ -63,7 +63,7 @@ class _LabBookingsScreenState extends State<LabBookingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return SingleChildScrollView(
       padding: const EdgeInsets.all(32),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -121,8 +121,7 @@ class _LabBookingsScreenState extends State<LabBookingsScreen> {
             ],
           ),
           const SizedBox(height: 24),
-          Expanded(
-            child: Container(
+          Container(
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(12),
@@ -146,28 +145,29 @@ class _LabBookingsScreenState extends State<LabBookingsScreen> {
                                     border: Border(bottom: BorderSide(color: Color(0xFFE2E8F0))),
                                   ),
                                   child: Row(
-                                children: const [
-                                  Expanded(flex: 2, child: Text('DATE', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF64748B)))),
-                                  Expanded(flex: 3, child: Text('PATIENT', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF64748B)))),
-                                  Expanded(flex: 3, child: Text('TESTS / PACKAGES', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF64748B)))),
-                                  Expanded(flex: 2, child: Text('AMOUNT', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF64748B)))),
-                                  Expanded(flex: 2, child: Text('STATUS', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF64748B)))),
-                                  SizedBox(width: 40),
-                                ],
-                              ),
-                            ),
-                            Expanded(
-                              child: ListView.separated(
-                                padding: EdgeInsets.zero,
-                                itemCount: _bookings.length,
-                                separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFE2E8F0)),
-                                itemBuilder: (context, index) {
-                                  final booking = _bookings[index];
-                                  return Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                                    child: Row(
-                                      children: [
-                                        Expanded(
+                                    children: const [
+                                      Expanded(flex: 2, child: Text('DATE', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF64748B)))),
+                                      Expanded(flex: 3, child: Text('PATIENT', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF64748B)))),
+                                      Expanded(flex: 3, child: Text('TESTS / PACKAGES', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF64748B)))),
+                                      Expanded(flex: 2, child: Text('AMOUNT', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF64748B)))),
+                                      Expanded(flex: 2, child: Text('STATUS', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF64748B)))),
+                                      SizedBox(width: 40),
+                                    ],
+                                  ),
+                                ),
+                                ListView.separated(
+                                  shrinkWrap: true,
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  padding: EdgeInsets.zero,
+                                  itemCount: _bookings.length,
+                                  separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFE2E8F0)),
+                                  itemBuilder: (context, index) {
+                                    final booking = _bookings[index];
+                                    return Padding(
+                                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                                      child: Row(
+                                        children: [
+                                          Expanded(
                                           flex: 2,
                                           child: Text(
                                             DateFormat('dd MMM yyyy\nhh:mm a').format(booking.bookingDate),
@@ -232,16 +232,14 @@ class _LabBookingsScreenState extends State<LabBookingsScreen> {
                                         ),
                                       ],
                                     ),
-                                  );
-                                },
-                              ),
+                                );
+                              },
                             ),
                           ],
                         ),
                       ),
                     ),
             ),
-          ),
         ],
       ),
     );

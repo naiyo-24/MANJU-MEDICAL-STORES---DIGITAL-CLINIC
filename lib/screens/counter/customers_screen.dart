@@ -43,7 +43,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
       // ignore
     }
 
-    final List<Map<String, dynamic>> mappedRealCustomers = realCustomers.map((c) {
+    final List<Map<String, dynamic>> mappedRealCustomers = realCustomers.map<Map<String, dynamic>>((c) {
       final names = c.name.split(' ');
       final initials = names.length > 1 
           ? '${names[0][0]}${names[1][0]}'.toUpperCase() 
@@ -1001,19 +1001,20 @@ class _CustomersScreenState extends State<CustomersScreen> {
           ),
           
           // Content Area
-          Expanded(
-            child: _activeCustomerTab == 0 
-                ? LayoutBuilder(builder: (context, constraints) {
-                    return SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: ConstrainedBox(
-                        constraints: BoxConstraints(
-                          minWidth: 500,
-                          maxWidth: constraints.maxWidth > 500 ? constraints.maxWidth : 500,
-                        ),
-                        child: ListView(
-                          padding: EdgeInsets.zero,
-                          children: [
+          _activeCustomerTab == 0 
+              ? LayoutBuilder(builder: (context, constraints) {
+                  return SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minWidth: 500,
+                        maxWidth: constraints.maxWidth > 500 ? constraints.maxWidth : 500,
+                      ),
+                      child: ListView(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        padding: EdgeInsets.zero,
+                        children: [
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                         color: const Color(0xFFF8FAFC),
@@ -1087,10 +1088,12 @@ class _CustomersScreenState extends State<CustomersScreen> {
                 ),
               );
             })
-                : const Center(
+              : const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(32.0),
                     child: Text('No notes available for this customer.', style: TextStyle(color: Color(0xFF64748B), fontSize: 13)),
                   ),
-          ),
+                ),
           
           // View All Button
           Padding(

@@ -3,7 +3,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import '../models/lab_models.dart';
 import '../config/api_constants.dart';
-import 'auth_service.dart';class LabDataService {
+import 'auth_service.dart';
+
+class LabDataService {
   static const String _testsKey = 'lab_tests';
   static const String _templatesKey = 'lab_templates';
   static const String _packagesKey = 'lab_packages';
@@ -232,6 +234,33 @@ import 'auth_service.dart';class LabDataService {
     return [];
   }
 
+  static Future<bool> uploadCatalogCsv(List<int> fileBytes, String filename) async {
+    try {
+      final headers = await _getHeaders();
+      final request = http.MultipartRequest(
+        'POST',
+        Uri.parse('${ApiConstants.baseUrl}/api/admin/lab-catalog/upload-csv'),
+      );
+      
+      request.headers.addAll({
+        if (headers.containsKey('Authorization')) 
+          'Authorization': headers['Authorization']!
+      });
+
+      request.files.add(http.MultipartFile.fromBytes(
+        'file',
+        fileBytes,
+        filename: filename,
+      ));
+
+      final streamedResponse = await request.send();
+      return streamedResponse.statusCode == 201;
+    } catch (e) {
+      print('Error uploading CSV: $e');
+      return false;
+    }
+  }
+
   static Future<void> savePackage(LabPackage pkg) async {
     try {
       final headers = await _getHeaders();
@@ -268,93 +297,86 @@ import 'auth_service.dart';class LabDataService {
   static const String _bookingsKey = 'lab_bookings';
 
   static Future<List<LabBooking>> getBookings() async {
-    final prefs = await SharedPreferences.getInstance();
-    final jsonList = prefs.getStringList(_bookingsKey) ?? [];
-    if (jsonList.isEmpty) {
-      // Mock data
-      return [
-        LabBooking(
-          id: 'b1', sampleId: 'S20260909001', patientName: 'Rahul Das', patientPhone: '9876543210', patientAge: '34 Years', patientGender: 'Male',
-          bookingDate: DateTime.parse('2026-09-09T09:30:00'), testIds: [], packageIds: [], testsDescription: 'CBC, ESR',
-          sampleType: 'Blood', collectedBy: 'Amit', assignedTo: 'Amit', expectedReportDate: DateTime.parse('2026-09-09T18:00:00'),
-          totalAmount: 350.0, status: 'Collected',
-        ),
-        LabBooking(
-          id: 'b2', sampleId: 'S20260909002', patientName: 'Priya Sharma', patientPhone: '9830011223', patientAge: '28 Years', patientGender: 'Female',
-          bookingDate: DateTime.parse('2026-09-09T09:45:00'), testIds: [], packageIds: [], testsDescription: 'Thyroid Profile',
-          sampleType: 'Blood', collectedBy: 'Neha', assignedTo: 'Neha', expectedReportDate: DateTime.parse('2026-09-09T14:00:00'),
-          totalAmount: 850.0, status: 'In Processing',
-        ),
-        LabBooking(
-          id: 'b3', sampleId: 'S20260909003', patientName: 'Suman Roy', patientPhone: '9830011223', patientAge: '45 Years', patientGender: 'Male',
-          bookingDate: DateTime.parse('2026-09-09T10:10:00'), testIds: [], packageIds: [], testsDescription: 'Full Body Checkup (32 Tests)',
-          sampleType: 'Blood', collectedBy: 'Amit', assignedTo: 'Dr. Sen', expectedReportDate: DateTime.parse('2026-09-09T18:00:00'),
-          totalAmount: 2500.0, status: 'Ready',
-        ),
-        LabBooking(
-          id: 'b4', sampleId: 'S20260909004', patientName: 'Neha Patel', patientPhone: '9876543210', patientAge: '52 Years', patientGender: 'Female',
-          bookingDate: DateTime.parse('2026-09-09T10:25:00'), testIds: [], packageIds: [], testsDescription: 'Lipid Profile',
-          sampleType: 'Blood', collectedBy: 'Amit', assignedTo: 'Amit', expectedReportDate: DateTime.parse('2026-09-09T15:00:00'),
-          totalAmount: 600.0, status: 'Collected',
-        ),
-        LabBooking(
-          id: 'b5', sampleId: 'S20260909005', patientName: 'Karan Mehta', patientPhone: '9876543210', patientAge: '60 Years', patientGender: 'Male',
-          bookingDate: DateTime.parse('2026-09-09T11:00:00'), testIds: [], packageIds: [], testsDescription: 'HbA1c',
-          sampleType: 'Blood', collectedBy: 'Neha', assignedTo: 'Neha', expectedReportDate: DateTime.parse('2026-09-09T16:00:00'),
-          totalAmount: 400.0, status: 'In Processing',
-        ),
-        LabBooking(
-          id: 'b6', sampleId: 'S20260909006', patientName: 'Anita Singh', patientPhone: '9876543210', patientAge: '30 Years', patientGender: 'Female',
-          bookingDate: DateTime.parse('2026-09-09T11:20:00'), testIds: [], packageIds: [], testsDescription: 'Vitamin D',
-          sampleType: 'Blood', collectedBy: 'Amit', assignedTo: 'Dr. Sen', expectedReportDate: DateTime.parse('2026-09-09T18:00:00'),
-          totalAmount: 1200.0, status: 'Ready',
-        ),
-        LabBooking(
-          id: 'b7', sampleId: 'S20260909007', patientName: 'Deepak Shaw', patientPhone: '9876543210', patientAge: '40 Years', patientGender: 'Male',
-          bookingDate: DateTime.parse('2026-09-09T11:45:00'), testIds: [], packageIds: [], testsDescription: 'LFT',
-          sampleType: 'Blood', collectedBy: 'System', assignedTo: 'System', expectedReportDate: DateTime.parse('2026-09-09T18:00:00'),
-          totalAmount: 700.0, status: 'Delivered',
-        ),
-        LabBooking(
-          id: 'b8', sampleId: 'S20260909008', patientName: 'Pooja Verma', patientPhone: '9876543210', patientAge: '25 Years', patientGender: 'Female',
-          bookingDate: DateTime.parse('2026-09-09T12:10:00'), testIds: [], packageIds: [], testsDescription: 'Diabetic Profile',
-          sampleType: 'Blood', collectedBy: 'Amit', assignedTo: 'Amit', expectedReportDate: DateTime.parse('2026-09-09T18:00:00'),
-          totalAmount: 900.0, status: 'Collected',
-        ),
-        LabBooking(
-          id: 'b9', sampleId: 'S20260909009', patientName: 'Amit Kumar', patientPhone: '9876543210', patientAge: '35 Years', patientGender: 'Male',
-          bookingDate: DateTime.parse('2026-09-09T12:30:00'), testIds: [], packageIds: [], testsDescription: 'KFT',
-          sampleType: 'Blood', collectedBy: 'Neha', assignedTo: 'Neha', expectedReportDate: DateTime.parse('2026-09-09T18:00:00'),
-          totalAmount: 800.0, status: 'In Processing',
-        ),
-        LabBooking(
-          id: 'b10', sampleId: 'S20260909010', patientName: 'Rita Ghosh', patientPhone: '9876543210', patientAge: '42 Years', patientGender: 'Female',
-          bookingDate: DateTime.parse('2026-09-09T12:45:00'), testIds: [], packageIds: [], testsDescription: 'Hormone Package',
-          sampleType: 'Blood', collectedBy: '-', assignedTo: '-', expectedReportDate: null,
-          totalAmount: 1500.0, status: 'Pending',
-        ),
-      ];
+    try {
+      final headers = await _getHeaders();
+      final response = await http.get(
+        Uri.parse('${ApiConstants.baseUrl}/api/lab-bookings'),
+        headers: headers,
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        return data.map((item) {
+          final formDetails = item['form_details'] ?? {};
+          final bookedItems = item['booked_items'] as List<dynamic>? ?? [];
+          final testIds = bookedItems.where((i) => i['type'] == 'TEST').map((i) => i['id'].toString()).toList();
+          final packageIds = bookedItems.where((i) => i['type'] == 'PACKAGE').map((i) => i['id'].toString()).toList();
+
+          return LabBooking(
+            id: item['id'],
+            patientName: formDetails['patientName'] ?? 'Unknown',
+            patientPhone: formDetails['patientPhone'] ?? '',
+            patientAge: formDetails['patientAge'] ?? '',
+            patientGender: formDetails['patientGender'] ?? 'Other',
+            bookingDate: item['preferred_date'] != null ? DateTime.parse(item['preferred_date']) : DateTime.now(),
+            testIds: testIds,
+            packageIds: packageIds,
+            totalAmount: (item['total_amount'] ?? 0).toDouble(),
+            status: item['status'] ?? 'Pending',
+          );
+        }).toList();
+      }
+    } catch (e) {
+      print('Error getting bookings: $e');
     }
-    return jsonList.map((j) => LabBooking.fromJson(jsonDecode(j))).toList();
+    return [];
   }
 
   static Future<void> saveBooking(LabBooking booking) async {
-    final bookings = await getBookings();
-    final index = bookings.indexWhere((b) => b.id == booking.id);
-    if (index >= 0) {
-      bookings[index] = booking;
-    } else {
-      bookings.add(booking);
+    try {
+      final headers = await _getHeaders();
+      final userId = await AuthService.getUserId() ?? ''; // Or generate UUID if not logged in
+      
+      final body = {
+        'user_id': userId,
+        'payment_method': 'COD',
+        'item_ids': [...booking.testIds, ...booking.packageIds],
+        'preferred_date': booking.bookingDate.toIso8601String().split('T')[0],
+        'form_details': {
+          'patientName': booking.patientName,
+          'patientPhone': booking.patientPhone,
+          'patientAge': booking.patientAge,
+          'patientGender': booking.patientGender,
+        },
+      };
+
+      final response = await http.post(
+        Uri.parse('${ApiConstants.baseUrl}/api/lab-bookings'),
+        headers: headers,
+        body: json.encode(body),
+      );
+
+      if (response.statusCode != 201) {
+        print('Failed to save booking: ${response.body}');
+      }
+    } catch (e) {
+      print('Error saving booking: $e');
     }
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setStringList(_bookingsKey, bookings.map((b) => jsonEncode(b.toJson())).toList());
   }
 
   static Future<void> deleteBooking(String id) async {
-    final bookings = await getBookings();
-    bookings.removeWhere((b) => b.id == id);
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setStringList(_bookingsKey, bookings.map((b) => jsonEncode(b.toJson())).toList());
+    try {
+      final headers = await _getHeaders();
+      final response = await http.patch(
+        Uri.parse('${ApiConstants.baseUrl}/api/lab-bookings/$id/cancel'),
+        headers: headers,
+      );
+      if (response.statusCode != 200) {
+        print('Failed to delete booking: ${response.body}');
+      }
+    } catch (e) {
+      print('Error deleting booking: $e');
+    }
   }
 
   // --- Reports ---

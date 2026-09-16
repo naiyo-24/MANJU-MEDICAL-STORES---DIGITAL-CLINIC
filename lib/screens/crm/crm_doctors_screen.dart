@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../models/crm_models.dart';
 import '../../services/crm_data_service.dart';
+import '../../providers/crm_providers.dart';
 
-class CrmDoctorsScreen extends StatefulWidget {
+class CrmDoctorsScreen extends ConsumerStatefulWidget {
   const CrmDoctorsScreen({super.key});
 
   @override
-  State<CrmDoctorsScreen> createState() => _CrmDoctorsScreenState();
+  ConsumerState<CrmDoctorsScreen> createState() => _CrmDoctorsScreenState();
 }
 
-class _CrmDoctorsScreenState extends State<CrmDoctorsScreen> {
+class _CrmDoctorsScreenState extends ConsumerState<CrmDoctorsScreen> {
   List<CrmDoctor> _doctors = [];
   bool _isLoading = true;
 
@@ -21,20 +23,27 @@ class _CrmDoctorsScreenState extends State<CrmDoctorsScreen> {
 
   Future<void> _loadData() async {
     setState(() => _isLoading = true);
-    final doctors = await CrmDataService.getDoctors();
+    await ref.read(crmDoctorsProvider.notifier).loadDoctors();
     setState(() {
-      _doctors = doctors;
       _isLoading = false;
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    final doctorsAsync = ref.watch(crmDoctorsProvider);
+    _doctors = doctorsAsync.value ?? [];
+
+    if (doctorsAsync.isLoading) {
+      return const Scaffold(
+        backgroundColor: Color(0xFFF8FAFC),
+        body: Center(child: CircularProgressIndicator(color: Color(0xFF8B5CF6))),
+      );
+    }
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: Color(0xFF8B5CF6)))
-          : Column(
+      body: Column(
               children: [
                 _buildHeader(),
                 Expanded(

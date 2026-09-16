@@ -1,0 +1,98 @@
+class Customer {
+  final String id;
+  final String name;
+  final String phone;
+  final String email;
+  final String location;
+  final bool isActive;
+  final String? createdAt;
+
+  Customer({
+    required this.id,
+    required this.name,
+    required this.phone,
+    this.email = '',
+    this.location = '',
+    this.isActive = true,
+    this.createdAt,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'phone': phone,
+      'email': email,
+      'location': location,
+      'is_active': isActive,
+    };
+  }
+
+  factory Customer.fromJson(Map<String, dynamic> json) {
+    return Customer(
+      id: json['id'] ?? '',
+      name: json['name'] ?? '',
+      phone: json['phone'] ?? '',
+      email: json['email'] ?? '',
+      location: json['location'] ?? '',
+      isActive: json['is_active'] ?? true,
+      createdAt: json['created_at'],
+    );
+  }
+}
+
+class SavedBill {
+  final String id;
+  final String invoiceNo;
+  final String customerName;
+  final String customerPhone;
+  final String doctorName;
+  final double subtotal;
+  final double discount;
+  final double tax;
+  final double grandTotal;
+  final List<Map<String, dynamic>> items;
+  final DateTime createdAt;
+
+  SavedBill({
+    required this.id,
+    required this.invoiceNo,
+    required this.customerName,
+    required this.customerPhone,
+    required this.doctorName,
+    required this.subtotal,
+    required this.discount,
+    required this.tax,
+    required this.grandTotal,
+    required this.items,
+    required this.createdAt,
+  });
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'invoiceNo': invoiceNo,
+    'customerName': customerName,
+    'customerPhone': customerPhone,
+    'doctorName': doctorName,
+    'subtotal': subtotal,
+    'discount': discount,
+    'tax': tax,
+    'grandTotal': grandTotal,
+    'items': items,
+    'createdAt': createdAt.toIso8601String(),
+  };
+
+  factory SavedBill.fromJson(Map<String, dynamic> json) => SavedBill(
+    id: json['id'],
+    invoiceNo: json['invoiceNo'],
+    customerName: json['customerName'],
+    customerPhone: json['customerPhone'] ?? '',
+    doctorName: json['doctorName'] ?? '',
+    subtotal: (json['subtotal'] as num?)?.toDouble() ?? 0.0,
+    discount: (json['discount'] as num?)?.toDouble() ?? 0.0,
+    tax: (json['tax'] as num?)?.toDouble() ?? 0.0,
+    grandTotal: (json['grandTotal'] as num?)?.toDouble() ?? 0.0,
+    items: List<Map<String, dynamic>>.from(json['items'] ?? []),
+    createdAt: DateTime.parse(json['createdAt']),
+  );
+}

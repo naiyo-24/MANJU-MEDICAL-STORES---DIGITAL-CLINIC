@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../models/crm_models.dart';
 import '../../services/crm_data_service.dart';
+import '../../providers/crm_providers.dart';
 
-class CrmAppointmentsScreen extends StatefulWidget {
+class CrmAppointmentsScreen extends ConsumerStatefulWidget {
   const CrmAppointmentsScreen({super.key});
 
   @override
-  State<CrmAppointmentsScreen> createState() => _CrmAppointmentsScreenState();
+  ConsumerState<CrmAppointmentsScreen> createState() => _CrmAppointmentsScreenState();
 }
 
-class _CrmAppointmentsScreenState extends State<CrmAppointmentsScreen> {
+class _CrmAppointmentsScreenState extends ConsumerState<CrmAppointmentsScreen> {
   List<CrmAppointment> _appointments = [];
   CrmAppointment? _selectedAppointment;
   bool _isLoading = true;
@@ -24,13 +26,9 @@ class _CrmAppointmentsScreenState extends State<CrmAppointmentsScreen> {
 
   Future<void> _loadData() async {
     setState(() => _isLoading = true);
-    final appointments = await CrmDataService.getAppointments();
+    await ref.read(crmAppointmentsProvider.notifier).loadAppointments();
     setState(() {
-      _appointments = appointments;
       _isLoading = false;
-      if (_appointments.isNotEmpty) {
-        _selectedAppointment = _appointments[1]; // Priya Sharma
-      }
     });
   }
 
@@ -42,11 +40,22 @@ class _CrmAppointmentsScreenState extends State<CrmAppointmentsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final appointmentsAsync = ref.watch(crmAppointmentsProvider);
+    _appointments = appointmentsAsync.value ?? [];
+    if (_appointments.isNotEmpty && _selectedAppointment == null) {
+      _selectedAppointment = _appointments.length > 1 ? _appointments[1] : _appointments.first;
+    }
+
+    if (appointmentsAsync.isLoading) {
+      return const Scaffold(
+        backgroundColor: Color(0xFFF8FAFC),
+        body: Center(child: CircularProgressIndicator(color: Color(0xFF8B5CF6))),
+      );
+    }
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: Color(0xFF8B5CF6)))
-          : Column(
+      body: Column(
               children: [
                 _buildHeader(),
                 Expanded(

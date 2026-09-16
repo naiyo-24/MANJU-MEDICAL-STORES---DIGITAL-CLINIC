@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../services/shop_service.dart';
 import '../../services/export_service.dart';
+import '../../providers/counter_providers.dart';
 
-class ShopManagementScreen extends StatefulWidget {
+class ShopManagementScreen extends ConsumerStatefulWidget {
   const ShopManagementScreen({super.key});
 
   @override
-  State<ShopManagementScreen> createState() => _ShopManagementScreenState();
+  ConsumerState<ShopManagementScreen> createState() => _ShopManagementScreenState();
 }
 
-class _ShopManagementScreenState extends State<ShopManagementScreen> {
+class _ShopManagementScreenState extends ConsumerState<ShopManagementScreen> {
   String _searchQuery = '';
   String _selectedStatus = 'All Status';
   String _selectedCity = 'All Cities';
@@ -18,38 +20,20 @@ class _ShopManagementScreenState extends State<ShopManagementScreen> {
   String _sortField = 'name';
   bool _sortAscending = true;
 
-  List<Map<String, dynamic>> _shops = [];
-
   @override
   void initState() {
     super.initState();
-    _fetchShops();
+    // Riverpod's AsyncNotifierProvider will fetch automatically on first read.
   }
 
-  Future<void> _fetchShops() async {
-    try {
-      setState(() => _isLoading = true);
-      final shops = await ShopService.getShops();
-      setState(() {
-        _shops = shops.map((s) => s.toMap()).toList();
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() => _isLoading = false);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error loading shops: $e')));
-      }
-    }
-  }
-
-  List<String> get _dynamicCities {
-    final cities = _shops.map((s) => s['city'].toString()).toSet().toList();
+  List<String> _getDynamicCities(List<Map<String, dynamic>> shops) {
+    final cities = shops.map((s) => s['city'].toString()).toSet().toList();
     cities.sort();
     return ['All Cities', ...cities];
   }
 
-  List<Map<String, dynamic>> get _filteredShops {
-    var filtered = _shops.where((shop) {
+  List<Map<String, dynamic>> _getFilteredShops(List<Map<String, dynamic>> shops) {
+    var filtered = shops.where((shop) {
       final matchesSearch = shop['name'].toString().toLowerCase().contains(_searchQuery.toLowerCase()) ||
           shop['code'].toString().toLowerCase().contains(_searchQuery.toLowerCase()) ||
           shop['location'].toString().toLowerCase().contains(_searchQuery.toLowerCase());
@@ -185,8 +169,7 @@ class _ShopManagementScreenState extends State<ShopManagementScreen> {
                   onPressed: () async {
                     try {
                       if (!isEditing) {
-                        // For now we only implement add new shop based on the backend
-                        final newShop = await ShopService.createShop(
+                        await ref.read(shopProvider.notifier).addShop(
                           name: nameController.text,
                           code: codeController.text,
                           address: locationController.text,
@@ -195,10 +178,6 @@ class _ShopManagementScreenState extends State<ShopManagementScreen> {
                           status: status,
                           isPrimary: isPrimary,
                         );
-                        
-                        setState(() {
-                          _shops.add(newShop.toMap());
-                        });
                         
                         if (mounted) {
                           Navigator.pop(context);
@@ -310,13 +289,21 @@ class _ShopManagementScreenState extends State<ShopManagementScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final activeCount = _shops.where((s) => s['status'] == 'Active').length;
-    final inactiveCount = _shops.length - activeCount;
-    final citiesCount = _shops.map((s) => s['city']).toSet().length;
+    final shopState = ref.watch(shopProvider);
 
-    return ListView(
-      padding: const EdgeInsets.all(24.0),
-      children: [
+    return shopState.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (error, stack) => Center(child: Text('Error: $error')),
+      data: (shops) {
+        final activeCount = shops.where((s) => s['status'] == 'Active').length;
+        final inactiveCount = shops.length - activeCount;
+        final citiesCount = shops.map((s) => s['city']).toSet().length;
+        final _filteredShopsList = _getFilteredShops(shops);
+        final _dynamicCitiesList = _getDynamicCities(shops);
+
+        return ListView(
+          padding: const EdgeInsets.all(24.0),
+          children: [
         // Header
           Wrap(
             alignment: WrapAlignment.spaceBetween,
@@ -355,11 +342,11 @@ class _ShopManagementScreenState extends State<ShopManagementScreen> {
                       final filename = 'shops_export_${DateTime.now().millisecondsSinceEpoch}';
                       try {
                         if (value == 'csv') {
-                          await ExportService.exportToCSV(_filteredShops, filename);
+                          await ExportService.exportToCSV(_filteredShopsList, filename);
                         } else if (value == 'excel') {
-                          await ExportService.exportToExcel(_filteredShops, filename);
+                          await ExportService.exportToExcel(_filteredShopsList, filename);
                         } else if (value == 'pdf') {
-                          await ExportService.exportToPDF(_filteredShops, filename);
+                          await ExportService.exportToPDF(_filteredShopsList, filename);
                         }
                         if (mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Export successful!')));
@@ -395,7 +382,7 @@ class _ShopManagementScreenState extends State<ShopManagementScreen> {
             Row(
               children: [
                 IconButton(
-                  onPressed: () => _fetchShops(),
+                  onPressed: () => ref.read(shopProvider.notifier).loadShops(),
                   icon: const Icon(Icons.refresh, color: Color(0xFF64748B)),
                   tooltip: 'Refresh',
                 ),
@@ -426,7 +413,7 @@ class _ShopManagementScreenState extends State<ShopManagementScreen> {
             return isDesktop
               ? Row(
                   children: [
-                    _buildStatCard('${_shops.length}', 'Total Shops', const Color(0xFFE8F5E9), const Color(0xFF22C55E), Icons.store, () {
+                    _buildStatCard('${shops.length}', 'Total Shops', const Color(0xFFE8F5E9), const Color(0xFF22C55E), Icons.store, () {
                       setState(() {
                         _selectedStatus = 'All Status';
                         _selectedCity = 'All Cities';
@@ -464,7 +451,7 @@ class _ShopManagementScreenState extends State<ShopManagementScreen> {
                     constraints: const BoxConstraints(minWidth: 1000),
                     child: Row(
                       children: [
-                        _buildStatCard('${_shops.length}', 'Total Shops', const Color(0xFFE8F5E9), const Color(0xFF22C55E), Icons.store, () {
+                        _buildStatCard('${shops.length}', 'Total Shops', const Color(0xFFE8F5E9), const Color(0xFF22C55E), Icons.store, () {
                           setState(() {
                             _selectedStatus = 'All Status';
                             _selectedCity = 'All Cities';
@@ -529,7 +516,7 @@ class _ShopManagementScreenState extends State<ShopManagementScreen> {
               const SizedBox(width: 16),
               _buildDropdownFilter('All Status', ['All Status', 'Active', 'Inactive'], _selectedStatus, (val) => setState(() => _selectedStatus = val!)),
               const SizedBox(width: 16),
-              _buildDropdownFilter('All Cities', _dynamicCities, _selectedCity, (val) => setState(() => _selectedCity = val!)),
+              _buildDropdownFilter('All Cities', _dynamicCitiesList, _selectedCity, (val) => setState(() => _selectedCity = val!)),
               const Spacer(),
               PopupMenuButton<String>(
                 onSelected: (value) {
@@ -605,10 +592,10 @@ class _ShopManagementScreenState extends State<ShopManagementScreen> {
                   ListView.separated(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
-                    itemCount: _filteredShops.length,
+                    itemCount: _filteredShopsList.length,
                       separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFF1F5F9)),
                       itemBuilder: (context, index) {
-                        final shop = _filteredShops[index];
+                        final shop = _filteredShopsList[index];
                         final isActive = shop['status'] == 'Active';
                         return Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
@@ -731,7 +718,7 @@ class _ShopManagementScreenState extends State<ShopManagementScreen> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('Showing 1 to ${_filteredShops.length} of ${_shops.length} shops', style: const TextStyle(color: Color(0xFF64748B), fontSize: 12)),
+                        Text('Showing 1 to ${_filteredShopsList.length} of ${shops.length} shops', style: const TextStyle(color: Color(0xFF64748B), fontSize: 12)),
                         Row(
                           children: [
                             _buildPaginationBtn(Icons.chevron_left, false),
@@ -759,6 +746,8 @@ class _ShopManagementScreenState extends State<ShopManagementScreen> {
             ],
           ),
         ],
+        );
+      },
     );
   }
 

@@ -2,49 +2,8 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../config/api_constants.dart';
 import 'auth_service.dart';
-
-class Customer {
-  final String id;
-  final String name;
-  final String phone;
-  final String email;
-  final String location;
-  final bool isActive;
-  final String? createdAt;
-
-  Customer({
-    required this.id,
-    required this.name,
-    required this.phone,
-    this.email = '',
-    this.location = '',
-    this.isActive = true,
-    this.createdAt,
-  });
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'name': name,
-      'phone': phone,
-      'email': email,
-      'location': location,
-      'is_active': isActive,
-    };
-  }
-
-  factory Customer.fromJson(Map<String, dynamic> json) {
-    return Customer(
-      id: json['id'] ?? '',
-      name: json['name'] ?? '',
-      phone: json['phone'] ?? '',
-      email: json['email'] ?? '',
-      location: json['location'] ?? '',
-      isActive: json['is_active'] ?? true,
-      createdAt: json['created_at'],
-    );
-  }
-}
+import '../models/counter_models.dart';
+export '../models/counter_models.dart';
 
 class CustomerService {
   static Future<Customer> saveCustomer(Customer customer) async {

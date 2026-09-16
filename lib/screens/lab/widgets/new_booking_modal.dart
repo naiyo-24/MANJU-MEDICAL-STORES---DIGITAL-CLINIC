@@ -90,8 +90,27 @@ class _NewBookingModalState extends State<NewBookingModal> {
       return const SizedBox(height: 300, child: Center(child: CircularProgressIndicator(color: Color(0xFFEA580C))));
     }
 
+    final inputDecoration = InputDecoration(
+      filled: true,
+      fillColor: const Color(0xFFE5E7E2),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(4),
+        borderSide: const BorderSide(color: Colors.black26),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(4),
+        borderSide: const BorderSide(color: Colors.black26),
+      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      isDense: true,
+    );
+
     return Container(
       width: 800,
+      decoration: BoxDecoration(
+        color: const Color(0xFFEBECE7),
+        borderRadius: BorderRadius.circular(16),
+      ),
       padding: const EdgeInsets.all(32),
       child: Form(
         key: _formKey,
@@ -102,11 +121,11 @@ class _NewBookingModalState extends State<NewBookingModal> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('New Booking', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
-                IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(context, )),
+                const Text('New Booking', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600, color: Color(0xFF1E293B))),
+                IconButton(icon: const Icon(Icons.close, color: Color(0xFF64748B)), onPressed: () => Navigator.pop(context)),
               ],
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 32),
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -116,16 +135,16 @@ class _NewBookingModalState extends State<NewBookingModal> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('Patient Details', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                      const Text('Patient Details', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Color(0xFF1E293B))),
                       const SizedBox(height: 16),
                       TextFormField(
-                        decoration: const InputDecoration(labelText: 'Patient Name', border: OutlineInputBorder(), isDense: true),
+                        decoration: inputDecoration.copyWith(hintText: 'Patient Name'),
                         validator: (value) => value == null || value.isEmpty ? 'Required' : null,
                         onSaved: (value) => _patientName = value!,
                       ),
                       const SizedBox(height: 16),
                       TextFormField(
-                        decoration: const InputDecoration(labelText: 'Phone Number', border: OutlineInputBorder(), isDense: true),
+                        decoration: inputDecoration.copyWith(hintText: 'Phone Number'),
                         keyboardType: TextInputType.phone,
                         validator: (value) => value == null || value.isEmpty ? 'Required' : null,
                         onSaved: (value) => _patientPhone = value!,
@@ -135,7 +154,7 @@ class _NewBookingModalState extends State<NewBookingModal> {
                         children: [
                           Expanded(
                             child: TextFormField(
-                              decoration: const InputDecoration(labelText: 'Age', border: OutlineInputBorder(), isDense: true),
+                              decoration: inputDecoration.copyWith(hintText: 'Age'),
                               keyboardType: TextInputType.number,
                               validator: (value) => value == null || value.isEmpty ? 'Required' : null,
                               onSaved: (value) => _patientAge = value!,
@@ -143,11 +162,25 @@ class _NewBookingModalState extends State<NewBookingModal> {
                           ),
                           const SizedBox(width: 16),
                           Expanded(
-                            child: DropdownButtonFormField<String>(
-                              value: _patientGender,
-                              decoration: const InputDecoration(labelText: 'Gender', border: OutlineInputBorder(), isDense: true),
-                              items: ['Male', 'Female', 'Other'].map((g) => DropdownMenuItem(value: g, child: Text(g))).toList(),
-                              onChanged: (val) => setState(() => _patientGender = val!),
+                            child: Stack(
+                              clipBehavior: Clip.none,
+                              children: [
+                                DropdownButtonFormField<String>(
+                                  value: _patientGender,
+                                  decoration: inputDecoration.copyWith(contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10)),
+                                  items: ['Male', 'Female', 'Other'].map((g) => DropdownMenuItem(value: g, child: Text(g))).toList(),
+                                  onChanged: (val) => setState(() => _patientGender = val!),
+                                ),
+                                Positioned(
+                                  top: -8,
+                                  left: 12,
+                                  child: Container(
+                                    color: const Color(0xFFEBECE7),
+                                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                                    child: const Text('Gender', style: TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ],
@@ -162,20 +195,24 @@ class _NewBookingModalState extends State<NewBookingModal> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('Select Tests / Packages', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                      const Text('Select Tests / Packages', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Color(0xFF1E293B))),
                       const SizedBox(height: 16),
                       Container(
                         height: 250,
-                        decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE2E8F0)), borderRadius: BorderRadius.circular(8)),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF1F3ED),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
                         child: ListView(
+                          padding: const EdgeInsets.all(16),
                           children: [
                             if (_availablePackages.isNotEmpty) ...[
-                              const Padding(padding: EdgeInsets.all(8.0), child: Text('Packages', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFFEA580C)))),
-                              ..._availablePackages.map((p) => CheckboxListTile(
-                                activeColor: const Color(0xFFEA580C),
-                                title: Text(p.name, style: const TextStyle(fontWeight: FontWeight.w600)),
-                                subtitle: Text('₹${p.discountedPrice.toStringAsFixed(2)}'),
-                                value: _selectedPackageIds.contains(p.id),
+                              const Text('Packages', style: TextStyle(fontWeight: FontWeight.w600, color: Color(0xFFEA580C), fontSize: 14)),
+                              const SizedBox(height: 12),
+                              ..._availablePackages.map((p) => _buildSelectionItem(
+                                title: p.name,
+                                price: p.discountedPrice,
+                                isSelected: _selectedPackageIds.contains(p.id),
                                 onChanged: (val) {
                                   setState(() {
                                     if (val == true) _selectedPackageIds.add(p.id);
@@ -183,15 +220,15 @@ class _NewBookingModalState extends State<NewBookingModal> {
                                   });
                                 },
                               )),
-                              const Divider(height: 1),
+                              const SizedBox(height: 16),
                             ],
                             if (_availableTests.isNotEmpty) ...[
-                              const Padding(padding: EdgeInsets.all(8.0), child: Text('Individual Tests', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFFEA580C)))),
-                              ..._availableTests.map((t) => CheckboxListTile(
-                                activeColor: const Color(0xFFEA580C),
-                                title: Text(t.name, style: const TextStyle(fontWeight: FontWeight.w600)),
-                                subtitle: Text('₹${t.price.toStringAsFixed(2)}'),
-                                value: _selectedTestIds.contains(t.id),
+                              const Text('Individual Tests', style: TextStyle(fontWeight: FontWeight.w600, color: Color(0xFFEA580C), fontSize: 14)),
+                              const SizedBox(height: 12),
+                              ..._availableTests.map((t) => _buildSelectionItem(
+                                title: t.name,
+                                price: t.price,
+                                isSelected: _selectedTestIds.contains(t.id),
                                 onChanged: (val) {
                                   setState(() {
                                     if (val == true) _selectedTestIds.add(t.id);
@@ -203,9 +240,9 @@ class _NewBookingModalState extends State<NewBookingModal> {
                           ],
                         ),
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 24),
                       Container(
-                        padding: const EdgeInsets.all(16),
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
                         decoration: BoxDecoration(color: const Color(0xFFFFF7ED), borderRadius: BorderRadius.circular(8)),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -230,12 +267,47 @@ class _NewBookingModalState extends State<NewBookingModal> {
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  elevation: 0,
                 ),
                 child: const Text('Create Booking', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildSelectionItem({required String title, required double price, required bool isSelected, required Function(bool?) onChanged}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 15, color: Color(0xFF1E293B))),
+                const SizedBox(height: 2),
+                Text('₹${price.toStringAsFixed(2)}', style: const TextStyle(color: Color(0xFF64748B), fontSize: 13)),
+              ],
+            ),
+          ),
+          SizedBox(
+            width: 24,
+            height: 24,
+            child: Checkbox(
+              value: isSelected,
+              onChanged: onChanged,
+              activeColor: Colors.transparent,
+              checkColor: const Color(0xFF1E293B),
+              side: const BorderSide(color: Color(0xFF1E293B), width: 1.5),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(2)),
+            ),
+          ),
+        ],
       ),
     );
   }

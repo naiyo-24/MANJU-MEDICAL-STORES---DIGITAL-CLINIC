@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../models/crm_models.dart';
 import '../../services/crm_data_service.dart';
 import '../../providers/crm_provider.dart';
+import '../../providers/crm_providers.dart';
 
 class CrmPatientsScreen extends ConsumerStatefulWidget {
   const CrmPatientsScreen({super.key});
@@ -34,17 +35,10 @@ class _CrmPatientsScreenState extends ConsumerState<CrmPatientsScreen> {
 
   Future<void> _loadData() async {
     setState(() => _isLoading = true);
-    final patients = await CrmDataService.getPatients();
+    await ref.read(crmPatientsProvider.notifier).loadPatients();
     setState(() {
-      _patients = patients;
-      if (_patients.isNotEmpty) {
-        _selectedPatient = _patients.first;
-      }
       _isLoading = false;
     });
-    if (_selectedPatient != null) {
-      _loadNotes(_selectedPatient!.id);
-    }
   }
 
   Future<void> _loadNotes(String patientId) async {
@@ -88,6 +82,22 @@ class _CrmPatientsScreenState extends ConsumerState<CrmPatientsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final patientsAsync = ref.watch(crmPatientsProvider);
+    _patients = patientsAsync.value ?? [];
+    if (_patients.isNotEmpty && _selectedPatient == null) {
+      _selectedPatient = _patients.first;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+         _loadNotes(_selectedPatient!.id);
+      });
+    }
+
+    if (patientsAsync.isLoading) {
+      return const Scaffold(
+        backgroundColor: Color(0xFFF8FAFC),
+        body: Center(child: CircularProgressIndicator(color: Color(0xFF8B5CF6))),
+      );
+    }
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       body: _isLoading
@@ -242,7 +252,7 @@ class _CrmPatientsScreenState extends ConsumerState<CrmPatientsScreen> {
                       lastVisit: DateTime.now(),
                       status: 'New',
                     );
-                    await CrmDataService.addPatient(newPatient);
+                    await ref.read(crmPatientsProvider.notifier).addPatient(newPatient);
                     if (context.mounted) {
                       Navigator.pop(context);
                       _loadData();
@@ -338,7 +348,7 @@ class _CrmPatientsScreenState extends ConsumerState<CrmPatientsScreen> {
                       lastVisit: patient.lastVisit,
                       status: patient.status,
                     );
-                    await CrmDataService.updatePatient(updatedPatient);
+                    await ref.read(crmPatientsProvider.notifier).updatePatient(updatedPatient);
                     if (context.mounted) {
                       Navigator.pop(context);
                       _loadData();
@@ -366,7 +376,7 @@ class _CrmPatientsScreenState extends ConsumerState<CrmPatientsScreen> {
             TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
             ElevatedButton(
               onPressed: () async {
-                await CrmDataService.deletePatient(patient.id);
+                await ref.read(crmPatientsProvider.notifier).deletePatient(patient.id);
                 if (context.mounted) {
                   Navigator.pop(context);
                   if (_selectedPatient?.id == patient.id) {
