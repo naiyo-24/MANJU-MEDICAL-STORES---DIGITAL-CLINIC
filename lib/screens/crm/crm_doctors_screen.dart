@@ -42,7 +42,7 @@ class _CrmDoctorsScreenState extends State<CrmDoctorsScreen> {
                     padding: const EdgeInsets.all(24.0),
                     child: Column(
                       children: [
-                        _buildStatsRow(),
+                        _buildStatsRow(context),
                         const SizedBox(height: 24),
                         Expanded(child: _buildDataGrid()),
                       ],
@@ -99,20 +99,38 @@ class _CrmDoctorsScreenState extends State<CrmDoctorsScreen> {
     );
   }
 
-  Widget _buildStatsRow() {
-    return Row(
-      children: [
-        Expanded(child: _buildStatCard('Total Doctors', '24', Icons.group, const Color(0xFF8B5CF6))),
-        const SizedBox(width: 16),
-        Expanded(child: _buildStatCard('Active Doctors', '20', Icons.person, const Color(0xFF22C55E))),
-        const SizedBox(width: 16),
-        Expanded(child: _buildStatCard('On Leave', '3', Icons.person_off, const Color(0xFFEF4444))),
-        const SizedBox(width: 16),
-        Expanded(child: _buildStatCard('Inactive', '1', Icons.person_outline, const Color(0xFFF59E0B))),
-        const SizedBox(width: 16),
-        Expanded(child: _buildStatCard('Specializations', '8', Icons.medical_services_outlined, const Color(0xFF8B5CF6))),
-      ],
-    );
+  Widget _buildStatsRow(BuildContext context) {
+    bool isDesktop = MediaQuery.of(context).size.width > 1200;
+    return isDesktop
+      ? Row(
+          children: [
+            Expanded(child: _buildStatCard('Total Doctors', '24', Icons.group, const Color(0xFF8B5CF6))),
+            const SizedBox(width: 16),
+            Expanded(child: _buildStatCard('Active Doctors', '20', Icons.person, const Color(0xFF22C55E))),
+            const SizedBox(width: 16),
+            Expanded(child: _buildStatCard('On Leave', '3', Icons.person_off, const Color(0xFFEF4444))),
+            const SizedBox(width: 16),
+            Expanded(child: _buildStatCard('Inactive', '1', Icons.person_outline, const Color(0xFFF59E0B))),
+            const SizedBox(width: 16),
+            Expanded(child: _buildStatCard('Specializations', '8', Icons.medical_services_outlined, const Color(0xFF8B5CF6))),
+          ],
+        )
+      : SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: [
+              SizedBox(width: 250, child: _buildStatCard('Total Doctors', '24', Icons.group, const Color(0xFF8B5CF6))),
+              const SizedBox(width: 16),
+              SizedBox(width: 250, child: _buildStatCard('Active Doctors', '20', Icons.person, const Color(0xFF22C55E))),
+              const SizedBox(width: 16),
+              SizedBox(width: 250, child: _buildStatCard('On Leave', '3', Icons.person_off, const Color(0xFFEF4444))),
+              const SizedBox(width: 16),
+              SizedBox(width: 250, child: _buildStatCard('Inactive', '1', Icons.person_outline, const Color(0xFFF59E0B))),
+              const SizedBox(width: 16),
+              SizedBox(width: 250, child: _buildStatCard('Specializations', '8', Icons.medical_services_outlined, const Color(0xFF8B5CF6))),
+            ],
+          ),
+        );
   }
 
   Widget _buildStatCard(String title, String value, IconData icon, Color color) {
@@ -154,119 +172,140 @@ class _CrmDoctorsScreenState extends State<CrmDoctorsScreen> {
           // Toolbar
           Padding(
             padding: const EdgeInsets.all(16.0),
-            child: Row(
-              children: [
-                Expanded(
-                  flex: 3,
-                  child: Container(
-                    height: 40,
-                    decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE2E8F0)), borderRadius: BorderRadius.circular(8)),
-                    child: const TextField(decoration: InputDecoration(hintText: 'Search by name, phone, email or specialization...', prefixIcon: Icon(Icons.search, color: Color(0xFF94A3B8), size: 20), border: InputBorder.none, contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 10))),
-                  ),
+            child: LayoutBuilder(builder: (context, constraints) {
+              return SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    Container(
+                      width: 250,
+                      height: 40,
+                      decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE2E8F0)), borderRadius: BorderRadius.circular(8)),
+                      child: const TextField(decoration: InputDecoration(hintText: 'Search...', prefixIcon: Icon(Icons.search, color: Color(0xFF94A3B8), size: 20), border: InputBorder.none, contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 10))),
+                    ),
+                    const SizedBox(width: 16),
+                    SizedBox(width: 150, child: _buildDropdown('All Specializations')),
+                    const SizedBox(width: 16),
+                    SizedBox(width: 150, child: _buildDropdown('All Availability')),
+                    const SizedBox(width: 16),
+                    SizedBox(width: 150, child: _buildDropdown('All Status')),
+                    const SizedBox(width: 16),
+                    Container(
+                      height: 40,
+                      decoration: BoxDecoration(color: const Color(0xFFF3E8FF), borderRadius: BorderRadius.circular(8)),
+                      child: TextButton(onPressed: () {}, child: const Text('Reset', style: TextStyle(color: Color(0xFF8B5CF6), fontWeight: FontWeight.w600))),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 16),
-                Expanded(flex: 2, child: _buildDropdown('All Specializations')),
-                const SizedBox(width: 16),
-                Expanded(flex: 2, child: _buildDropdown('All Availability')),
-                const SizedBox(width: 16),
-                Expanded(flex: 2, child: _buildDropdown('All Status')),
-                const SizedBox(width: 16),
-                Container(
-                  height: 40,
-                  decoration: BoxDecoration(color: const Color(0xFFF3E8FF), borderRadius: BorderRadius.circular(8)),
-                  child: TextButton(onPressed: () {}, child: const Text('Reset', style: TextStyle(color: Color(0xFF8B5CF6), fontWeight: FontWeight.w600))),
-                ),
-              ],
-            ),
+              );
+            }),
           ),
           
-          // Table Header
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            color: const Color(0xFFF8FAFC),
-            child: Row(
-              children: [
-                const SizedBox(width: 32, child: Icon(Icons.check_box_outline_blank, color: Color(0xFFCBD5E1), size: 18)),
-                const SizedBox(width: 32, child: Text('#', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E293B), fontSize: 12))),
-                const Expanded(flex: 3, child: Text('Doctor Name', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E293B), fontSize: 12))),
-                const Expanded(flex: 2, child: Text('Specialization', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E293B), fontSize: 12))),
-                const Expanded(flex: 1, child: Text('Phone', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E293B), fontSize: 12))),
-                const Expanded(flex: 2, child: Text('Email', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E293B), fontSize: 12))),
-                const Expanded(flex: 1, child: Text('Consultation Fee', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E293B), fontSize: 12))),
-                const Expanded(flex: 2, child: Text('Availability', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E293B), fontSize: 12))),
-                const Expanded(flex: 1, child: Text('Status', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E293B), fontSize: 12))),
-                const SizedBox(width: 120, child: Text('Action', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E293B), fontSize: 12), textAlign: TextAlign.center)),
-              ],
-            ),
-          ),
-          
-          // Table Body
+          // Table Section
           Expanded(
-            child: ListView.separated(
-              itemCount: _doctors.length,
-              separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFF1F5F9)),
-              itemBuilder: (context, index) {
-                final doc = _doctors[index];
-                return Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  child: Row(
+            child: LayoutBuilder(builder: (context, constraints) {
+              return SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minWidth: 1200,
+                    maxWidth: constraints.maxWidth > 1200 ? constraints.maxWidth : 1200,
+                  ),
+                  child: Column(
                     children: [
-                      const SizedBox(width: 32, child: Icon(Icons.check_box_outline_blank, color: Color(0xFFCBD5E1), size: 18)),
-                      SizedBox(width: 32, child: Text('${index + 1}', style: const TextStyle(color: Color(0xFF1E3A8A), fontWeight: FontWeight.bold, fontSize: 13))),
-                      Expanded(
-                        flex: 3,
+                      // Table Header
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        color: const Color(0xFFF8FAFC),
                         child: Row(
                           children: [
-                            CircleAvatar(
-                              radius: 16,
-                              backgroundColor: const Color(0xFFF1F5F9),
-                              child: ClipOval(child: Image.network(doc.avatarUrl, width: 32, height: 32, fit: BoxFit.cover, errorBuilder: (c, e, s) => const Icon(Icons.person, color: Color(0xFF94A3B8)))),
-                            ),
-                            const SizedBox(width: 12),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(doc.name, style: const TextStyle(color: Color(0xFF1E3A8A), fontWeight: FontWeight.bold, fontSize: 13)),
-                                Text(doc.id, style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 11)),
-                              ],
-                            ),
+                            const SizedBox(width: 32, child: Icon(Icons.check_box_outline_blank, color: Color(0xFFCBD5E1), size: 18)),
+                            const SizedBox(width: 32, child: Text('#', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E293B), fontSize: 12))),
+                            const Expanded(flex: 3, child: Text('Doctor Name', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E293B), fontSize: 12))),
+                            const Expanded(flex: 2, child: Text('Specialization', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E293B), fontSize: 12))),
+                            const Expanded(flex: 1, child: Text('Phone', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E293B), fontSize: 12))),
+                            const Expanded(flex: 2, child: Text('Email', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E293B), fontSize: 12))),
+                            const Expanded(flex: 1, child: Text('Consultation Fee', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E293B), fontSize: 12))),
+                            const Expanded(flex: 2, child: Text('Availability', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E293B), fontSize: 12))),
+                            const Expanded(flex: 1, child: Text('Status', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E293B), fontSize: 12))),
+                            const SizedBox(width: 120, child: Text('Action', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E293B), fontSize: 12), textAlign: TextAlign.center)),
                           ],
                         ),
                       ),
-                      Expanded(flex: 2, child: Text(doc.specialization, style: const TextStyle(color: Color(0xFF1E3A8A), fontSize: 12, fontWeight: FontWeight.w500))),
-                      Expanded(flex: 1, child: Text(doc.phone, style: const TextStyle(color: Color(0xFF1E3A8A), fontSize: 12))),
-                      Expanded(flex: 2, child: Text(doc.email, style: const TextStyle(color: Color(0xFF1E3A8A), fontSize: 12))),
-                      Expanded(flex: 1, child: Text(doc.consultationFee, style: const TextStyle(color: Color(0xFF1E3A8A), fontSize: 12))),
+                      
+                      // Table Body
                       Expanded(
-                        flex: 2,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(doc.availabilityDays, style: const TextStyle(color: Color(0xFF1E3A8A), fontSize: 12)),
-                            Text(doc.availabilityTime, style: const TextStyle(color: Color(0xFF64748B), fontSize: 11)),
-                          ],
-                        ),
-                      ),
-                      Expanded(flex: 1, child: Align(alignment: Alignment.centerLeft, child: _buildStatusPill(doc.status))),
-                      SizedBox(
-                        width: 120,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            _buildActionIcon(Icons.visibility_outlined, const Color(0xFF3B82F6)),
-                            const SizedBox(width: 8),
-                            _buildActionIcon(Icons.edit_outlined, const Color(0xFF8B5CF6)),
-                            const SizedBox(width: 8),
-                            _buildActionIcon(Icons.more_vert, const Color(0xFF94A3B8)),
-                          ],
+                        child: ListView.separated(
+                          itemCount: _doctors.length,
+                          separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                          itemBuilder: (context, index) {
+                            final doc = _doctors[index];
+                            return Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                              child: Row(
+                                children: [
+                                  const SizedBox(width: 32, child: Icon(Icons.check_box_outline_blank, color: Color(0xFFCBD5E1), size: 18)),
+                                  SizedBox(width: 32, child: Text('${index + 1}', style: const TextStyle(color: Color(0xFF1E3A8A), fontWeight: FontWeight.bold, fontSize: 13))),
+                                  Expanded(
+                                    flex: 3,
+                                    child: Row(
+                                      children: [
+                                        CircleAvatar(
+                                          radius: 16,
+                                          backgroundColor: const Color(0xFFF1F5F9),
+                                          child: ClipOval(child: Image.network(doc.avatarUrl, width: 32, height: 32, fit: BoxFit.cover, errorBuilder: (c, e, s) => const Icon(Icons.person, color: Color(0xFF94A3B8)))),
+                                        ),
+                                        const SizedBox(width: 12),
+                                        Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(doc.name, style: const TextStyle(color: Color(0xFF1E3A8A), fontWeight: FontWeight.bold, fontSize: 13)),
+                                            Text(doc.id, style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 11)),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Expanded(flex: 2, child: Text(doc.specialization, style: const TextStyle(color: Color(0xFF1E3A8A), fontSize: 12, fontWeight: FontWeight.w500))),
+                                  Expanded(flex: 1, child: Text(doc.phone, style: const TextStyle(color: Color(0xFF1E3A8A), fontSize: 12))),
+                                  Expanded(flex: 2, child: Text(doc.email, style: const TextStyle(color: Color(0xFF1E3A8A), fontSize: 12))),
+                                  Expanded(flex: 1, child: Text(doc.consultationFee, style: const TextStyle(color: Color(0xFF1E3A8A), fontSize: 12))),
+                                  Expanded(
+                                    flex: 2,
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Text(doc.availabilityDays, style: const TextStyle(color: Color(0xFF1E3A8A), fontSize: 12)),
+                                        Text(doc.availabilityTime, style: const TextStyle(color: Color(0xFF64748B), fontSize: 11)),
+                                      ],
+                                    ),
+                                  ),
+                                  Expanded(flex: 1, child: Align(alignment: Alignment.centerLeft, child: _buildStatusPill(doc.status))),
+                                  SizedBox(
+                                    width: 120,
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        _buildActionIcon(Icons.visibility_outlined, const Color(0xFF3B82F6)),
+                                        const SizedBox(width: 8),
+                                        _buildActionIcon(Icons.edit_outlined, const Color(0xFF8B5CF6)),
+                                        const SizedBox(width: 8),
+                                        _buildActionIcon(Icons.more_vert, const Color(0xFF94A3B8)),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
                         ),
                       ),
                     ],
                   ),
-                );
-              },
-            ),
+                ),
+              );
+            }),
           ),
           
           // Pagination

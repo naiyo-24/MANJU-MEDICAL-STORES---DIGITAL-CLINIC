@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../utils/responsive.dart';
 
 class LabDashboard extends StatefulWidget {
   final StatefulNavigationShell navigationShell;
@@ -11,24 +12,32 @@ class LabDashboard extends StatefulWidget {
 }
 
 class _LabDashboardState extends State<LabDashboard> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
   void _onNavigationItemSelected(int index) {
     widget.navigationShell.goBranch(
       index,
       initialLocation: index == widget.navigationShell.currentIndex,
     );
+    if (!Responsive.isDesktop(context)) {
+      Navigator.pop(context); // Close drawer
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    bool isDesktop = Responsive.isDesktop(context);
     return Scaffold(
+      key: _scaffoldKey,
       backgroundColor: const Color(0xFFF8FAFC),
+      drawer: isDesktop ? null : Drawer(child: _buildSidebar()),
       body: Column(
         children: [
-          _buildHeader(), // Global Top App Bar
+          _buildHeader(isDesktop), // Global Top App Bar
           Expanded(
             child: Row(
               children: [
-                _buildSidebar(),
+                if (isDesktop) _buildSidebar(),
                 Expanded(
                   child: ClipRRect(
                     // Ensure content doesn't bleed out
@@ -124,7 +133,7 @@ class _LabDashboardState extends State<LabDashboard> {
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(bool isDesktop) {
     return Container(
       height: 70,
       padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -134,6 +143,13 @@ class _LabDashboardState extends State<LabDashboard> {
       ),
       child: Row(
         children: [
+          if (!isDesktop) ...[
+            IconButton(
+              icon: const Icon(Icons.menu),
+              onPressed: () => _scaffoldKey.currentState?.openDrawer(),
+            ),
+            const SizedBox(width: 16),
+          ],
           // Logo & Brand
           Row(
             children: [

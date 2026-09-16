@@ -74,7 +74,7 @@ class DashboardScreen extends StatelessWidget {
                         ),
                       ],
                     ),
-                    const Spacer(),
+                    const SizedBox(height: 32),
                     Text(
                       title,
                       style: const TextStyle(
@@ -307,125 +307,121 @@ class DashboardScreen extends StatelessWidget {
                     ),
 
                     Expanded(
-                      child: Padding(
-                        padding: EdgeInsets.symmetric(horizontal: isWeb ? 64.0 : 24.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            SizedBox(height: isWeb ? 40 : 20),
-                            // Header Text
-                            const Text(
-                              'WELCOME BACK!',
-                              style: TextStyle(
-                                color: Color(0xFF64748B),
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 2,
-                                fontSize: 12,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            RichText(
-                              text: const TextSpan(
+                      child: SingleChildScrollView(
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(horizontal: isWeb ? 64.0 : 24.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              SizedBox(height: isWeb ? 40 : 20),
+                              // Header Text
+                              const Text(
+                                'WELCOME BACK!',
                                 style: TextStyle(
-                                  fontSize: 48,
-                                  fontWeight: FontWeight.w900,
-                                  color: Color(0xFF1E293B),
-                                  letterSpacing: -1,
+                                  color: Color(0xFF64748B),
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 2,
+                                  fontSize: 12,
                                 ),
-                                children: [
-                                  TextSpan(text: 'Select a '),
-                                  TextSpan(
-                                    text: 'Module',
-                                    style: TextStyle(color: Color(0xFF166534)),
+                              ),
+                              const SizedBox(height: 8),
+                              RichText(
+                                text: const TextSpan(
+                                  style: TextStyle(
+                                    fontSize: 48,
+                                    fontWeight: FontWeight.w900,
+                                    color: Color(0xFF1E293B),
+                                    letterSpacing: -1,
                                   ),
-                                ],
+                                  children: [
+                                    TextSpan(text: 'Select a '),
+                                    TextSpan(
+                                      text: 'Module',
+                                      style: TextStyle(color: Color(0xFF166534)),
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 16),
-                            const Text(
-                              'Choose a module to continue and manage your services',
-                              style: TextStyle(
-                                color: Color(0xFF64748B),
-                                fontSize: 16,
+                              const SizedBox(height: 16),
+                              const Text(
+                                'Choose a module to continue and manage your services',
+                                style: TextStyle(
+                                  color: Color(0xFF64748B),
+                                  fontSize: 16,
+                                ),
                               ),
-                            ),
-                            SizedBox(height: isWeb ? 64 : 32),
+                              SizedBox(height: isWeb ? 64 : 32),
 
-                            // Cards
-                            SizedBox(
-                              height: 320,
-                              child: isWeb
-                                  ? Center(
-                                      child: Row(
-                                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                                        children: [
-                                          Expanded(
-                                            child: _buildDashboardCard(
-                                              context: context,
-                                              number: '01',
-                                              title: 'Counter',
-                                              description: 'Manage sales, billing, inventory and pharmacy counter operations.',
-                                              icon: Icons.point_of_sale_rounded,
-                                              primaryColor: const Color(0xFF22C55E),
-                                              nextRoute: '/counter/inventory',
+                              // Cards
+                              isWeb
+                                  ? IntrinsicHeight(
+                                      child: Center(
+                                        child: Row(
+                                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                                          children: [
+                                            Expanded(
+                                              child: _buildDashboardCard(
+                                                context: context,
+                                                number: '01',
+                                                title: 'Counter',
+                                                description: 'Manage sales, billing, inventory and pharmacy counter operations.',
+                                                icon: Icons.point_of_sale_rounded,
+                                                primaryColor: const Color(0xFF22C55E),
+                                                nextRoute: '/counter/inventory',
+                                              ),
                                             ),
-                                          ),
-                                          const SizedBox(width: 32),
-                                          Expanded(
-                                            child: _buildDashboardCard(
-                                              context: context,
-                                              number: '02',
-                                              title: 'Lab Test',
-                                              description: 'Manage lab test bookings, reports and patient records.',
-                                              icon: Icons.science_rounded,
-                                              primaryColor: const Color(0xFFF97316),
-                                              nextRoute: '/lab/dashboard',
+                                            const SizedBox(width: 32),
+                                            Expanded(
+                                              child: _buildDashboardCard(
+                                                context: context,
+                                                number: '02',
+                                                title: 'Lab Test',
+                                                description: 'Manage lab test bookings, reports and patient records.',
+                                                icon: Icons.science_rounded,
+                                                primaryColor: const Color(0xFFF97316),
+                                                nextRoute: '/lab/dashboard',
+                                              ),
                                             ),
-                                          ),
-                                          const SizedBox(width: 32),
-                                          Expanded(
-                                            child: _buildDashboardCard(
-                                              context: context,
-                                              number: '03',
-                                              title: 'CRM',
-                                              description: 'Manage patients, follow-ups and customer relationships.',
-                                              icon: Icons.people_alt_rounded,
-                                              primaryColor: const Color(0xFF8B5CF6),
-                                              nextRoute: '/crm/dashboard',
+                                            const SizedBox(width: 32),
+                                            Expanded(
+                                              child: _buildDashboardCard(
+                                                context: context,
+                                                number: '03',
+                                                title: 'CRM',
+                                                description: 'Manage patients, follow-ups and customer relationships.',
+                                                icon: Icons.people_alt_rounded,
+                                                primaryColor: const Color(0xFF8B5CF6),
+                                                nextRoute: '/crm/dashboard',
+                                              ),
                                             ),
-                                          ),
-                                        ],
+                                          ],
+                                        ),
                                       ),
                                     )
                                   : Column(
                                       crossAxisAlignment: CrossAxisAlignment.stretch,
                                       children: [
-                                        Expanded(
-                                          child: _buildDashboardCard(
-                                            context: context,
-                                            number: '01',
-                                            title: 'Counter',
-                                            description: 'Manage sales, billing, inventory.',
-                                            icon: Icons.point_of_sale_rounded,
-                                            primaryColor: const Color(0xFF22C55E),
-                                            nextRoute: '/counter/inventory',
-                                          ),
+                                        _buildDashboardCard(
+                                          context: context,
+                                          number: '01',
+                                          title: 'Counter',
+                                          description: 'Manage sales, billing, inventory.',
+                                          icon: Icons.point_of_sale_rounded,
+                                          primaryColor: const Color(0xFF22C55E),
+                                          nextRoute: '/counter/inventory',
                                         ),
                                         const SizedBox(height: 16),
-                                        Expanded(
-                                          child: _buildDashboardCard(
-                                            context: context,
-                                            number: '02',
-                                            title: 'Lab Test',
-                                            description: 'Manage lab test bookings, reports.',
-                                            icon: Icons.science_rounded,
-                                            primaryColor: const Color(0xFFF97316),
-                                            nextRoute: '/lab/dashboard',
-                                          ),
+                                        _buildDashboardCard(
+                                          context: context,
+                                          number: '02',
+                                          title: 'Lab Test',
+                                          description: 'Manage lab test bookings, reports.',
+                                          icon: Icons.science_rounded,
+                                          primaryColor: const Color(0xFFF97316),
+                                          nextRoute: '/lab/dashboard',
                                         ),
                                         const SizedBox(height: 16),
-                                        Expanded(
-                                          child: _buildDashboardCard(
+                                        _buildDashboardCard(
                                             context: context,
                                             number: '03',
                                             title: 'CRM',
@@ -434,11 +430,9 @@ class DashboardScreen extends StatelessWidget {
                                             primaryColor: const Color(0xFF8B5CF6),
                                             nextRoute: '/crm/dashboard',
                                           ),
-                                        ),
                                       ],
                                     ),
-                            ),
-                            SizedBox(height: isWeb ? 40 : 20),
+                              SizedBox(height: isWeb ? 40 : 20),
                             
                             // Bottom Features Bar
                             if (isWeb)
@@ -459,6 +453,7 @@ class DashboardScreen extends StatelessWidget {
                         ),
                       ),
                     ),
+                  ),
                     
                     // Footer
                     if (isWeb)

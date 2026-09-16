@@ -33,17 +33,30 @@ class _CrmSendToLabScreenState extends State<CrmSendToLabScreen> {
         children: [
           _buildHeader(),
           Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(flex: 5, child: _buildLeftPane()),
-                  const SizedBox(width: 24),
-                  Expanded(flex: 4, child: _buildRightPane()),
-                ],
-              ),
-            ),
+            child: LayoutBuilder(builder: (context, constraints) {
+              bool isDesktop = constraints.maxWidth > 1000;
+              return Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: isDesktop 
+                  ? Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(flex: 5, child: _buildLeftPane()),
+                        const SizedBox(width: 24),
+                        Expanded(flex: 4, child: _buildRightPane()),
+                      ],
+                    )
+                  : SingleChildScrollView(
+                      child: Column(
+                        children: [
+                          _buildLeftPane(),
+                          const SizedBox(height: 24),
+                          _buildRightPane(),
+                        ],
+                      ),
+                    ),
+              );
+            }),
           ),
         ],
       ),
@@ -186,111 +199,133 @@ class _CrmSendToLabScreenState extends State<CrmSendToLabScreen> {
                   const SizedBox(height: 16),
                   
                   // Catalog Table
-                  Container(
-                    decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE2E8F0)), borderRadius: BorderRadius.circular(8)),
-                    child: Column(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                          decoration: const BoxDecoration(color: Color(0xFFF8FAFC), borderRadius: BorderRadius.vertical(top: Radius.circular(8)), border: Border(bottom: BorderSide(color: Color(0xFFE2E8F0)))),
-                          child: Row(
-                            children: const [
-                              SizedBox(width: 32),
-                              SizedBox(width: 32, child: Text('#', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E3A8A), fontSize: 13))),
-                              Expanded(flex: 3, child: Text('Test Name', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E3A8A), fontSize: 13))),
-                              Expanded(flex: 1, child: Text('Test Code', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E3A8A), fontSize: 13))),
-                              Expanded(flex: 1, child: Text('Price (₹)', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E3A8A), fontSize: 13), textAlign: TextAlign.right)),
-                              SizedBox(width: 60, child: Text('Action', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E3A8A), fontSize: 13), textAlign: TextAlign.center)),
+                  LayoutBuilder(builder: (context, constraints) {
+                    return SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          minWidth: 800,
+                          maxWidth: constraints.maxWidth > 800 ? constraints.maxWidth : 800,
+                        ),
+                        child: Container(
+                          decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE2E8F0)), borderRadius: BorderRadius.circular(8)),
+                          child: Column(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                                decoration: const BoxDecoration(color: Color(0xFFF8FAFC), borderRadius: BorderRadius.vertical(top: Radius.circular(8)), border: Border(bottom: BorderSide(color: Color(0xFFE2E8F0)))),
+                                child: Row(
+                                  children: const [
+                                    SizedBox(width: 32),
+                                    SizedBox(width: 32, child: Text('#', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E3A8A), fontSize: 13))),
+                                    Expanded(flex: 3, child: Text('Test Name', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E3A8A), fontSize: 13))),
+                                    Expanded(flex: 1, child: Text('Test Code', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E3A8A), fontSize: 13))),
+                                    Expanded(flex: 1, child: Text('Price (₹)', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E3A8A), fontSize: 13), textAlign: TextAlign.right)),
+                                    SizedBox(width: 60, child: Text('Action', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E3A8A), fontSize: 13), textAlign: TextAlign.center)),
+                                  ],
+                                ),
+                              ),
+                              ..._catalog.asMap().entries.map((entry) {
+                                final i = entry.key;
+                                final test = entry.value;
+                                final isSelected = _selectedTests.any((t) => t.code == test.code);
+                                return Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                                  decoration: BoxDecoration(border: Border(bottom: BorderSide(color: i == _catalog.length - 1 ? Colors.transparent : const Color(0xFFE2E8F0)))),
+                                  child: Row(
+                                    children: [
+                                      SizedBox(
+                                        width: 32,
+                                        child: Icon(
+                                          isSelected ? Icons.check_box : Icons.check_box_outline_blank,
+                                          color: isSelected ? const Color(0xFF8B5CF6) : const Color(0xFFCBD5E1),
+                                          size: 18,
+                                        ),
+                                      ),
+                                      SizedBox(width: 32, child: Text('${i + 1}', style: const TextStyle(color: Color(0xFF1E3A8A), fontSize: 13))),
+                                      Expanded(flex: 3, child: Text(test.name, style: const TextStyle(color: Color(0xFF1E293B), fontSize: 13))),
+                                      Expanded(flex: 1, child: Text(test.code, style: const TextStyle(color: Color(0xFF64748B), fontSize: 13))),
+                                      Expanded(flex: 1, child: Text(test.price.toStringAsFixed(2), style: const TextStyle(color: Color(0xFF1E293B), fontSize: 13), textAlign: TextAlign.right)),
+                                      SizedBox(
+                                        width: 60,
+                                        child: Center(
+                                          child: Container(
+                                            padding: const EdgeInsets.all(4),
+                                            decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE2E8F0)), borderRadius: BorderRadius.circular(4)),
+                                            child: const Icon(Icons.add, size: 14, color: Color(0xFF8B5CF6)),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              }),
                             ],
                           ),
                         ),
-                        ..._catalog.asMap().entries.map((entry) {
-                          final i = entry.key;
-                          final test = entry.value;
-                          final isSelected = _selectedTests.any((t) => t.code == test.code);
-                          return Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                            decoration: BoxDecoration(border: Border(bottom: BorderSide(color: i == _catalog.length - 1 ? Colors.transparent : const Color(0xFFE2E8F0)))),
-                            child: Row(
-                              children: [
-                                SizedBox(
-                                  width: 32,
-                                  child: Icon(
-                                    isSelected ? Icons.check_box : Icons.check_box_outline_blank,
-                                    color: isSelected ? const Color(0xFF8B5CF6) : const Color(0xFFCBD5E1),
-                                    size: 18,
-                                  ),
-                                ),
-                                SizedBox(width: 32, child: Text('${i + 1}', style: const TextStyle(color: Color(0xFF1E3A8A), fontSize: 13))),
-                                Expanded(flex: 3, child: Text(test.name, style: const TextStyle(color: Color(0xFF1E293B), fontSize: 13))),
-                                Expanded(flex: 1, child: Text(test.code, style: const TextStyle(color: Color(0xFF64748B), fontSize: 13))),
-                                Expanded(flex: 1, child: Text(test.price.toStringAsFixed(2), style: const TextStyle(color: Color(0xFF1E293B), fontSize: 13), textAlign: TextAlign.right)),
-                                SizedBox(
-                                  width: 60,
-                                  child: Center(
-                                    child: Container(
-                                      padding: const EdgeInsets.all(4),
-                                      decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE2E8F0)), borderRadius: BorderRadius.circular(4)),
-                                      child: const Icon(Icons.add, size: 14, color: Color(0xFF8B5CF6)),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        }),
-                      ],
-                    ),
-                  ),
+                      ),
+                    );
+                  }),
                   const SizedBox(height: 32),
                   
                   // Selected Tests
                   const Text('Selected Tests (3)', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF1E3A8A))),
                   const SizedBox(height: 16),
-                  Container(
-                    decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE2E8F0)), borderRadius: BorderRadius.circular(8)),
-                    child: Column(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                          decoration: const BoxDecoration(color: Color(0xFFF8FAFC), borderRadius: BorderRadius.vertical(top: Radius.circular(8)), border: Border(bottom: BorderSide(color: Color(0xFFE2E8F0)))),
-                          child: Row(
-                            children: const [
-                              SizedBox(width: 32, child: Text('#', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E3A8A), fontSize: 13))),
-                              Expanded(flex: 3, child: Text('Test Name', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E3A8A), fontSize: 13))),
-                              Expanded(flex: 1, child: Text('Test Code', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E3A8A), fontSize: 13))),
-                              Expanded(flex: 2, child: Text('Sample Type', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E3A8A), fontSize: 13))),
-                              Expanded(flex: 1, child: Text('Amount (₹)', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E3A8A), fontSize: 13), textAlign: TextAlign.right)),
-                              SizedBox(width: 60, child: Text('Action', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E3A8A), fontSize: 13), textAlign: TextAlign.center)),
+                  LayoutBuilder(builder: (context, constraints) {
+                    return SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          minWidth: 800,
+                          maxWidth: constraints.maxWidth > 800 ? constraints.maxWidth : 800,
+                        ),
+                        child: Container(
+                          decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE2E8F0)), borderRadius: BorderRadius.circular(8)),
+                          child: Column(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                                decoration: const BoxDecoration(color: Color(0xFFF8FAFC), borderRadius: BorderRadius.vertical(top: Radius.circular(8)), border: Border(bottom: BorderSide(color: Color(0xFFE2E8F0)))),
+                                child: Row(
+                                  children: const [
+                                    SizedBox(width: 32, child: Text('#', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E3A8A), fontSize: 13))),
+                                    Expanded(flex: 3, child: Text('Test Name', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E3A8A), fontSize: 13))),
+                                    Expanded(flex: 1, child: Text('Test Code', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E3A8A), fontSize: 13))),
+                                    Expanded(flex: 2, child: Text('Sample Type', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E3A8A), fontSize: 13))),
+                                    Expanded(flex: 1, child: Text('Amount (₹)', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E3A8A), fontSize: 13), textAlign: TextAlign.right)),
+                                    SizedBox(width: 60, child: Text('Action', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E3A8A), fontSize: 13), textAlign: TextAlign.center)),
+                                  ],
+                                ),
+                              ),
+                              ..._selectedTests.asMap().entries.map((entry) {
+                                final i = entry.key;
+                                final test = entry.value;
+                                return Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                                  decoration: BoxDecoration(border: Border(bottom: BorderSide(color: i == _selectedTests.length - 1 ? Colors.transparent : const Color(0xFFE2E8F0)))),
+                                  child: Row(
+                                    children: [
+                                      SizedBox(width: 32, child: Text('${i + 1}', style: const TextStyle(color: Color(0xFF1E3A8A), fontSize: 13))),
+                                      Expanded(flex: 3, child: Text(test.name, style: const TextStyle(color: Color(0xFF1E293B), fontSize: 13))),
+                                      Expanded(flex: 1, child: Text(test.code, style: const TextStyle(color: Color(0xFF64748B), fontSize: 13))),
+                                      Expanded(flex: 2, child: Text(test.sampleType, style: const TextStyle(color: Color(0xFF1E293B), fontSize: 13))),
+                                      Expanded(flex: 1, child: Text(test.price.toStringAsFixed(2), style: const TextStyle(color: Color(0xFF1E293B), fontSize: 13), textAlign: TextAlign.right)),
+                                      SizedBox(
+                                        width: 60,
+                                        child: Center(
+                                          child: const Icon(Icons.delete, size: 18, color: Color(0xFFEF4444)),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              }),
                             ],
                           ),
                         ),
-                        ..._selectedTests.asMap().entries.map((entry) {
-                          final i = entry.key;
-                          final test = entry.value;
-                          return Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                            decoration: BoxDecoration(border: Border(bottom: BorderSide(color: i == _selectedTests.length - 1 ? Colors.transparent : const Color(0xFFE2E8F0)))),
-                            child: Row(
-                              children: [
-                                SizedBox(width: 32, child: Text('${i + 1}', style: const TextStyle(color: Color(0xFF1E3A8A), fontSize: 13))),
-                                Expanded(flex: 3, child: Text(test.name, style: const TextStyle(color: Color(0xFF1E293B), fontSize: 13))),
-                                Expanded(flex: 1, child: Text(test.code, style: const TextStyle(color: Color(0xFF64748B), fontSize: 13))),
-                                Expanded(flex: 2, child: Text(test.sampleType, style: const TextStyle(color: Color(0xFF1E293B), fontSize: 13))),
-                                Expanded(flex: 1, child: Text(test.price.toStringAsFixed(2), style: const TextStyle(color: Color(0xFF1E293B), fontSize: 13), textAlign: TextAlign.right)),
-                                SizedBox(
-                                  width: 60,
-                                  child: Center(
-                                    child: const Icon(Icons.delete, size: 18, color: Color(0xFFEF4444)),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        }),
-                      ],
-                    ),
-                  ),
+                      ),
+                    );
+                  }),
                   const SizedBox(height: 32),
                   const Divider(color: Color(0xFFE2E8F0)),
                   const SizedBox(height: 32),

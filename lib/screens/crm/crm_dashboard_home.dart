@@ -86,17 +86,38 @@ class CrmDashboardHome extends StatelessWidget {
   }
 
   Widget _buildStatsRow() {
-    return Row(
-      children: [
-        Expanded(child: _buildStatCard('Total Patients', '1,248', Icons.people, const Color(0xFF8B5CF6), '12%')),
-        const SizedBox(width: 16),
-        Expanded(child: _buildStatCard('Appointments', '320', Icons.calendar_month, const Color(0xFF22C55E), '18%')),
-        const SizedBox(width: 16),
-        Expanded(child: _buildStatCard('Prescriptions', '286', Icons.edit_document, const Color(0xFFEC4899), '22%')),
-        const SizedBox(width: 16),
-        Expanded(child: _buildStatCard('Online Orders', '124', Icons.shopping_cart, const Color(0xFF3B82F6), '15%')),
-      ],
-    );
+    return LayoutBuilder(builder: (context, constraints) {
+      bool isDesktop = constraints.maxWidth > 800;
+      return isDesktop
+        ? Row(
+            children: [
+              Expanded(child: _buildStatCard('Total Patients', '1,248', Icons.people, const Color(0xFF8B5CF6), '12%')),
+              const SizedBox(width: 16),
+              Expanded(child: _buildStatCard('Appointments', '320', Icons.calendar_month, const Color(0xFF22C55E), '18%')),
+              const SizedBox(width: 16),
+              Expanded(child: _buildStatCard('Prescriptions', '286', Icons.edit_document, const Color(0xFFEC4899), '22%')),
+              const SizedBox(width: 16),
+              Expanded(child: _buildStatCard('Online Orders', '124', Icons.shopping_cart, const Color(0xFF3B82F6), '15%')),
+            ],
+          )
+        : SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minWidth: 1000),
+              child: Row(
+                children: [
+                  Expanded(child: _buildStatCard('Total Patients', '1,248', Icons.people, const Color(0xFF8B5CF6), '12%')),
+                  const SizedBox(width: 16),
+                  Expanded(child: _buildStatCard('Appointments', '320', Icons.calendar_month, const Color(0xFF22C55E), '18%')),
+                  const SizedBox(width: 16),
+                  Expanded(child: _buildStatCard('Prescriptions', '286', Icons.edit_document, const Color(0xFFEC4899), '22%')),
+                  const SizedBox(width: 16),
+                  Expanded(child: _buildStatCard('Online Orders', '124', Icons.shopping_cart, const Color(0xFF3B82F6), '15%')),
+                ],
+              ),
+            ),
+          );
+    });
   }
 
   Widget _buildStatCard(String title, String value, IconData icon, Color color, String increase) {
@@ -151,26 +172,35 @@ class CrmDashboardHome extends StatelessWidget {
   }
 
   Widget _buildQuickActionsGrid(BuildContext context) {
-    return GridView.count(
-      crossAxisCount: 3,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      crossAxisSpacing: 16,
-      mainAxisSpacing: 16,
-      childAspectRatio: 3.5, // Wide cards
-      children: [
-        _buildActionCard(context, 'Patient Management', 'Add, view and manage patient records', Icons.people, const Color(0xFF8B5CF6), '/crm/patients'),
-        _buildActionCard(context, 'Appointment Management', 'Schedule and manage doctor appointments', Icons.calendar_month, const Color(0xFF22C55E), '/crm/appointments'),
-        _buildActionCard(context, 'Prescription Generation', 'Create and manage digital prescriptions', Icons.edit_document, const Color(0xFFEC4899), '/crm/prescriptions'),
-        
-        _buildActionCard(context, 'Doctor Inventory', 'Manage doctor stocks and supplies', Icons.medical_services, const Color(0xFF3B82F6), '/crm/doctors'),
-        _buildActionCard(context, 'Payment Receipt', 'Generate payment receipts (Cash/UPI/Card)', Icons.receipt_long, const Color(0xFFEAB308), '/crm/payment_receipt'),
-        _buildActionCard(context, 'Payment History', 'View all payment transactions', Icons.history, const Color(0xFF8B5CF6), '/crm/payment_history'),
-        
-        _buildActionCard(context, 'Lab Test Billing', 'Create lab test bills from CRM', Icons.science, const Color(0xFFEF4444), '/crm/lab_billing'),
-        _buildActionCard(context, 'Send to Lab', 'Send test orders to lab and track status', Icons.send, const Color(0xFF3B82F6), '/crm/send_to_lab'),
-        _buildActionCard(context, 'Order Management', 'Manage online orders (Doctor booking & Prescription only)', Icons.shopping_cart, const Color(0xFFEC4899), '/crm/order_management'),
-      ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        bool isDesktop = constraints.maxWidth > 1000;
+        bool isTablet = constraints.maxWidth > 600;
+        int crossAxisCount = isDesktop ? 3 : (isTablet ? 2 : 1);
+        double childAspectRatio = isDesktop ? 3.5 : 3.0;
+
+        return GridView.count(
+          crossAxisCount: crossAxisCount,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          crossAxisSpacing: 16,
+          mainAxisSpacing: 16,
+          childAspectRatio: childAspectRatio,
+          children: [
+            _buildActionCard(context, 'Patient Management', 'Add, view and manage patient records', Icons.people, const Color(0xFF8B5CF6), '/crm/patients'),
+            _buildActionCard(context, 'Appointment Management', 'Schedule and manage doctor appointments', Icons.calendar_month, const Color(0xFF22C55E), '/crm/appointments'),
+            _buildActionCard(context, 'Prescription Generation', 'Create and manage digital prescriptions', Icons.edit_document, const Color(0xFFEC4899), '/crm/prescriptions'),
+            
+            _buildActionCard(context, 'Doctor Inventory', 'Manage doctor stocks and supplies', Icons.medical_services, const Color(0xFF3B82F6), '/crm/doctors'),
+            _buildActionCard(context, 'Payment Receipt', 'Generate payment receipts (Cash/UPI/Card)', Icons.receipt_long, const Color(0xFFEAB308), '/crm/payment_receipt'),
+            _buildActionCard(context, 'Payment History', 'View all payment transactions', Icons.history, const Color(0xFF8B5CF6), '/crm/payment_history'),
+            
+            _buildActionCard(context, 'Lab Test Billing', 'Create lab test bills from CRM', Icons.science, const Color(0xFFEF4444), '/crm/lab_billing'),
+            _buildActionCard(context, 'Send to Lab', 'Send test orders to lab and track status', Icons.send, const Color(0xFF3B82F6), '/crm/send_to_lab'),
+            _buildActionCard(context, 'Order Management', 'Manage online orders (Doctor booking & Prescription only)', Icons.shopping_cart, const Color(0xFFEC4899), '/crm/order_management'),
+          ],
+        );
+      },
     );
   }
 
@@ -225,49 +255,59 @@ class CrmDashboardHome extends StatelessWidget {
   }
 
   Widget _buildBottomSection() {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Today's Appointments
-        Expanded(
-          flex: 2,
-          child: _buildTableCard(
-            'Today\'s Appointments',
-            Icons.calendar_today,
-            ['Patient Name', 'Doctor', 'Time', 'Status', 'Action'],
-            [
-              ['Rahul Das', 'Dr. Sen', '10:00 AM', 'Confirmed', const Color(0xFF22C55E)],
-              ['Priya Sharma', 'Dr. Mehta', '11:30 AM', 'Waiting', const Color(0xFFF59E0B)],
-              ['Suman Roy', 'Dr. Iyer', '01:00 PM', 'Confirmed', const Color(0xFF22C55E)],
-              ['Neha Patel', 'Dr. Sen', '03:30 PM', 'Waiting', const Color(0xFFF59E0B)],
-              ['Karan Mehta', 'Dr. Gupta', '05:00 PM', 'Confirmed', const Color(0xFF22C55E)],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        bool isDesktop = constraints.maxWidth > 800;
+        Widget appointments = _buildTableCard(
+          'Today\'s Appointments',
+          Icons.calendar_today,
+          ['Patient Name', 'Doctor', 'Time', 'Status', 'Action'],
+          [
+            ['Rahul Das', 'Dr. Sen', '10:00 AM', 'Confirmed', const Color(0xFF22C55E)],
+            ['Priya Sharma', 'Dr. Mehta', '11:30 AM', 'Waiting', const Color(0xFFF59E0B)],
+            ['Suman Roy', 'Dr. Iyer', '01:00 PM', 'Confirmed', const Color(0xFF22C55E)],
+            ['Neha Patel', 'Dr. Sen', '03:30 PM', 'Waiting', const Color(0xFFF59E0B)],
+            ['Karan Mehta', 'Dr. Gupta', '05:00 PM', 'Confirmed', const Color(0xFF22C55E)],
+          ],
+        );
+        Widget orders = _buildTableCard(
+          'Recent Online Orders',
+          Icons.shopping_cart,
+          ['Order ID', 'Type', 'Patient', 'Status', 'Action'],
+          [
+            ['ORD00123', 'Doctor Booking', 'Rahul Das', 'Confirmed', const Color(0xFF22C55E)],
+            ['ORD00124', 'Prescription', 'Priya Sharma', 'Completed', const Color(0xFF3B82F6)],
+            ['ORD00125', 'Doctor Booking', 'Suman Roy', 'Pending', const Color(0xFFF59E0B)],
+            ['ORD00126', 'Prescription', 'Neha Patel', 'Completed', const Color(0xFF3B82F6)],
+            ['ORD00127', 'Doctor Booking', 'Karan Mehta', 'Confirmed', const Color(0xFF22C55E)],
+          ],
+        );
+        Widget revenue = _buildRevenueCard();
+
+        if (isDesktop) {
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(flex: 2, child: appointments),
+              const SizedBox(width: 16),
+              Expanded(flex: 2, child: orders),
+              const SizedBox(width: 16),
+              Expanded(flex: 1, child: revenue),
             ],
-          ),
-        ),
-        const SizedBox(width: 16),
-        // Recent Online Orders
-        Expanded(
-          flex: 2,
-          child: _buildTableCard(
-            'Recent Online Orders',
-            Icons.shopping_cart,
-            ['Order ID', 'Type', 'Patient', 'Status', 'Action'],
-            [
-              ['ORD00123', 'Doctor Booking', 'Rahul Das', 'Confirmed', const Color(0xFF22C55E)],
-              ['ORD00124', 'Prescription', 'Priya Sharma', 'Completed', const Color(0xFF3B82F6)],
-              ['ORD00125', 'Doctor Booking', 'Suman Roy', 'Pending', const Color(0xFFF59E0B)],
-              ['ORD00126', 'Prescription', 'Neha Patel', 'Completed', const Color(0xFF3B82F6)],
-              ['ORD00127', 'Doctor Booking', 'Karan Mehta', 'Confirmed', const Color(0xFF22C55E)],
+          );
+        } else {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              appointments,
+              const SizedBox(height: 16),
+              orders,
+              const SizedBox(height: 16),
+              revenue,
             ],
-          ),
-        ),
-        const SizedBox(width: 16),
-        // Revenue Overview
-        Expanded(
-          flex: 1,
-          child: _buildRevenueCard(),
-        ),
-      ],
+          );
+        }
+      },
     );
   }
 
@@ -296,53 +336,59 @@ class CrmDashboardHome extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          Table(
-            columnWidths: const {
-              0: FlexColumnWidth(2),
-              1: FlexColumnWidth(2),
-              2: FlexColumnWidth(2),
-              3: FlexColumnWidth(2),
-              4: FlexColumnWidth(1),
-            },
-            children: [
-              TableRow(
-                decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: Color(0xFFF1F5F9)))),
-                children: headers.map((h) => Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: Text(h, style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF64748B), fontSize: 12)),
-                )).toList(),
-              ),
-              ...rows.map((row) => TableRow(
-                decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: Color(0xFFF8FAFC)))),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minWidth: 800),
+              child: Table(
+                columnWidths: const {
+                  0: FlexColumnWidth(2),
+                  1: FlexColumnWidth(2),
+                  2: FlexColumnWidth(2),
+                  3: FlexColumnWidth(2),
+                  4: FlexColumnWidth(1),
+                },
                 children: [
-                  _buildTableCell(row[0]),
-                  _buildTableCell(row[1]),
-                  _buildTableCell(row[2]),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: (row[4] as Color).withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.check_circle, size: 10, color: row[4]),
-                          const SizedBox(width: 4),
-                          Text(row[3], style: TextStyle(color: row[4], fontSize: 10, fontWeight: FontWeight.bold)),
-                        ],
-                      ),
-                    ),
+                  TableRow(
+                    decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: Color(0xFFF1F5F9)))),
+                    children: headers.map((h) => Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: Text(h, style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF64748B), fontSize: 12)),
+                    )).toList(),
                   ),
-                  const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 12),
-                    child: Text('View', style: TextStyle(color: Color(0xFF3B82F6), fontSize: 12, fontWeight: FontWeight.bold)),
-                  ),
+                  ...rows.map((row) => TableRow(
+                    decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: Color(0xFFF8FAFC)))),
+                    children: [
+                      _buildTableCell(row[0]),
+                      _buildTableCell(row[1]),
+                      _buildTableCell(row[2]),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: (row[4] as Color).withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.check_circle, size: 10, color: row[4]),
+                              const SizedBox(width: 4),
+                              Text(row[3], style: TextStyle(color: row[4], fontSize: 10, fontWeight: FontWeight.bold)),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 12),
+                        child: Text('View', style: TextStyle(color: Color(0xFF3B82F6), fontSize: 12, fontWeight: FontWeight.bold)),
+                      ),
+                    ],
+                  )),
                 ],
-              )),
-            ],
+              ),
+            ),
           ),
         ],
       ),

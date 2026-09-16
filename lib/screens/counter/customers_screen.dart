@@ -409,15 +409,18 @@ class _CustomersScreenState extends State<CustomersScreen> {
 
     return Container(
       color: const Color(0xFFF8FAFC), // Light gray background
-      padding: const EdgeInsets.all(24.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: ListView(
+        padding: const EdgeInsets.all(24.0),
         children: [
           // Header
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 16,
+            runSpacing: 16,
             children: [
               Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(
                     padding: const EdgeInsets.all(12),
@@ -428,13 +431,15 @@ class _CustomersScreenState extends State<CustomersScreen> {
                     child: const Icon(Icons.people, color: Colors.white, size: 24),
                   ),
                   const SizedBox(width: 16),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text('Customers', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
-                      const SizedBox(height: 4),
-                      Text('Manage your customers, view purchase history and build better relationships', style: TextStyle(fontSize: 14, color: Colors.grey[600])),
-                    ],
+                  Flexible(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('Customers', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                        const SizedBox(height: 4),
+                        Text('Manage your customers, view purchase history and build better relationships', style: TextStyle(fontSize: 14, color: Colors.grey[600])),
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -464,28 +469,33 @@ class _CustomersScreenState extends State<CustomersScreen> {
           const SizedBox(height: 24),
 
           // Summary Cards
-          Row(
-            children: [
-              Expanded(child: _buildStatCard('Total Customers', '${_allCustomers.length}', Icons.people, const Color(0xFFDCFCE7), const Color(0xFF166534))),
-              const SizedBox(width: 16),
-              Expanded(child: _buildStatCard('Active Customers', '${_allCustomers.length}', Icons.check_circle_outline, const Color(0xFFE0F2FE), const Color(0xFF0369A1))),
-              const SizedBox(width: 16),
-              Expanded(child: _buildStatCard('New This Month', '0', Icons.person_add_alt_1, const Color(0xFFFFEDD5), const Color(0xFFC2410C))),
-              const SizedBox(width: 16),
-              Expanded(child: _buildStatCard('Loyal Customers', '0', Icons.star, const Color(0xFFF3E8FF), const Color(0xFF7E22CE), subtitle: '(10+ purchases)')),
-            ],
-          ),
+          LayoutBuilder(builder: (context, constraints) {
+            bool isDesktop = constraints.maxWidth > 800;
+            return SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  SizedBox(width: isDesktop ? (constraints.maxWidth - 48) / 4 : 250, child: _buildStatCard('Total Customers', '${_allCustomers.length}', Icons.people, const Color(0xFFDCFCE7), const Color(0xFF166534))),
+                  const SizedBox(width: 16),
+                  SizedBox(width: isDesktop ? (constraints.maxWidth - 48) / 4 : 250, child: _buildStatCard('Active Customers', '${_allCustomers.length}', Icons.check_circle_outline, const Color(0xFFE0F2FE), const Color(0xFF0369A1))),
+                  const SizedBox(width: 16),
+                  SizedBox(width: isDesktop ? (constraints.maxWidth - 48) / 4 : 250, child: _buildStatCard('New This Month', '0', Icons.person_add_alt_1, const Color(0xFFFFEDD5), const Color(0xFFC2410C))),
+                  const SizedBox(width: 16),
+                  SizedBox(width: isDesktop ? (constraints.maxWidth - 48) / 4 : 250, child: _buildStatCard('Loyal Customers', '0', Icons.star, const Color(0xFFF3E8FF), const Color(0xFF7E22CE), subtitle: '(10+ purchases)')),
+                ],
+              ),
+            );
+          }),
           const SizedBox(height: 24),
 
           // Main Content
-          Expanded(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Left Table Area
-                Expanded(
-                  child: Container(
-                    decoration: BoxDecoration(
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Left Table Area
+              Expanded(
+                child: Container(
+                  decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(12),
                       boxShadow: [
@@ -495,11 +505,15 @@ class _CustomersScreenState extends State<CustomersScreen> {
                     child: Column(
                       children: [
                         // Filter Bar
-                        Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Row(
-                            children: [
-                              Expanded(
+                        LayoutBuilder(builder: (context, constraints) {
+                          return SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Container(
+                              width: constraints.maxWidth > 800 ? constraints.maxWidth : 800,
+                              padding: const EdgeInsets.all(16.0),
+                              child: Row(
+                                children: [
+                                  Expanded(
                                 flex: 2,
                                 child: TextField(
                                   controller: _searchCtrl,
@@ -569,42 +583,56 @@ class _CustomersScreenState extends State<CustomersScreen> {
                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                                 ),
                               ),
-                            ],
-                          ),
-                        ),
+                                ],
+                              ),
+                            ),
+                          );
+                        }),
                         
-                        // Table Header
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                          decoration: const BoxDecoration(
-                            border: Border(bottom: BorderSide(color: Color(0xFFF1F5F9))),
-                          ),
-                          child: Row(
-                            children: [
-                              const SizedBox(width: 40, child: Text('#', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF64748B)))),
-                              Expanded(flex: 3, child: const Text('Customer Name', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF64748B)))),
-                              Expanded(flex: 2, child: const Text('Phone', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF64748B)))),
-                              Expanded(flex: 2, child: const Text('City', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF64748B)))),
-                              Expanded(flex: 2, child: const Text('Total Purchases', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF64748B)))),
-                              Expanded(flex: 2, child: const Text('Last Purchase', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF64748B)))),
-                              Expanded(flex: 2, child: const Text('Status', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF64748B)))),
-                              const SizedBox(width: 80, child: Text('Action', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF64748B)))),
-                            ],
-                          ),
-                        ),
-                        
-                        // Table Body
-                        Expanded(
-                          child: pagedCustomers.isEmpty
-                            ? const Center(child: Text('No customers found', style: TextStyle(color: Color(0xFF64748B))))
-                            : ListView.builder(
-                            itemCount: pagedCustomers.length,
-                            itemBuilder: (context, index) {
-                              final customer = pagedCustomers[index];
-                              return _buildCustomerRow(customer, index);
-                            },
-                          ),
-                        ),
+                        LayoutBuilder(builder: (context, constraints) {
+                          return SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: ConstrainedBox(
+                              constraints: BoxConstraints(minWidth: 1000, maxWidth: constraints.maxWidth > 1000 ? constraints.maxWidth : 1000),
+                              child: Column(
+                                children: [
+                                  // Table Header
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                      decoration: const BoxDecoration(
+                                        border: Border(bottom: BorderSide(color: Color(0xFFF1F5F9))),
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          const SizedBox(width: 40, child: Text('#', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF64748B)))),
+                                          Expanded(flex: 3, child: const Text('Customer Name', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF64748B)))),
+                                          Expanded(flex: 2, child: const Text('Phone', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF64748B)))),
+                                          Expanded(flex: 2, child: const Text('City', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF64748B)))),
+                                          Expanded(flex: 2, child: const Text('Total Purchases', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF64748B)))),
+                                          Expanded(flex: 2, child: const Text('Last Purchase', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF64748B)))),
+                                          Expanded(flex: 2, child: const Text('Status', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF64748B)))),
+                                          const SizedBox(width: 80, child: Text('Action', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF64748B)))),
+                                        ],
+                                      ),
+                                    ),
+                                    
+                                    // Table Body
+                                    pagedCustomers.isEmpty
+                                      ? const Padding(padding: EdgeInsets.all(32), child: Center(child: Text('No customers found', style: TextStyle(color: Color(0xFF64748B)))))
+                                      : ListView.builder(
+                                          shrinkWrap: true,
+                                          physics: const NeverScrollableScrollPhysics(),
+                                          itemCount: pagedCustomers.length,
+                                          itemBuilder: (context, index) {
+                                            final customer = pagedCustomers[index];
+                                            return _buildCustomerRow(customer, index);
+                                          },
+                                        ),
+                                ],
+                              ),
+                            ),
+                          );
+                        }),
                         
                         // Pagination
                         if (totalRecords > 0) Padding(
@@ -636,7 +664,6 @@ class _CustomersScreenState extends State<CustomersScreen> {
                 ]
               ],
             ),
-          ),
         ],
       ),
     );
@@ -663,7 +690,8 @@ class _CustomersScreenState extends State<CustomersScreen> {
             child: Icon(icon, color: iconColor, size: 24),
           ),
           const SizedBox(width: 16),
-          Column(
+          Expanded(
+            child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(value, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
@@ -675,8 +703,9 @@ class _CustomersScreenState extends State<CustomersScreen> {
               ]
             ],
           ),
-        ],
-      ),
+        ),
+      ],
+    ),
     );
   }
 
@@ -974,9 +1003,17 @@ class _CustomersScreenState extends State<CustomersScreen> {
           // Content Area
           Expanded(
             child: _activeCustomerTab == 0 
-                ? ListView(
-                    padding: EdgeInsets.zero,
-                    children: [
+                ? LayoutBuilder(builder: (context, constraints) {
+                    return SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          minWidth: 500,
+                          maxWidth: constraints.maxWidth > 500 ? constraints.maxWidth : 500,
+                        ),
+                        child: ListView(
+                          padding: EdgeInsets.zero,
+                          children: [
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                         color: const Color(0xFFF8FAFC),
@@ -1046,7 +1083,10 @@ class _CustomersScreenState extends State<CustomersScreen> {
                           ),
                         ),
                     ],
-                  )
+                  ),
+                ),
+              );
+            })
                 : const Center(
                     child: Text('No notes available for this customer.', style: TextStyle(color: Color(0xFF64748B), fontSize: 13)),
                   ),

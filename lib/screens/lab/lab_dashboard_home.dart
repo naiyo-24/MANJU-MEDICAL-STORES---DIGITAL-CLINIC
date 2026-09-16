@@ -110,27 +110,41 @@ class _LabDashboardHomeState extends State<LabDashboardHome> {
           const SizedBox(height: 24),
           
           // Stat Cards
-          Row(
-            children: [
-              Expanded(child: _buildStatCard('Total Bookings', '256', '+12%', Icons.people_alt, const Color(0xFFFFF7ED), const Color(0xFFEA580C))),
-              const SizedBox(width: 16),
-              Expanded(child: _buildStatCard('Samples Collected', '198', '+8%', Icons.science, const Color(0xFFEFF6FF), const Color(0xFF2563EB))),
-              const SizedBox(width: 16),
-              Expanded(child: _buildStatCard('Reports Generated', '176', '+18%', Icons.description, const Color(0xFFF3E8FF), const Color(0xFF9333EA))),
-              const SizedBox(width: 16),
-              Expanded(child: _buildStatCard('Reports Delivered', '142', '+20%', Icons.check_circle, const Color(0xFFDCFCE7), const Color(0xFF16A34A))),
-            ],
-          ),
+          LayoutBuilder(builder: (context, constraints) {
+            bool isDesktop = constraints.maxWidth > 800;
+            if (isDesktop) {
+              return Row(
+                children: [
+                  Expanded(child: _buildStatCard('Total Bookings', '256', '+12%', Icons.people_alt, const Color(0xFFFFF7ED), const Color(0xFFEA580C))),
+                  const SizedBox(width: 16),
+                  Expanded(child: _buildStatCard('Samples Collected', '198', '+8%', Icons.science, const Color(0xFFEFF6FF), const Color(0xFF2563EB))),
+                  const SizedBox(width: 16),
+                  Expanded(child: _buildStatCard('Reports Generated', '176', '+18%', Icons.description, const Color(0xFFF3E8FF), const Color(0xFF9333EA))),
+                  const SizedBox(width: 16),
+                  Expanded(child: _buildStatCard('Reports Delivered', '142', '+20%', Icons.check_circle, const Color(0xFFDCFCE7), const Color(0xFF16A34A))),
+                ],
+              );
+            } else {
+              return Column(
+                children: [
+                  _buildStatCard('Total Bookings', '256', '+12%', Icons.people_alt, const Color(0xFFFFF7ED), const Color(0xFFEA580C)),
+                  const SizedBox(height: 16),
+                  _buildStatCard('Samples Collected', '198', '+8%', Icons.science, const Color(0xFFEFF6FF), const Color(0xFF2563EB)),
+                  const SizedBox(height: 16),
+                  _buildStatCard('Reports Generated', '176', '+18%', Icons.description, const Color(0xFFF3E8FF), const Color(0xFF9333EA)),
+                  const SizedBox(height: 16),
+                  _buildStatCard('Reports Delivered', '142', '+20%', Icons.check_circle, const Color(0xFFDCFCE7), const Color(0xFF16A34A)),
+                ],
+              );
+            }
+          }),
           
           const SizedBox(height: 24),
           
           // Placeholder for Charts and Trends
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                flex: 2,
-                child: Column(
+          LayoutBuilder(builder: (context, constraints) {
+            bool isDesktop = constraints.maxWidth > 800;
+            Widget leftCol = Column(
                   children: [
                     _buildCardWrapper(
                       title: 'Booking & Report Trend',
@@ -146,12 +160,8 @@ class _LabDashboardHomeState extends State<LabDashboardHome> {
                       child: const Center(child: Text('Table Placeholder', style: TextStyle(color: Colors.grey))),
                     ),
                   ],
-                ),
-              ),
-              const SizedBox(width: 24),
-              Expanded(
-                flex: 1,
-                child: Column(
+                );
+            Widget rightCol = Column(
                   children: [
                     _buildCardWrapper(
                       title: 'Test Status',
@@ -166,31 +176,62 @@ class _LabDashboardHomeState extends State<LabDashboardHome> {
                       child: const Center(child: Text('Timeline Placeholder', style: TextStyle(color: Colors.grey))),
                     ),
                   ],
-                ),
-              ),
-            ],
-          ),
+                );
+
+            if (isDesktop) {
+              return Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(flex: 2, child: leftCol),
+                  const SizedBox(width: 24),
+                  Expanded(flex: 1, child: rightCol),
+                ],
+              );
+            } else {
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  leftCol,
+                  const SizedBox(height: 24),
+                  rightCol,
+                ],
+              );
+            }
+          }),
           
           const SizedBox(height: 24),
           
           // Quick Actions
           const Text('Quick Actions', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
           const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(child: _buildQuickAction('New Booking', Icons.calendar_today, const Color(0xFFEA580C))),
-              const SizedBox(width: 16),
-              Expanded(child: _buildQuickAction('Add Test', Icons.science, const Color(0xFFEA580C))),
-              const SizedBox(width: 16),
-              Expanded(child: _buildQuickAction('Create Package', Icons.inventory_2, const Color(0xFFEA580C))),
-              const SizedBox(width: 16),
-              Expanded(child: _buildQuickAction('Generate Report', Icons.description, const Color(0xFFEA580C))),
-              const SizedBox(width: 16),
-              Expanded(child: _buildQuickAction('Send via WhatsApp', Icons.chat, const Color(0xFF22C55E))),
-              const SizedBox(width: 16),
-              Expanded(child: _buildQuickAction('Print (A4)', Icons.print, const Color(0xFFEA580C))),
-            ],
-          ),
+          LayoutBuilder(builder: (context, constraints) {
+            bool isDesktop = constraints.maxWidth > 800;
+            if (isDesktop) {
+              return Row(
+                children: [
+                  Expanded(child: _buildQuickAction('New Booking', Icons.calendar_today, const Color(0xFFEA580C))),
+                  const SizedBox(width: 16),
+                  Expanded(child: _buildQuickAction('Add Test', Icons.science, const Color(0xFFEA580C))),
+                  const SizedBox(width: 16),
+                  Expanded(child: _buildQuickAction('Upload Report', Icons.upload_file, const Color(0xFFEA580C))),
+                  const SizedBox(width: 16),
+                  Expanded(child: _buildQuickAction('Invoice', Icons.receipt_long, const Color(0xFFEA580C))),
+                ],
+              );
+            } else {
+              return Column(
+                children: [
+                  _buildQuickAction('New Booking', Icons.calendar_today, const Color(0xFFEA580C)),
+                  const SizedBox(height: 16),
+                  _buildQuickAction('Add Test', Icons.science, const Color(0xFFEA580C)),
+                  const SizedBox(height: 16),
+                  _buildQuickAction('Upload Report', Icons.upload_file, const Color(0xFFEA580C)),
+                  const SizedBox(height: 16),
+                  _buildQuickAction('Invoice', Icons.receipt_long, const Color(0xFFEA580C)),
+                ],
+              );
+            }
+          }),
         ],
       ),
     );

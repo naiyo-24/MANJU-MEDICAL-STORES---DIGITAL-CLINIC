@@ -260,10 +260,9 @@ class _ShopManagementScreenState extends State<ShopManagementScreen> {
     );
   }
 
-  Widget _buildStatCard(String value, String label, Color bgColor, Color iconColor, IconData icon, VoidCallback onTap) {
-    return Expanded(
-      child: Material(
-        color: Colors.transparent,
+  Widget _buildStatCard(String value, String label, Color bgColor, Color iconColor, IconData icon, VoidCallback onTap, {bool isDesktop = true}) {
+    Widget card = Material(
+      color: Colors.transparent,
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(12),
@@ -276,9 +275,10 @@ class _ShopManagementScreenState extends State<ShopManagementScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  children: [
-                    Container(
+                Expanded(
+                  child: Row(
+                    children: [
+                      Container(
                       padding: const EdgeInsets.all(10),
                       decoration: const BoxDecoration(
                         color: Colors.white,
@@ -286,23 +286,26 @@ class _ShopManagementScreenState extends State<ShopManagementScreen> {
                       ),
                       child: Icon(icon, color: iconColor, size: 20),
                     ),
-                    const SizedBox(width: 16),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(value, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
-                        Text(label, style: const TextStyle(fontSize: 12, color: Color(0xFF475569))),
-                      ],
-                    ),
-                  ],
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(value, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                            Text(label, style: const TextStyle(fontSize: 12, color: Color(0xFF475569))),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
                 Icon(Icons.chevron_right, color: iconColor.withOpacity(0.5)),
               ],
             ),
+            ),
           ),
-        ),
-      ),
-    );
+        );
+    return isDesktop ? Expanded(child: card) : SizedBox(width: 250, child: card);
   }
 
   @override
@@ -311,15 +314,18 @@ class _ShopManagementScreenState extends State<ShopManagementScreen> {
     final inactiveCount = _shops.length - activeCount;
     final citiesCount = _shops.map((s) => s['city']).toSet().length;
 
-    return Padding(
+    return ListView(
       padding: const EdgeInsets.all(24.0),
-      child: Column(
-        children: [
-          // Header
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        // Header
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 16,
+            runSpacing: 16,
             children: [
               Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(
                     padding: const EdgeInsets.all(12),
@@ -330,16 +336,19 @@ class _ShopManagementScreenState extends State<ShopManagementScreen> {
                     child: const Icon(Icons.storefront, color: Colors.white, size: 24),
                   ),
                   const SizedBox(width: 16),
-                  const Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Shops', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
-                      Text('Manage your branch shops and their settings', style: TextStyle(fontSize: 14, color: Color(0xFF64748B))),
-                    ],
+                  Flexible(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: const [
+                        Text('Shops', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                        Text('Manage your branch shops and their settings', style: TextStyle(fontSize: 14, color: Color(0xFF64748B))),
+                      ],
+                    ),
                   ),
                 ],
               ),
               Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   PopupMenuButton<String>(
                     onSelected: (value) async {
@@ -412,40 +421,84 @@ class _ShopManagementScreenState extends State<ShopManagementScreen> {
           const SizedBox(height: 24),
 
           // Stats Row
-          Row(
-            children: [
-              _buildStatCard('${_shops.length}', 'Total Shops', const Color(0xFFE8F5E9), const Color(0xFF22C55E), Icons.store, () {
-                setState(() {
-                  _selectedStatus = 'All Status';
-                  _selectedCity = 'All Cities';
-                  _searchQuery = '';
-                });
-              }),
-              const SizedBox(width: 16),
-              _buildStatCard('$activeCount', 'Active Shops', const Color(0xFFE3F2FD), const Color(0xFF3B82F6), Icons.check_circle, () {
-                setState(() {
-                  _selectedStatus = 'Active';
-                  _selectedCity = 'All Cities';
-                  _searchQuery = '';
-                });
-              }),
-              const SizedBox(width: 16),
-              _buildStatCard('$inactiveCount', 'Inactive Shop', const Color(0xFFFFF3E0), const Color(0xFFF97316), Icons.pause_circle, () {
-                setState(() {
-                  _selectedStatus = 'Inactive';
-                  _selectedCity = 'All Cities';
-                  _searchQuery = '';
-                });
-              }),
-              const SizedBox(width: 16),
-              _buildStatCard('$citiesCount', 'Total Locations', const Color(0xFFF3E8FF), const Color(0xFFA855F7), Icons.location_on, () {
-                setState(() {
-                  _selectedStatus = 'All Status';
-                  _searchQuery = '';
-                });
-              }),
-            ],
-          ),
+          LayoutBuilder(builder: (context, constraints) {
+            bool isDesktop = constraints.maxWidth > 800;
+            return isDesktop
+              ? Row(
+                  children: [
+                    _buildStatCard('${_shops.length}', 'Total Shops', const Color(0xFFE8F5E9), const Color(0xFF22C55E), Icons.store, () {
+                      setState(() {
+                        _selectedStatus = 'All Status';
+                        _selectedCity = 'All Cities';
+                        _searchQuery = '';
+                      });
+                    }),
+                    const SizedBox(width: 16),
+                    _buildStatCard('$activeCount', 'Active Shops', const Color(0xFFE3F2FD), const Color(0xFF3B82F6), Icons.check_circle, () {
+                      setState(() {
+                        _selectedStatus = 'Active';
+                        _selectedCity = 'All Cities';
+                        _searchQuery = '';
+                      });
+                    }),
+                    const SizedBox(width: 16),
+                    _buildStatCard('$inactiveCount', 'Inactive Shop', const Color(0xFFFFF3E0), const Color(0xFFF97316), Icons.pause_circle, () {
+                      setState(() {
+                        _selectedStatus = 'Inactive';
+                        _selectedCity = 'All Cities';
+                        _searchQuery = '';
+                      });
+                    }),
+                    const SizedBox(width: 16),
+                    _buildStatCard('$citiesCount', 'Total Locations', const Color(0xFFF3E8FF), const Color(0xFFA855F7), Icons.location_on, () {
+                      setState(() {
+                        _selectedStatus = 'All Status';
+                        _searchQuery = '';
+                      });
+                    }),
+                  ],
+                )
+              : SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(minWidth: 1000),
+                    child: Row(
+                      children: [
+                        _buildStatCard('${_shops.length}', 'Total Shops', const Color(0xFFE8F5E9), const Color(0xFF22C55E), Icons.store, () {
+                          setState(() {
+                            _selectedStatus = 'All Status';
+                            _selectedCity = 'All Cities';
+                            _searchQuery = '';
+                          });
+                        }, isDesktop: false),
+                        const SizedBox(width: 16),
+                        _buildStatCard('$activeCount', 'Active Shops', const Color(0xFFE3F2FD), const Color(0xFF3B82F6), Icons.check_circle, () {
+                          setState(() {
+                            _selectedStatus = 'Active';
+                            _selectedCity = 'All Cities';
+                            _searchQuery = '';
+                          });
+                        }, isDesktop: false),
+                        const SizedBox(width: 16),
+                        _buildStatCard('$inactiveCount', 'Inactive Shop', const Color(0xFFFFF3E0), const Color(0xFFF97316), Icons.pause_circle, () {
+                          setState(() {
+                            _selectedStatus = 'Inactive';
+                            _selectedCity = 'All Cities';
+                            _searchQuery = '';
+                          });
+                        }, isDesktop: false),
+                        const SizedBox(width: 16),
+                        _buildStatCard('$citiesCount', 'Total Locations', const Color(0xFFF3E8FF), const Color(0xFFA855F7), Icons.location_on, () {
+                          setState(() {
+                            _selectedStatus = 'All Status';
+                            _searchQuery = '';
+                          });
+                        }, isDesktop: false),
+                      ],
+                    ),
+                  ),
+                );
+          }),
           const SizedBox(height: 24),
 
           // Filters Row
@@ -512,16 +565,22 @@ class _ShopManagementScreenState extends State<ShopManagementScreen> {
           const SizedBox(height: 16),
 
           // Data Table
-          Expanded(
-            child: Container(
-              decoration: BoxDecoration(
+          Container(
+            decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: const Color(0xFFE2E8F0)),
               ),
               child: Column(
                 children: [
-                  // Table Header
+                  LayoutBuilder(builder: (context, constraints) {
+                    return SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(minWidth: 1000, maxWidth: constraints.maxWidth > 1000 ? constraints.maxWidth : 1000),
+                          child: Column(
+                            children: [
+                              // Table Header
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                     decoration: const BoxDecoration(
@@ -543,9 +602,10 @@ class _ShopManagementScreenState extends State<ShopManagementScreen> {
                   ),
                   const Divider(height: 1, color: Color(0xFFE2E8F0)),
                   // Table Body
-                  Expanded(
-                    child: ListView.separated(
-                      itemCount: _filteredShops.length,
+                  ListView.separated(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: _filteredShops.length,
                       separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFF1F5F9)),
                       itemBuilder: (context, index) {
                         final shop = _filteredShops[index];
@@ -657,7 +717,11 @@ class _ShopManagementScreenState extends State<ShopManagementScreen> {
                         );
                       },
                     ),
-                  ),
+                  ],
+                ),
+              ),
+            );
+                  }),
                   // Pagination
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
@@ -683,7 +747,6 @@ class _ShopManagementScreenState extends State<ShopManagementScreen> {
                 ],
               ),
             ),
-          ),
           const SizedBox(height: 24),
           
           // Bottom Features Bar
@@ -696,7 +759,6 @@ class _ShopManagementScreenState extends State<ShopManagementScreen> {
             ],
           ),
         ],
-      ),
     );
   }
 

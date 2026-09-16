@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../utils/responsive.dart';
 import 'package:go_router/go_router.dart';
 import '../../models/lab_models.dart';
 import '../../services/lab_data_service.dart';
@@ -109,13 +110,11 @@ class _LabTemplatesScreenState extends State<LabTemplatesScreen> {
 
           // Main Layout
           Expanded(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Left Pane: Table
-                Expanded(
-                  flex: 5,
-                  child: Container(
+            child: ResponsiveSplitView(
+              leftFlex: 5,
+              rightFlex: 4,
+              showRightPane: _selectedTemplate != null,
+              leftPane: Container(
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(12),
@@ -291,14 +290,7 @@ class _LabTemplatesScreenState extends State<LabTemplatesScreen> {
                       ],
                     ),
                   ),
-                ),
-                
-                const SizedBox(width: 24),
-                
-                // Right Pane: Template Editor
-                if (_selectedTemplate != null) Expanded(
-                  flex: 4,
-                  child: Container(
+              rightPane: Container(
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(12),
@@ -358,8 +350,6 @@ class _LabTemplatesScreenState extends State<LabTemplatesScreen> {
                       ],
                     ),
                   ),
-                ),
-              ],
             ),
           ),
         ],

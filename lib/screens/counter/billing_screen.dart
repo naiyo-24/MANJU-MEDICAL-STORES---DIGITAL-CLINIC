@@ -989,11 +989,16 @@ class _BillingScreenState extends State<BillingScreen> {
     );
   }
 
+  Widget _buildConditionalExpanded(bool isDesktop, Widget child) {
+    return isDesktop ? Expanded(child: child) : SizedBox(height: 400, child: child);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
       color: const Color(0xFFF8FAFC),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // Top Header
           Container(
@@ -1002,10 +1007,14 @@ class _BillingScreenState extends State<BillingScreen> {
               color: Colors.white,
               border: Border(bottom: BorderSide(color: Color(0xFFE2E8F0))),
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            child: Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 16,
+              runSpacing: 16,
               children: [
                 Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Container(
                       padding: const EdgeInsets.all(12),
@@ -1013,12 +1022,14 @@ class _BillingScreenState extends State<BillingScreen> {
                       child: const Icon(Icons.receipt_long, color: Colors.white, size: 24),
                     ),
                     const SizedBox(width: 16),
-                    const Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('New Bill', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: Color(0xFF1E293B))),
-                        Text('Create a new invoice, search medicines and add to cart', style: TextStyle(fontSize: 12, color: Color(0xFF64748B))),
-                      ],
+                    Flexible(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('New Bill', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: Color(0xFF1E293B))),
+                          const Text('Create a new invoice, search medicines and add to cart', style: TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+                        ],
+                      ),
                     ),
                   ],
                 ),
@@ -1030,6 +1041,7 @@ class _BillingScreenState extends State<BillingScreen> {
                     border: Border.all(color: const Color(0xFF22C55E).withOpacity(0.3)),
                   ),
                   child: Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       const Icon(Icons.calendar_today, color: Color(0xFF166534), size: 16),
                       const SizedBox(width: 8),
@@ -1051,13 +1063,11 @@ class _BillingScreenState extends State<BillingScreen> {
           Expanded(
             child: Padding(
               padding: const EdgeInsets.all(24.0),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Left Side: Available Medicines
-                  Expanded(
-                    flex: 13,
-                    child: Container(
+              child: LayoutBuilder(builder: (context, constraints) {
+                bool isDesktopWidth = constraints.maxWidth > 1100;
+                bool hasEnoughHeight = constraints.maxHeight > 700;
+                
+                Widget leftSide = Container(
                       decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: const Color(0xFFE2E8F0))),
                       child: Column(
                         children: [
@@ -1125,69 +1135,82 @@ class _BillingScreenState extends State<BillingScreen> {
                             ),
                           ),
 
-                          // Medicines Table Header
-                          Container(
-                            color: const Color(0xFFF8FAFC),
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                            child: const Row(
-                              children: [
-                                Expanded(flex: 3, child: Text('Medicine Name', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 12))),
-                                Expanded(flex: 2, child: Text('Brand', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 12))),
-                                Expanded(flex: 2, child: Text('SKU / Barcode', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 12))),
-                                Expanded(flex: 2, child: Text('MRP (₹)', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 12))),
-                                Expanded(flex: 1, child: Text('Stock', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 12))),
-                                SizedBox(width: 80, child: Text('Action', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 12))),
-                              ],
-                            ),
-                          ),
-
-                          // Medicines Table Body
-                          Expanded(
-                            child: ListView.separated(
-                              itemCount: _filteredMedicines.length,
-                              separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFE2E8F0)),
-                              itemBuilder: (context, index) {
-                                final item = _filteredMedicines[index];
-                                return Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                                  child: Row(
+                          // Medicines Table
+                          _buildConditionalExpanded(
+                            hasEnoughHeight,
+                            LayoutBuilder(builder: (context, tableConstraints) {
+                              return SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                child: ConstrainedBox(
+                                  constraints: BoxConstraints(
+                                    minWidth: 800,
+                                    maxWidth: tableConstraints.maxWidth > 800 ? tableConstraints.maxWidth : 800,
+                                  ),
+                                  child: Column(
                                     children: [
-                                      Expanded(flex: 3, child: Text(item['name'], style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E293B), fontSize: 12))),
-                                      Expanded(flex: 2, child: Text(item['brand'], style: const TextStyle(color: Color(0xFF1E293B), fontSize: 12))),
-                                      Expanded(flex: 2, child: Text(item['pack'], style: const TextStyle(color: Color(0xFF64748B), fontSize: 12))),
-                                      Expanded(flex: 2, child: Text(item['mrp'].toStringAsFixed(2), style: const TextStyle(color: Color(0xFF1E293B), fontSize: 12))),
-                                      Expanded(flex: 1, child: Text(item['stock'].toString(), style: const TextStyle(color: Color(0xFF1E293B), fontSize: 12))),
-                                      SizedBox(
-                                        width: 80,
-                                        child: ElevatedButton.icon(
-                                          onPressed: () => _addToCart(item),
-                                          icon: const Icon(Icons.add_shopping_cart, size: 14),
-                                          label: const Text('Add', style: TextStyle(fontSize: 12)),
-                                          style: ElevatedButton.styleFrom(
-                                            backgroundColor: const Color(0xFF22C55E),
-                                            foregroundColor: Colors.white,
-                                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                                            minimumSize: Size.zero,
-                                          ),
+                                      // Medicines Table Header
+                                      Container(
+                                        color: const Color(0xFFF8FAFC),
+                                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                        child: const Row(
+                                          children: [
+                                            Expanded(flex: 3, child: Text('Medicine Name', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 12))),
+                                            Expanded(flex: 2, child: Text('Brand', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 12))),
+                                            Expanded(flex: 2, child: Text('SKU / Barcode', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 12))),
+                                            Expanded(flex: 2, child: Text('MRP (₹)', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 12))),
+                                            Expanded(flex: 1, child: Text('Stock', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 12))),
+                                            SizedBox(width: 80, child: Text('Action', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 12))),
+                                          ],
+                                        ),
+                                      ),
+
+                                      // Medicines Table Body
+                                      Expanded(
+                                        child: ListView.separated(
+                                          itemCount: _filteredMedicines.length,
+                                          separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFE2E8F0)),
+                                          itemBuilder: (context, index) {
+                                            final item = _filteredMedicines[index];
+                                            return Padding(
+                                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                              child: Row(
+                                                children: [
+                                                  Expanded(flex: 3, child: Text(item['name'], style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E293B), fontSize: 12))),
+                                                  Expanded(flex: 2, child: Text(item['brand'], style: const TextStyle(color: Color(0xFF1E293B), fontSize: 12))),
+                                                  Expanded(flex: 2, child: Text(item['pack'], style: const TextStyle(color: Color(0xFF64748B), fontSize: 12))),
+                                                  Expanded(flex: 2, child: Text(item['mrp'].toStringAsFixed(2), style: const TextStyle(color: Color(0xFF1E293B), fontSize: 12))),
+                                                  Expanded(flex: 1, child: Text(item['stock'].toString(), style: const TextStyle(color: Color(0xFF1E293B), fontSize: 12))),
+                                                  SizedBox(
+                                                    width: 80,
+                                                    child: ElevatedButton.icon(
+                                                      onPressed: () => _addToCart(item),
+                                                      icon: const Icon(Icons.add_shopping_cart, size: 14),
+                                                      label: const Text('Add', style: TextStyle(fontSize: 12)),
+                                                      style: ElevatedButton.styleFrom(
+                                                        backgroundColor: const Color(0xFF22C55E),
+                                                        foregroundColor: Colors.white,
+                                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                                                        minimumSize: Size.zero,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            );
+                                          },
                                         ),
                                       ),
                                     ],
                                   ),
-                                );
-                              },
-                            ),
+                                ),
+                              );
+                            }),
                           ),
                         ],
                       ),
-                    ),
-                  ),
+                    );
 
-                  const SizedBox(width: 24),
-
-                  // Right Side: Current Bill
-                  Expanded(
-                    flex: 9,
-                    child: Container(
+                Widget rightSide = Container(
                       decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: const Color(0xFFE2E8F0))),
                       child: Column(
                         children: [
@@ -1212,87 +1235,106 @@ class _BillingScreenState extends State<BillingScreen> {
                             ),
                           ),
 
-                          // Bill Table Header
-                          Container(
-                            color: const Color(0xFFF8FAFC),
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                            child: const Row(
-                              children: [
-                                SizedBox(width: 20, child: Text('#', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 10))),
-                                Expanded(flex: 3, child: Text('Item Name', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 10))),
-                                Expanded(flex: 2, child: Text('Qty', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 10))),
-                                Expanded(flex: 2, child: Text('Price (₹)', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 10))),
-                                Expanded(flex: 2, child: Text('Total (₹)', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 10))),
-                                SizedBox(width: 45, child: Text('Action', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 10))),
-                              ],
-                            ),
-                          ),
-
-                          // Bill Table Body
-                          Expanded(
-                            child: _currentBill.isEmpty
-                                ? const Center(child: Text('Cart is empty', style: TextStyle(color: Color(0xFF94A3B8))))
-                                : ListView.separated(
-                              itemCount: _currentBill.length,
-                              separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFE2E8F0)),
-                              itemBuilder: (context, index) {
-                                final item = _currentBill[index];
-                                return Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                                  child: Row(
+                          // Bill Table
+                          _buildConditionalExpanded(
+                            hasEnoughHeight,
+                            LayoutBuilder(builder: (context, tableConstraints) {
+                              return SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                child: ConstrainedBox(
+                                  constraints: BoxConstraints(
+                                    minWidth: 500,
+                                    maxWidth: tableConstraints.maxWidth > 500 ? tableConstraints.maxWidth : 500,
+                                  ),
+                                  child: Column(
                                     children: [
-                                      SizedBox(width: 20, child: Text('${index + 1}', style: const TextStyle(color: Color(0xFF64748B), fontSize: 12))),
-                                      Expanded(
-                                        flex: 3,
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                      // Bill Table Header
+                                      Container(
+                                        color: const Color(0xFFF8FAFC),
+                                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                        child: const Row(
                                           children: [
-                                            Text(item['name'], style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E293B), fontSize: 11)),
-                                            Text(item['brand'], style: const TextStyle(color: Color(0xFF64748B), fontSize: 9)),
+                                            SizedBox(width: 20, child: Text('#', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 10))),
+                                            Expanded(flex: 3, child: Text('Item Name', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 10))),
+                                            Expanded(flex: 2, child: Text('Qty', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 10))),
+                                            Expanded(flex: 2, child: Text('Price (₹)', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 10))),
+                                            Expanded(flex: 2, child: Text('Total (₹)', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 10))),
+                                            SizedBox(width: 45, child: Text('Action', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 10))),
                                           ],
                                         ),
                                       ),
+
+                                      // Bill Table Body
                                       Expanded(
-                                        flex: 2,
-                                        child: Align(
-                                          alignment: Alignment.centerLeft,
-                                          child: Container(
-                                            decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE2E8F0)), borderRadius: BorderRadius.circular(4)),
-                                            child: Row(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                InkWell(
-                                                  onTap: () => _decreaseQty(index),
-                                                  child: const Padding(padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2), child: Icon(Icons.remove, size: 14)),
-                                                ),
-                                                Text('${item['qty']}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-                                                InkWell(
-                                                  onTap: () => _increaseQty(index),
-                                                  child: const Padding(padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2), child: Icon(Icons.add, size: 14)),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                      Expanded(flex: 2, child: Text(item['price'].toStringAsFixed(2), style: const TextStyle(color: Color(0xFF1E293B), fontSize: 11))),
-                                      Expanded(flex: 2, child: Text(item['total'].toStringAsFixed(2), style: const TextStyle(color: Color(0xFF1E293B), fontSize: 11))),
-                                      SizedBox(
-                                        width: 45,
-                                        child: InkWell(
-                                          onTap: () => _removeItem(index),
-                                          child: Container(
-                                            padding: const EdgeInsets.all(4),
-                                            decoration: BoxDecoration(color: const Color(0xFFFEE2E2), borderRadius: BorderRadius.circular(4)),
-                                            child: const Icon(Icons.delete_outline, color: Colors.red, size: 14),
-                                          ),
+                                        child: _currentBill.isEmpty
+                                            ? const Center(child: Text('Cart is empty', style: TextStyle(color: Color(0xFF94A3B8))))
+                                            : ListView.separated(
+                                          itemCount: _currentBill.length,
+                                          separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFE2E8F0)),
+                                          itemBuilder: (context, index) {
+                                            final item = _currentBill[index];
+                                            return Padding(
+                                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                              child: Row(
+                                                children: [
+                                                  SizedBox(width: 20, child: Text('${index + 1}', style: const TextStyle(color: Color(0xFF64748B), fontSize: 12))),
+                                                  Expanded(
+                                                    flex: 3,
+                                                    child: Column(
+                                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                                      children: [
+                                                        Text(item['name'], style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E293B), fontSize: 11)),
+                                                        Text(item['brand'], style: const TextStyle(color: Color(0xFF64748B), fontSize: 9)),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                  Expanded(
+                                                    flex: 2,
+                                                    child: Align(
+                                                      alignment: Alignment.centerLeft,
+                                                      child: Container(
+                                                        decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE2E8F0)), borderRadius: BorderRadius.circular(4)),
+                                                        child: Row(
+                                                          mainAxisSize: MainAxisSize.min,
+                                                          children: [
+                                                            InkWell(
+                                                              onTap: () => _decreaseQty(index),
+                                                              child: const Padding(padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2), child: Icon(Icons.remove, size: 14)),
+                                                            ),
+                                                            Text('${item['qty']}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                                                            InkWell(
+                                                              onTap: () => _increaseQty(index),
+                                                              child: const Padding(padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2), child: Icon(Icons.add, size: 14)),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  Expanded(flex: 2, child: Text(item['price'].toStringAsFixed(2), style: const TextStyle(color: Color(0xFF1E293B), fontSize: 11))),
+                                                  Expanded(flex: 2, child: Text(item['total'].toStringAsFixed(2), style: const TextStyle(color: Color(0xFF1E293B), fontSize: 11))),
+                                                  SizedBox(
+                                                    width: 45,
+                                                    child: InkWell(
+                                                      onTap: () => _removeItem(index),
+                                                      child: Container(
+                                                        padding: const EdgeInsets.all(4),
+                                                        decoration: BoxDecoration(color: const Color(0xFFFEE2E2), borderRadius: BorderRadius.circular(4)),
+                                                        child: const Icon(Icons.delete_outline, color: Colors.red, size: 14),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            );
+                                          },
                                         ),
                                       ),
                                     ],
                                   ),
-                                );
-                              },
-                            ),
+                                ),
+                              );
+                            }),
                           ),
 
                           // Customer Details
@@ -1690,10 +1732,31 @@ class _BillingScreenState extends State<BillingScreen> {
                           ),
                         ],
                       ),
+                    );
+
+                if (isDesktopWidth) {
+                  Widget content = Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(flex: 13, child: leftSide),
+                      const SizedBox(width: 24),
+                      Expanded(flex: 9, child: rightSide),
+                    ],
+                  );
+                  return hasEnoughHeight ? content : SingleChildScrollView(child: content);
+                } else {
+                  return SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        leftSide,
+                        const SizedBox(height: 24),
+                        rightSide,
+                      ],
                     ),
-                  ),
-                ],
-              ),
+                  );
+                }
+              }),
             ),
           ),
         ],

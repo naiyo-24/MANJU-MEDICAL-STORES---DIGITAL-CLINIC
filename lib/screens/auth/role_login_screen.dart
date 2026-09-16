@@ -289,39 +289,41 @@ class _RoleLoginScreenState extends State<RoleLoginScreen> {
                       child: Image.asset('assets/LOGO.png', height: 80, cacheHeight: 250),
                     ),
                     const SizedBox(width: 24),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Manju Medical Stores',
-                          style: TextStyle(
-                            color: widget.themeColor,
-                            fontWeight: FontWeight.w900,
-                            fontSize: 32,
-                            letterSpacing: -0.5,
-                          ),
-                        ),
-                        const Text(
-                          '& Digital Clinic',
-                          style: TextStyle(color: Color(0xFF64748B), fontWeight: FontWeight.w600, fontSize: 20),
-                        ),
-                        const SizedBox(height: 6),
-                        Row(
-                          children: [
-                            const Icon(Icons.eco, size: 16, color: Color(0xFF22C55E)),
-                            const SizedBox(width: 6),
-                            const Text(
-                              'Your Health   Our Priority',
-                              style: TextStyle(
-                                color: Color(0xFF94A3B8),
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 1,
-                              ),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Manju Medical Stores',
+                            style: TextStyle(
+                              color: widget.themeColor,
+                              fontWeight: FontWeight.w900,
+                              fontSize: 32,
+                              letterSpacing: -0.5,
                             ),
-                          ],
-                        ),
-                      ],
+                          ),
+                          const Text(
+                            '& Digital Clinic',
+                            style: TextStyle(color: Color(0xFF64748B), fontWeight: FontWeight.w600, fontSize: 20),
+                          ),
+                          const SizedBox(height: 6),
+                          Row(
+                            children: [
+                              const Icon(Icons.eco, size: 16, color: Color(0xFF22C55E)),
+                              const SizedBox(width: 6),
+                              const Text(
+                                'Your Health   Our Priority',
+                                style: TextStyle(
+                                  color: Color(0xFF94A3B8),
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 1,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
@@ -377,13 +379,18 @@ class _RoleLoginScreenState extends State<RoleLoginScreen> {
   }
 
   Widget _buildMobileLayout() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(24.0),
-      child: Column(
-        children: [
-          const SizedBox(height: 32),
-          _buildLoginCard(),
-        ],
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 450),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            children: [
+              const SizedBox(height: 32),
+              _buildLoginCard(),
+            ],
+          ),
+        ),
       ),
     );
   }

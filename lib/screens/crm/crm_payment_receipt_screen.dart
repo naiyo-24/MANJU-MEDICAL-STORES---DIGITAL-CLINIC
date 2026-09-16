@@ -23,17 +23,30 @@ class _CrmPaymentReceiptScreenState extends State<CrmPaymentReceiptScreen> {
         children: [
           _buildHeader(),
           Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(flex: 5, child: _buildLeftPane()),
-                  const SizedBox(width: 24),
-                  Expanded(flex: 4, child: _buildRightPane()),
-                ],
-              ),
-            ),
+            child: LayoutBuilder(builder: (context, constraints) {
+              bool isDesktop = constraints.maxWidth > 1000;
+              return Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: isDesktop 
+                  ? Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(flex: 5, child: _buildLeftPane()),
+                        const SizedBox(width: 24),
+                        Expanded(flex: 4, child: _buildRightPane()),
+                      ],
+                    )
+                  : SingleChildScrollView(
+                      child: Column(
+                        children: [
+                          _buildLeftPane(),
+                          const SizedBox(height: 24),
+                          _buildRightPane(),
+                        ],
+                      ),
+                    ),
+              );
+            }),
           ),
         ],
       ),

@@ -181,13 +181,11 @@ class _LabCreateTemplateScreenState extends State<LabCreateTemplateScreen> {
                   
                   // Main Body
                   Expanded(
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Left Column (Form)
-                        Expanded(
-                          flex: 6,
-                          child: Container(
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        bool isDesktop = constraints.maxWidth > 900;
+                        
+                        Widget leftColumn = Container(
                             decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: const Color(0xFFE2E8F0))),
                             child: Column(
                               children: [
@@ -419,15 +417,9 @@ class _LabCreateTemplateScreenState extends State<LabCreateTemplateScreen> {
                                 ),
                               ],
                             ),
-                          ),
-                        ),
+                          );
                         
-                        const SizedBox(width: 24),
-                        
-                        // Right Column (Live Preview)
-                        Expanded(
-                          flex: 4,
-                          child: Column(
+                        Widget rightColumn = Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
                               Row(
@@ -438,7 +430,7 @@ class _LabCreateTemplateScreenState extends State<LabCreateTemplateScreen> {
                                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                                     decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE2E8F0)), borderRadius: BorderRadius.circular(4), color: Colors.white),
                                     child: Row(
-                                      children: [
+                                      children: const [
                                         Text('Change Template Style', style: TextStyle(fontSize: 12)),
                                         Icon(Icons.arrow_drop_down, size: 16),
                                       ],
@@ -450,7 +442,11 @@ class _LabCreateTemplateScreenState extends State<LabCreateTemplateScreen> {
                               Expanded(
                                 child: Container(
                                   padding: const EdgeInsets.all(24),
-                                  decoration: BoxDecoration(color: Colors.white, border: Border.all(color: const Color(0xFFE2E8F0)), borderRadius: BorderRadius.circular(4)),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white, 
+                                    border: Border.all(color: const Color(0xFFE2E8F0)), 
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.stretch,
                                     children: [
@@ -509,6 +505,11 @@ class _LabCreateTemplateScreenState extends State<LabCreateTemplateScreen> {
                                       Text(_testNameCtrl.text.isEmpty ? 'TEST NAME' : _testNameCtrl.text.toUpperCase(), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
                                       const SizedBox(height: 8),
                                       
+                                      // Table Title
+                                      const SizedBox(height: 16),
+                                      Text(_testNameCtrl.text.isNotEmpty ? _testNameCtrl.text.toUpperCase() : 'TEST NAME', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                                      const SizedBox(height: 8),
+
                                       // Result Table
                                       Container(
                                         decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE2E8F0))),
@@ -518,7 +519,7 @@ class _LabCreateTemplateScreenState extends State<LabCreateTemplateScreen> {
                                               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                                               color: const Color(0xFFF8FAFC),
                                               child: Row(
-                                                children: [
+                                                children: const [
                                                   Expanded(flex: 3, child: Text('Parameter', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold))),
                                                   Expanded(flex: 2, child: Text('Result', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold))),
                                                   Expanded(flex: 2, child: Text('Unit', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold))),
@@ -526,42 +527,37 @@ class _LabCreateTemplateScreenState extends State<LabCreateTemplateScreen> {
                                                 ],
                                               ),
                                             ),
-                                            ..._fields.map((f) => Container(
+                                            Container(
                                               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                                               decoration: const BoxDecoration(border: Border(top: BorderSide(color: Color(0xFFE2E8F0)))),
                                               child: Row(
-                                                children: [
-                                                  Expanded(flex: 3, child: Text(f.name.isEmpty ? 'Parameter' : f.name, style: const TextStyle(fontSize: 11))),
-                                                  Expanded(flex: 2, child: Text('...', style: const TextStyle(fontSize: 11, color: Color(0xFF1E293B)))),
-                                                  Expanded(flex: 2, child: Text(f.unit, style: const TextStyle(fontSize: 11))),
-                                                  Expanded(flex: 2, child: Text(f.normalRange, style: const TextStyle(fontSize: 11))),
+                                                children: const [
+                                                  Expanded(flex: 3, child: Text('Parameter', style: TextStyle(fontSize: 11))),
+                                                  Expanded(flex: 2, child: Text('...', style: TextStyle(fontSize: 11, color: Color(0xFF64748B)))),
+                                                  Expanded(flex: 2, child: Text('', style: TextStyle(fontSize: 11))),
+                                                  Expanded(flex: 2, child: Text('', style: TextStyle(fontSize: 11))),
                                                 ],
                                               ),
-                                            )),
+                                            ),
                                           ],
                                         ),
                                       ),
                                       
-                                      if (_showRemarksSection || _remarksCtrl.text.isNotEmpty) ...[
-                                        const SizedBox(height: 16),
-                                        const Text('Comments:', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
-                                        Text(_remarksCtrl.text, style: const TextStyle(fontSize: 11)),
-                                      ],
+                                      const SizedBox(height: 48),
                                       
-                                      const Spacer(),
-                                      
-                                      // Signatures
+                                      // Signatures and QR Code
                                       Row(
                                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                         crossAxisAlignment: CrossAxisAlignment.end,
                                         children: [
                                           Column(
                                             crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                              Icon(Icons.qr_code_2, size: 48),
-                                              Text('Scan to verify report', style: TextStyle(fontSize: 8)),
+                                            children: const [
+                                              Icon(Icons.qr_code_2, size: 40, color: Colors.black),
                                               SizedBox(height: 4),
-                                              Text('This is a computer generated report and does not require a signature.', style: TextStyle(fontSize: 6, color: Color(0xFF64748B))),
+                                              Text('Scan to verify report', style: TextStyle(fontSize: 8, color: Color(0xFF64748B))),
+                                              SizedBox(height: 2),
+                                              Text('This is a computer generated report and does not require a signature.', style: TextStyle(fontSize: 6, color: Color(0xFF94A3B8))),
                                             ],
                                           ),
                                           Column(
@@ -599,9 +595,30 @@ class _LabCreateTemplateScreenState extends State<LabCreateTemplateScreen> {
                                 ),
                               ),
                             ],
-                          ),
-                        ),
-                      ],
+                          );
+                        
+                        if (isDesktop) {
+                          return Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(flex: 6, child: leftColumn),
+                              const SizedBox(width: 24),
+                              Expanded(flex: 4, child: rightColumn),
+                            ],
+                          );
+                        } else {
+                          return SingleChildScrollView(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                SizedBox(height: 600, child: leftColumn), // Fixed height to allow inner scroll
+                                const SizedBox(height: 24),
+                                rightColumn,
+                              ],
+                            ),
+                          );
+                        }
+                      },
                     ),
                   ),
                 ],

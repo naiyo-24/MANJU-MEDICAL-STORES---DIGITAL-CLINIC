@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../utils/responsive.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:file_saver/file_saver.dart';
 import 'package:excel/excel.dart' hide Border;
@@ -380,13 +381,11 @@ class _LabTestsScreenState extends State<LabTestsScreen> {
 
           // Main Layout
           Expanded(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Left Pane: Table
-                Expanded(
-                  flex: 12,
-                  child: Container(
+            child: ResponsiveSplitView(
+              leftFlex: 12,
+              rightFlex: 4,
+              showRightPane: _selectedTest != null,
+              leftPane: Container(
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(12),
@@ -684,14 +683,7 @@ class _LabTestsScreenState extends State<LabTestsScreen> {
                       ],
                     ),
                   ),
-                ),
-                
-                const SizedBox(width: 24),
-                
-                // Right Pane: Detail view
-                if (_selectedTest != null) Expanded(
-                  flex: 4,
-                  child: Container(
+              rightPane: Container(
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(12),
@@ -894,8 +886,6 @@ class _LabTestsScreenState extends State<LabTestsScreen> {
                       ),
                     ),
                   ),
-                ),
-              ],
             ),
           ),
           

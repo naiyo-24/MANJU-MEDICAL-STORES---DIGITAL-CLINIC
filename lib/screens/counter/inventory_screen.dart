@@ -222,13 +222,19 @@ class _InventoryScreenState extends State<InventoryScreen> {
     );
   }
 
+  Widget _buildConditionalWrapper(bool isShort, Widget child) {
+    return isShort ? SizedBox(height: 500, child: child) : Expanded(child: child);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
       color: const Color(0xFFF8FAFC),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
+      child: LayoutBuilder(builder: (context, screenConstraints) {
+        bool isScreenShort = screenConstraints.maxHeight < 500;
+        Widget content = Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
           // Top Header
           Container(
             padding: const EdgeInsets.all(32.0),
@@ -323,44 +329,54 @@ class _InventoryScreenState extends State<InventoryScreen> {
           ),
 
           // List Content
-          Expanded(
-            child: Padding(
+          _buildConditionalWrapper(
+            isScreenShort,
+            Padding(
               padding: const EdgeInsets.all(32.0),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: const Color(0xFFE2E8F0)),
-                  boxShadow: const [
-                    BoxShadow(color: Colors.black12, blurRadius: 4, offset: Offset(0, 2)),
-                  ],
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      // Table Header
-                      Container(
-                        color: const Color(0xFFF1F5F9),
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                        child: const Row(
-                          children: [
-                            Expanded(flex: 3, child: Text('Medicine Name', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 12))),
-                            Expanded(flex: 2, child: Text('Category', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 12))),
-                            Expanded(flex: 2, child: Text('Stock', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 12))),
-                            Expanded(flex: 2, child: Text('Price (₹)', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 12))),
-                            Expanded(flex: 2, child: Text('Expiry Date', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 12))),
-                            Expanded(flex: 2, child: Text('Status', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 12))),
-                            SizedBox(width: 40), // For action button
-                          ],
-                        ),
+              child: LayoutBuilder(builder: (context, constraints) {
+                return SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minWidth: 1000,
+                      maxWidth: constraints.maxWidth > 1000 ? constraints.maxWidth : 1000,
+                    ),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                        boxShadow: const [
+                          BoxShadow(color: Colors.black12, blurRadius: 4, offset: Offset(0, 2)),
+                        ],
                       ),
-                      
-                      // Table Body
-                      Expanded(
-                        child: _isLoading
-                            ? const Center(child: CircularProgressIndicator(color: Color(0xFF22C55E)))
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(16),
+                        child: LayoutBuilder(builder: (context, tableConstraints) {
+                          Widget tableColumn = Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              // Table Header
+                              Container(
+                                color: const Color(0xFFF1F5F9),
+                                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                                child: const Row(
+                                  children: [
+                                    Expanded(flex: 3, child: Text('Medicine Name', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 12))),
+                                    Expanded(flex: 2, child: Text('Category', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 12))),
+                                    Expanded(flex: 2, child: Text('Stock', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 12))),
+                                    Expanded(flex: 2, child: Text('Price (₹)', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 12))),
+                                    Expanded(flex: 2, child: Text('Expiry Date', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 12))),
+                                    Expanded(flex: 2, child: Text('Status', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 12))),
+                                    SizedBox(width: 40), // For action button
+                                  ],
+                                ),
+                              ),
+                              
+                              // Table Body
+                              Expanded(
+                                child: _isLoading
+                                    ? const Center(child: CircularProgressIndicator(color: Color(0xFF22C55E)))
                             : _errorMessage.isNotEmpty
                                 ? Center(child: Text(_errorMessage, style: const TextStyle(color: Colors.red)))
                                 : _medicines.isEmpty
@@ -459,13 +475,30 @@ class _InventoryScreenState extends State<InventoryScreen> {
                                       ),
                       ),
                     ],
-                  ),
+                  );
+                  
+                  if (tableConstraints.maxHeight < 150) {
+                    return SingleChildScrollView(
+                      child: SizedBox(
+                        height: 400,
+                        child: tableColumn,
+                      ),
+                    );
+                  }
+                  return tableColumn;
+                }),
                 ),
               ),
             ),
-          ),
-        ],
+          );
+        }),
       ),
+    ),
+        ],
+      );
+      
+      return isScreenShort ? SingleChildScrollView(child: content) : content;
+      }),
     );
   }
 }

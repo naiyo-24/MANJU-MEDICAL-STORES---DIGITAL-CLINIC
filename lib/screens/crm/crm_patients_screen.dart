@@ -99,17 +99,33 @@ class _CrmPatientsScreenState extends ConsumerState<CrmPatientsScreen> {
                 children: [
                   _buildHeader(),
                   const SizedBox(height: 24),
-                  _buildStatsRow(),
+                  _buildStatsRow(context),
                   const SizedBox(height: 24),
                   Expanded(
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(flex: 3, child: _buildLeftPane()),
-                        const SizedBox(width: 24),
-                        SizedBox(width: 350, child: _buildRightPane()),
-                      ],
-                    ),
+                    child: LayoutBuilder(builder: (context, constraints) {
+                      bool isDesktop = constraints.maxWidth > 1000;
+                      return isDesktop 
+                        ? Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(flex: 3, child: _buildLeftPane()),
+                              const SizedBox(width: 24),
+                              SizedBox(width: 350, child: _buildRightPane()),
+                            ],
+                          )
+                        : SingleChildScrollView(
+                            child: Column(
+                              children: [
+                                SizedBox(
+                                  height: 600,
+                                  child: _buildLeftPane()
+                                ),
+                                const SizedBox(height: 24),
+                                _buildRightPane(),
+                              ],
+                            ),
+                          );
+                    }),
                   ),
                 ],
               ),
@@ -368,18 +384,34 @@ class _CrmPatientsScreenState extends ConsumerState<CrmPatientsScreen> {
     );
   }
 
-  Widget _buildStatsRow() {
-    return Row(
-      children: [
-        Expanded(child: _buildStatCard('Total Patients', '1,248', Icons.people, const Color(0xFF8B5CF6), '12%')),
-        const SizedBox(width: 16),
-        Expanded(child: _buildStatCard('New Patients', '186', Icons.person_add, const Color(0xFF22C55E), '18%')),
-        const SizedBox(width: 16),
-        Expanded(child: _buildStatCard('Existing Patients', '892', Icons.people_alt, const Color(0xFF3B82F6), '10%')),
-        const SizedBox(width: 16),
-        Expanded(child: _buildStatCard('Follow Ups', '356', Icons.update, const Color(0xFFEC4899), '22%')),
-      ],
-    );
+  Widget _buildStatsRow(BuildContext context) {
+    bool isDesktop = MediaQuery.of(context).size.width > 1000;
+    return isDesktop
+      ? Row(
+          children: [
+            Expanded(child: _buildStatCard('Total Patients', '1,248', Icons.people, const Color(0xFF8B5CF6), '12%')),
+            const SizedBox(width: 16),
+            Expanded(child: _buildStatCard('New Patients', '186', Icons.person_add, const Color(0xFF22C55E), '18%')),
+            const SizedBox(width: 16),
+            Expanded(child: _buildStatCard('Existing Patients', '892', Icons.people_alt, const Color(0xFF3B82F6), '10%')),
+            const SizedBox(width: 16),
+            Expanded(child: _buildStatCard('Follow Ups', '356', Icons.update, const Color(0xFFEC4899), '22%')),
+          ],
+        )
+      : SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: [
+              SizedBox(width: 250, child: _buildStatCard('Total Patients', '1,248', Icons.people, const Color(0xFF8B5CF6), '12%')),
+              const SizedBox(width: 16),
+              SizedBox(width: 250, child: _buildStatCard('New Patients', '186', Icons.person_add, const Color(0xFF22C55E), '18%')),
+              const SizedBox(width: 16),
+              SizedBox(width: 250, child: _buildStatCard('Existing Patients', '892', Icons.people_alt, const Color(0xFF3B82F6), '10%')),
+              const SizedBox(width: 16),
+              SizedBox(width: 250, child: _buildStatCard('Follow Ups', '356', Icons.update, const Color(0xFFEC4899), '22%')),
+            ],
+          ),
+        );
   }
 
   Widget _buildStatCard(String title, String value, IconData icon, Color color, String increase) {
@@ -468,130 +500,154 @@ class _CrmPatientsScreenState extends ConsumerState<CrmPatientsScreen> {
           // Filters Row
           Padding(
             padding: const EdgeInsets.all(16.0),
-            child: Row(
-              children: [
-                Expanded(
-                  flex: 2,
-                  child: TextField(
-                    decoration: InputDecoration(
-                      hintText: 'Search by name, phone, email or UHID...',
-                      hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 13),
-                      prefixIcon: const Icon(Icons.search, color: Color(0xFF94A3B8), size: 18),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+            child: LayoutBuilder(builder: (context, constraints) {
+              return SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    SizedBox(
+                      width: 250,
+                      child: TextField(
+                        decoration: InputDecoration(
+                          hintText: 'Search by name, phone...',
+                          hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 13),
+                          prefixIcon: const Icon(Icons.search, color: Color(0xFF94A3B8), size: 18),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        ),
+                        onChanged: (val) {
+                          setState(() {
+                            _searchQuery = val;
+                          });
+                        },
                       ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                     ),
-                    onChanged: (val) {
-                      setState(() {
-                        _searchQuery = val;
-                      });
-                    },
-                  ),
+                    const SizedBox(width: 12),
+                    SizedBox(width: 150, child: _buildFilterDropdown('All Gender', ['All Gender', 'Male', 'Female', 'Other'], _selectedGender, (v) => setState(() => _selectedGender = v!))),
+                    const SizedBox(width: 12),
+                    SizedBox(width: 150, child: _buildFilterDropdown('All Age Groups', ['All Age Groups', '0-18 Years', '19-35 Years', '36-60 Years', '60+ Years'], _selectedAge, (v) => setState(() => _selectedAge = v!))),
+                    const SizedBox(width: 12),
+                    SizedBox(width: 150, child: _buildFilterDropdown('All Status', ['All Status', 'Active', 'Inactive', 'Follow Up'], _selectedStatus, (v) => setState(() => _selectedStatus = v!))),
+                    const SizedBox(width: 12),
+                    TextButton(
+                      onPressed: () {
+                        setState(() {
+                          _searchQuery = '';
+                          _selectedGender = 'All Gender';
+                          _selectedAge = 'All Age Groups';
+                          _selectedStatus = 'All Status';
+                        });
+                      },
+                      child: const Text('Reset', style: TextStyle(color: Color(0xFF3B82F6))),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 12),
-                Expanded(child: _buildFilterDropdown('All Gender', ['All Gender', 'Male', 'Female', 'Other'], _selectedGender, (v) => setState(() => _selectedGender = v!))),
-                const SizedBox(width: 12),
-                Expanded(child: _buildFilterDropdown('All Age Groups', ['All Age Groups', '0-18 Years', '19-35 Years', '36-60 Years', '60+ Years'], _selectedAge, (v) => setState(() => _selectedAge = v!))),
-                const SizedBox(width: 12),
-                Expanded(child: _buildFilterDropdown('All Status', ['All Status', 'Active', 'Inactive', 'Follow Up'], _selectedStatus, (v) => setState(() => _selectedStatus = v!))),
-                const SizedBox(width: 12),
-                TextButton(
-                  onPressed: () {
-                    setState(() {
-                      _searchQuery = '';
-                      _selectedGender = 'All Gender';
-                      _selectedAge = 'All Age Groups';
-                      _selectedStatus = 'All Status';
-                    });
-                  },
-                  child: const Text('Reset', style: TextStyle(color: Color(0xFF3B82F6))),
-                ),
-              ],
-            ),
+              );
+            }),
           ),
-          // Table Header
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            color: const Color(0xFFF8FAFC),
-            child: Row(
-              children: [
-                const SizedBox(width: 32, child: Icon(Icons.check_box_outline_blank, color: Color(0xFFCBD5E1), size: 18)),
-                const SizedBox(width: 32, child: Text('#', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF64748B), fontSize: 12))),
-                Expanded(flex: 2, child: const Text('Patient Name', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF64748B), fontSize: 12))),
-                Expanded(flex: 1, child: const Text('UHID', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF64748B), fontSize: 12))),
-                Expanded(flex: 1, child: const Text('Phone', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF64748B), fontSize: 12))),
-                Expanded(flex: 1, child: const Text('Age / Gender', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF64748B), fontSize: 12))),
-                Expanded(flex: 1, child: const Text('Last Visit', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF64748B), fontSize: 12))),
-                Expanded(flex: 1, child: const Text('Status', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF64748B), fontSize: 12))),
-                const SizedBox(width: 100, child: Text('Action', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF64748B), fontSize: 12), textAlign: TextAlign.center)),
-              ],
-            ),
-          ),
-          // Table Body
+          
+          // Table Section
           Expanded(
-            child: ListView.separated(
-              itemCount: _filteredPatients.length,
-              separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFF1F5F9)),
-              itemBuilder: (context, index) {
-                final patient = _filteredPatients[index];
-                final isSelected = _selectedPatient?.id == patient.id;
-                
-                return InkWell(
-                  onTap: () => _selectPatient(patient),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    color: isSelected ? const Color(0xFFF3E8FF).withOpacity(0.3) : Colors.transparent,
-                    child: Row(
-                      children: [
-                        const SizedBox(width: 32, child: Icon(Icons.check_box_outline_blank, color: Color(0xFFCBD5E1), size: 18)),
-                        SizedBox(width: 32, child: Text('${index + 1}', style: const TextStyle(color: Color(0xFF1E293B), fontSize: 13, fontWeight: FontWeight.w500))),
-                        Expanded(
-                          flex: 2,
-                          child: Row(
-                            children: [
-                              CircleAvatar(
-                                radius: 14,
-                                backgroundColor: _getAvatarColor(patient.name),
-                                child: Text(
-                                  patient.name.substring(0, 2).toUpperCase(),
-                                  style: TextStyle(color: _getTextColor(patient.name), fontSize: 10, fontWeight: FontWeight.bold),
+            child: LayoutBuilder(builder: (context, constraints) {
+              return SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minWidth: 1000,
+                    maxWidth: constraints.maxWidth > 1000 ? constraints.maxWidth : 1000,
+                  ),
+                  child: Column(
+                    children: [
+                      // Table Header
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        color: const Color(0xFFF8FAFC),
+                        child: Row(
+                          children: [
+                            const SizedBox(width: 32, child: Icon(Icons.check_box_outline_blank, color: Color(0xFFCBD5E1), size: 18)),
+                            const SizedBox(width: 32, child: Text('#', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF64748B), fontSize: 12))),
+                            Expanded(flex: 2, child: const Text('Patient Name', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF64748B), fontSize: 12))),
+                            Expanded(flex: 1, child: const Text('UHID', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF64748B), fontSize: 12))),
+                            Expanded(flex: 1, child: const Text('Phone', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF64748B), fontSize: 12))),
+                            Expanded(flex: 1, child: const Text('Age / Gender', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF64748B), fontSize: 12))),
+                            Expanded(flex: 1, child: const Text('Last Visit', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF64748B), fontSize: 12))),
+                            Expanded(flex: 1, child: const Text('Status', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF64748B), fontSize: 12))),
+                            const SizedBox(width: 100, child: Text('Action', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF64748B), fontSize: 12), textAlign: TextAlign.center)),
+                          ],
+                        ),
+                      ),
+                      // Table Body
+                      Expanded(
+                        child: ListView.separated(
+                          itemCount: _filteredPatients.length,
+                          separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                          itemBuilder: (context, index) {
+                            final patient = _filteredPatients[index];
+                            final isSelected = _selectedPatient?.id == patient.id;
+                            
+                            return InkWell(
+                              onTap: () => _selectPatient(patient),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                color: isSelected ? const Color(0xFFF3E8FF).withOpacity(0.3) : Colors.transparent,
+                                child: Row(
+                                  children: [
+                                    const SizedBox(width: 32, child: Icon(Icons.check_box_outline_blank, color: Color(0xFFCBD5E1), size: 18)),
+                                    SizedBox(width: 32, child: Text('${index + 1}', style: const TextStyle(color: Color(0xFF1E293B), fontSize: 13, fontWeight: FontWeight.w500))),
+                                    Expanded(
+                                      flex: 2,
+                                      child: Row(
+                                        children: [
+                                          CircleAvatar(
+                                            radius: 14,
+                                            backgroundColor: _getAvatarColor(patient.name),
+                                            child: Text(
+                                              patient.name.substring(0, 2).toUpperCase(),
+                                              style: TextStyle(color: _getTextColor(patient.name), fontSize: 10, fontWeight: FontWeight.bold),
+                                            ),
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Expanded(child: Text(patient.name, style: const TextStyle(color: Color(0xFF1E3A8A), fontWeight: FontWeight.w600, fontSize: 13))),
+                                        ],
+                                      ),
+                                    ),
+                                    Expanded(flex: 1, child: Text(patient.uhid, style: const TextStyle(color: Color(0xFF64748B), fontSize: 13))),
+                                    Expanded(flex: 1, child: Text(patient.phone, style: const TextStyle(color: Color(0xFF1E293B), fontSize: 13))),
+                                    Expanded(flex: 1, child: Text('${patient.age} Y / ${patient.gender}', style: const TextStyle(color: Color(0xFF64748B), fontSize: 13))),
+                                    Expanded(flex: 1, child: Text(DateFormat('dd MMM yyyy').format(patient.lastVisit), style: const TextStyle(color: Color(0xFF64748B), fontSize: 13))),
+                                    Expanded(flex: 1, child: _buildStatusPill(patient.status)),
+                                    SizedBox(
+                                      width: 100,
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          _buildActionIcon(Icons.remove_red_eye, const Color(0xFF3B82F6), onTap: () => _selectPatient(patient)),
+                                          const SizedBox(width: 4),
+                                          _buildActionIcon(Icons.edit, const Color(0xFF3B82F6), onTap: () => _showEditPatientDialog(context, patient)),
+                                          const SizedBox(width: 4),
+                                          _buildActionIcon(Icons.delete, const Color(0xFFEF4444), onTap: () => _showDeletePatientDialog(context, patient)),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
-                              const SizedBox(width: 8),
-                              Expanded(child: Text(patient.name, style: const TextStyle(color: Color(0xFF1E3A8A), fontWeight: FontWeight.w600, fontSize: 13))),
-                            ],
-                          ),
+                            );
+                          },
                         ),
-                        Expanded(flex: 1, child: Text(patient.uhid, style: const TextStyle(color: Color(0xFF64748B), fontSize: 13))),
-                        Expanded(flex: 1, child: Text(patient.phone, style: const TextStyle(color: Color(0xFF1E293B), fontSize: 13))),
-                        Expanded(flex: 1, child: Text('${patient.age} Y / ${patient.gender}', style: const TextStyle(color: Color(0xFF64748B), fontSize: 13))),
-                        Expanded(flex: 1, child: Text(DateFormat('dd MMM yyyy').format(patient.lastVisit), style: const TextStyle(color: Color(0xFF64748B), fontSize: 13))),
-                        Expanded(flex: 1, child: _buildStatusPill(patient.status)),
-                        SizedBox(
-                          width: 100,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              _buildActionIcon(Icons.remove_red_eye, const Color(0xFF3B82F6), onTap: () => _selectPatient(patient)),
-                              const SizedBox(width: 4),
-                              _buildActionIcon(Icons.edit, const Color(0xFF3B82F6), onTap: () => _showEditPatientDialog(context, patient)),
-                              const SizedBox(width: 4),
-                              _buildActionIcon(Icons.delete, const Color(0xFFEF4444), onTap: () => _showDeletePatientDialog(context, patient)),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                );
-              },
-            ),
+                ),
+              );
+            }),
           ),
           const Divider(height: 1, color: Color(0xFFE2E8F0)),
           // Pagination

@@ -284,18 +284,18 @@ class _AccountsScreenState extends State<AccountsScreen> {
     return Container(
       color: const Color(0xFFF8FAFC),
       padding: const EdgeInsets.all(24.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Main Left Column
-          Expanded(
-            flex: 7,
-            child: Column(
+      child: LayoutBuilder(builder: (context, constraints) {
+        bool isDesktop = constraints.maxWidth > 1000;
+        
+        Widget leftColumn = Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Header
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                Wrap(
+                  alignment: WrapAlignment.spaceBetween,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: 16,
+                  runSpacing: 16,
                   children: [
                     Row(
                       children: [
@@ -344,23 +344,25 @@ class _AccountsScreenState extends State<AccountsScreen> {
                 const SizedBox(height: 24),
 
                 // Summary Cards
-                Row(
-                  children: [
-                    Expanded(child: _buildStatCard('Total Income', _fmt(_totalIncome), Icons.currency_rupee, const Color(0xFFDCFCE7), const Color(0xFF166534))),
-                    const SizedBox(width: 16),
-                    Expanded(child: _buildStatCard('Total Expenses', _fmt(_totalExpenses), Icons.credit_card, const Color(0xFFFEE2E2), const Color(0xFFB91C1C))),
-                    const SizedBox(width: 16),
-                    Expanded(child: _buildStatCard('Net Profit', _fmt(_netProfit), Icons.bar_chart, const Color(0xFFE0F2FE), const Color(0xFF0369A1))),
-                    const SizedBox(width: 16),
-                    Expanded(child: _buildStatCard('Outstanding Receivables', _fmt(_outstandingReceivables), Icons.people_alt, const Color(0xFFF3E8FF), const Color(0xFF7E22CE))),
-                  ],
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      SizedBox(width: 250, child: _buildStatCard('Total Income', _fmt(_totalIncome), Icons.currency_rupee, const Color(0xFFDCFCE7), const Color(0xFF166534))),
+                      const SizedBox(width: 16),
+                      SizedBox(width: 250, child: _buildStatCard('Total Expenses', _fmt(_totalExpenses), Icons.credit_card, const Color(0xFFFEE2E2), const Color(0xFFB91C1C))),
+                      const SizedBox(width: 16),
+                      SizedBox(width: 250, child: _buildStatCard('Net Profit', _fmt(_netProfit), Icons.bar_chart, const Color(0xFFE0F2FE), const Color(0xFF0369A1))),
+                      const SizedBox(width: 16),
+                      SizedBox(width: 250, child: _buildStatCard('Outstanding Receivables', _fmt(_outstandingReceivables), Icons.people_alt, const Color(0xFFF3E8FF), const Color(0xFF7E22CE))),
+                    ],
+                  ),
                 ),
                 const SizedBox(height: 24),
 
                 // Main Content Area
-                Expanded(
-                  child: Container(
-                    decoration: BoxDecoration(
+                Container(
+                  decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(12),
                       boxShadow: [
@@ -375,8 +377,10 @@ class _AccountsScreenState extends State<AccountsScreen> {
                           decoration: const BoxDecoration(
                             border: Border(bottom: BorderSide(color: Color(0xFFF1F5F9))),
                           ),
-                          child: Row(
-                            children: List.generate(
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Row(
+                              children: List.generate(
                               _tabs.length,
                               (index) => InkWell(
                                 onTap: () => setState(() => _activeTab = index),
@@ -402,103 +406,112 @@ class _AccountsScreenState extends State<AccountsScreen> {
                             ),
                           ),
                         ),
+                        ),
                         
                         if (_activeTab == 0) ...[
                           // Filters
                           Padding(
                             padding: const EdgeInsets.all(16.0),
-                            child: Row(
-                            children: [
-                              _buildDynamicDropdown(_selectedPeriod, _periods, (String? newValue) {
-                                if (newValue != null) {
-                                  setState(() => _selectedPeriod = newValue);
-                                  _loadTransactions();
-                                }
-                              }),
-                              const SizedBox(width: 12),
-                              _buildDynamicDropdown(_selectedType, _types, (String? newValue) {
-                                if (newValue != null) {
-                                  setState(() => _selectedType = newValue);
-                                  _loadTransactions();
-                                }
-                              }),
-                              const SizedBox(width: 12),
-                              _buildDynamicDropdown(_selectedCategory, _categories, (String? newValue) {
-                                if (newValue != null) {
-                                  setState(() => _selectedCategory = newValue);
-                                  _loadTransactions();
-                                }
-                              }),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                                  decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE2E8F0)), borderRadius: BorderRadius.circular(8)),
-                                  child: TextField(
-                                    controller: _searchController,
-                                    decoration: const InputDecoration(
-                                      icon: Icon(Icons.search, size: 18, color: Color(0xFF64748B)),
-                                      hintText: 'Search by description, customer, invoice no...',
-                                      hintStyle: TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
-                                      border: InputBorder.none,
+                            child: Wrap(
+                              spacing: 12,
+                              runSpacing: 12,
+                              crossAxisAlignment: WrapCrossAlignment.center,
+                              children: [
+                                _buildDynamicDropdown(_selectedPeriod, _periods, (String? newValue) {
+                                  if (newValue != null) {
+                                    setState(() => _selectedPeriod = newValue);
+                                    _loadTransactions();
+                                  }
+                                }),
+                                _buildDynamicDropdown(_selectedType, _types, (String? newValue) {
+                                  if (newValue != null) {
+                                    setState(() => _selectedType = newValue);
+                                    _loadTransactions();
+                                  }
+                                }),
+                                _buildDynamicDropdown(_selectedCategory, _categories, (String? newValue) {
+                                  if (newValue != null) {
+                                    setState(() => _selectedCategory = newValue);
+                                    _loadTransactions();
+                                  }
+                                }),
+                                ConstrainedBox(
+                                  constraints: const BoxConstraints(maxWidth: 350, minWidth: 200),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                                    decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE2E8F0)), borderRadius: BorderRadius.circular(8)),
+                                    child: TextField(
+                                      controller: _searchController,
+                                      decoration: const InputDecoration(
+                                        icon: Icon(Icons.search, size: 18, color: Color(0xFF64748B)),
+                                        hintText: 'Search by description, customer, invoice no...',
+                                        hintStyle: TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
+                                        border: InputBorder.none,
+                                      ),
+                                      onChanged: (value) {
+                                        _searchQuery = value;
+                                        _loadTransactions();
+                                      },
                                     ),
-                                    onChanged: (value) {
-                                      _searchQuery = value;
-                                      _loadTransactions();
-                                    },
                                   ),
                                 ),
-                              ),
-                              const SizedBox(width: 12),
-                              OutlinedButton.icon(
-                                onPressed: () {
-                                  setState(() {
-                                    _selectedPeriod = 'All Time';
-                                    _selectedType = 'All Types';
-                                    _selectedCategory = 'All Categories';
-                                    _searchController.clear();
-                                    _searchQuery = '';
-                                  });
-                                  _loadTransactions();
-                                },
-                                icon: const Icon(Icons.refresh, size: 16, color: Color(0xFF1E293B)),
-                                label: const Text('Reset', style: TextStyle(color: Color(0xFF1E293B))),
-                                style: OutlinedButton.styleFrom(
-                                  side: const BorderSide(color: Color(0xFFE2E8F0)),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                OutlinedButton.icon(
+                                  onPressed: () {
+                                    setState(() {
+                                      _selectedPeriod = 'All Time';
+                                      _selectedType = 'All Types';
+                                      _selectedCategory = 'All Categories';
+                                      _searchController.clear();
+                                      _searchQuery = '';
+                                    });
+                                    _loadTransactions();
+                                  },
+                                  icon: const Icon(Icons.refresh, size: 16, color: Color(0xFF1E293B)),
+                                  label: const Text('Reset', style: TextStyle(color: Color(0xFF1E293B))),
+                                  style: OutlinedButton.styleFrom(
+                                    side: const BorderSide(color: Color(0xFFE2E8F0)),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                  ),
                                 ),
-                              ),
-                            ],
-                          ),
+                              ],
+                            ),
                         ),
                         
-                        // Table Headers
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                          color: const Color(0xFFF8FAFC),
-                          child: Row(
-                            children: const [
-                              SizedBox(width: 30, child: Text('#', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12))),
-                              Expanded(flex: 2, child: Text('Date & Time', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12))),
-                              Expanded(flex: 1, child: Text('Type', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12))),
-                              Expanded(flex: 1, child: Text('Category', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12))),
-                              Expanded(flex: 3, child: Text('Description', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12))),
-                              Expanded(flex: 1, child: Text('Debit (₹)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12), textAlign: TextAlign.right)),
-                              Expanded(flex: 1, child: Text('Credit (₹)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12), textAlign: TextAlign.right)),
-                              Expanded(flex: 1, child: Text('Balance (₹)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12), textAlign: TextAlign.right)),
-                              SizedBox(width: 100, child: Text('Action', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12), textAlign: TextAlign.center)),
-                            ],
-                          ),
-                        ),
-
-                        // Table Body
-                        Expanded(
-                          child: _isLoading 
-                            ? const Center(child: CircularProgressIndicator())
-                            : pagedTxns.isEmpty
-                              ? const Center(child: Text('No transactions found. Add one to get started!', style: TextStyle(color: Color(0xFF64748B))))
-                              : ListView.separated(
-                            itemCount: pagedTxns.length,
+                        LayoutBuilder(builder: (context, constraints) {
+                            return SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: ConstrainedBox(
+                                constraints: BoxConstraints(minWidth: 1000, maxWidth: constraints.maxWidth > 1000 ? constraints.maxWidth : 1000),
+                                child: Column(
+                                  children: [
+                                    // Table Headers
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                      color: const Color(0xFFF8FAFC),
+                                      child: Row(
+                                        children: const [
+                                          SizedBox(width: 30, child: Text('#', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12))),
+                                          Expanded(flex: 2, child: Text('Date & Time', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12))),
+                                          Expanded(flex: 1, child: Text('Type', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12))),
+                                          Expanded(flex: 1, child: Text('Category', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12))),
+                                          Expanded(flex: 3, child: Text('Description', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12))),
+                                          Expanded(flex: 1, child: Text('Debit (₹)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12), textAlign: TextAlign.right)),
+                                          Expanded(flex: 1, child: Text('Credit (₹)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12), textAlign: TextAlign.right)),
+                                          Expanded(flex: 1, child: Text('Balance (₹)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12), textAlign: TextAlign.right)),
+                                          SizedBox(width: 100, child: Text('Action', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12), textAlign: TextAlign.center)),
+                                        ],
+                                      ),
+                                    ),
+                                    
+                                    // Table Body
+                                    _isLoading 
+                              ? const Padding(padding: EdgeInsets.all(32), child: Center(child: CircularProgressIndicator()))
+                              : pagedTxns.isEmpty
+                                ? const Padding(padding: EdgeInsets.all(32), child: Center(child: Text('No transactions found. Add one to get started!', style: TextStyle(color: Color(0xFF64748B)))))
+                                : ListView.separated(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              itemCount: pagedTxns.length,
                             separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFF1F5F9)),
                             itemBuilder: (context, index) {
                               final txn = pagedTxns[index];
@@ -582,13 +595,20 @@ class _AccountsScreenState extends State<AccountsScreen> {
                               );
                             },
                           ),
-                        ),
+                                ],
+                              ),
+                            ),
+                          );
+                        }),
                         
                         // Pagination
                         if (totalRecords > 0) Padding(
                           padding: const EdgeInsets.all(16.0),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          child: Wrap(
+                            alignment: WrapAlignment.spaceBetween,
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            spacing: 16,
+                            runSpacing: 16,
                             children: [
                               Text('Showing ${startIdx + 1} to $endIdx of $totalRecords records', style: const TextStyle(color: Color(0xFF64748B), fontSize: 12)),
                               CustomPagination(
@@ -613,16 +633,10 @@ class _AccountsScreenState extends State<AccountsScreen> {
                       ],
                     ),
                   ),
-                ),
               ],
-            ),
-          ),
-          const SizedBox(width: 24),
-          
-          // Right Sidebar
-          Expanded(
-            flex: 2,
-            child: Column(
+            );
+
+        Widget rightSidebar = Column(
               children: [
                 _buildRightCard(
                   title: 'Account Summary',
@@ -641,32 +655,28 @@ class _AccountsScreenState extends State<AccountsScreen> {
                   title: 'Quick Actions',
                   child: Column(
                     children: [
-                      Row(
+                      Wrap(
+                        spacing: 12,
+                        runSpacing: 12,
                         children: [
-                          Expanded(child: _buildActionBtn('Receive Payment', Icons.download, const Color(0xFFDCFCE7), const Color(0xFF166534), () => _showAddTransactionDialog(defaultType: 'Income'))),
-                          const SizedBox(width: 12),
-                          Expanded(child: _buildActionBtn('Make Payment', Icons.upload, const Color(0xFFFEE2E2), const Color(0xFFB91C1C), () => _showAddTransactionDialog(defaultType: 'Expense'))),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      Row(
-                        children: [
-                          Expanded(child: _buildActionBtn('Add Expense', Icons.receipt_long, const Color(0xFFF3E8FF), const Color(0xFF7E22CE), () => _showAddTransactionDialog(defaultType: 'Expense'))),
-                          const SizedBox(width: 12),
-                          Expanded(child: _buildActionBtn('Bank Transfer', Icons.account_balance, const Color(0xFFE0F2FE), const Color(0xFF0369A1), () => _showAddTransactionDialog(defaultType: 'Expense'))),
+                          _buildActionBtn('Receive Payment', Icons.download, const Color(0xFFDCFCE7), const Color(0xFF166534), () => _showAddTransactionDialog(defaultType: 'Income')),
+                          _buildActionBtn('Make Payment', Icons.upload, const Color(0xFFFEE2E2), const Color(0xFFB91C1C), () => _showAddTransactionDialog(defaultType: 'Expense')),
+                          _buildActionBtn('Add Expense', Icons.receipt_long, const Color(0xFFF3E8FF), const Color(0xFF7E22CE), () => _showAddTransactionDialog(defaultType: 'Expense')),
+                          _buildActionBtn('Bank Transfer', Icons.account_balance, const Color(0xFFE0F2FE), const Color(0xFF0369A1), () => _showAddTransactionDialog(defaultType: 'Expense')),
                         ],
                       ),
                     ],
                   ),
                 ),
                 const SizedBox(height: 24),
-                Expanded(
-                  child: _buildRightCard(
-                    title: 'Recent Activities',
-                    actionText: 'View All',
-                    expandChild: true,
-                    child: _transactions.isEmpty ? const Center(child: Text('No recent activities', style: TextStyle(color: Color(0xFF94A3B8)))) : ListView(
-                      children: _transactions.take(5).map((txn) => _buildActivityItem(
+                _buildRightCard(
+                  title: 'Recent Activities',
+                  actionText: 'View All',
+                  expandChild: false,
+                  child: _transactions.isEmpty ? const Center(child: Text('No recent activities', style: TextStyle(color: Color(0xFF94A3B8)))) : ListView(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    children: _transactions.take(5).map((txn) => _buildActivityItem(
                         '${txn.type == 'Income' ? 'Payment received' : 'Payment sent'}: ${txn.category}', 
                         _fmt(txn.amount), 
                         '${txn.date} ${txn.time}', 
@@ -674,12 +684,32 @@ class _AccountsScreenState extends State<AccountsScreen> {
                       )).toList(),
                     ),
                   ),
-                ),
+              ],
+            );
+
+        if (isDesktop) {
+          return SingleChildScrollView(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(flex: 7, child: leftColumn),
+                const SizedBox(width: 24),
+                Expanded(flex: 3, child: rightSidebar),
               ],
             ),
-          ),
-        ],
-      ),
+          );
+        } else {
+          return SingleChildScrollView(
+            child: Column(
+              children: [
+                leftColumn,
+                const SizedBox(height: 24),
+                rightSidebar,
+              ],
+            ),
+          );
+        }
+      }),
     );
   }
 

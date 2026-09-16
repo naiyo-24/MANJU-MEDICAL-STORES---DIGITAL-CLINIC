@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../utils/responsive.dart';
 import 'package:go_router/go_router.dart';
 import 'dart:async';
 import '../../services/global_search_service.dart';
@@ -12,6 +13,7 @@ class CounterDashboard extends StatefulWidget {
 }
 
 class _CounterDashboardState extends State<CounterDashboard> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final LayerLink _searchLayerLink = LayerLink();
   final FocusNode _searchFocusNode = FocusNode();
   final TextEditingController _searchController = TextEditingController();
@@ -206,12 +208,36 @@ class _CounterDashboardState extends State<CounterDashboard> {
 
   @override
   Widget build(BuildContext context) {
+    bool isDesktop = Responsive.isDesktop(context);
     return Scaffold(
+      key: _scaffoldKey,
       backgroundColor: Colors.white,
+      drawer: isDesktop ? null : Drawer(child: _buildSidebar()),
       body: Column(
         children: [
-          // Global Top App Bar
-          Container(
+          _buildHeader(isDesktop),
+          // Main Body
+          Expanded(
+            child: Row(
+              children: [
+                if (isDesktop) _buildSidebar(),
+                // Screen Content
+                Expanded(
+                  child: Container(
+                    color: Colors.white,
+                    child: widget.navigationShell,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHeader(bool isDesktop) {
+    return Container(
             height: 70,
             padding: const EdgeInsets.symmetric(horizontal: 24),
             decoration: const BoxDecoration(
@@ -220,6 +246,13 @@ class _CounterDashboardState extends State<CounterDashboard> {
             ),
             child: Row(
               children: [
+                if (!isDesktop) ...[
+                  IconButton(
+                    icon: const Icon(Icons.menu),
+                    onPressed: () => _scaffoldKey.currentState?.openDrawer(),
+                  ),
+                  const SizedBox(width: 16),
+                ],
                 // Logo & Brand
                 Row(
                   children: [
@@ -251,41 +284,44 @@ class _CounterDashboardState extends State<CounterDashboard> {
                   ],
                 ),
                 
-                Expanded(
-                  child: Center(
-                    child: Container(
-                      width: 600,
-                      height: 40,
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF1F5F9),
-                        borderRadius: BorderRadius.circular(24),
-                      ),
-                      child: CompositedTransformTarget(
-                        link: _searchLayerLink,
-                        child: Row(
-                          children: [
-                            const Icon(Icons.search, color: Color(0xFF64748B), size: 18),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: TextField(
-                                controller: _searchController,
-                                focusNode: _searchFocusNode,
-                                onChanged: _onSearchChanged,
-                                decoration: const InputDecoration(
-                                  border: InputBorder.none,
-                                  hintText: 'Search medicines, customers, invoices...',
-                                  hintStyle: TextStyle(color: Color(0xFF94A3B8), fontSize: 13),
-                                  isDense: true,
+                if (isDesktop)
+                  Expanded(
+                    child: Center(
+                      child: Container(
+                        width: 600,
+                        height: 40,
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF1F5F9),
+                          borderRadius: BorderRadius.circular(24),
+                        ),
+                        child: CompositedTransformTarget(
+                          link: _searchLayerLink,
+                          child: Row(
+                            children: [
+                              const Icon(Icons.search, color: Color(0xFF64748B), size: 18),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: TextField(
+                                  controller: _searchController,
+                                  focusNode: _searchFocusNode,
+                                  onChanged: _onSearchChanged,
+                                  decoration: const InputDecoration(
+                                    border: InputBorder.none,
+                                    hintText: 'Search medicines, customers, invoices...',
+                                    hintStyle: TextStyle(color: Color(0xFF94A3B8), fontSize: 13),
+                                    isDense: true,
+                                  ),
                                 ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ),
+                  )
+                else
+                  const Spacer(),
                 
 
                 
@@ -340,14 +376,11 @@ class _CounterDashboardState extends State<CounterDashboard> {
                 ),
               ],
             ),
-          ),
-          
-          // Main Body
-          Expanded(
-            child: Row(
-              children: [
-                // Custom Sidebar
-                Container(
+          );
+  }
+
+  Widget _buildSidebar() {
+    return Container(
                   width: 260,
                   decoration: const BoxDecoration(
                     color: Color(0xFFF8FAFC),
@@ -372,37 +405,44 @@ class _CounterDashboardState extends State<CounterDashboard> {
                         ),
                       ),
                       
-                      _buildSidebarItem(index: 0, icon: Icons.inventory_2, label: 'Inventory'),
-                      _buildSidebarItem(index: 1, icon: Icons.receipt_long, label: 'Billing'),
-                      _buildSidebarItem(index: 2, icon: Icons.storefront, label: 'Shops'),
-                      _buildSidebarItem(index: 3, icon: Icons.people, label: 'Customers'),
-                      _buildSidebarItem(index: 4, icon: Icons.account_balance_wallet, label: 'Accounts'),
-                      _buildSidebarItem(index: 5, icon: Icons.history, label: 'History'),
-                      
-                      const SizedBox(height: 16),
-                      const Divider(color: Color(0xFFE2E8F0), thickness: 1, indent: 16, endIndent: 16),
-                      const SizedBox(height: 8),
-                      
-                      InkWell(
-                        onTap: () {
-                          // Go back to the module selection screen
-                          context.go('/dashboard');
-                        },
-                        borderRadius: BorderRadius.circular(12),
-                        child: Container(
-                          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                          child: Row(
+                      Expanded(
+                        child: SingleChildScrollView(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Icon(Icons.logout, color: Colors.red, size: 20),
-                              const SizedBox(width: 12),
-                              const Text('Logout', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 14)),
+                              _buildSidebarItem(index: 0, icon: Icons.inventory_2, label: 'Inventory'),
+                              _buildSidebarItem(index: 1, icon: Icons.receipt_long, label: 'Billing'),
+                              _buildSidebarItem(index: 2, icon: Icons.storefront, label: 'Shops'),
+                              _buildSidebarItem(index: 3, icon: Icons.people, label: 'Customers'),
+                              _buildSidebarItem(index: 4, icon: Icons.account_balance_wallet, label: 'Accounts'),
+                              _buildSidebarItem(index: 5, icon: Icons.history, label: 'History'),
+                              
+                              const SizedBox(height: 16),
+                              const Divider(color: Color(0xFFE2E8F0), thickness: 1, indent: 16, endIndent: 16),
+                              const SizedBox(height: 8),
+                              
+                              InkWell(
+                                onTap: () {
+                                  // Go back to the module selection screen
+                                  context.go('/dashboard');
+                                },
+                                borderRadius: BorderRadius.circular(12),
+                                child: Container(
+                                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                  child: Row(
+                                    children: [
+                                      const Icon(Icons.logout, color: Colors.red, size: 20),
+                                      const SizedBox(width: 12),
+                                      const Text('Logout', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 14)),
+                                    ],
+                                  ),
+                                ),
+                              ),
                             ],
                           ),
                         ),
                       ),
-                      
-                      const Spacer(),
                       
                       // Bottom Sidebar Card
                       Padding(
@@ -437,20 +477,7 @@ class _CounterDashboardState extends State<CounterDashboard> {
                       ),
                     ],
                   ),
-                ),
-                
-                // Screen Content
-                Expanded(
-                  child: Container(
-                    color: Colors.white,
-                    child: widget.navigationShell,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
+                );
+
   }
 }

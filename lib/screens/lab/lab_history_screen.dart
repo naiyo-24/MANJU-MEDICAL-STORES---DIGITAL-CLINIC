@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../utils/responsive.dart';
 import 'package:intl/intl.dart';
 import '../../models/lab_models.dart';
 import '../../services/lab_data_service.dart';
@@ -279,13 +280,11 @@ class _LabHistoryScreenState extends State<LabHistoryScreen> {
 
           // Main Content Layout
           Expanded(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Left Pane: Data Table
-                Expanded(
-                  flex: 6,
-                  child: Container(
+            child: ResponsiveSplitView(
+              leftFlex: 6,
+              rightFlex: 3,
+              showRightPane: _selectedActivity != null,
+              leftPane: Container(
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(12),
@@ -437,14 +436,7 @@ class _LabHistoryScreenState extends State<LabHistoryScreen> {
                       ],
                     ),
                   ),
-                ),
-                
-                const SizedBox(width: 24),
-                
-                // Right Pane: Detail View
-                Expanded(
-                  flex: 3,
-                  child: SingleChildScrollView(
+                rightPane: SingleChildScrollView(
                     child: Column(
                       children: [
                         // Activity Details Card
@@ -553,11 +545,9 @@ class _LabHistoryScreenState extends State<LabHistoryScreen> {
                         ),
                       ],
                     ),
-                  ),
-                ),
-              ],
             ),
           ),
+        ),
           
           const SizedBox(height: 24),
           

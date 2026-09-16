@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../utils/responsive.dart';
 import 'package:intl/intl.dart';
 import '../../models/lab_models.dart';
 import '../../services/lab_data_service.dart';
@@ -251,13 +252,11 @@ class _LabSampleTrackingScreenState extends State<LabSampleTrackingScreen> {
 
           // Main Content Layout
           Expanded(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Left Pane: Data Table
-                Expanded(
-                  flex: 6,
-                  child: Container(
+            child: ResponsiveSplitView(
+              leftFlex: 6,
+              rightFlex: 2,
+              showRightPane: _selectedBooking != null,
+              leftPane: Container(
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(12),
@@ -461,14 +460,7 @@ class _LabSampleTrackingScreenState extends State<LabSampleTrackingScreen> {
                       ],
                     ),
                   ),
-                ),
-                
-                const SizedBox(width: 24),
-                
-                // Right Pane: Detail View
-                Expanded(
-                  flex: 2,
-                  child: Column(
+                rightPane: Column(
                     children: [
                       // Sample Details Card
                       Container(
@@ -598,8 +590,6 @@ class _LabSampleTrackingScreenState extends State<LabSampleTrackingScreen> {
                         ),
                     ],
                   ),
-                ),
-              ],
             ),
           ),
           

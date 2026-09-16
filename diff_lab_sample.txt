@@ -1,0 +1,414 @@
+diff --git a/lib/screens/lab/lab_sample_tracking_screen.dart b/lib/screens/lab/lab_sample_tracking_screen.dart
+index a3cc7a0..2372689 100644
+--- a/lib/screens/lab/lab_sample_tracking_screen.dart
++++ b/lib/screens/lab/lab_sample_tracking_screen.dart
+@@ -236,45 +236,268 @@ class _LabSampleTrackingScreenState extends State<LabSampleTrackingScreen> {
+           const SizedBox(height: 32),
+ 
+           // Stats Row
+-          Row(
+-            children: [
+-              _buildStatCard(Icons.biotech, 'Samples Collected Today', '28', Colors.blue, '↗+12%'),
+-              const SizedBox(width: 16),
+-              _buildStatCard(Icons.schedule, 'In Processing', '14', const Color(0xFFEA580C), '→ 0%'),
+-              const SizedBox(width: 16),
+-              _buildStatCard(Icons.check_circle, 'Reports Ready', '20', Colors.green, '↗+25%'),
+-              const SizedBox(width: 16),
+-              _buildStatCard(Icons.local_shipping, 'Reports Delivered', '18', Colors.purple, '↗+18%'),
+-            ],
+-          ),
++          LayoutBuilder(builder: (context, constraints) {
++            bool isDesktop = constraints.maxWidth > 800;
++            if (isDesktop) {
++              return Row(
++                children: [
++                  _buildStatCard(Icons.biotech, 'Samples Collected Today', '28', Colors.blue, '↗+12%'),
++                  const SizedBox(width: 16),
++                  _buildStatCard(Icons.schedule, 'In Processing', '14', const Color(0xFFEA580C), '→ 0%'),
++                  const SizedBox(width: 16),
++                  _buildStatCard(Icons.check_circle, 'Reports Ready', '20', Colors.green, '↗+25%'),
++                  const SizedBox(width: 16),
++                  _buildStatCard(Icons.local_shipping, 'Reports Delivered', '18', Colors.purple, '↗+18%'),
++                ],
++              );
++            } else {
++              return Column(
++                children: [
++                  Row(
++                    children: [
++                      _buildStatCard(Icons.biotech, 'Samples Collected Today', '28', Colors.blue, '↗+12%'),
++                      const SizedBox(width: 16),
++                      _buildStatCard(Icons.schedule, 'In Processing', '14', const Color(0xFFEA580C), '→ 0%'),
++                    ],
++                  ),
++                  const SizedBox(height: 16),
++                  Row(
++                    children: [
++                      _buildStatCard(Icons.check_circle, 'Reports Ready', '20', Colors.green, '↗+25%'),
++                      const SizedBox(width: 16),
++                      _buildStatCard(Icons.local_shipping, 'Reports Delivered', '18', Colors.purple, '↗+18%'),
++                    ],
++                  ),
++                ],
++              );
++            }
++          }),
+           const SizedBox(height: 24),
+ 
+           // Main Content Layout
+           Expanded(
+-            child: Row(
+-              crossAxisAlignment: CrossAxisAlignment.start,
+-              children: [
+-                // Left Pane: Data Table
+-                Expanded(
+-                  flex: 6,
+-                  child: Container(
++            child: LayoutBuilder(builder: (context, constraints) {
++              bool isDesktop = constraints.maxWidth > 1000;
++              Widget leftPane = Container(
++                decoration: BoxDecoration(
++                  color: Colors.white,
++                  borderRadius: BorderRadius.circular(12),
++                  border: Border.all(color: const Color(0xFFE2E8F0)),
++                ),
++                child: Column(
++                  crossAxisAlignment: CrossAxisAlignment.start,
++                  children: [
++                    // Tabs & Filter Row
++                    Padding(
++                      padding: const EdgeInsets.only(left: 24, right: 24, top: 16, bottom: 0),
++                      child: SingleChildScrollView(
++                        scrollDirection: Axis.horizontal,
++                        child: Row(
++                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
++                          children: [
++                            Row(
++                              children: _tabs.map((tab) {
++                                bool isSelected = _selectedTab == tab;
++                                return InkWell(
++                                  onTap: () => setState(() => _selectedTab = tab),
++                                  child: Container(
++                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
++                                    decoration: BoxDecoration(
++                                      border: Border(bottom: BorderSide(color: isSelected ? const Color(0xFFEA580C) : Colors.transparent, width: 2)),
++                                    ),
++                                    child: Text(tab, style: TextStyle(fontWeight: isSelected ? FontWeight.bold : FontWeight.normal, color: isSelected ? const Color(0xFFEA580C) : const Color(0xFF64748B))),
++                                  ),
++                                );
++                              }).toList(),
++                            ),
++                            const SizedBox(width: 24),
++                            Row(
++                              children: [
++                                _buildActionButton(Icons.download, 'Export', color: const Color(0xFFEA580C)),
++                                const SizedBox(width: 8),
++                                _buildActionButton(Icons.print, 'Print List', color: const Color(0xFFEA580C)),
++                                const SizedBox(width: 8),
++                                _buildActionButton(Icons.filter_list, 'Filters'),
++                              ],
++                            ),
++                          ],
++                        ),
++                      ),
++                    ),
++                    const Divider(height: 1, color: Color(0xFFE2E8F0)),
++
++                    // Search & Filters
++                    Padding(
++                      padding: const EdgeInsets.all(16),
++                      child: SingleChildScrollView(
++                        scrollDirection: Axis.horizontal,
++                        child: Row(
++                          children: [
++                            Container(
++                              width: 280,
++                              height: 40,
++                              decoration: BoxDecoration(color: const Color(0xFFF8FAFC), borderRadius: BorderRadius.circular(8), border: Border.all(color: const Color(0xFFE2E8F0))),
++                              child: TextField(
++                                onChanged: (v) => setState(() => _searchQuery = v.toLowerCase()),
++                                decoration: const InputDecoration(
++                                  hintText: 'Search by patient name, sample ID...',
++                                  hintStyle: TextStyle(color: Color(0xFF94A3B8), fontSize: 13),
++                                  prefixIcon: Icon(Icons.search, color: Color(0xFF94A3B8), size: 20),
++                                  border: InputBorder.none,
++                                  contentPadding: EdgeInsets.symmetric(vertical: 12),
++                                ),
++                              ),
++                            ),
++                            const SizedBox(width: 12),
++                            _buildDropdown('All Status'),
++                            const SizedBox(width: 12),
++                            _buildDropdown('All Tests'),
++                            const SizedBox(width: 12),
++                            Container(
++                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
++                              decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE2E8F0)), borderRadius: BorderRadius.circular(8)),
++                              child: Row(
++                                mainAxisSize: MainAxisSize.min,
++                                children: const [
++                                  Icon(Icons.calendar_today, size: 16, color: Color(0xFFEA580C)),
++                                  SizedBox(width: 8),
++                                  Text('09 Sep 2026 - 09 Sep 2026', style: TextStyle(color: Color(0xFF1E293B), fontSize: 13)),
++                                ],
++                              ),
++                            ),
++                            const SizedBox(width: 12),
++                            _buildActionButton(Icons.refresh, 'Reset'),
++                          ],
++                        ),
++                      ),
++                    ),
++                    
++                    // Table Header
++                    Container(
++                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
++                      color: const Color(0xFFF8FAFC),
++                      child: Row(
++                        children: const [
++                          SizedBox(width: 30, child: Text('#', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)))),
++                          Expanded(flex: 2, child: Text('Sample ID', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)))),
++                          Expanded(flex: 2, child: Text('Collection Date & Time', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)))),
++                          Expanded(flex: 2, child: Text('Patient Name', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)))),
++                          Expanded(flex: 2, child: Text('Tests', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)))),
++                          Expanded(flex: 2, child: Text('Status', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)))),
++                          Expanded(flex: 2, child: Text('Assigned To', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)))),
++                          Expanded(flex: 1, child: Center(child: Text('Action', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))))),
++                        ],
++                      ),
++                    ),
++                    const Divider(height: 1, color: Color(0xFFE2E8F0)),
++                    
++                    // Table Body
++                    Expanded(
++                      child: _isLoading ? const Center(child: CircularProgressIndicator(color: Color(0xFFEA580C))) : ListView.separated(
++                        itemCount: displayedBookings.length,
++                        separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFE2E8F0)),
++                        itemBuilder: (context, index) {
++                          final booking = displayedBookings[index];
++                          final isSelected = _selectedBooking?.id == booking.id;
++                          final statusColor = _getStatusColor(booking.status);
++
++                          return InkWell(
++                            onTap: () => setState(() => _selectedBooking = booking),
++                            child: Container(
++                              color: isSelected ? const Color(0xFFFFF7ED) : Colors.white,
++                              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
++                              child: Row(
++                                children: [
++                                  SizedBox(width: 30, child: Text('${index + 1}', style: const TextStyle(fontSize: 13, color: Color(0xFF64748B)))),
++                                  Expanded(flex: 2, child: Text(booking.sampleId, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)))),
++                                  Expanded(flex: 2, child: Text(DateFormat('dd MMM yyyy hh:mm a').format(booking.bookingDate), style: const TextStyle(fontSize: 13, color: Color(0xFF64748B)))),
++                                  Expanded(flex: 2, child: Text(booking.patientName, style: const TextStyle(fontSize: 13, color: Color(0xFF1E293B)))),
++                                  Expanded(flex: 2, child: Text(booking.testsDescription, style: const TextStyle(fontSize: 13, color: Color(0xFF2563EB)), maxLines: 1, overflow: TextOverflow.ellipsis)),
++                                  Expanded(
++                                    flex: 2,
++                                    child: Row(
++                                      children: [
++                                        Container(
++                                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
++                                          decoration: BoxDecoration(color: statusColor.withOpacity(0.1), borderRadius: BorderRadius.circular(4)),
++                                          child: Row(
++                                            mainAxisSize: MainAxisSize.min,
++                                            children: [
++                                              Container(width: 6, height: 6, decoration: BoxDecoration(color: statusColor, shape: BoxShape.circle)),
++                                              const SizedBox(width: 6),
++                                              Text(booking.status, style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: statusColor)),
++                                            ],
++                                          ),
++                                        ),
++                                      ],
++                                    ),
++                                  ),
++                                  Expanded(flex: 2, child: Text(booking.assignedTo, style: const TextStyle(fontSize: 13, color: Color(0xFF1E293B)))),
++                                  Expanded(
++                                    flex: 1,
++                                    child: Row(
++                                      mainAxisAlignment: MainAxisAlignment.center,
++                                      children: [
++                                        Container(
++                                          padding: const EdgeInsets.all(4),
++                                          decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE2E8F0)), borderRadius: BorderRadius.circular(4)),
++                                          child: const Icon(Icons.visibility, size: 14, color: Color(0xFF64748B)),
++                                        ),
++                                        const SizedBox(width: 4),
++                                        Container(
++                                          padding: const EdgeInsets.all(4),
++                                          decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE2E8F0)), borderRadius: BorderRadius.circular(4)),
++                                          child: const Icon(Icons.more_vert, size: 14, color: Color(0xFF64748B)),
++                                        ),
++                                      ],
++                                    ),
++                                  ),
++                                ],
++                              ),
++                            ),
++                          );
++                        },
++                      ),
++                    ),
++                    
++                    // Pagination
++                    const Divider(height: 1, color: Color(0xFFE2E8F0)),
++                    Padding(
++                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
++                      child: Row(
++                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
++                        children: [
++                          Text('Showing 1 to ${displayedBookings.length} of ${_bookings.length} samples', style: const TextStyle(color: Color(0xFF64748B), fontSize: 13)),
++                          Row(
++                            children: [
++                              Container(padding: const EdgeInsets.all(6), decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE2E8F0)), borderRadius: BorderRadius.circular(4)), child: const Icon(Icons.chevron_left, size: 16)),
++                              const SizedBox(width: 8),
++                              Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6), decoration: BoxDecoration(color: const Color(0xFFEA580C), borderRadius: BorderRadius.circular(4)), child: const Text('1', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
++                              const SizedBox(width: 8),
++                              Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6), decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE2E8F0)), borderRadius: BorderRadius.circular(4)), child: const Text('2', style: TextStyle(color: Color(0xFF1E293B)))),
++                              const SizedBox(width: 8),
++                              Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6), decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE2E8F0)), borderRadius: BorderRadius.circular(4)), child: const Text('3', style: TextStyle(color: Color(0xFF1E293B)))),
++                              const SizedBox(width: 8),
++                              Container(padding: const EdgeInsets.all(6), decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE2E8F0)), borderRadius: BorderRadius.circular(4)), child: const Icon(Icons.chevron_right, size: 16)),
++                            ],
++                          ),
++                        ],
++                      ),
++                    ),
++                  ],
++                ),
++              );
++
++              Widget rightPane = Column(
++                children: [
++                  // Sample Details Card
++                  Container(
++                    padding: const EdgeInsets.all(24),
+                     decoration: BoxDecoration(
+                       color: Colors.white,
+                       borderRadius: BorderRadius.circular(12),
+                       border: Border.all(color: const Color(0xFFE2E8F0)),
+                     ),
+-                    child: Column(
+-                      crossAxisAlignment: CrossAxisAlignment.start,
+-                      children: [
+-                        // Tabs & Export Row
+-                        Padding(
+-                          padding: const EdgeInsets.only(left: 24, right: 24, top: 16, bottom: 0),
+-                          child: Row(
+-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+-                            children: [
+-                              Row(
+-                                children: _tabs.map((tab) {
+-                                  bool isSelected = _selectedTab == tab;
+                                   return InkWell(
+                                     onTap: () => setState(() => _selectedTab = tab),
+                                     child: Container(
+@@ -461,14 +684,9 @@ class _LabSampleTrackingScreenState extends State<LabSampleTrackingScreen> {
+                       ],
+                     ),
+                   ),
+-                ),
+-                
+-                const SizedBox(width: 24),
+-                
+-                // Right Pane: Detail View
+-                Expanded(
+-                  flex: 2,
+-                  child: Column(
++                );
++
++                Widget rightPane = Column(
+                     children: [
+                       // Sample Details Card
+                       Container(
+@@ -597,42 +815,61 @@ class _LabSampleTrackingScreenState extends State<LabSampleTrackingScreen> {
+                           ),
+                         ),
+                     ],
+-                  ),
+-                ),
+-              ],
+-            ),
+-          ),
++                  );
++
++            if (isDesktop) {
++              return Row(
++                crossAxisAlignment: CrossAxisAlignment.start,
++                children: [
++                  Expanded(flex: 5, child: leftPane),
++                  const SizedBox(width: 24),
++                  Expanded(flex: 2, child: rightPane),
++                ],
++              );
++            } else {
++              return Column(
++                children: [
++                  Expanded(child: leftPane),
++                  const SizedBox(height: 24),
++                  rightPane,
++                ],
++              );
++            }
++          })),
+           
+           const SizedBox(height: 24),
+           
+           // Quick Actions Row
+-          Row(
+-            children: [
+-              Container(
+-                width: 200,
+-                padding: const EdgeInsets.all(16),
+-                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: const Color(0xFFE2E8F0))),
+-                child: Row(
+-                  children: [
+-                    Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: const Color(0xFFEA580C), borderRadius: BorderRadius.circular(8)), child: const Icon(Icons.flash_on, color: Colors.white)),
+-                    const SizedBox(width: 12),
+-                    const Text('Quick Actions', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+-                  ],
++          SingleChildScrollView(
++            scrollDirection: Axis.horizontal,
++            child: Row(
++              children: [
++                Container(
++                  width: 200,
++                  padding: const EdgeInsets.all(16),
++                  decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: const Color(0xFFE2E8F0))),
++                  child: Row(
++                    children: [
++                      Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: const Color(0xFFEA580C), borderRadius: BorderRadius.circular(8)), child: const Icon(Icons.flash_on, color: Colors.white)),
++                      const SizedBox(width: 12),
++                      const Text('Quick Actions', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
++                    ],
++                  ),
+                 ),
+-              ),
+-              const SizedBox(width: 16),
+-              _buildQuickAction(Icons.edit_document, 'Register Sample'),
+-              const SizedBox(width: 16),
+-              _buildQuickAction(Icons.qr_code_scanner, 'Scan Barcode'),
+-              const SizedBox(width: 16),
+-              _buildQuickAction(Icons.update, 'Update Status'),
+-              const SizedBox(width: 16),
+-              _buildQuickAction(Icons.assignment, 'Generate Report'),
+-              const SizedBox(width: 16),
+-              _buildQuickAction(Icons.wechat, 'Send via WhatsApp'),
+-              const SizedBox(width: 16),
+-              _buildQuickAction(Icons.print, 'Print Label'),
+-            ],
++                const SizedBox(width: 16),
++                _buildQuickAction(Icons.edit_document, 'Register Sample'),
++                const SizedBox(width: 16),
++                _buildQuickAction(Icons.qr_code_scanner, 'Scan Barcode'),
++                const SizedBox(width: 16),
++                _buildQuickAction(Icons.update, 'Update Status'),
++                const SizedBox(width: 16),
++                _buildQuickAction(Icons.assignment, 'Generate Report'),
++                const SizedBox(width: 16),
++                _buildQuickAction(Icons.wechat, 'Send via WhatsApp'),
++                const SizedBox(width: 16),
++                _buildQuickAction(Icons.print, 'Print Label'),
++              ],
++            ),
+           ),
+         ],
+       ),

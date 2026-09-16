@@ -30,17 +30,30 @@ class _CrmPrescriptionsScreenState extends ConsumerState<CrmPrescriptionsScreen>
         children: [
           _buildHeader(),
           Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(flex: 5, child: _buildLeftPane()),
-                  const SizedBox(width: 24),
-                  Expanded(flex: 4, child: _buildRightPane()),
-                ],
-              ),
-            ),
+            child: LayoutBuilder(builder: (context, constraints) {
+              bool isDesktop = constraints.maxWidth > 1000;
+              return Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: isDesktop 
+                  ? Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(flex: 5, child: _buildLeftPane()),
+                        const SizedBox(width: 24),
+                        Expanded(flex: 4, child: _buildRightPane()),
+                      ],
+                    )
+                  : SingleChildScrollView(
+                      child: Column(
+                        children: [
+                          _buildLeftPane(),
+                          const SizedBox(height: 24),
+                          _buildRightPane(),
+                        ],
+                      ),
+                    ),
+              );
+            }),
           ),
         ],
       ),
@@ -367,57 +380,68 @@ class _CrmPrescriptionsScreenState extends ConsumerState<CrmPrescriptionsScreen>
                   const SizedBox(height: 12),
                   
                   // Medicines Table
-                  Container(
-                    decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE2E8F0)), borderRadius: BorderRadius.circular(8)),
-                    child: Column(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                          decoration: const BoxDecoration(color: Color(0xFFF8FAFC), borderRadius: BorderRadius.vertical(top: Radius.circular(8)), border: Border(bottom: BorderSide(color: Color(0xFFE2E8F0)))),
-                          child: Row(
-                            children: const [
-                              SizedBox(width: 32, child: Text('#', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E293B), fontSize: 13))),
-                              Expanded(flex: 3, child: Text('Medicine Name', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E293B), fontSize: 13))),
-                              Expanded(flex: 1, child: Text('Dose', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E293B), fontSize: 13))),
-                              Expanded(flex: 1, child: Text('Frequency', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E293B), fontSize: 13))),
-                              Expanded(flex: 1, child: Text('Duration', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E293B), fontSize: 13))),
-                              Expanded(flex: 2, child: Text('Instruction', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E293B), fontSize: 13))),
-                              SizedBox(width: 80, child: Text('Action', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E293B), fontSize: 13), textAlign: TextAlign.center)),
+                  LayoutBuilder(builder: (context, constraints) {
+                    return SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          minWidth: 800,
+                          maxWidth: constraints.maxWidth > 800 ? constraints.maxWidth : 800,
+                        ),
+                        child: Container(
+                          decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE2E8F0)), borderRadius: BorderRadius.circular(8)),
+                          child: Column(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                decoration: const BoxDecoration(color: Color(0xFFF8FAFC), borderRadius: BorderRadius.vertical(top: Radius.circular(8)), border: Border(bottom: BorderSide(color: Color(0xFFE2E8F0)))),
+                                child: Row(
+                                  children: const [
+                                    SizedBox(width: 32, child: Text('#', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E293B), fontSize: 13))),
+                                    Expanded(flex: 3, child: Text('Medicine Name', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E293B), fontSize: 13))),
+                                    Expanded(flex: 1, child: Text('Dose', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E293B), fontSize: 13))),
+                                    Expanded(flex: 1, child: Text('Frequency', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E293B), fontSize: 13))),
+                                    Expanded(flex: 1, child: Text('Duration', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E293B), fontSize: 13))),
+                                    Expanded(flex: 2, child: Text('Instruction', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E293B), fontSize: 13))),
+                                    SizedBox(width: 80, child: Text('Action', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E293B), fontSize: 13), textAlign: TextAlign.center)),
+                                  ],
+                                ),
+                              ),
+                              ..._medicines.asMap().entries.map((entry) {
+                                final i = entry.key;
+                                final med = entry.value;
+                                return Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                                  decoration: BoxDecoration(border: Border(bottom: BorderSide(color: i == _medicines.length - 1 ? Colors.transparent : const Color(0xFFE2E8F0)))),
+                                  child: Row(
+                                    children: [
+                                      SizedBox(width: 32, child: Text('${i + 1}', style: const TextStyle(color: Color(0xFF64748B), fontSize: 13))),
+                                      Expanded(flex: 3, child: Text(med.name, style: const TextStyle(color: Color(0xFF1E293B), fontSize: 13))),
+                                      Expanded(flex: 1, child: Text(med.dose, style: const TextStyle(color: Color(0xFF1E293B), fontSize: 13))),
+                                      Expanded(flex: 1, child: Text(med.frequency, style: const TextStyle(color: Color(0xFF1E293B), fontSize: 13))),
+                                      Expanded(flex: 1, child: Text(med.duration, style: const TextStyle(color: Color(0xFF1E293B), fontSize: 13))),
+                                      Expanded(flex: 2, child: Text(med.instruction, style: const TextStyle(color: Color(0xFF1E293B), fontSize: 13))),
+                                      SizedBox(
+                                        width: 80,
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: const [
+                                            Icon(Icons.edit_outlined, size: 16, color: Color(0xFF3B82F6)),
+                                            SizedBox(width: 16),
+                                            Icon(Icons.delete_outline, size: 16, color: Color(0xFFEF4444)),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              }),
                             ],
                           ),
                         ),
-                        ..._medicines.asMap().entries.map((entry) {
-                          final i = entry.key;
-                          final med = entry.value;
-                          return Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                            decoration: BoxDecoration(border: Border(bottom: BorderSide(color: i == _medicines.length - 1 ? Colors.transparent : const Color(0xFFE2E8F0)))),
-                            child: Row(
-                              children: [
-                                SizedBox(width: 32, child: Text('${i + 1}', style: const TextStyle(color: Color(0xFF64748B), fontSize: 13))),
-                                Expanded(flex: 3, child: Text(med.name, style: const TextStyle(color: Color(0xFF1E293B), fontSize: 13))),
-                                Expanded(flex: 1, child: Text(med.dose, style: const TextStyle(color: Color(0xFF1E293B), fontSize: 13))),
-                                Expanded(flex: 1, child: Text(med.frequency, style: const TextStyle(color: Color(0xFF1E293B), fontSize: 13))),
-                                Expanded(flex: 1, child: Text(med.duration, style: const TextStyle(color: Color(0xFF1E293B), fontSize: 13))),
-                                Expanded(flex: 2, child: Text(med.instruction, style: const TextStyle(color: Color(0xFF1E293B), fontSize: 13))),
-                                SizedBox(
-                                  width: 80,
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: const [
-                                      Icon(Icons.edit_outlined, size: 16, color: Color(0xFF3B82F6)),
-                                      SizedBox(width: 16),
-                                      Icon(Icons.delete_outline, size: 16, color: Color(0xFFEF4444)),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        }),
-                      ],
-                    ),
-                  ),
+                      ),
+                    );
+                  }),
                   const SizedBox(height: 32),
                   
                   Row(
@@ -473,16 +497,19 @@ class _CrmPrescriptionsScreenState extends ConsumerState<CrmPrescriptionsScreen>
                   const SizedBox(height: 32),
                   
                   // Checkboxes
-                  Row(
-                    children: [
-                      _buildCheckbox('Print Prescription', true),
-                      const SizedBox(width: 24),
-                      _buildCheckbox('Send to Patient (SMS/WhatsApp)', true),
-                      const SizedBox(width: 24),
-                      _buildCheckbox('Save as Template', false),
-                      const SizedBox(width: 24),
-                      _buildCheckbox('Add Lab Test', false),
-                    ],
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: [
+                        _buildCheckbox('Print Prescription', true),
+                        const SizedBox(width: 24),
+                        _buildCheckbox('Send to Patient (SMS/WhatsApp)', true),
+                        const SizedBox(width: 24),
+                        _buildCheckbox('Save as Template', false),
+                        const SizedBox(width: 24),
+                        _buildCheckbox('Add Lab Test', false),
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -594,34 +621,53 @@ class _CrmPrescriptionsScreenState extends ConsumerState<CrmPrescriptionsScreen>
                   const SizedBox(height: 16),
                   
                   // Patient Details Grid
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          children: [
-                            _buildPreviewDetailRow('Patient Name', ': Rahul Das'),
-                            _buildPreviewDetailRow('UHID', ': PT000123'),
-                            _buildPreviewDetailRow('Age / Gender', ': 32 Y / Male'),
-                            _buildPreviewDetailRow('Phone', ': 9830011223'),
-                            _buildPreviewDetailRow('Address', ': 123, Main Road, Kolkata - 700016'),
-                          ],
-                        ),
-                      ),
-                      Container(width: 1, height: 80, color: const Color(0xFFE2E8F0)),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          children: [
-                            _buildPreviewDetailRow('Date', ': 09 Sep 2026'),
-                            _buildPreviewDetailRow('Consultation ID', ': CONS000456'),
-                            _buildPreviewDetailRow('Doctor', ': Dr. Sen'),
-                            _buildPreviewDetailRow('Specialization', ': General Physician'),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
+                  LayoutBuilder(builder: (context, constraints) {
+                    bool isWide = constraints.maxWidth > 500;
+                    if (isWide) {
+                      return Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              children: [
+                                _buildPreviewDetailRow('Patient Name', ': Rahul Das'),
+                                _buildPreviewDetailRow('UHID', ': PT000123'),
+                                _buildPreviewDetailRow('Age / Gender', ': 32 Y / Male'),
+                                _buildPreviewDetailRow('Phone', ': 9830011223'),
+                                _buildPreviewDetailRow('Address', ': 123, Main Road, Kolkata - 700016'),
+                              ],
+                            ),
+                          ),
+                          Container(width: 1, height: 80, color: const Color(0xFFE2E8F0)),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              children: [
+                                _buildPreviewDetailRow('Date', ': 09 Sep 2026'),
+                                _buildPreviewDetailRow('Consultation ID', ': CONS000456'),
+                                _buildPreviewDetailRow('Doctor', ': Dr. Sen'),
+                                _buildPreviewDetailRow('Specialization', ': General Physician'),
+                              ],
+                            ),
+                          ),
+                        ],
+                      );
+                    }
+                    return Column(
+                      children: [
+                        _buildPreviewDetailRow('Patient Name', ': Rahul Das'),
+                        _buildPreviewDetailRow('UHID', ': PT000123'),
+                        _buildPreviewDetailRow('Age / Gender', ': 32 Y / Male'),
+                        _buildPreviewDetailRow('Phone', ': 9830011223'),
+                        _buildPreviewDetailRow('Address', ': 123, Main Road, Kolkata - 700016'),
+                        const SizedBox(height: 16),
+                        _buildPreviewDetailRow('Date', ': 09 Sep 2026'),
+                        _buildPreviewDetailRow('Consultation ID', ': CONS000456'),
+                        _buildPreviewDetailRow('Doctor', ': Dr. Sen'),
+                        _buildPreviewDetailRow('Specialization', ': General Physician'),
+                      ],
+                    );
+                  }),
                   const SizedBox(height: 16),
                   const Divider(color: Color(0xFFE2E8F0)),
                   const SizedBox(height: 24),

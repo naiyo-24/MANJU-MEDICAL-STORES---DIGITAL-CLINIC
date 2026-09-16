@@ -82,9 +82,13 @@ class _LabBookingsScreenState extends State<LabBookingsScreen> {
             ],
           ),
           const SizedBox(height: 24),
-          Row(
+          Wrap(
+            spacing: 16,
+            runSpacing: 16,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
-              Expanded(
+              SizedBox(
+                width: 300,
                 child: Container(
                   height: 40,
                   decoration: BoxDecoration(
@@ -102,7 +106,6 @@ class _LabBookingsScreenState extends State<LabBookingsScreen> {
                   ),
                 ),
               ),
-              const SizedBox(width: 16),
               ElevatedButton.icon(
                 onPressed: _showNewBookingModal,
                 icon: const Icon(Icons.add, size: 18),
@@ -129,16 +132,20 @@ class _LabBookingsScreenState extends State<LabBookingsScreen> {
                   ? const Center(child: CircularProgressIndicator(color: Color(0xFFEA580C)))
                   : _bookings.isEmpty
                       ? const Center(child: Text('No bookings found', style: TextStyle(color: Color(0xFF64748B))))
-                      : Column(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                              decoration: const BoxDecoration(
-                                color: Color(0xFFF8FAFC),
-                                borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
-                                border: Border(bottom: BorderSide(color: Color(0xFFE2E8F0))),
-                              ),
-                              child: Row(
+                      : SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: SizedBox(
+                            width: 1000,
+                            child: Column(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                                  decoration: const BoxDecoration(
+                                    color: Color(0xFFF8FAFC),
+                                    borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
+                                    border: Border(bottom: BorderSide(color: Color(0xFFE2E8F0))),
+                                  ),
+                                  child: Row(
                                 children: const [
                                   Expanded(flex: 2, child: Text('DATE', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF64748B)))),
                                   Expanded(flex: 3, child: Text('PATIENT', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF64748B)))),
@@ -231,6 +238,8 @@ class _LabBookingsScreenState extends State<LabBookingsScreen> {
                             ),
                           ],
                         ),
+                      ),
+                    ),
             ),
           ),
         ],

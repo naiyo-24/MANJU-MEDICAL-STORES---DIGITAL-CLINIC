@@ -24,9 +24,13 @@ class LabAccountsScreen extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 24),
-          Row(
+          Wrap(
+            spacing: 16,
+            runSpacing: 16,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
-              Expanded(
+              SizedBox(
+                width: 300,
                 child: Container(
                   height: 40,
                   decoration: BoxDecoration(
@@ -44,7 +48,6 @@ class LabAccountsScreen extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(width: 16),
               ElevatedButton.icon(
                 onPressed: () {},
                 icon: const Icon(Icons.download, size: 18),

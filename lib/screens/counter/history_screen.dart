@@ -287,14 +287,16 @@ class _HistoryScreenState extends State<HistoryScreen> {
   }
 
   Widget _buildStatCard(String value, String label, Color bgColor, Color iconColor, IconData icon, String percentage) {
-    return Expanded(
-      child: Container(
+    return Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(12)),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        child: Wrap(
+          alignment: WrapAlignment.spaceBetween,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          runSpacing: 8,
           children: [
             Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
                   padding: const EdgeInsets.all(10),
@@ -302,12 +304,14 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   child: Icon(icon, color: iconColor, size: 20),
                 ),
                 const SizedBox(width: 16),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(value, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
-                    Text(label, style: const TextStyle(fontSize: 12, color: Color(0xFF475569))),
-                  ],
+                Flexible(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(value, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)), overflow: TextOverflow.ellipsis),
+                      Text(label, style: const TextStyle(fontSize: 12, color: Color(0xFF475569)), overflow: TextOverflow.ellipsis),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -325,7 +329,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
             ),
           ],
         ),
-      ),
     );
   }
 
@@ -439,17 +442,25 @@ class _HistoryScreenState extends State<HistoryScreen> {
     );
   }
 
+  Widget _buildConditionalWrapper(bool isShort, Widget child) {
+    return child; // The parent is now a ListView, so no wrapper is needed.
+  }
+
   @override
   Widget build(BuildContext context) {
     final filtered = _filteredTransactions;
     
-    return Padding(
-      padding: const EdgeInsets.all(24.0),
-      child: Column(
+    return Container(
+      color: const Color(0xFFF8FAFC),
+      child: ListView(
+        padding: const EdgeInsets.all(32.0),
         children: [
           // Header
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 16,
+            runSpacing: 16,
             children: [
               Row(
                 children: [
@@ -511,233 +522,337 @@ class _HistoryScreenState extends State<HistoryScreen> {
           ),
           const SizedBox(height: 24),
 
-          // Stats Row
-          Row(
-            children: [
-              _buildStatCard('${_summary['total_bills'] ?? 0}', 'Total Bills', const Color(0xFFE8F5E9), const Color(0xFF22C55E), Icons.shopping_cart, _summary['growth_bills']?.toString() ?? '+0.0%'),
-              const SizedBox(width: 16),
-              _buildStatCard('₹ ${((_summary['total_sales'] as num?) ?? 0.0).toStringAsFixed(2)}', 'Total Sales', const Color(0xFFE3F2FD), const Color(0xFF3B82F6), Icons.currency_rupee, _summary['growth_sales']?.toString() ?? '+0.0%'),
-              const SizedBox(width: 16),
-              _buildStatCard('${_summary['customers_served'] ?? 0}', 'Customers Served', const Color(0xFFFFF3E0), const Color(0xFFF97316), Icons.people, _summary['growth_customers']?.toString() ?? '+0.0%'),
-              const SizedBox(width: 16),
-              _buildStatCard('${_summary['items_sold'] ?? 0}', 'Items Sold', const Color(0xFFF3E8FF), const Color(0xFFA855F7), Icons.inventory_2, _summary['growth_items']?.toString() ?? '+0.0%'),
-            ],
-          ),
+          // Stats Cards
+          LayoutBuilder(builder: (context, constraints) {
+            bool isDesktop = constraints.maxWidth > 800;
+            return SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  SizedBox(width: isDesktop ? (constraints.maxWidth - 48) / 4 : 250, child: _buildStatCard('₹45,231.89', 'Total Revenue', const Color(0xFFDCFCE7), const Color(0xFF166534), Icons.currency_rupee, '+12.5%')),
+                  const SizedBox(width: 16),
+                  SizedBox(width: isDesktop ? (constraints.maxWidth - 48) / 4 : 250, child: _buildStatCard('1,234', 'Total Invoices', const Color(0xFFE0F2FE), const Color(0xFF0369A1), Icons.receipt_long, '+5.2%')),
+                  const SizedBox(width: 16),
+                  SizedBox(width: isDesktop ? (constraints.maxWidth - 48) / 4 : 250, child: _buildStatCard('₹2,450.00', 'Total Returns', const Color(0xFFFEE2E2), Colors.red, Icons.keyboard_return, '-2.4%')),
+                  const SizedBox(width: 16),
+                  SizedBox(width: isDesktop ? (constraints.maxWidth - 48) / 4 : 250, child: _buildStatCard('₹12,450.00', 'Cash in Hand', const Color(0xFFF3E8FF), const Color(0xFF7E22CE), Icons.account_balance_wallet, '0%')),
+                ],
+              ),
+            );
+          }),
           const SizedBox(height: 24),
 
           // Filters Row
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text('Date Range', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
-                  const SizedBox(height: 8),
-                  Container(
-                    height: 40,
-                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-                    decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8), border: Border.all(color: const Color(0xFFE2E8F0))),
-                    child: Row(
+          LayoutBuilder(builder: (context, constraints) {
+            bool isDesktop = constraints.maxWidth > 1000;
+            return isDesktop
+              ? Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildDateRangeBtn('Today', false),
-                        _buildDateRangeBtn('This Week', false),
-                        _buildDateRangeBtn('This Month', false),
-                        _buildDateRangeBtn('This Year', false),
-                        const VerticalDivider(width: 16, color: Color(0xFFE2E8F0)),
-                        _buildDateRangeBtn('Custom Range', true),
+                        const Text('Date Range', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                        const SizedBox(height: 8),
+                        Container(
+                          height: 40,
+                          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8), border: Border.all(color: const Color(0xFFE2E8F0))),
+                          child: Row(
+                            children: [
+                              _buildDateRangeBtn('Today', false),
+                              _buildDateRangeBtn('This Week', false),
+                              _buildDateRangeBtn('This Month', false),
+                              _buildDateRangeBtn('This Year', false),
+                              const VerticalDivider(width: 16, color: Color(0xFFE2E8F0)),
+                              _buildDateRangeBtn('Custom Range', true),
+                            ],
+                          ),
+                        ),
                       ],
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(width: 16),
-              _buildDropdownFilter('Transaction Type', ['All', 'Sale', 'Return', 'Adjustment', 'Purchase'], _selectedType, (v) => setState(() => _selectedType = v!)),
-              const SizedBox(width: 16),
-              _buildDropdownFilter('Payment Mode', ['All', 'Cash', 'UPI', 'Card', 'Bank Transfer'], _selectedPaymentMode, (v) => setState(() => _selectedPaymentMode = v!)),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('', style: TextStyle(fontSize: 12)),
-                    const SizedBox(height: 8),
-                    Container(
-                      height: 40,
-                      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8), border: Border.all(color: const Color(0xFFE2E8F0))),
-                      child: TextField(
-                        onChanged: (val) => setState(() => _searchQuery = val),
-                        style: const TextStyle(fontSize: 13),
-                        decoration: const InputDecoration(
-                          hintText: 'Search by bill no, customer name, phone...',
-                          hintStyle: TextStyle(color: Color(0xFF94A3B8), fontSize: 13),
-                          prefixIcon: Icon(Icons.search, color: Color(0xFF94A3B8), size: 18),
-                          border: InputBorder.none,
-                          contentPadding: EdgeInsets.symmetric(vertical: 12),
-                        ),
+                    const SizedBox(width: 16),
+                    _buildDropdownFilter('Transaction Type', ['All', 'Sale', 'Return', 'Adjustment', 'Purchase'], _selectedType, (v) => setState(() => _selectedType = v!)),
+                    const SizedBox(width: 16),
+                    _buildDropdownFilter('Payment Mode', ['All', 'Cash', 'UPI', 'Card', 'Bank Transfer'], _selectedPaymentMode, (v) => setState(() => _selectedPaymentMode = v!)),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('', style: TextStyle(fontSize: 12)),
+                          const SizedBox(height: 8),
+                          Container(
+                            height: 40,
+                            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8), border: Border.all(color: const Color(0xFFE2E8F0))),
+                            child: TextField(
+                              onChanged: (val) => setState(() => _searchQuery = val),
+                              style: const TextStyle(fontSize: 13),
+                              decoration: const InputDecoration(
+                                hintText: 'Search by bill no, customer name, phone...',
+                                hintStyle: TextStyle(color: Color(0xFF94A3B8), fontSize: 13),
+                                prefixIcon: Icon(Icons.search, color: Color(0xFF94A3B8), size: 18),
+                                border: InputBorder.none,
+                                contentPadding: EdgeInsets.symmetric(vertical: 12),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 16),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text('', style: TextStyle(fontSize: 12)),
-                  const SizedBox(height: 8),
-                  OutlinedButton.icon(
-                    onPressed: _resetFilters,
-                    icon: const Icon(Icons.clear, color: Color(0xFF1E293B), size: 16),
-                    label: const Text('Reset Filters', style: TextStyle(color: Color(0xFF1E293B), fontWeight: FontWeight.bold)),
-                    style: OutlinedButton.styleFrom(
-                      side: const BorderSide(color: Color(0xFFE2E8F0)),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                      minimumSize: const Size(0, 40),
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                    const SizedBox(width: 16),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('', style: TextStyle(fontSize: 12)),
+                        const SizedBox(height: 8),
+                        OutlinedButton.icon(
+                          onPressed: _resetFilters,
+                          icon: const Icon(Icons.clear, color: Color(0xFF1E293B), size: 16),
+                          label: const Text('Reset Filters', style: TextStyle(color: Color(0xFF1E293B), fontWeight: FontWeight.bold)),
+                          style: OutlinedButton.styleFrom(
+                            side: const BorderSide(color: Color(0xFFE2E8F0)),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            minimumSize: const Size(0, 40),
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                          ),
+                        ),
+                      ],
                     ),
+                  ],
+                )
+              : SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('Date Range', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                          const SizedBox(height: 8),
+                          Container(
+                            height: 40,
+                            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8), border: Border.all(color: const Color(0xFFE2E8F0))),
+                            child: Row(
+                              children: [
+                                _buildDateRangeBtn('Today', false),
+                                _buildDateRangeBtn('This Week', false),
+                                _buildDateRangeBtn('This Month', false),
+                                _buildDateRangeBtn('This Year', false),
+                                const VerticalDivider(width: 16, color: Color(0xFFE2E8F0)),
+                                _buildDateRangeBtn('Custom Range', true),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(width: 16),
+                      _buildDropdownFilter('Transaction Type', ['All', 'Sale', 'Return', 'Adjustment', 'Purchase'], _selectedType, (v) => setState(() => _selectedType = v!)),
+                      const SizedBox(width: 16),
+                      _buildDropdownFilter('Payment Mode', ['All', 'Cash', 'UPI', 'Card', 'Bank Transfer'], _selectedPaymentMode, (v) => setState(() => _selectedPaymentMode = v!)),
+                      const SizedBox(width: 16),
+                      SizedBox(
+                        width: 300,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text('', style: TextStyle(fontSize: 12)),
+                            const SizedBox(height: 8),
+                            Container(
+                              height: 40,
+                              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8), border: Border.all(color: const Color(0xFFE2E8F0))),
+                              child: TextField(
+                                onChanged: (val) => setState(() => _searchQuery = val),
+                                style: const TextStyle(fontSize: 13),
+                                decoration: const InputDecoration(
+                                  hintText: 'Search by bill no, customer name, phone...',
+                                  hintStyle: TextStyle(color: Color(0xFF94A3B8), fontSize: 13),
+                                  prefixIcon: Icon(Icons.search, color: Color(0xFF94A3B8), size: 18),
+                                  border: InputBorder.none,
+                                  contentPadding: EdgeInsets.symmetric(vertical: 12),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('', style: TextStyle(fontSize: 12)),
+                          const SizedBox(height: 8),
+                          OutlinedButton.icon(
+                            onPressed: _resetFilters,
+                            icon: const Icon(Icons.clear, color: Color(0xFF1E293B), size: 16),
+                            label: const Text('Reset Filters', style: TextStyle(color: Color(0xFF1E293B), fontWeight: FontWeight.bold)),
+                            style: OutlinedButton.styleFrom(
+                              side: const BorderSide(color: Color(0xFFE2E8F0)),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                              minimumSize: const Size(0, 40),
+                              padding: const EdgeInsets.symmetric(horizontal: 16),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            ],
-          ),
+                );
+          }),
           const SizedBox(height: 16),
 
           // Data Table
-          Expanded(
-            child: Container(
-              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: const Color(0xFFE2E8F0))),
-              child: Column(
-                children: [
-                  // Table Header
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                    decoration: const BoxDecoration(color: Color(0xFFF8FAFC), borderRadius: BorderRadius.vertical(top: Radius.circular(12))),
-                    child: Row(
-                      children: [
-                        const SizedBox(width: 30, child: Text('#', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 12))),
-                        const Expanded(flex: 2, child: Text('Date & Time', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 12))),
-                        const Expanded(flex: 2, child: Text('Bill No / Ref No', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 12))),
-                        const Expanded(flex: 3, child: Text('Customer Name', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 12))),
-                        const Expanded(flex: 2, child: Text('Type', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 12))),
-                        const Expanded(flex: 1, child: Text('Items', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 12))),
-                        const Expanded(flex: 2, child: Text('Amount (₹)', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 12))),
-                        const Expanded(flex: 2, child: Text('Payment Mode', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 12))),
-                        const Expanded(flex: 2, child: Text('Status', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 12))),
-                        const SizedBox(width: 200, child: Text('Action', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 12))),
-                      ],
-                    ),
+          _buildConditionalWrapper(
+            false,
+            LayoutBuilder(builder: (context, constraints) {
+              return SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minWidth: 1200,
+                    maxWidth: constraints.maxWidth > 1200 ? constraints.maxWidth : 1200,
                   ),
-                  const Divider(height: 1, color: Color(0xFFE2E8F0)),
-                  // Table Body
-                  Expanded(
-                    child: _isLoading 
-                      ? const Center(child: CircularProgressIndicator())
-                      : filtered.isEmpty 
-                        ? const Center(child: Text('No history found'))
-                        : ListView.separated(
-                      itemCount: filtered.length,
-                      separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFF1F5F9)),
-                      itemBuilder: (context, index) {
-                        final tx = filtered[index];
-                        final isNegative = tx['amount'] < 0;
-                        final amountStr = tx['amount'] == 0 ? '-' : tx['amount'].toStringAsFixed(2);
-                        
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  child: Container(
+                    decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: const Color(0xFFE2E8F0))),
+                    child: Column(
+                      children: [
+                        // Table Header
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                          decoration: const BoxDecoration(color: Color(0xFFF8FAFC), borderRadius: BorderRadius.vertical(top: Radius.circular(12))),
                           child: Row(
                             children: [
-                              SizedBox(width: 30, child: Text('${index + 1}', style: const TextStyle(color: Color(0xFF1E293B), fontWeight: FontWeight.bold, fontSize: 13))),
-                              Expanded(
-                                flex: 2,
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(tx['date'], style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E293B), fontSize: 12)),
-                                    const SizedBox(height: 2),
-                                    Text(tx['time'], style: const TextStyle(color: Color(0xFF64748B), fontSize: 11)),
-                                  ],
-                                ),
-                              ),
-                              Expanded(flex: 2, child: Text(tx['refNo'], style: const TextStyle(color: Color(0xFF1E293B), fontWeight: FontWeight.bold, fontSize: 12))),
-                              Expanded(
-                                flex: 3,
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(tx['customerName'], style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E293B), fontSize: 12)),
-                                    if (tx['customerPhone'].isNotEmpty) ...[
-                                      const SizedBox(height: 2),
-                                      Text(tx['customerPhone'], style: const TextStyle(color: Color(0xFF64748B), fontSize: 11)),
-                                    ]
-                                  ],
-                                ),
-                              ),
-                              Expanded(flex: 2, child: Align(alignment: Alignment.centerLeft, child: _buildTypePill(tx['type']))),
-                              Expanded(flex: 1, child: Text('${tx['items']} ${tx['items'] == 1 ? 'item' : 'items'}', style: const TextStyle(color: Color(0xFF475569), fontSize: 12))),
-                              Expanded(
-                                flex: 2,
-                                child: Text(
-                                  amountStr,
-                                  style: TextStyle(color: isNegative ? Colors.red : const Color(0xFF1E293B), fontWeight: FontWeight.bold, fontSize: 13),
-                                ),
-                              ),
-                              Expanded(flex: 2, child: Align(alignment: Alignment.centerLeft, child: _buildPaymentModePill(tx['paymentMode']))),
-                              Expanded(
-                                flex: 2,
-                                child: Row(
-                                  children: [
-                                    Container(width: 6, height: 6, decoration: const BoxDecoration(color: Color(0xFF22C55E), shape: BoxShape.circle)),
-                                    const SizedBox(width: 6),
-                                    Text(tx['status'], style: const TextStyle(color: Color(0xFF166534), fontSize: 11, fontWeight: FontWeight.bold)),
-                                  ],
-                                ),
-                              ),
-                              SizedBox(
-                                width: 200,
-                                child: Row(
-                                  children: [
-                                    OutlinedButton.icon(
-                                      onPressed: () {
-                                        if (tx['originalBill'] != null) {
-                                          _viewBill(tx['originalBill']);
-                                        } else {
-                                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Detailed view not available for synced backend bills yet.')));
-                                        }
-                                      },
-                                      icon: const Icon(Icons.visibility, size: 14, color: Color(0xFF1E293B)),
-                                      label: const Text('View', style: TextStyle(color: Color(0xFF1E293B), fontWeight: FontWeight.bold, fontSize: 11)),
-                                      style: OutlinedButton.styleFrom(
-                                        minimumSize: const Size(0, 32), padding: const EdgeInsets.symmetric(horizontal: 8), side: const BorderSide(color: Color(0xFFE2E8F0)), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    OutlinedButton.icon(
-                                      onPressed: () {},
-                                      icon: Image.asset('assets/whatsapp.png', height: 14, errorBuilder: (c, e, s) => const Icon(Icons.chat, size: 14, color: Color(0xFF22C55E))),
-                                      label: const Text('Send', style: TextStyle(color: Color(0xFF166534), fontWeight: FontWeight.bold, fontSize: 11)),
-                                      style: OutlinedButton.styleFrom(
-                                        minimumSize: const Size(0, 32), padding: const EdgeInsets.symmetric(horizontal: 8), side: const BorderSide(color: Color(0xFF22C55E)), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)), backgroundColor: const Color(0xFFDCFCE7),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Container(
-                                      height: 32, width: 32,
-                                      decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE2E8F0)), borderRadius: BorderRadius.circular(6)),
-                                      child: const Icon(Icons.more_vert, size: 16, color: Color(0xFF64748B)),
-                                    ),
-                                  ],
-                                ),
-                              ),
+                              const SizedBox(width: 30, child: Text('#', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 12))),
+                              const Expanded(flex: 2, child: Text('Date & Time', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 12))),
+                              const Expanded(flex: 2, child: Text('Bill No / Ref No', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 12))),
+                              const Expanded(flex: 3, child: Text('Customer Name', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 12))),
+                              const Expanded(flex: 2, child: Text('Type', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 12))),
+                              const Expanded(flex: 1, child: Text('Items', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 12))),
+                              const Expanded(flex: 2, child: Text('Amount (₹)', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 12))),
+                              const Expanded(flex: 2, child: Text('Payment Mode', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 12))),
+                              const Expanded(flex: 2, child: Text('Status', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 12))),
+                              const SizedBox(width: 200, child: Text('Action', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 12))),
                             ],
                           ),
-                        );
-                      },
-                    ),
-                  ),
-                  // Pagination
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                        ),
+                        const Divider(height: 1, color: Color(0xFFE2E8F0)),
+                        // Table Body
+                        _isLoading 
+                          ? const Padding(
+                              padding: EdgeInsets.all(32.0),
+                              child: Center(child: CircularProgressIndicator()),
+                            )
+                          : filtered.isEmpty 
+                            ? const Padding(
+                                padding: EdgeInsets.all(32.0),
+                                child: Center(child: Text('No history found')),
+                              )
+                            : ListView.separated(
+                                shrinkWrap: true,
+                                physics: const NeverScrollableScrollPhysics(),
+                                itemCount: filtered.length,
+                                separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                                itemBuilder: (context, index) {
+                                  final tx = filtered[index];
+                                  final isNegative = tx['amount'] < 0;
+                                  final amountStr = tx['amount'] == 0 ? '-' : tx['amount'].toStringAsFixed(2);
+                                  
+                                  return Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                                    child: Row(
+                                      children: [
+                                        SizedBox(width: 30, child: Text('${index + 1}', style: const TextStyle(color: Color(0xFF1E293B), fontWeight: FontWeight.bold, fontSize: 13))),
+                                        Expanded(
+                                          flex: 2,
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text(tx['date'], style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E293B), fontSize: 12)),
+                                              const SizedBox(height: 2),
+                                              Text(tx['time'], style: const TextStyle(color: Color(0xFF64748B), fontSize: 11)),
+                                            ],
+                                          ),
+                                        ),
+                                        Expanded(flex: 2, child: Text(tx['refNo'], style: const TextStyle(color: Color(0xFF1E293B), fontWeight: FontWeight.bold, fontSize: 12))),
+                                        Expanded(
+                                          flex: 3,
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text(tx['customerName'], style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E293B), fontSize: 12)),
+                                              if (tx['customerPhone'].isNotEmpty) ...[
+                                                const SizedBox(height: 2),
+                                                Text(tx['customerPhone'], style: const TextStyle(color: Color(0xFF64748B), fontSize: 11)),
+                                              ]
+                                            ],
+                                          ),
+                                        ),
+                                        Expanded(flex: 2, child: Align(alignment: Alignment.centerLeft, child: _buildTypePill(tx['type']))),
+                                        Expanded(flex: 1, child: Text('${tx['items']} ${tx['items'] == 1 ? 'item' : 'items'}', style: const TextStyle(color: Color(0xFF475569), fontSize: 12))),
+                                        Expanded(
+                                          flex: 2,
+                                          child: Text(
+                                            amountStr,
+                                            style: TextStyle(color: isNegative ? Colors.red : const Color(0xFF1E293B), fontWeight: FontWeight.bold, fontSize: 13),
+                                          ),
+                                        ),
+                                        Expanded(flex: 2, child: Align(alignment: Alignment.centerLeft, child: _buildPaymentModePill(tx['paymentMode']))),
+                                        Expanded(
+                                          flex: 2,
+                                          child: Row(
+                                            children: [
+                                              Container(width: 6, height: 6, decoration: const BoxDecoration(color: Color(0xFF22C55E), shape: BoxShape.circle)),
+                                              const SizedBox(width: 6),
+                                              Text(tx['status'], style: const TextStyle(color: Color(0xFF166534), fontSize: 11, fontWeight: FontWeight.bold)),
+                                            ],
+                                          ),
+                                        ),
+                                        SizedBox(
+                                          width: 200,
+                                          child: Row(
+                                            children: [
+                                              OutlinedButton.icon(
+                                                onPressed: () {
+                                                  if (tx['originalBill'] != null) {
+                                                    _viewBill(tx['originalBill']);
+                                                  } else {
+                                                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Detailed view not available for synced backend bills yet.')));
+                                                  }
+                                                },
+                                                icon: const Icon(Icons.visibility, size: 14, color: Color(0xFF1E293B)),
+                                                label: const Text('View', style: TextStyle(color: Color(0xFF1E293B), fontWeight: FontWeight.bold, fontSize: 11)),
+                                                style: OutlinedButton.styleFrom(
+                                                  minimumSize: const Size(0, 32), padding: const EdgeInsets.symmetric(horizontal: 8), side: const BorderSide(color: Color(0xFFE2E8F0)), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                                                ),
+                                              ),
+                                              const SizedBox(width: 8),
+                                              OutlinedButton.icon(
+                                                onPressed: () {},
+                                                icon: Image.asset('assets/whatsapp.png', height: 14, errorBuilder: (c, e, s) => const Icon(Icons.chat, size: 14, color: Color(0xFF22C55E))),
+                                                label: const Text('Send', style: TextStyle(color: Color(0xFF166534), fontWeight: FontWeight.bold, fontSize: 11)),
+                                                style: OutlinedButton.styleFrom(
+                                                  minimumSize: const Size(0, 32), padding: const EdgeInsets.symmetric(horizontal: 8), side: const BorderSide(color: Color(0xFF22C55E)), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)), backgroundColor: const Color(0xFFDCFCE7),
+                                                ),
+                                              ),
+                                              const SizedBox(width: 8),
+                                              Container(
+                                                height: 32, width: 32,
+                                                decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE2E8F0)), borderRadius: BorderRadius.circular(6)),
+                                                child: const Icon(Icons.more_vert, size: 16, color: Color(0xFF64748B)),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                },
+                              ),
+                        // Pagination
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                     decoration: const BoxDecoration(border: Border(top: BorderSide(color: Color(0xFFE2E8F0)))),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -759,8 +874,11 @@ class _HistoryScreenState extends State<HistoryScreen> {
               ),
             ),
           ),
-        ],
-      ),
-    );
+        );
+      }),
+    ),
+          ],
+        ),
+      );
   }
 }

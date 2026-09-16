@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../utils/responsive.dart';
 import 'package:intl/intl.dart';
 import '../../models/lab_models.dart';
 import '../../services/lab_data_service.dart';
@@ -247,13 +248,11 @@ class _LabSendReportsScreenState extends State<LabSendReportsScreen> {
 
           // Main Content Layout
           Expanded(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Left Pane: Data Table
-                Expanded(
-                  flex: 6,
-                  child: Container(
+            child: ResponsiveSplitView(
+              leftFlex: 6,
+              rightFlex: 3,
+              showRightPane: _selectedReport != null,
+              leftPane: Container(
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(12),
@@ -495,14 +494,7 @@ class _LabSendReportsScreenState extends State<LabSendReportsScreen> {
                       ],
                     ),
                   ),
-                ),
-                
-                const SizedBox(width: 24),
-                
-                // Right Pane: Send Report Form
-                Expanded(
-                  flex: 3,
-                  child: Container(
+                rightPane: Container(
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(12),
@@ -700,11 +692,9 @@ class _LabSendReportsScreenState extends State<LabSendReportsScreen> {
                         ),
                       ],
                     ),
-                  ),
-                ),
-              ],
             ),
           ),
+        ),
           
           const SizedBox(height: 24),
           

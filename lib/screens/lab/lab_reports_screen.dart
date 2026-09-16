@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../utils/responsive.dart';
 import 'package:intl/intl.dart';
 import '../../models/lab_models.dart';
 import '../../services/lab_data_service.dart';
@@ -211,13 +212,11 @@ class _LabReportsScreenState extends State<LabReportsScreen> {
 
           // Main Content Layout
           Expanded(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Left Pane: Data Table
-                Expanded(
-                  flex: 5,
-                  child: Container(
+            child: ResponsiveSplitView(
+              leftFlex: 5,
+              rightFlex: 3,
+              showRightPane: _selectedReport != null,
+              leftPane: Container(
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(12),
@@ -439,14 +438,7 @@ class _LabReportsScreenState extends State<LabReportsScreen> {
                       ],
                     ),
                   ),
-                ),
-                
-                const SizedBox(width: 24),
-                
-                // Right Pane: Report Preview
-                Expanded(
-                  flex: 3,
-                  child: Column(
+                rightPane: Column(
                     children: [
                       Container(
                         padding: const EdgeInsets.all(16),
@@ -657,8 +649,6 @@ class _LabReportsScreenState extends State<LabReportsScreen> {
                       ),
                     ],
                   ),
-                ),
-              ],
             ),
           ),
           

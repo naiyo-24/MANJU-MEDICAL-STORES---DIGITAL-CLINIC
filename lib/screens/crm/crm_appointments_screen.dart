@@ -54,17 +54,33 @@ class _CrmAppointmentsScreenState extends State<CrmAppointmentsScreen> {
                     padding: const EdgeInsets.all(24.0),
                     child: Column(
                       children: [
-                        _buildStatsRow(),
+                        _buildStatsRow(context),
                         const SizedBox(height: 24),
                         Expanded(
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Expanded(flex: 3, child: _buildLeftPane()),
-                              const SizedBox(width: 24),
-                              SizedBox(width: 350, child: _buildRightPane()),
-                            ],
-                          ),
+                          child: LayoutBuilder(builder: (context, constraints) {
+                            bool isDesktop = constraints.maxWidth > 1000;
+                            return isDesktop 
+                              ? Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Expanded(flex: 3, child: _buildLeftPane()),
+                                    const SizedBox(width: 24),
+                                    SizedBox(width: 350, child: _buildRightPane()),
+                                  ],
+                                )
+                              : SingleChildScrollView(
+                                  child: Column(
+                                    children: [
+                                      SizedBox(
+                                        height: 600,
+                                        child: _buildLeftPane()
+                                      ),
+                                      const SizedBox(height: 24),
+                                      _buildRightPane(),
+                                    ],
+                                  ),
+                                );
+                          }),
                         ),
                       ],
                     ),
@@ -136,18 +152,34 @@ class _CrmAppointmentsScreenState extends State<CrmAppointmentsScreen> {
     );
   }
 
-  Widget _buildStatsRow() {
-    return Row(
-      children: [
-        Expanded(child: _buildStatCard('Today\'s Appointments', '86', Icons.calendar_today, const Color(0xFF8B5CF6), '+12%', true)),
-        const SizedBox(width: 16),
-        Expanded(child: _buildStatCard('Completed', '72', Icons.people, const Color(0xFF22C55E), '+18%', true)),
-        const SizedBox(width: 16),
-        Expanded(child: _buildStatCard('Scheduled', '10', Icons.access_time, const Color(0xFF3B82F6), null, null)),
-        const SizedBox(width: 16),
-        Expanded(child: _buildStatCard('Cancelled', '4', Icons.close, const Color(0xFFEF4444), '-8%', false)),
-      ],
-    );
+  Widget _buildStatsRow(BuildContext context) {
+    bool isDesktop = MediaQuery.of(context).size.width > 800;
+    return isDesktop 
+      ? Row(
+          children: [
+            Expanded(child: _buildStatCard('Today\'s Appointments', '86', Icons.calendar_today, const Color(0xFF8B5CF6), '+12%', true)),
+            const SizedBox(width: 16),
+            Expanded(child: _buildStatCard('Completed', '72', Icons.people, const Color(0xFF22C55E), '+18%', true)),
+            const SizedBox(width: 16),
+            Expanded(child: _buildStatCard('Scheduled', '10', Icons.access_time, const Color(0xFF3B82F6), null, null)),
+            const SizedBox(width: 16),
+            Expanded(child: _buildStatCard('Cancelled', '4', Icons.close, const Color(0xFFEF4444), '-8%', false)),
+          ],
+        )
+      : SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: [
+              SizedBox(width: 250, child: _buildStatCard('Today\'s Appointments', '86', Icons.calendar_today, const Color(0xFF8B5CF6), '+12%', true)),
+              const SizedBox(width: 16),
+              SizedBox(width: 250, child: _buildStatCard('Completed', '72', Icons.people, const Color(0xFF22C55E), '+18%', true)),
+              const SizedBox(width: 16),
+              SizedBox(width: 250, child: _buildStatCard('Scheduled', '10', Icons.access_time, const Color(0xFF3B82F6), null, null)),
+              const SizedBox(width: 16),
+              SizedBox(width: 250, child: _buildStatCard('Cancelled', '4', Icons.close, const Color(0xFFEF4444), '-8%', false)),
+            ],
+          ),
+        );
   }
 
   Widget _buildStatCard(String title, String value, IconData icon, Color color, String? trend, bool? isPositive) {
@@ -221,101 +253,122 @@ class _CrmAppointmentsScreenState extends State<CrmAppointmentsScreen> {
           // Action Bar
           Padding(
             padding: const EdgeInsets.all(16.0),
-            child: Row(
-              children: [
-                Expanded(
-                  flex: 2,
-                  child: Container(
-                    height: 40,
-                    decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE2E8F0)), borderRadius: BorderRadius.circular(8)),
-                    child: const TextField(decoration: InputDecoration(hintText: 'Search by patient name, phone, doctor or appointment ID...', prefixIcon: Icon(Icons.search, color: Color(0xFF94A3B8), size: 20), border: InputBorder.none, contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 10))),
+            child: LayoutBuilder(builder: (context, constraints) {
+              return SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    Container(
+                      width: 250,
+                      height: 40,
+                      decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE2E8F0)), borderRadius: BorderRadius.circular(8)),
+                      child: const TextField(decoration: InputDecoration(hintText: 'Search...', prefixIcon: Icon(Icons.search, color: Color(0xFF94A3B8), size: 20), border: InputBorder.none, contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 10))),
+                    ),
+                    const SizedBox(width: 12),
+                    SizedBox(width: 150, child: _buildDropdown('09 Sep 2026', Icons.calendar_today)),
+                    const SizedBox(width: 12),
+                    SizedBox(width: 150, child: _buildDropdown('All Doctors', null)),
+                    const SizedBox(width: 12),
+                    SizedBox(width: 150, child: _buildDropdown('All Status', null)),
+                    const SizedBox(width: 12),
+                    TextButton(onPressed: () {}, child: const Text('Reset', style: TextStyle(color: Color(0xFF8B5CF6), fontWeight: FontWeight.w600))),
+                  ],
+                ),
+              );
+            }),
+          ),
+          // Table Section
+          Expanded(
+            child: LayoutBuilder(builder: (context, constraints) {
+              return SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minWidth: 1000,
+                    maxWidth: constraints.maxWidth > 1000 ? constraints.maxWidth : 1000,
+                  ),
+                  child: Column(
+                    children: [
+                      // Table Header
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        color: const Color(0xFFF8FAFC),
+                        child: Row(
+                          children: [
+                            const SizedBox(width: 32, child: Icon(Icons.check_box_outline_blank, color: Color(0xFFCBD5E1), size: 18)),
+                            const SizedBox(width: 32, child: Text('#', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF64748B), fontSize: 12))),
+                            Expanded(flex: 1, child: const Text('Time', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF64748B), fontSize: 12))),
+                            Expanded(flex: 2, child: const Text('Patient Name', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF64748B), fontSize: 12))),
+                            Expanded(flex: 1, child: const Text('Age / Gender', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF64748B), fontSize: 12))),
+                            Expanded(flex: 1, child: const Text('Doctor', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF64748B), fontSize: 12))),
+                            Expanded(flex: 2, child: const Text('Type', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF64748B), fontSize: 12))),
+                            Expanded(flex: 1, child: const Text('Status', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF64748B), fontSize: 12))),
+                            const SizedBox(width: 100, child: Text('Action', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF64748B), fontSize: 12), textAlign: TextAlign.center)),
+                          ],
+                        ),
+                      ),
+                      // Table Body
+                      Expanded(
+                        child: ListView.separated(
+                          itemCount: _appointments.length,
+                          separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                          itemBuilder: (context, index) {
+                            final apt = _appointments[index];
+                            final isSelected = _selectedAppointment?.id == apt.id;
+                            
+                            return InkWell(
+                              onTap: () => _selectAppointment(apt),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                color: isSelected ? const Color(0xFFF3E8FF).withOpacity(0.3) : Colors.transparent,
+                                child: Row(
+                                  children: [
+                                    const SizedBox(width: 32, child: Icon(Icons.check_box_outline_blank, color: Color(0xFFCBD5E1), size: 18)),
+                                    SizedBox(width: 32, child: Text('${index + 1}', style: const TextStyle(color: Color(0xFF64748B), fontSize: 13))),
+                                    Expanded(flex: 1, child: Text(apt.time, style: const TextStyle(color: Color(0xFF1E293B), fontWeight: FontWeight.w500, fontSize: 13))),
+                                    Expanded(
+                                      flex: 2,
+                                      child: Row(
+                                        children: [
+                                          CircleAvatar(
+                                            radius: 12,
+                                            backgroundColor: const Color(0xFF8B5CF6).withOpacity(0.1),
+                                            child: Text(apt.patientName.substring(0, 2).toUpperCase(), style: const TextStyle(color: Color(0xFF8B5CF6), fontSize: 10, fontWeight: FontWeight.bold)),
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Text(apt.patientName, style: const TextStyle(color: Color(0xFF1E293B), fontWeight: FontWeight.w500, fontSize: 13)),
+                                        ],
+                                      ),
+                                    ),
+                                    Expanded(flex: 1, child: Text('${apt.patientAge} / ${apt.patientGender}', style: const TextStyle(color: Color(0xFF64748B), fontSize: 13))),
+                                    Expanded(flex: 1, child: Text(apt.doctorName, style: const TextStyle(color: Color(0xFF1E293B), fontSize: 13))),
+                                    Expanded(flex: 2, child: Text(apt.appointmentType, style: const TextStyle(color: Color(0xFF64748B), fontSize: 13))),
+                                    Expanded(flex: 1, child: _buildStatusPill(apt.status)),
+                                    SizedBox(
+                                      width: 100,
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Icon(Icons.visibility_outlined, size: 18, color: const Color(0xFF3B82F6)),
+                                          const SizedBox(width: 8),
+                                          Icon(Icons.edit_outlined, size: 18, color: const Color(0xFF8B5CF6)),
+                                          const SizedBox(width: 8),
+                                          Icon(Icons.more_vert, size: 18, color: const Color(0xFF94A3B8)),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(width: 12),
-                Expanded(flex: 1, child: _buildDropdown('09 Sep 2026', Icons.calendar_today)),
-                const SizedBox(width: 12),
-                Expanded(flex: 1, child: _buildDropdown('All Doctors', null)),
-                const SizedBox(width: 12),
-                Expanded(flex: 1, child: _buildDropdown('All Status', null)),
-                const SizedBox(width: 12),
-                TextButton(onPressed: () {}, child: const Text('Reset', style: TextStyle(color: Color(0xFF8B5CF6), fontWeight: FontWeight.w600))),
-              ],
-            ),
-          ),
-          // Table Header
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            color: const Color(0xFFF8FAFC),
-            child: Row(
-              children: [
-                const SizedBox(width: 32, child: Icon(Icons.check_box_outline_blank, color: Color(0xFFCBD5E1), size: 18)),
-                const SizedBox(width: 32, child: Text('#', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF64748B), fontSize: 12))),
-                Expanded(flex: 1, child: const Text('Time', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF64748B), fontSize: 12))),
-                Expanded(flex: 2, child: const Text('Patient Name', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF64748B), fontSize: 12))),
-                Expanded(flex: 1, child: const Text('Age / Gender', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF64748B), fontSize: 12))),
-                Expanded(flex: 1, child: const Text('Doctor', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF64748B), fontSize: 12))),
-                Expanded(flex: 2, child: const Text('Type', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF64748B), fontSize: 12))),
-                Expanded(flex: 1, child: const Text('Status', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF64748B), fontSize: 12))),
-                const SizedBox(width: 100, child: Text('Action', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF64748B), fontSize: 12), textAlign: TextAlign.center)),
-              ],
-            ),
-          ),
-          // Table Body
-          Expanded(
-            child: ListView.separated(
-              itemCount: _appointments.length,
-              separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFF1F5F9)),
-              itemBuilder: (context, index) {
-                final apt = _appointments[index];
-                final isSelected = _selectedAppointment?.id == apt.id;
-                
-                return InkWell(
-                  onTap: () => _selectAppointment(apt),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    color: isSelected ? const Color(0xFFF3E8FF).withOpacity(0.3) : Colors.transparent,
-                    child: Row(
-                      children: [
-                        const SizedBox(width: 32, child: Icon(Icons.check_box_outline_blank, color: Color(0xFFCBD5E1), size: 18)),
-                        SizedBox(width: 32, child: Text('${index + 1}', style: const TextStyle(color: Color(0xFF64748B), fontSize: 13))),
-                        Expanded(flex: 1, child: Text(apt.time, style: const TextStyle(color: Color(0xFF1E293B), fontWeight: FontWeight.w500, fontSize: 13))),
-                        Expanded(
-                          flex: 2,
-                          child: Row(
-                            children: [
-                              CircleAvatar(
-                                radius: 12,
-                                backgroundColor: const Color(0xFF8B5CF6).withOpacity(0.1),
-                                child: Text(apt.patientName.substring(0, 2).toUpperCase(), style: const TextStyle(color: Color(0xFF8B5CF6), fontSize: 10, fontWeight: FontWeight.bold)),
-                              ),
-                              const SizedBox(width: 8),
-                              Text(apt.patientName, style: const TextStyle(color: Color(0xFF1E293B), fontWeight: FontWeight.w500, fontSize: 13)),
-                            ],
-                          ),
-                        ),
-                        Expanded(flex: 1, child: Text('${apt.patientAge} / ${apt.patientGender}', style: const TextStyle(color: Color(0xFF64748B), fontSize: 13))),
-                        Expanded(flex: 1, child: Text(apt.doctorName, style: const TextStyle(color: Color(0xFF1E293B), fontSize: 13))),
-                        Expanded(flex: 2, child: Text(apt.appointmentType, style: const TextStyle(color: Color(0xFF64748B), fontSize: 13))),
-                        Expanded(flex: 1, child: _buildStatusPill(apt.status)),
-                        SizedBox(
-                          width: 100,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.visibility_outlined, size: 18, color: const Color(0xFF3B82F6)),
-                              const SizedBox(width: 8),
-                              Icon(Icons.edit_outlined, size: 18, color: const Color(0xFF8B5CF6)),
-                              const SizedBox(width: 8),
-                              Icon(Icons.more_vert, size: 18, color: const Color(0xFF94A3B8)),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            ),
+              );
+            }),
           ),
           // Pagination
           Container(

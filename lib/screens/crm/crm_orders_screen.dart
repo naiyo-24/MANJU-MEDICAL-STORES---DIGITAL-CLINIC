@@ -42,17 +42,33 @@ class _CrmOrdersScreenState extends State<CrmOrdersScreen> {
                     padding: const EdgeInsets.all(24.0),
                     child: Column(
                       children: [
-                        _buildStatsRow(),
+                        _buildStatsRow(context),
                         const SizedBox(height: 24),
                         Expanded(
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Expanded(flex: 5, child: _buildDataGrid()),
-                              const SizedBox(width: 24),
-                              Expanded(flex: 3, child: _buildRightPane()),
-                            ],
-                          ),
+                          child: LayoutBuilder(builder: (context, constraints) {
+                            bool isDesktop = constraints.maxWidth > 1000;
+                            return isDesktop 
+                              ? Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Expanded(flex: 5, child: _buildDataGrid()),
+                                    const SizedBox(width: 24),
+                                    Expanded(flex: 3, child: _buildRightPane()),
+                                  ],
+                                )
+                              : SingleChildScrollView(
+                                  child: Column(
+                                    children: [
+                                      SizedBox(
+                                        height: 500,
+                                        child: _buildDataGrid()
+                                      ),
+                                      const SizedBox(height: 24),
+                                      _buildRightPane(),
+                                    ],
+                                  ),
+                                );
+                          }),
                         ),
                       ],
                     ),
@@ -125,20 +141,38 @@ class _CrmOrdersScreenState extends State<CrmOrdersScreen> {
     );
   }
 
-  Widget _buildStatsRow() {
-    return Row(
-      children: [
-        Expanded(child: _buildStatCard('Total Orders', '128', Icons.shopping_bag, const Color(0xFF8B5CF6), null)),
-        const SizedBox(width: 16),
-        Expanded(child: _buildStatCard('Delivered', '102', Icons.check_circle, const Color(0xFF22C55E), '80%')),
-        const SizedBox(width: 16),
-        Expanded(child: _buildStatCard('In Transit', '16', Icons.local_shipping, const Color(0xFF3B82F6), '12%')),
-        const SizedBox(width: 16),
-        Expanded(child: _buildStatCard('Pending', '7', Icons.access_time_filled, const Color(0xFFF59E0B), '5%')),
-        const SizedBox(width: 16),
-        Expanded(child: _buildStatCard('Cancelled', '3', Icons.cancel, const Color(0xFFEF4444), '3%')),
-      ],
-    );
+  Widget _buildStatsRow(BuildContext context) {
+    bool isDesktop = MediaQuery.of(context).size.width > 1200;
+    return isDesktop
+      ? Row(
+          children: [
+            Expanded(child: _buildStatCard('Total Orders', '128', Icons.shopping_bag, const Color(0xFF8B5CF6), null)),
+            const SizedBox(width: 16),
+            Expanded(child: _buildStatCard('Delivered', '102', Icons.check_circle, const Color(0xFF22C55E), '80%')),
+            const SizedBox(width: 16),
+            Expanded(child: _buildStatCard('In Transit', '16', Icons.local_shipping, const Color(0xFF3B82F6), '12%')),
+            const SizedBox(width: 16),
+            Expanded(child: _buildStatCard('Pending', '7', Icons.access_time_filled, const Color(0xFFF59E0B), '5%')),
+            const SizedBox(width: 16),
+            Expanded(child: _buildStatCard('Cancelled', '3', Icons.cancel, const Color(0xFFEF4444), '3%')),
+          ],
+        )
+      : SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: [
+              SizedBox(width: 250, child: _buildStatCard('Total Orders', '128', Icons.shopping_bag, const Color(0xFF8B5CF6), null)),
+              const SizedBox(width: 16),
+              SizedBox(width: 250, child: _buildStatCard('Delivered', '102', Icons.check_circle, const Color(0xFF22C55E), '80%')),
+              const SizedBox(width: 16),
+              SizedBox(width: 250, child: _buildStatCard('In Transit', '16', Icons.local_shipping, const Color(0xFF3B82F6), '12%')),
+              const SizedBox(width: 16),
+              SizedBox(width: 250, child: _buildStatCard('Pending', '7', Icons.access_time_filled, const Color(0xFFF59E0B), '5%')),
+              const SizedBox(width: 16),
+              SizedBox(width: 250, child: _buildStatCard('Cancelled', '3', Icons.cancel, const Color(0xFFEF4444), '3%')),
+            ],
+          ),
+        );
   }
 
   Widget _buildStatCard(String title, String value, IconData icon, Color color, String? subtitle) {
