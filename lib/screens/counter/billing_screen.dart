@@ -14,20 +14,26 @@ import '../../services/billing_history_service.dart';
 import '../../utils/pdf_generator.dart';
 import '../../services/shop_settings_service.dart';
 
-class BillingScreen extends StatefulWidget {
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../providers/billing_provider.dart';
+
+class BillingScreen extends ConsumerStatefulWidget {
   const BillingScreen({super.key});
 
   @override
-  State<BillingScreen> createState() => _BillingScreenState();
+  ConsumerState<BillingScreen> createState() => _BillingScreenState();
 }
 
-class _BillingScreenState extends State<BillingScreen> {
+class _BillingScreenState extends ConsumerState<BillingScreen> {
+
+  List<Map<String, dynamic>> get _currentBill => ref.watch(billingProvider).currentBill;
+
   List<Map<String, dynamic>> _medicines = [];
   List<Customer> _allCustomers = [];
   List<Map<String, dynamic>> _filteredMedicines = [];
 
   // Modifiable Data for Current Bill
-  List<Map<String, dynamic>> _currentBill = [];
+  
 
   final List<String> _categories = ['All', 'Tablets', 'Capsules', 'Syrups', 'Injections', 'Ointments', 'Others'];
   int _selectedCategoryIndex = 0;
@@ -303,7 +309,7 @@ class _BillingScreenState extends State<BillingScreen> {
                             ),
                             onTap: () {
                               setState(() {
-                                _currentBill = List.from(draft.items);
+                                ref.read(billingProvider.notifier).setBill(List.from(draft.items));
                                 _customerNameController.text = draft.customerName;
                                 _customerPhoneController.text = draft.customerPhone;
 
@@ -716,30 +722,22 @@ class _BillingScreenState extends State<BillingScreen> {
       return;
     }
 
-    setState(() {
-      _currentBill[index]['qty'] += 1;
-      _currentBill[index]['total'] = _currentBill[index]['qty'] * _currentBill[index]['price'];
-    });
+    ref.read(billingProvider.notifier).updateItemQuantity(index, _currentBill[index]['qty'] + 1);
   }
 
   void _decreaseQty(int index) {
-    setState(() {
-      if (_currentBill[index]['qty'] > 1) {
-        _currentBill[index]['qty'] -= 1;
-        _currentBill[index]['total'] = _currentBill[index]['qty'] * _currentBill[index]['price'];
-      }
-    });
+    if (_currentBill[index]['qty'] > 1) {
+      ref.read(billingProvider.notifier).updateItemQuantity(index, _currentBill[index]['qty'] - 1);
+    }
   }
 
   void _removeItem(int index) {
-    setState(() {
-      _currentBill.removeAt(index);
-    });
+    ref.read(billingProvider.notifier).removeItem(index);
   }
 
   void _clearCart() {
+    ref.read(billingProvider.notifier).clearBill();
     setState(() {
-      _currentBill.clear();
       _customerNameController.clear();
       _customerPhoneController.clear();
       _savedCustomerId = null;
@@ -793,7 +791,7 @@ class _BillingScreenState extends State<BillingScreen> {
           return;
         }
         
-        _currentBill.add({
+        ref.read(billingProvider.notifier).addItem({
           'inventory_item_id': item['inventory_item_id'],
           'name': item['name'],
           'brand': item['brand'],
@@ -801,6 +799,7 @@ class _BillingScreenState extends State<BillingScreen> {
           'price': item['mrp'],
           'total': item['mrp'],
           'stock': stock,
+          'id': item['inventory_item_id'],
         });
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Added ${item['name']} to cart'), duration: const Duration(seconds: 1)));
       }
@@ -1262,6 +1261,8 @@ class _BillingScreenState extends State<BillingScreen> {
                                       // Medicines Table Body
                                       Expanded(
                                         child: ListView.separated(
+                                          shrinkWrap: !isDesktopWidth,
+                                          physics: isDesktopWidth ? const AlwaysScrollableScrollPhysics() : const NeverScrollableScrollPhysics(),
                                           itemCount: _filteredMedicines.length,
                                           separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFE2E8F0)),
                                           itemBuilder: (context, index) {

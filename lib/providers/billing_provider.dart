@@ -28,8 +28,11 @@ class BillingState {
   }
 }
 
-class BillingNotifier extends StateNotifier<BillingState> {
-  BillingNotifier() : super(BillingState());
+class BillingNotifier extends Notifier<BillingState> {
+  @override
+  BillingState build() {
+    return BillingState();
+  }
 
   void addItem(Map<String, dynamic> item) {
     // Check if it already exists
@@ -67,6 +70,10 @@ class BillingNotifier extends StateNotifier<BillingState> {
     state = state.copyWith(currentBill: updatedBill);
   }
 
+  void setBill(List<Map<String, dynamic>> items) {
+    state = state.copyWith(currentBill: items);
+  }
+
   void updateDiscount(double value, bool isPercentage) {
     state = state.copyWith(
       discountValue: value,
@@ -83,6 +90,6 @@ class BillingNotifier extends StateNotifier<BillingState> {
   }
 }
 
-final billingProvider = StateNotifierProvider<BillingNotifier, BillingState>((ref) {
+final billingProvider = NotifierProvider<BillingNotifier, BillingState>(() {
   return BillingNotifier();
 });

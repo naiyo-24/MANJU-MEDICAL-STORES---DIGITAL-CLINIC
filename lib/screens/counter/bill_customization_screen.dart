@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:printing/printing.dart';
+import 'package:pdf/pdf.dart';
 import '../../services/shop_settings_service.dart';
 import '../../utils/responsive.dart';
+import '../../utils/pdf_generator.dart';
 
 class BillCustomizationScreen extends StatefulWidget {
   const BillCustomizationScreen({super.key});
@@ -108,6 +111,59 @@ class _BillCustomizationScreenState extends State<BillCustomizationScreen> {
     }
   }
 
+  Future<void> _showPreview(String format) async {
+    try {
+      final settings = {
+        'shop_name': _shopNameCtrl.text,
+        'tagline': _taglineCtrl.text,
+        'address': _addressCtrl.text,
+        'phone': _phoneCtrl.text,
+        'landline': _landlineCtrl.text,
+        'email': _emailCtrl.text,
+        'gst_number': _gstCtrl.text,
+        'bank_name': _bankNameCtrl.text,
+        'branch_name': _branchNameCtrl.text,
+        'ac_holder_name': _acHolderCtrl.text,
+        'ac_number': _acNumberCtrl.text,
+        'ifsc_code': _ifscCtrl.text,
+        'terms_1': _terms1Ctrl.text,
+        'terms_2': _terms2Ctrl.text,
+        'terms_3': _terms3Ctrl.text,
+        'logo_url': _logoUrl,
+        'qr_url': _qrUrl,
+      };
+
+      final dummyItems = [
+        {'name': 'Paracetamol 500mg', 'batch': 'B123', 'expiry': '12/25', 'hsn': '3004', 'qty': 2, 'mrp': 25.0, 'cgst': 6, 'sgst': 6, 'total': 50.0},
+        {'name': 'Amoxicillin 250mg', 'batch': 'B456', 'expiry': '10/24', 'hsn': '3004', 'qty': 1, 'mrp': 120.0, 'cgst': 6, 'sgst': 6, 'total': 120.0},
+      ];
+
+      final pdfBytes = await PdfGenerator.generateBill(
+        items: dummyItems,
+        subtotal: 170.0,
+        discount: 0.0,
+        tax: 20.4,
+        grandTotal: 190.4,
+        invoiceNumber: 'PREVIEW-001',
+        customerName: 'John Doe',
+        customerPhone: '9876543210',
+        customerLocation: 'Mumbai',
+        doctorName: 'Dr. Smith',
+        format: format,
+        shopSettings: settings,
+      );
+
+      Printing.layoutPdf(
+        onLayout: (PdfPageFormat pdfFormat) async => pdfBytes,
+        name: 'Preview_$format.pdf',
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error generating preview: $e'), backgroundColor: Colors.red));
+      }
+    }
+  }
+
   Future<void> _pickImage(bool isLogo) async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(type: FileType.image);
     if (result != null && result.files.single.bytes != null) {
@@ -164,15 +220,44 @@ class _BillCustomizationScreenState extends State<BillCustomizationScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Text('Bill Customization', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
-                ElevatedButton.icon(
-                  onPressed: _isSaving ? null : _saveSettings,
-                  icon: _isSaving ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)) : const Icon(Icons.save),
-                  label: const Text('Save Settings', style: TextStyle(fontWeight: FontWeight.bold)),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF22C55E),
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                  ),
+                Row(
+                  children: [
+                    PopupMenuButton<String>(
+                      onSelected: _showPreview,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: const Color(0xFFE2E8F0)),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: const [
+                            Icon(Icons.visibility, color: Color(0xFF64748B), size: 18),
+                            SizedBox(width: 8),
+                            Text('Preview Format', style: TextStyle(color: Color(0xFF1E293B), fontWeight: FontWeight.bold)),
+                          ],
+                        ),
+                      ),
+                      itemBuilder: (context) => [
+                        const PopupMenuItem(value: 'Thermal', child: Text('Thermal (80mm)')),
+                        const PopupMenuItem(value: 'A4', child: Text('A4 Size')),
+                        const PopupMenuItem(value: 'A5', child: Text('A5 Size (Landscape)')),
+                      ],
+                    ),
+                    const SizedBox(width: 16),
+                    ElevatedButton.icon(
+                      onPressed: _isSaving ? null : _saveSettings,
+                      icon: _isSaving ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)) : const Icon(Icons.save),
+                      label: const Text('Save Settings', style: TextStyle(fontWeight: FontWeight.bold)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF22C55E),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                      ),
+                    ),
+                  ],
                 )
               ],
             ),
@@ -233,7 +318,8 @@ class _BillCustomizationScreenState extends State<BillCustomizationScreen> {
                               ),
                             ),
                           ),
-                  ),
+                        ],
+                      ),
                   rightPane: Column(
                     children: [
                       Card(
@@ -323,8 +409,7 @@ class _BillCustomizationScreenState extends State<BillCustomizationScreen> {
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
         ),
       ),
     );
