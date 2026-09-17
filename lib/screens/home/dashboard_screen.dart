@@ -232,7 +232,7 @@ class DashboardScreen extends StatelessWidget {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    'Manju Medical Stores',
+                                    'SirfBill',
                                     style: TextStyle(
                                       color: Color(0xFF166534), // Dark Green
                                       fontWeight: FontWeight.w900,
@@ -241,29 +241,14 @@ class DashboardScreen extends StatelessWidget {
                                     ),
                                   ),
                                   Text(
-                                    '& Digital Clinic',
+                                    'Bill Karo, Befikar Raho',
                                     style: TextStyle(
                                       color: Color(0xFF64748B),
                                       fontWeight: FontWeight.w600,
                                       fontSize: 20,
                                     ),
                                   ),
-                                  SizedBox(height: 6),
-                                  Row(
-                                    children: [
-                                      Icon(Icons.eco, size: 16, color: Color(0xFF22C55E)),
-                                      SizedBox(width: 6),
-                                      Text(
-                                        'Your Health   Our Priority',
-                                        style: TextStyle(
-                                          color: Color(0xFF94A3B8),
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.bold,
-                                          letterSpacing: 1,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
+
                                 ],
                               ),
                             ],
@@ -463,7 +448,7 @@ class DashboardScreen extends StatelessWidget {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              '© 2026 Manju Medical Stores & Digital Clinic. All rights reserved.',
+                              '© 2026 SirfBill Bill Karo, Befikar Raho. All rights reserved.',
                               style: TextStyle(color: Color(0xFF94A3B8), fontSize: 12),
                             ),
                             Row(

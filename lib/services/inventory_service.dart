@@ -15,6 +15,9 @@ class InventoryItem {
   final String expiryDate;
   final int? lowStockThreshold;
   final String? imageUrl;
+  final double? gst;
+  final String? createdAt;
+  final String? updatedAt;
 
   InventoryItem({
     required this.id,
@@ -27,6 +30,9 @@ class InventoryItem {
     required this.expiryDate,
     this.lowStockThreshold,
     this.imageUrl,
+    this.gst,
+    this.createdAt,
+    this.updatedAt,
   });
 
   factory InventoryItem.fromJson(Map<String, dynamic> json) {
@@ -41,7 +47,26 @@ class InventoryItem {
       expiryDate: json['expiry_date'] ?? '',
       lowStockThreshold: json['low_stock_threshold'] != null ? int.tryParse(json['low_stock_threshold'].toString()) : null,
       imageUrl: json['image_url'],
+      gst: json['gst'] != null ? (json['gst'] as num).toDouble() : 0.0,
+      createdAt: json['created_at'],
+      updatedAt: json['updated_at'],
     );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'name': name,
+      'sku': sku,
+      'manufacturer': manufacturer,
+      'batch_number': batchNumber,
+      'stock_quantity': stockQuantity,
+      'unit_price': unitPrice,
+      'expiry_date': expiryDate,
+      'gst': gst,
+      'created_at': createdAt,
+      'updated_at': updatedAt,
+    };
   }
 }
 
@@ -72,13 +97,19 @@ class InventoryService {
     }
   }
 
-  static Future<List<InventoryItem>> fetchInventory({String? searchQuery}) async {
+  static Future<List<InventoryItem>> fetchInventory({String? searchQuery, String? startDate, String? endDate}) async {
     try {
       final token = await AuthService.getToken();
       final shopId = await getShopId();
       String url = '${ApiConstants.baseUrl}/api/admin/shop/inventory?shop_id=$shopId';
       if (searchQuery != null && searchQuery.isNotEmpty) {
         url += '&search=$searchQuery';
+      }
+      if (startDate != null && startDate.isNotEmpty) {
+        url += '&start_date=$startDate';
+      }
+      if (endDate != null && endDate.isNotEmpty) {
+        url += '&end_date=$endDate';
       }
 
       final response = await http.get(

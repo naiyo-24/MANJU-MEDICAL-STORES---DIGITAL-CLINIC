@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../services/inventory_service.dart';
 import '../../config/api_constants.dart';
+import '../../services/export_service.dart';
+import '../../widgets/custom_date_range_picker.dart';
+import 'package:intl/intl.dart';
 
 class InventoryScreen extends StatefulWidget {
   const InventoryScreen({super.key});
@@ -16,6 +19,10 @@ class _InventoryScreenState extends State<InventoryScreen> {
   bool _isLoading = true;
   String _errorMessage = '';
 
+  String _selectedDateFilter = 'All Time';
+  DateTime? _startDate;
+  DateTime? _endDate;
+
   @override
   void initState() {
     super.initState();
@@ -28,7 +35,11 @@ class _InventoryScreenState extends State<InventoryScreen> {
       _errorMessage = '';
     });
     try {
-      final items = await InventoryService.fetchInventory(searchQuery: query);
+      final items = await InventoryService.fetchInventory(
+        searchQuery: query ?? _searchController.text,
+        startDate: _startDate != null ? DateFormat('yyyy-MM-dd').format(_startDate!) : null,
+        endDate: _endDate != null ? DateFormat('yyyy-MM-dd').format(_endDate!) : null,
+      );
       setState(() {
         _medicines = items;
         _isLoading = false;
@@ -38,6 +49,80 @@ class _InventoryScreenState extends State<InventoryScreen> {
         _errorMessage = e.toString();
         _isLoading = false;
       });
+    }
+  }
+
+  Future<void> _selectDateRange() async {
+    final picked = await showDialog<DateTimeRange>(
+      context: context,
+      builder: (context) => CustomDateRangePicker(
+        initialRange: _startDate != null && _endDate != null
+            ? DateTimeRange(start: _startDate!, end: _endDate!)
+            : null,
+      ),
+    );
+    if (picked != null) {
+      setState(() {
+        _startDate = picked.start;
+        _endDate = picked.end;
+        _selectedDateFilter = 'Custom Range';
+      });
+      _fetchData();
+    }
+  }
+
+  void _onDateFilterChanged(String filter) {
+    setState(() {
+      _selectedDateFilter = filter;
+      final now = DateTime.now();
+      switch (filter) {
+        case 'Today':
+          _startDate = DateTime(now.year, now.month, now.day);
+          _endDate = _startDate;
+          break;
+        case 'This Week':
+          _startDate = now.subtract(Duration(days: now.weekday - 1));
+          _endDate = now;
+          break;
+        case 'This Month':
+          _startDate = DateTime(now.year, now.month, 1);
+          _endDate = now;
+          break;
+        case 'This Year':
+          _startDate = DateTime(now.year, 1, 1);
+          _endDate = now;
+          break;
+        case 'All Time':
+          _startDate = null;
+          _endDate = null;
+          break;
+      }
+    });
+    if (filter != 'Custom Range') {
+      _fetchData();
+    } else {
+      _selectDateRange();
+    }
+  }
+
+  void _exportData(String format) async {
+    final data = _medicines.map((m) => m.toMap()).toList();
+    final filename = 'inventory_export_${DateFormat('yyyyMMdd').format(DateTime.now())}';
+    try {
+      if (format == 'CSV') {
+        await ExportService.exportToCSV(data, filename);
+      } else if (format == 'Excel') {
+        await ExportService.exportToExcel(data, filename);
+      } else if (format == 'PDF') {
+        await ExportService.exportToPDF(data, filename);
+      }
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Exported as $format successfully!'), backgroundColor: Colors.green));
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to export: $e'), backgroundColor: Colors.red));
+      }
     }
   }
 
@@ -279,49 +364,93 @@ class _InventoryScreenState extends State<InventoryScreen> {
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(color: const Color(0xFFE2E8F0)),
                       ),
-                      child: const Row(
+                      child: Row(
                         children: [
-                          Icon(Icons.search, color: Color(0xFF64748B), size: 18),
-                          SizedBox(width: 8),
+                          const Icon(Icons.search, color: Color(0xFF64748B), size: 18),
+                          const SizedBox(width: 8),
                           Expanded(
                             child: TextField(
-                              decoration: InputDecoration(
+                              controller: _searchController,
+                              onSubmitted: (value) => _fetchData(value),
+                              decoration: const InputDecoration(
                                 border: InputBorder.none,
                                 hintText: 'Search inventory by name or brand...',
                                 hintStyle: TextStyle(color: Color(0xFF94A3B8), fontSize: 12),
                                 isDense: true,
                                 contentPadding: EdgeInsets.zero,
                               ),
-                              style: TextStyle(fontSize: 14),
+                              style: const TextStyle(fontSize: 14),
                             ),
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(width: 16),
-                  Wrap(
-                    crossAxisAlignment: WrapCrossAlignment.center,
-                    children: [
-                      IconButton(
-                        onPressed: () => _fetchData(),
-                        icon: const Icon(Icons.refresh, color: Color(0xFF64748B)),
-                        tooltip: 'Refresh',
+                    // Date Filter Dropdown
+                    Container(
+                      height: 44,
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: const Color(0xFFE2E8F0)),
                       ),
-                      const SizedBox(width: 8),
-                      ElevatedButton.icon(
-                        onPressed: () => context.go('/counter/inventory/upload'),
-                        icon: const Icon(Icons.add, size: 16),
-                        label: const Text('Add New Medicine', style: TextStyle(fontWeight: FontWeight.bold)),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF22C55E),
-                          foregroundColor: Colors.white,
-                          elevation: 0,
-                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<String>(
+                          value: _selectedDateFilter,
+                          icon: const Icon(Icons.calendar_today, size: 16, color: Color(0xFF64748B)),
+                          style: const TextStyle(fontSize: 14, color: Color(0xFF1E293B)),
+                          onChanged: (value) {
+                            if (value != null) _onDateFilterChanged(value);
+                          },
+                          items: ['All Time', 'Today', 'This Week', 'This Month', 'This Year', 'Custom Range']
+                              .map((filter) => DropdownMenuItem(value: filter, child: Padding(padding: const EdgeInsets.only(right: 8.0), child: Text(filter))))
+                              .toList(),
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                    // Export Buttons
+                    PopupMenuButton<String>(
+                      onSelected: _exportData,
+                      child: Container(
+                        height: 44,
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: const Color(0xFFE2E8F0)),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: const [
+                            Icon(Icons.download, color: Color(0xFF64748B), size: 18),
+                            SizedBox(width: 8),
+                            Text('Export', style: TextStyle(color: Color(0xFF1E293B), fontWeight: FontWeight.bold)),
+                          ],
+                        ),
+                      ),
+                      itemBuilder: (context) => [
+                        const PopupMenuItem(value: 'CSV', child: Text('Export as CSV')),
+                        const PopupMenuItem(value: 'Excel', child: Text('Export as Excel')),
+                        const PopupMenuItem(value: 'PDF', child: Text('Export as PDF')),
+                      ],
+                    ),
+                    IconButton(
+                      onPressed: () => _fetchData(),
+                      icon: const Icon(Icons.refresh, color: Color(0xFF64748B)),
+                      tooltip: 'Refresh',
+                    ),
+                    ElevatedButton.icon(
+                      onPressed: () => context.go('/counter/inventory/upload'),
+                      icon: const Icon(Icons.add, size: 16),
+                      label: const Text('Add New Medicine', style: TextStyle(fontWeight: FontWeight.bold)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF22C55E),
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
+                    ),
                   ],
                 ),
               ],
@@ -363,7 +492,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
                                 child: const Row(
                                   children: [
                                     Expanded(flex: 3, child: Text('Medicine Name', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 12))),
-                                    Expanded(flex: 2, child: Text('Category', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 12))),
+                                    Expanded(flex: 2, child: Text('Added/Updated', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 12))),
                                     Expanded(flex: 2, child: Text('Stock', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 12))),
                                     Expanded(flex: 2, child: Text('Price (₹)', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 12))),
                                     Expanded(flex: 2, child: Text('Expiry Date', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 12))),
@@ -432,7 +561,18 @@ class _InventoryScreenState extends State<InventoryScreen> {
                                                     ],
                                                   ),
                                                 ),
-                                                const Expanded(flex: 2, child: Text('Medicine', style: TextStyle(color: Color(0xFF64748B), fontSize: 12))),
+                                                Expanded(
+                                                  flex: 2, 
+                                                  child: Column(
+                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                    mainAxisAlignment: MainAxisAlignment.center,
+                                                    children: [
+                                                      Text(medicine.createdAt != null ? DateFormat('MMM dd, yyyy').format(DateTime.parse(medicine.createdAt!).toLocal()) : 'N/A', style: const TextStyle(color: Color(0xFF1E293B), fontSize: 12)),
+                                                      if (medicine.updatedAt != null)
+                                                        Text('Updated: ${DateFormat('MMM dd, yyyy').format(DateTime.parse(medicine.updatedAt!).toLocal())}', style: const TextStyle(color: Color(0xFF64748B), fontSize: 10)),
+                                                    ],
+                                                  ),
+                                                ),
                                                 Expanded(
                                                   flex: 2,
                                                   child: Text(

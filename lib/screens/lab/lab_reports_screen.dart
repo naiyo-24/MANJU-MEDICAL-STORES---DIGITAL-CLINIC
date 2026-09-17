@@ -495,7 +495,7 @@ class _LabReportsScreenState extends State<LabReportsScreen> {
                                     Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: const [
-                                        Text('Manju Medical Stores & Digital Clinic', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFFEA580C))),
+                                        Text('SirfBill Bill Karo, Befikar Raho', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFFEA580C))),
                                         Text('123, Main Road, Kolkata - 700001', style: TextStyle(fontSize: 11, color: Color(0xFF64748B))),
                                         Text('Phone: +91 98765 43210 | Email: lab@manjumedical.com', style: TextStyle(fontSize: 11, color: Color(0xFF64748B))),
                                       ],

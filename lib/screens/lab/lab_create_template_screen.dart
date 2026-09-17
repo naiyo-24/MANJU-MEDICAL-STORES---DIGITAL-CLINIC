@@ -463,7 +463,7 @@ class _LabCreateTemplateScreenState extends State<LabCreateTemplateScreen> {
                                           Column(
                                             crossAxisAlignment: CrossAxisAlignment.start,
                                             children: [
-                                              Text(_clinicNameCtrl.text.isNotEmpty ? _clinicNameCtrl.text : 'Manju Medical Stores & Digital Clinic', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFFEA580C))),
+                                              Text(_clinicNameCtrl.text.isNotEmpty ? _clinicNameCtrl.text : 'SirfBill Bill Karo, Befikar Raho', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFFEA580C))),
                                               Text(_clinicAddressCtrl.text.isNotEmpty ? _clinicAddressCtrl.text : '123, Main Road, Kolkata - 700001', style: const TextStyle(fontSize: 10, color: Color(0xFF64748B))),
                                               Text('Phone: ${_clinicPhoneCtrl.text}  |  Email: ${_clinicEmailCtrl.text}', style: const TextStyle(fontSize: 10, color: Color(0xFF64748B))),
                                             ],

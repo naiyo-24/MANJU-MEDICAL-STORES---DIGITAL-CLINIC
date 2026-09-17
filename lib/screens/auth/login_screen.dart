@@ -46,7 +46,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 16),
                 const Text(
-                  'MANJU MEDICAL STORES\n& DIGITAL CLINIC',
+                  'SirfBill\nBill Karo, Befikar Raho',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 24,

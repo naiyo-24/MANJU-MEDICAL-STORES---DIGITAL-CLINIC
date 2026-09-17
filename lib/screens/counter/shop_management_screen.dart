@@ -620,7 +620,7 @@ class _ShopManagementScreenState extends ConsumerState<ShopManagementScreen> {
                                         ],
                                       ],
                                     ),
-                                     Text(shop['subtitle'] ?? 'Manju Medical Stores', style: const TextStyle(color: Color(0xFF64748B), fontSize: 11)),
+                                     Text(shop['subtitle'] ?? 'SirfBill', style: const TextStyle(color: Color(0xFF64748B), fontSize: 11)),
                                    ],
                                 ),
                               ),

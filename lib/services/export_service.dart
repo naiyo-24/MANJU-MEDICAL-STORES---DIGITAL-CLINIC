@@ -71,7 +71,7 @@ class ExportService {
                   children: [
                     pw.Image(logoImage, width: 40, height: 40),
                     pw.SizedBox(width: 12),
-                    pw.Text('Manju Medical Stores & Digital Clinic', style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold, color: PdfColors.green700)),
+                    pw.Text('SirfBill Bill Karo, Befikar Raho', style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold, color: PdfColors.green700)),
                   ],
                 ),
                 pw.SizedBox(height: 8),

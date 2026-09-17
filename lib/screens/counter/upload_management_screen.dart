@@ -19,6 +19,7 @@ class _UploadManagementScreenState extends State<UploadManagementScreen> {
   final _stockCtrl = TextEditingController();
   final _priceCtrl = TextEditingController();
   final _expiryCtrl = TextEditingController();
+  final _gstCtrl = TextEditingController(text: '0');
   PlatformFile? _selectedImage;
 
   Future<void> _pickImage() async {
@@ -385,9 +386,9 @@ class _UploadManagementScreenState extends State<UploadManagementScreen> {
                             // const SizedBox(width: 24),
                             Expanded(child: _buildTextField('Selling Price (₹)', '0.00', isRequired: true, controller: _priceCtrl)),
                             const SizedBox(width: 24),
-                            // Expanded(child: _buildTextField('MRP (₹)', '0.00')),
-                            // const SizedBox(width: 24),
                             Expanded(child: _buildTextField('Current Stock', '0', isRequired: true, controller: _stockCtrl)),
+                            const SizedBox(width: 24),
+                            Expanded(child: _buildTextField('GST (%)', '0', controller: _gstCtrl)),
                             const Spacer(),
                           ],
                         ),
@@ -536,6 +537,7 @@ class _UploadManagementScreenState extends State<UploadManagementScreen> {
                         'stock_quantity': int.tryParse(_stockCtrl.text) ?? 0,
                         'unit_price': double.tryParse(_priceCtrl.text) ?? 0.0,
                         'expiry_date': _expiryCtrl.text,
+                        'gst': double.tryParse(_gstCtrl.text) ?? 0.0,
                         if (uploadedImageUrl != null) 'image_url': uploadedImageUrl,
                       });
                       if (context.mounted) {

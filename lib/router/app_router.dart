@@ -13,6 +13,7 @@ import '../screens/counter/customers_screen.dart';
 import '../screens/counter/history_screen.dart';
 import '../screens/counter/accounts_screen.dart';
 import '../screens/counter/upload_management_screen.dart';
+import '../screens/counter/bill_customization_screen.dart';
 
 import '../screens/lab/lab_dashboard.dart';
 import '../screens/lab/lab_dashboard_home.dart';
@@ -120,6 +121,14 @@ final goRouter = GoRouter(
             GoRoute(
               path: '/counter/history',
               builder: (context, state) => const HistoryScreen(),
+            ),
+          ],
+        ),
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: '/counter/settings',
+              builder: (context, state) => const BillCustomizationScreen(),
             ),
           ],
         ),

@@ -26,7 +26,7 @@ class CrmPlaceholderScreen extends StatelessWidget {
                 children: [
                   Text(title, style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
                   const SizedBox(height: 4),
-                  const Text('CRM Module • Manju Medical Stores & Digital Clinic', style: TextStyle(fontSize: 14, color: Color(0xFF64748B))),
+                  const Text('CRM Module • SirfBill Bill Karo, Befikar Raho', style: TextStyle(fontSize: 14, color: Color(0xFF64748B))),
                 ],
               ),
             ],

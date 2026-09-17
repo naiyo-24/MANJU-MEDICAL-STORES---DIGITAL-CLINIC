@@ -216,7 +216,7 @@ class _LabTestsScreenState extends ConsumerState<LabTestsScreen> {
           return pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
-              pw.Text('Manju Medical Stores - Lab Catalog', style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold)),
+              pw.Text('SirfBill - Lab Catalog', style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold)),
               pw.SizedBox(height: 20),
               pw.TableHelper.fromTextArray(
                 headers: ['Code', 'Name', 'Category', 'Price', 'Sample'],

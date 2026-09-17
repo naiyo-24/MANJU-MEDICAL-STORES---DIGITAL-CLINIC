@@ -128,7 +128,7 @@ class ReportLayoutConfig {
   String footerColorHex;
 
   ReportLayoutConfig({
-    this.clinicName = 'Manju Medical Stores & Digital Clinic',
+    this.clinicName = 'SirfBill Bill Karo, Befikar Raho',
     this.clinicAddress = '123, Main Road, Kolkata - 700001',
     this.clinicPhone = '+91 98765 43210',
     this.clinicEmail = 'lab@manjumedical.com',
@@ -154,7 +154,7 @@ class ReportLayoutConfig {
   };
 
   factory ReportLayoutConfig.fromJson(Map<String, dynamic> json) => ReportLayoutConfig(
-    clinicName: json['clinicName'] ?? 'Manju Medical Stores & Digital Clinic',
+    clinicName: json['clinicName'] ?? 'SirfBill Bill Karo, Befikar Raho',
     clinicAddress: json['clinicAddress'] ?? '123, Main Road, Kolkata - 700001',
     clinicPhone: json['clinicPhone'] ?? '+91 98765 43210',
     clinicEmail: json['clinicEmail'] ?? 'lab@manjumedical.com',

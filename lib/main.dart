@@ -3,16 +3,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'router/app_router.dart';
 
 void main() {
-  runApp(const ProviderScope(child: ManjuMedicalApp()));
+  runApp(const ProviderScope(child: SirfBillApp()));
 }
 
-class ManjuMedicalApp extends StatelessWidget {
-  const ManjuMedicalApp({super.key});
+class SirfBillApp extends StatelessWidget {
+  const SirfBillApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
-      title: 'Manju Medical Stores & Digital Clinic',
+      title: 'SirfBill Bill Karo, Befikar Raho',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),

@@ -70,7 +70,7 @@ class PdfGeneratorService {
                     style: pw.TextStyle(fontSize: 28, fontWeight: pw.FontWeight.bold, color: const PdfColor.fromInt(0xFF003B46)), // Dark teal
                   ),
                   pw.Text(
-                    'YOUR HEALTH  OUR COMMITMENT',
+                    '',
                     style: pw.TextStyle(fontSize: 10, letterSpacing: 2, color: PdfColors.grey700),
                   ),
                 ],

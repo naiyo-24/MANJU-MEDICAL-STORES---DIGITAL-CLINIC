@@ -263,7 +263,7 @@ class _CounterDashboardState extends State<CounterDashboard> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Manju Medical Stores',
+                          'SirfBill',
                           style: TextStyle(
                             color: Color(0xFF166534),
                             fontWeight: FontWeight.w900,
@@ -272,7 +272,7 @@ class _CounterDashboardState extends State<CounterDashboard> {
                           ),
                         ),
                         Text(
-                          '& Digital Clinic',
+                          'Bill Karo, Befikar Raho',
                           style: TextStyle(
                             color: Color(0xFF64748B),
                             fontWeight: FontWeight.w600,
@@ -416,6 +416,7 @@ class _CounterDashboardState extends State<CounterDashboard> {
                               _buildSidebarItem(index: 3, icon: Icons.people, label: 'Customers'),
                               _buildSidebarItem(index: 4, icon: Icons.account_balance_wallet, label: 'Accounts'),
                               _buildSidebarItem(index: 5, icon: Icons.history, label: 'History'),
+                              _buildSidebarItem(index: 6, icon: Icons.settings, label: 'Settings'),
                               
                               const SizedBox(height: 16),
                               const Divider(color: Color(0xFFE2E8F0), thickness: 1, indent: 16, endIndent: 16),

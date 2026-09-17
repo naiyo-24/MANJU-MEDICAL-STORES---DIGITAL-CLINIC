@@ -164,7 +164,7 @@ class _CrmDashboardState extends State<CrmDashboard> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Manju Medical Stores',
+                    'SirfBill',
                     style: TextStyle(
                       color: Color(0xFF166534),
                       fontWeight: FontWeight.w900,
@@ -173,7 +173,7 @@ class _CrmDashboardState extends State<CrmDashboard> {
                     ),
                   ),
                   Text(
-                    '& Digital Clinic',
+                    'Bill Karo, Befikar Raho',
                     style: TextStyle(
                       color: Color(0xFF64748B),
                       fontWeight: FontWeight.w600,

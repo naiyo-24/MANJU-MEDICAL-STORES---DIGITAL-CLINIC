@@ -631,7 +631,7 @@ class _LabSendReportsScreenState extends State<LabSendReportsScreen> {
                                   padding: const EdgeInsets.all(12),
                                   decoration: BoxDecoration(color: const Color(0xFFF8FAFC), border: Border.all(color: const Color(0xFFE2E8F0)), borderRadius: BorderRadius.circular(8)),
                                   child: TextFormField(
-                                    initialValue: 'Dear ${_selectedReport?.patientName ?? 'Suman Roy'},\nPlease find attached your lab report.\n\nRegards,\nManju Diagnostic Lab',
+                                    initialValue: 'Dear ${_selectedReport?.patientName ?? 'Suman Roy'},\nPlease find attached your lab report.\n\nRegards,\nSirfBill Diagnostic Lab',
                                     maxLines: 4,
                                     decoration: const InputDecoration.collapsed(hintText: 'Enter your message...'),
                                     style: const TextStyle(fontSize: 13, color: Color(0xFF1E293B)),

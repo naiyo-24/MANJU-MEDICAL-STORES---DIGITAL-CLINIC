@@ -12,6 +12,7 @@ import '../../services/doctor_service.dart';
 import '../../services/draft_service.dart';
 import '../../services/billing_history_service.dart';
 import '../../utils/pdf_generator.dart';
+import '../../services/shop_settings_service.dart';
 
 class BillingScreen extends StatefulWidget {
   const BillingScreen({super.key});
@@ -41,6 +42,7 @@ class _BillingScreenState extends State<BillingScreen> {
 
   final TextEditingController _customerNameController = TextEditingController();
   final TextEditingController _customerPhoneController = TextEditingController();
+  final TextEditingController _customerLocationController = TextEditingController();
 
   String _paymentMethod = 'CASH'; // CASH, UPI, CARD
 
@@ -89,6 +91,7 @@ class _BillingScreenState extends State<BillingScreen> {
     _discountController.dispose();
     _customerNameController.dispose();
     _customerPhoneController.dispose();
+    _customerLocationController.dispose();
 
     _newDoctorController.dispose();
     _timer?.cancel();
@@ -141,6 +144,7 @@ class _BillingScreenState extends State<BillingScreen> {
       _currentBill.clear();
       _customerNameController.clear();
       _customerPhoneController.clear();
+      _customerLocationController.clear();
 
       _newDoctorController.clear();
       _discountValue = 0.0;
@@ -226,6 +230,11 @@ class _BillingScreenState extends State<BillingScreen> {
             'pack': item.sku,
             'mrp': item.unitPrice,
             'stock': item.stockQuantity,
+            'batch': item.batchNumber,
+            'hsn': '',
+            'expiry': item.expiryDate,
+            'cgst': (item.gst ?? 0.0) / 2,
+            'sgst': (item.gst ?? 0.0) / 2,
           }).toList();
           _filteredMedicines = _medicines;
         });
@@ -346,8 +355,19 @@ class _BillingScreenState extends State<BillingScreen> {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please add items to the bill first.')));
       return;
     }
+
+    Map<String, dynamic>? shopSettings;
+    try {
+      shopSettings = await ShopSettingsService.getSettings();
+    } catch (e) {
+      debugPrint('Error fetching shop settings: $e');
+    }
+
+    if (!mounted) return;
     
-    final String invoiceNo = 'INV${DateTime.now().millisecondsSinceEpoch.toString().substring(5)}';
+    String baseInvoice = shopSettings?['shop_name']?.toString().replaceAll(' ', '').toUpperCase() ?? 'INV';
+    if (baseInvoice.length > 5) baseInvoice = baseInvoice.substring(0, 5);
+    final String invoiceNo = '$baseInvoice${DateTime.now().millisecondsSinceEpoch.toString().substring(5)}';
 
     showDialog(
       context: context,
@@ -388,6 +408,8 @@ class _BillingScreenState extends State<BillingScreen> {
                       invoiceNumber: invoiceNo,
                       customerName: _customerNameController.text.isNotEmpty ? _customerNameController.text : 'Walk-in Customer',
                       customerPhone: _customerPhoneController.text,
+                      customerLocation: _customerLocationController.text,
+                      shopSettings: shopSettings,
 
                       doctorName: _selectedDoctorId == 'new' ? _newDoctorController.text : _selectedDoctorName,
                       format: _selectedFormat,
@@ -484,7 +506,16 @@ class _BillingScreenState extends State<BillingScreen> {
       await _fetchMedicines();
 
       // 3. Generate PDF and Save/Print
-      final String invoiceNo = 'INV${DateTime.now().millisecondsSinceEpoch.toString().substring(5)}';
+      Map<String, dynamic>? shopSettings;
+      try {
+        shopSettings = await ShopSettingsService.getSettings();
+      } catch (e) {
+        debugPrint('Error fetching shop settings: $e');
+      }
+
+      String baseInvoice = shopSettings?['shop_name']?.toString().replaceAll(' ', '').toUpperCase() ?? 'INV';
+      if (baseInvoice.length > 5) baseInvoice = baseInvoice.substring(0, 5);
+      final String invoiceNo = '$baseInvoice${DateTime.now().millisecondsSinceEpoch.toString().substring(5)}';
       
       final pdfBytes = await PdfGenerator.generateBill(
         items: _currentBill,
@@ -495,6 +526,8 @@ class _BillingScreenState extends State<BillingScreen> {
         invoiceNumber: invoiceNo,
         customerName: _customerNameController.text.isNotEmpty ? _customerNameController.text : 'Walk-in Customer',
         customerPhone: _customerPhoneController.text,
+        customerLocation: _customerLocationController.text,
+        shopSettings: shopSettings,
 
         doctorName: _selectedDoctorId == 'new' ? _newDoctorController.text : _selectedDoctorName,
         format: _selectedFormat,
@@ -662,6 +695,27 @@ class _BillingScreenState extends State<BillingScreen> {
   }
 
   void _increaseQty(int index) {
+    final stock = _currentBill[index]['stock'];
+    final currentQty = _currentBill[index]['qty'];
+    final itemName = _currentBill[index]['name'];
+
+    if (stock != null && currentQty >= stock) {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Stock Limit Reached', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red)),
+          content: Text('Cannot add more $itemName. Only $stock available in stock.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+
     setState(() {
       _currentBill[index]['qty'] += 1;
       _currentBill[index]['total'] = _currentBill[index]['qty'] * _currentBill[index]['price'];
@@ -693,12 +747,52 @@ class _BillingScreenState extends State<BillingScreen> {
   }
 
   void _addToCart(Map<String, dynamic> item) {
+    final stock = item['stock'] ?? 0;
+    
     setState(() {
       final existingIndex = _currentBill.indexWhere((element) => element['name'] == item['name']);
+      
       if (existingIndex >= 0) {
+        final currentQty = _currentBill[existingIndex]['qty'];
+        if (currentQty >= stock) {
+          // Show error if trying to add more than available stock
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('Stock Limit Reached', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red)),
+              content: Text('Cannot add more ${item['name']}. Only $stock available in stock.'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('OK'),
+                ),
+              ],
+            ),
+          );
+          return;
+        }
+        
         _currentBill[existingIndex]['qty'] += 1;
         _currentBill[existingIndex]['total'] = _currentBill[existingIndex]['qty'] * _currentBill[existingIndex]['price'];
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Added another ${item['name']} to cart'), duration: const Duration(seconds: 1)));
       } else {
+        if (stock <= 0) {
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('Out of Stock', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red)),
+              content: Text('${item['name']} is currently out of stock and cannot be added to the bill.'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('OK'),
+                ),
+              ],
+            ),
+          );
+          return;
+        }
+        
         _currentBill.add({
           'inventory_item_id': item['inventory_item_id'],
           'name': item['name'],
@@ -706,10 +800,11 @@ class _BillingScreenState extends State<BillingScreen> {
           'qty': 1,
           'price': item['mrp'],
           'total': item['mrp'],
+          'stock': stock,
         });
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Added ${item['name']} to cart'), duration: const Duration(seconds: 1)));
       }
     });
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Added ${item['name']} to cart'), duration: const Duration(seconds: 1)));
   }
 
   void _showAddCustomItemDialog() {
@@ -1377,6 +1472,8 @@ class _BillingScreenState extends State<BillingScreen> {
                                         ],
                                       ),
                                       const SizedBox(height: 8),
+                                      _buildCompactField('Location / Address', _customerLocationController),
+                                      const SizedBox(height: 8),
                                       Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
@@ -1791,6 +1888,7 @@ class _BillingScreenState extends State<BillingScreen> {
             onSelected: (Customer selection) {
               _customerNameController.text = selection.name;
               _customerPhoneController.text = selection.phone;
+              _customerLocationController.text = selection.location;
               setState(() {
                 _savedCustomerId = selection.id;
               });

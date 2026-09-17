@@ -214,7 +214,7 @@ class _RoleLoginScreenState extends State<RoleLoginScreen> {
                     ),
                     if (isWeb)
                       const Text(
-                        'Manju Medical Stores & Digital Clinic',
+                        'SirfBill Bill Karo, Befikar Raho',
                         style: TextStyle(
                           color: Colors.white70,
                           fontSize: 12,
@@ -238,7 +238,7 @@ class _RoleLoginScreenState extends State<RoleLoginScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       const Text(
-                        '© 2026 Manju Medical Stores & Digital Clinic. All rights reserved.',
+                        '© 2026 SirfBill Bill Karo, Befikar Raho. All rights reserved.',
                         style: TextStyle(color: Color(0xFF94A3B8), fontSize: 12),
                       ),
                       Row(
@@ -294,7 +294,7 @@ class _RoleLoginScreenState extends State<RoleLoginScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Manju Medical Stores',
+                            'SirfBill',
                             style: TextStyle(
                               color: widget.themeColor,
                               fontWeight: FontWeight.w900,
@@ -303,25 +303,10 @@ class _RoleLoginScreenState extends State<RoleLoginScreen> {
                             ),
                           ),
                           const Text(
-                            '& Digital Clinic',
+                            'Bill Karo, Befikar Raho',
                             style: TextStyle(color: Color(0xFF64748B), fontWeight: FontWeight.w600, fontSize: 20),
                           ),
-                          const SizedBox(height: 6),
-                          Row(
-                            children: [
-                              const Icon(Icons.eco, size: 16, color: Color(0xFF22C55E)),
-                              const SizedBox(width: 6),
-                              const Text(
-                                'Your Health   Our Priority',
-                                style: TextStyle(
-                                  color: Color(0xFF94A3B8),
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
-                                  letterSpacing: 1,
-                                ),
-                              ),
-                            ],
-                          ),
+
                         ],
                       ),
                     ),

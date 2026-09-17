@@ -587,17 +587,17 @@ class _CrmPrescriptionsScreenState extends ConsumerState<CrmPrescriptionsScreen>
                             height: 60,
                             decoration: const BoxDecoration(shape: BoxShape.circle, color: Color(0xFFF8FAFC)),
                             child: const Center(
-                              child: Text('Manju', style: TextStyle(fontFamily: 'serif', fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF0F172A))),
+                              child: Text('SirfBill', style: TextStyle(fontFamily: 'serif', fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF0F172A))),
                             ),
                           ),
                           const SizedBox(width: 16),
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: const [
-                              Text('Manju Medical Stores', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Color(0xFF1E3A8A))),
-                              Text('& Digital Clinic', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Color(0xFF1E3A8A))),
+                              Text('SirfBill', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Color(0xFF1E3A8A))),
+                              Text('Bill Karo, Befikar Raho', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Color(0xFF1E3A8A))),
                               SizedBox(height: 4),
-                              Text('Your Health • Our Priority', style: TextStyle(fontSize: 12, fontStyle: FontStyle.italic, color: Color(0xFF64748B))),
+                              Text('', style: TextStyle(fontSize: 12, fontStyle: FontStyle.italic, color: Color(0xFF64748B))),
                             ],
                           ),
                         ],

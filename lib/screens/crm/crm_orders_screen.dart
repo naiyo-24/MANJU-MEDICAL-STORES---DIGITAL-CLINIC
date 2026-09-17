@@ -451,7 +451,7 @@ class _CrmOrdersScreenState extends ConsumerState<CrmOrdersScreen> {
                   ),
                   _buildDetailRow('Delivery Type', ': Home Delivery'),
                   _buildDetailRow('Delivered On', ': 09 Sep 2026, 06:30 PM'),
-                  _buildDetailRow('Notes', ': Thank you for choosing\n  Manju Medical Stores.', isMultiLine: true),
+                  _buildDetailRow('Notes', ': Thank you for choosing\n  SirfBill.', isMultiLine: true),
                   const SizedBox(height: 32),
                   
                   // Items Table

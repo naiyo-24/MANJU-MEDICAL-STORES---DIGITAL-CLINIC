@@ -478,17 +478,17 @@ class _CrmSendToLabScreenState extends State<CrmSendToLabScreen> {
                                   height: 50,
                                   decoration: const BoxDecoration(shape: BoxShape.circle, color: Color(0xFFF8FAFC)),
                                   child: const Center(
-                                    child: Text('Manju', style: TextStyle(fontFamily: 'serif', fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF0F172A))),
+                                    child: Text('SirfBill', style: TextStyle(fontFamily: 'serif', fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF0F172A))),
                                   ),
                                 ),
                                 const SizedBox(width: 12),
                                 Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: const [
-                                    Text('Manju Medical Stores', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: Color(0xFF1E3A8A))),
-                                    Text('& Digital Clinic', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: Color(0xFF1E3A8A))),
+                                    Text('SirfBill', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: Color(0xFF1E3A8A))),
+                                    Text('Bill Karo, Befikar Raho', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: Color(0xFF1E3A8A))),
                                     SizedBox(height: 4),
-                                    Text('Your Health • Our Priority', style: TextStyle(fontSize: 10, fontStyle: FontStyle.italic, color: Color(0xFF16A34A))),
+                                    Text('', style: TextStyle(fontSize: 10, fontStyle: FontStyle.italic, color: Color(0xFF16A34A))),
                                   ],
                                 ),
                               ],

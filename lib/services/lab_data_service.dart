@@ -446,7 +446,7 @@ class LabDataService {
     return [
       LabActivity(
         id: 'a1', dateTime: DateTime.parse('2026-09-09T16:45:00'), type: 'Report Sent', description: 'Report sent via WhatsApp to Suman Roy', referenceId: 'RPT202609001', performedBy: 'Amit Kumar',
-        patientName: 'Suman Roy', patientPhone: '9830011223', message: 'Dear Suman Roy,\nYour lab report is ready. Please find the attached report.\n\nRegards,\nManju Diagnostic Lab',
+        patientName: 'Suman Roy', patientPhone: '9830011223', message: 'Dear Suman Roy,\nYour lab report is ready. Please find the attached report.\n\nRegards,\nSirfBill Diagnostic Lab',
       ),
       LabActivity(id: 'a2', dateTime: DateTime.parse('2026-09-09T16:20:00'), type: 'Report Generated', description: 'Lab report generated for Rahul Das', referenceId: 'RPT202609002', performedBy: 'Dr. Sen', patientName: 'Rahul Das', patientPhone: '9876543210'),
       LabActivity(id: 'a3', dateTime: DateTime.parse('2026-09-09T15:10:00'), type: 'Sample Processed', description: 'Biochemistry tests processed', referenceId: 'SMP202609003', performedBy: 'Neha Patel'),

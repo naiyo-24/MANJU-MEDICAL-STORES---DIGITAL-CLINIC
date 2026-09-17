@@ -37,7 +37,7 @@ class _SplashScreenState extends State<SplashScreen> {
               ),
               const SizedBox(height: 24),
               const Text(
-                'MANJU MEDICAL STORES\n& DIGITAL CLINIC',
+                'SirfBill\nBill Karo, Befikar Raho',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 24,
