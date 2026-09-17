@@ -12,6 +12,8 @@ class InventoryItem {
   final String batchNumber;
   final int stockQuantity;
   final double unitPrice;
+  final double buyingPrice;
+  final String? hsnCode;
   final String expiryDate;
   final int? lowStockThreshold;
   final String? imageUrl;
@@ -27,6 +29,8 @@ class InventoryItem {
     required this.batchNumber,
     required this.stockQuantity,
     required this.unitPrice,
+    required this.buyingPrice,
+    this.hsnCode,
     required this.expiryDate,
     this.lowStockThreshold,
     this.imageUrl,
@@ -44,6 +48,8 @@ class InventoryItem {
       batchNumber: json['batch_number'] ?? '',
       stockQuantity: json['stock_quantity'] ?? 0,
       unitPrice: (json['unit_price'] ?? 0).toDouble(),
+      buyingPrice: (json['buying_price'] ?? 0).toDouble(),
+      hsnCode: json['hsn_code'],
       expiryDate: json['expiry_date'] ?? '',
       lowStockThreshold: json['low_stock_threshold'] != null ? int.tryParse(json['low_stock_threshold'].toString()) : null,
       imageUrl: json['image_url'],
@@ -62,6 +68,8 @@ class InventoryItem {
       'batch_number': batchNumber,
       'stock_quantity': stockQuantity,
       'unit_price': unitPrice,
+      'buying_price': buyingPrice,
+      'hsn_code': hsnCode,
       'expiry_date': expiryDate,
       'gst': gst,
       'created_at': createdAt,

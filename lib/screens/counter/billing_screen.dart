@@ -237,7 +237,7 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
             'mrp': item.unitPrice,
             'stock': item.stockQuantity,
             'batch': item.batchNumber,
-            'hsn': '',
+            'hsn': item.hsnCode ?? '-',
             'expiry': item.expiryDate,
             'cgst': (item.gst ?? 0.0) / 2,
             'sgst': (item.gst ?? 0.0) / 2,
@@ -797,7 +797,13 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
           'brand': item['brand'],
           'qty': 1,
           'price': item['mrp'],
+          'mrp': item['mrp'],
           'total': item['mrp'],
+          'batch': item['batch'] ?? '-',
+          'expiry': item['expiry'] ?? '-',
+          'hsn': item['hsn'] ?? '-',
+          'cgst': item['cgst'] ?? 0,
+          'sgst': item['sgst'] ?? 0,
           'stock': stock,
           'id': item['inventory_item_id'],
         });
@@ -814,6 +820,7 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
     final priceController = TextEditingController();
     final discountController = TextEditingController();
     final gstController = TextEditingController();
+    final hsnController = TextEditingController();
 
     showDialog(
       context: context,
@@ -889,7 +896,36 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                   ],
                 ),
                 const SizedBox(height: 16),
-
+                
+                // HSN Code
+                Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('HSN Code', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                          const SizedBox(height: 8),
+                          TextField(
+                            controller: hsnController,
+                            decoration: InputDecoration(
+                              hintText: 'e.g. 3004',
+                              hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 12),
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                              enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+                              isDense: true,
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(child: Container()), // Empty space for alignment
+                  ],
+                ),
+                const SizedBox(height: 16),
+                
                 // Qty & Price
                 Row(
                   children: [
@@ -1009,7 +1045,13 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                       'brand': brand,
                       'qty': qty,
                       'price': price,
+                      'mrp': price,
                       'total': qty * price,
+                      'batch': '-',
+                      'expiry': '-',
+                      'hsn': hsnController.text.isNotEmpty ? hsnController.text : '-',
+                      'cgst': 0,
+                      'sgst': 0,
                     });
                   });
                   Navigator.pop(context, );

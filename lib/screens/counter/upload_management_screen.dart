@@ -17,7 +17,9 @@ class _UploadManagementScreenState extends State<UploadManagementScreen> {
   final _manufacturerCtrl = TextEditingController();
   final _batchCtrl = TextEditingController();
   final _stockCtrl = TextEditingController();
-  final _priceCtrl = TextEditingController();
+  final _priceCtrl = TextEditingController(); // MRP/Selling Price
+  final _buyingPriceCtrl = TextEditingController(); // Buying Price
+  final _hsnCtrl = TextEditingController();
   final _expiryCtrl = TextEditingController();
   final _gstCtrl = TextEditingController(text: '0');
   PlatformFile? _selectedImage;
@@ -382,14 +384,13 @@ class _UploadManagementScreenState extends State<UploadManagementScreen> {
                         _buildSectionHeader(Icons.currency_rupee, 'Pricing & Stock Details', 'Set pricing and stock information'),
                         Row(
                           children: [
-                            // Expanded(child: _buildTextField('Purchase Price (₹)', '0.00', isRequired: true)),
-                            // const SizedBox(width: 24),
-                            Expanded(child: _buildTextField('Selling Price (₹)', '0.00', isRequired: true, controller: _priceCtrl)),
+                            Expanded(child: _buildTextField('Buying Price (₹)', '0.00', isRequired: true, controller: _buyingPriceCtrl)),
                             const SizedBox(width: 24),
-                            Expanded(child: _buildTextField('Current Stock', '0', isRequired: true, controller: _stockCtrl)),
+                            Expanded(child: _buildTextField('Selling Price/MRP (₹)', '0.00', isRequired: true, controller: _priceCtrl)),
+                            const SizedBox(width: 24),
+                            Expanded(child: _buildTextField('Initial Stock', '0', isRequired: true, controller: _stockCtrl)),
                             const SizedBox(width: 24),
                             Expanded(child: _buildTextField('GST (%)', '0', controller: _gstCtrl)),
-                            const Spacer(),
                           ],
                         ),
                         const SizedBox(height: 24),
@@ -422,8 +423,8 @@ class _UploadManagementScreenState extends State<UploadManagementScreen> {
                               ),
                             ),
                             const Spacer(),
-                            // const SizedBox(width: 24),
-                            // Expanded(child: _buildTextField('HSN Code', 'e.g. 3004')),
+                            const SizedBox(width: 24),
+                            Expanded(child: _buildTextField('HSN Code', 'e.g. 3004', controller: _hsnCtrl)),
                           ],
                         ),
                       ],
@@ -534,9 +535,11 @@ class _UploadManagementScreenState extends State<UploadManagementScreen> {
                         'sku': _skuCtrl.text.isNotEmpty ? _skuCtrl.text : DateTime.now().millisecondsSinceEpoch.toString(),
                         'manufacturer': _manufacturerCtrl.text,
                         'batch_number': _batchCtrl.text.isNotEmpty ? _batchCtrl.text : 'BATCH-01',
+                        'hsn_code': _hsnCtrl.text.isNotEmpty ? _hsnCtrl.text : '3004',
                         'stock_quantity': int.tryParse(_stockCtrl.text) ?? 0,
+                        'buying_price': double.tryParse(_buyingPriceCtrl.text) ?? 0.0,
                         'unit_price': double.tryParse(_priceCtrl.text) ?? 0.0,
-                        'expiry_date': _expiryCtrl.text,
+                        'expiry_date': _expiryCtrl.text.isNotEmpty ? _expiryCtrl.text : '2026-12-31',
                         'gst': double.tryParse(_gstCtrl.text) ?? 0.0,
                         if (uploadedImageUrl != null) 'image_url': uploadedImageUrl,
                       });

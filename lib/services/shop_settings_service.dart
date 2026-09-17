@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import '../config/api_constants.dart';
 
 class ShopSettingsService {
-  static const String endpoint = '${ApiConstants.baseUrl}/admin/shop-settings/';
+  static const String endpoint = '${ApiConstants.baseUrl}/api/admin/shop-settings/';
 
   static Future<Map<String, dynamic>> getSettings() async {
     final response = await http.get(Uri.parse(endpoint));

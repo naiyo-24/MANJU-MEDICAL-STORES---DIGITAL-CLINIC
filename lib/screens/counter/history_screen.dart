@@ -315,18 +315,19 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 ),
               ],
             ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Row(
-                  children: [
-                    Icon(percentage.startsWith('+') ? Icons.arrow_upward : (percentage == '0%' ? Icons.horizontal_rule : Icons.arrow_downward), color: percentage.startsWith('+') ? const Color(0xFF22C55E) : (percentage == '0%' ? const Color(0xFF94A3B8) : Colors.red), size: 12),
-                    Text(percentage, style: TextStyle(color: percentage.startsWith('+') ? const Color(0xFF22C55E) : (percentage == '0%' ? const Color(0xFF94A3B8) : Colors.red), fontWeight: FontWeight.bold, fontSize: 12)),
-                  ],
-                ),
-                const Text('vs last month', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 9)),
-              ],
-            ),
+            if (percentage.isNotEmpty)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Row(
+                    children: [
+                      Icon(percentage.startsWith('+') ? Icons.arrow_upward : (percentage == '0%' ? Icons.horizontal_rule : Icons.arrow_downward), color: percentage.startsWith('+') ? const Color(0xFF22C55E) : (percentage == '0%' ? const Color(0xFF94A3B8) : Colors.red), size: 12),
+                      Text(percentage, style: TextStyle(color: percentage.startsWith('+') ? const Color(0xFF22C55E) : (percentage == '0%' ? const Color(0xFF94A3B8) : Colors.red), fontWeight: FontWeight.bold, fontSize: 12)),
+                    ],
+                  ),
+                  const Text('vs last month', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 9)),
+                ],
+              ),
           ],
         ),
     );
@@ -525,17 +526,36 @@ class _HistoryScreenState extends State<HistoryScreen> {
           // Stats Cards
           LayoutBuilder(builder: (context, constraints) {
             bool isDesktop = constraints.maxWidth > 800;
+            
+            double totalRevenue = 0;
+            int totalInvoices = 0;
+            double totalReturns = 0;
+            double cashInHand = 0;
+            
+            for (var tx in _filteredTransactions) {
+              double amount = (tx['amount'] as num?)?.toDouble() ?? 0.0;
+              if (tx['type'] == 'Return') {
+                totalReturns += amount;
+              } else {
+                totalRevenue += amount;
+                totalInvoices += 1;
+                if (tx['paymentMode'] == 'Cash') {
+                  cashInHand += amount;
+                }
+              }
+            }
+
             return SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
                 children: [
-                  SizedBox(width: isDesktop ? (constraints.maxWidth - 48) / 4 : 250, child: _buildStatCard('₹45,231.89', 'Total Revenue', const Color(0xFFDCFCE7), const Color(0xFF166534), Icons.currency_rupee, '+12.5%')),
+                  SizedBox(width: isDesktop ? (constraints.maxWidth - 48) / 4 : 250, child: _buildStatCard('₹${totalRevenue.toStringAsFixed(2)}', 'Total Revenue', const Color(0xFFDCFCE7), const Color(0xFF166534), Icons.currency_rupee, '')),
                   const SizedBox(width: 16),
-                  SizedBox(width: isDesktop ? (constraints.maxWidth - 48) / 4 : 250, child: _buildStatCard('1,234', 'Total Invoices', const Color(0xFFE0F2FE), const Color(0xFF0369A1), Icons.receipt_long, '+5.2%')),
+                  SizedBox(width: isDesktop ? (constraints.maxWidth - 48) / 4 : 250, child: _buildStatCard(totalInvoices.toString(), 'Total Invoices', const Color(0xFFE0F2FE), const Color(0xFF0369A1), Icons.receipt_long, '')),
                   const SizedBox(width: 16),
-                  SizedBox(width: isDesktop ? (constraints.maxWidth - 48) / 4 : 250, child: _buildStatCard('₹2,450.00', 'Total Returns', const Color(0xFFFEE2E2), Colors.red, Icons.keyboard_return, '-2.4%')),
+                  SizedBox(width: isDesktop ? (constraints.maxWidth - 48) / 4 : 250, child: _buildStatCard('₹${totalReturns.toStringAsFixed(2)}', 'Total Returns', const Color(0xFFFEE2E2), Colors.red, Icons.keyboard_return, '')),
                   const SizedBox(width: 16),
-                  SizedBox(width: isDesktop ? (constraints.maxWidth - 48) / 4 : 250, child: _buildStatCard('₹12,450.00', 'Cash in Hand', const Color(0xFFF3E8FF), const Color(0xFF7E22CE), Icons.account_balance_wallet, '0%')),
+                  SizedBox(width: isDesktop ? (constraints.maxWidth - 48) / 4 : 250, child: _buildStatCard('₹${cashInHand.toStringAsFixed(2)}', 'Cash in Hand', const Color(0xFFF3E8FF), const Color(0xFF7E22CE), Icons.account_balance_wallet, '')),
                 ],
               ),
             );
