@@ -65,20 +65,22 @@ class _LabReportsScreenState extends State<LabReportsScreen> {
               child: Icon(icon, color: color, size: 24),
             ),
             const SizedBox(width: 16),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(value, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
-                    const SizedBox(width: 8),
-                    Text(growth, style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: growth.startsWith('↗') ? Colors.green : (growth.startsWith('↘') ? Colors.red : const Color(0xFFEA580C)))),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Text(title, style: const TextStyle(fontSize: 13, color: Color(0xFF64748B))),
-              ],
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.end,
+                    spacing: 8,
+                    children: [
+                      Text(value, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                      Text(growth, style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: growth.startsWith('↗') ? Colors.green : (growth.startsWith('↘') ? Colors.red : const Color(0xFFEA580C)))),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(title, style: const TextStyle(fontSize: 13, color: Color(0xFF64748B))),
+                ],
+              ),
             ),
           ],
         ),
@@ -222,13 +224,17 @@ class _LabReportsScreenState extends State<LabReportsScreen> {
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(color: const Color(0xFFE2E8F0)),
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
+                    child: SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
                         // Search & Filters
                         Padding(
                           padding: const EdgeInsets.all(16),
-                          child: Row(
+                          child: Wrap(
+                            spacing: 12,
+                            runSpacing: 12,
+                            crossAxisAlignment: WrapCrossAlignment.center,
                             children: [
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -242,30 +248,24 @@ class _LabReportsScreenState extends State<LabReportsScreen> {
                                   ],
                                 ),
                               ),
-                              const SizedBox(width: 12),
                               _buildDropdown('All Status'),
-                              const SizedBox(width: 12),
                               _buildDropdown('All Tests'),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Container(
-                                  height: 40,
-                                  decoration: BoxDecoration(color: const Color(0xFFF8FAFC), borderRadius: BorderRadius.circular(8), border: Border.all(color: const Color(0xFFE2E8F0))),
-                                  child: TextField(
-                                    onChanged: (v) => setState(() => _searchQuery = v.toLowerCase()),
-                                    decoration: const InputDecoration(
-                                      hintText: 'Search by patient name, report ID...',
-                                      hintStyle: TextStyle(color: Color(0xFF94A3B8), fontSize: 13),
-                                      prefixIcon: Icon(Icons.search, color: Color(0xFF94A3B8), size: 20),
-                                      border: InputBorder.none,
-                                      contentPadding: EdgeInsets.symmetric(vertical: 12),
-                                    ),
+                              Container(
+                                width: 250,
+                                height: 40,
+                                decoration: BoxDecoration(color: const Color(0xFFF8FAFC), borderRadius: BorderRadius.circular(8), border: Border.all(color: const Color(0xFFE2E8F0))),
+                                child: TextField(
+                                  onChanged: (v) => setState(() => _searchQuery = v.toLowerCase()),
+                                  decoration: const InputDecoration(
+                                    hintText: 'Search by patient name, report ID...',
+                                    hintStyle: TextStyle(color: Color(0xFF94A3B8), fontSize: 13),
+                                    prefixIcon: Icon(Icons.search, color: Color(0xFF94A3B8), size: 20),
+                                    border: InputBorder.none,
+                                    contentPadding: EdgeInsets.symmetric(vertical: 12),
                                   ),
                                 ),
                               ),
-                              const SizedBox(width: 12),
                               _buildActionButton(Icons.search, 'Search', bgColor: const Color(0xFFEA580C), color: Colors.white),
-                              const SizedBox(width: 12),
                               _buildActionButton(Icons.refresh, 'Reset'),
                             ],
                           ),
@@ -274,10 +274,15 @@ class _LabReportsScreenState extends State<LabReportsScreen> {
                         // Tabs & Export Row
                         Padding(
                           padding: const EdgeInsets.only(left: 24, right: 24, bottom: 0),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          child: Wrap(
+                            alignment: WrapAlignment.spaceBetween,
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            runSpacing: 16,
+                            spacing: 16,
                             children: [
-                              Row(
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
                                 children: _tabs.map((tab) {
                                   bool isSelected = _selectedTab == tab;
                                   String tabLabel = tab;
@@ -299,7 +304,9 @@ class _LabReportsScreenState extends State<LabReportsScreen> {
                                   );
                                 }).toList(),
                               ),
-                              Row(
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
                                 children: [
                                   OutlinedButton.icon(
                                     onPressed: () {},
@@ -340,10 +347,14 @@ class _LabReportsScreenState extends State<LabReportsScreen> {
                         const Divider(height: 1, color: Color(0xFFE2E8F0)),
                         
                         // Table Body
-                        Expanded(
-                          child: _isLoading ? const Center(child: CircularProgressIndicator(color: Color(0xFFEA580C))) : ListView.separated(
-                            itemCount: displayedReports.length,
-                            separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFE2E8F0)),
+                        _isLoading ? const Padding(
+                          padding: EdgeInsets.all(32.0),
+                          child: Center(child: CircularProgressIndicator(color: Color(0xFFEA580C))),
+                        ) : ListView.separated(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: displayedReports.length,
+                          separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFE2E8F0)),
                             itemBuilder: (context, index) {
                               final report = displayedReports[index];
                               final isSelected = _selectedReport?.id == report.id;
@@ -405,7 +416,6 @@ class _LabReportsScreenState extends State<LabReportsScreen> {
                               );
                             },
                           ),
-                        ),
                         
                         // Pagination
                         const Divider(height: 1, color: Color(0xFFE2E8F0)),
@@ -438,6 +448,7 @@ class _LabReportsScreenState extends State<LabReportsScreen> {
                       ],
                     ),
                   ),
+                ),
                 rightPane: Column(
                     children: [
                       Container(

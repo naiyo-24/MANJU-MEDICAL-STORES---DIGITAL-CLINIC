@@ -60,10 +60,14 @@ class _LabDashboardHomeState extends State<LabDashboardHome> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            runSpacing: 16,
+            spacing: 16,
             children: [
               Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(
                     padding: const EdgeInsets.all(12),
@@ -95,6 +99,7 @@ class _LabDashboardHomeState extends State<LabDashboardHome> {
                     color: Colors.white,
                   ),
                   child: Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       const Icon(Icons.calendar_today, size: 16, color: Color(0xFFEA580C)),
                       const SizedBox(width: 8),
@@ -263,7 +268,8 @@ class _LabDashboardHomeState extends State<LabDashboardHome> {
                 const SizedBox(height: 4),
                 Text(title, style: const TextStyle(fontSize: 14, color: Color(0xFF64748B))),
                 const SizedBox(height: 4),
-                Row(
+                Wrap(
+                  crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     const Icon(Icons.arrow_upward, size: 12, color: Color(0xFF22C55E)),
                     const SizedBox(width: 4),
@@ -295,16 +301,18 @@ class _LabDashboardHomeState extends State<LabDashboardHome> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(color: const Color(0xFFEA580C), borderRadius: BorderRadius.circular(6)),
-                    child: const Icon(Icons.analytics, size: 14, color: Colors.white),
-                  ),
-                  const SizedBox(width: 12),
-                  Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
-                ],
+              Expanded(
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(color: const Color(0xFFEA580C), borderRadius: BorderRadius.circular(6)),
+                      child: const Icon(Icons.analytics, size: 14, color: Colors.white),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(child: Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)))),
+                  ],
+                ),
               ),
               if (action != null)
                 Text(action, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFFEA580C))),

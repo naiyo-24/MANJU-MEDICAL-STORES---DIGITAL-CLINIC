@@ -184,7 +184,8 @@ class _LabTemplatesScreenState extends State<LabTemplatesScreen> {
           const SizedBox(height: 24),
 
           // Main Layout
-          ResponsiveSplitView(
+          Expanded(
+            child: ResponsiveSplitView(
             leftFlex: 5,
             rightFlex: 4,
             showRightPane: _selectedTemplate != null,
@@ -437,6 +438,7 @@ class _LabTemplatesScreenState extends State<LabTemplatesScreen> {
                       ],
                     ),
                   ),
+          ),
           ),
         ],
       ),

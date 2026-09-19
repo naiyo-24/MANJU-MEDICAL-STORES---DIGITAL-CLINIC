@@ -41,8 +41,8 @@ class _LabHistoryScreenState extends State<LabHistoryScreen> {
   }
 
   Widget _buildStatCard(IconData icon, String title, String value, Color color, String growth) {
-    return Expanded(
-      child: Container(
+    return Container(
+        width: 260,
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           color: Colors.white,
@@ -57,25 +57,26 @@ class _LabHistoryScreenState extends State<LabHistoryScreen> {
               child: Icon(icon, color: color, size: 24),
             ),
             const SizedBox(width: 16),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(value, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
-                    const SizedBox(width: 8),
-                    Text(growth, style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: growth.startsWith('↗') ? Colors.green : (growth.startsWith('↘') ? Colors.red : const Color(0xFFEA580C)))),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Text(title, style: const TextStyle(fontSize: 13, color: Color(0xFF64748B))),
-              ],
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.end,
+                    spacing: 8,
+                    children: [
+                      Text(value, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                      Text(growth, style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: growth.startsWith('↗') ? Colors.green : (growth.startsWith('↘') ? Colors.red : const Color(0xFFEA580C)))),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(title, style: const TextStyle(fontSize: 13, color: Color(0xFF64748B)), maxLines: 2, overflow: TextOverflow.ellipsis),
+                ],
+              ),
             ),
           ],
         ),
-      ),
-    );
+      );
   }
 
   Widget _buildDropdown(String text) {
@@ -210,21 +211,23 @@ class _LabHistoryScreenState extends State<LabHistoryScreen> {
           const SizedBox(height: 32),
 
           // Stats Row
-          Row(
+          Wrap(
+            spacing: 16,
+            runSpacing: 16,
             children: [
               _buildStatCard(Icons.assignment, 'Total Activities', '1,248', Colors.blue, '↗ 18%'),
-              const SizedBox(width: 16),
               _buildStatCard(Icons.science, 'Sample Activities', '356', Colors.green, '↗ 12%'),
-              const SizedBox(width: 16),
               _buildStatCard(Icons.description, 'Report Activities', '624', const Color(0xFFEA580C), '↗ 20%'),
-              const SizedBox(width: 16),
               _buildStatCard(Icons.send, 'Communication Logs', '268', Colors.purple, '↗ 15%'),
             ],
           ),
           const SizedBox(height: 24),
 
           // Filter Row
-          Row(
+          Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -238,28 +241,23 @@ class _LabHistoryScreenState extends State<LabHistoryScreen> {
                   ],
                 ),
               ),
-              const SizedBox(width: 12),
               _buildDropdown('All Activity Types'),
-              const SizedBox(width: 12),
               _buildDropdown('All Users'),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Container(
-                  height: 40,
-                  decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8), border: Border.all(color: const Color(0xFFE2E8F0))),
-                  child: TextField(
-                    onChanged: (v) => setState(() => _searchQuery = v.toLowerCase()),
-                    decoration: const InputDecoration(
-                      hintText: 'Search by patient name, booking ID, action...',
-                      hintStyle: TextStyle(color: Color(0xFF94A3B8), fontSize: 13),
-                      prefixIcon: Icon(Icons.search, color: Color(0xFF94A3B8), size: 20),
-                      border: InputBorder.none,
-                      contentPadding: EdgeInsets.symmetric(vertical: 12),
-                    ),
+              Container(
+                width: 250,
+                height: 40,
+                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8), border: Border.all(color: const Color(0xFFE2E8F0))),
+                child: TextField(
+                  onChanged: (v) => setState(() => _searchQuery = v.toLowerCase()),
+                  decoration: const InputDecoration(
+                    hintText: 'Search by patient name, booking ID, action...',
+                    hintStyle: TextStyle(color: Color(0xFF94A3B8), fontSize: 13),
+                    prefixIcon: Icon(Icons.search, color: Color(0xFF94A3B8), size: 20),
+                    border: InputBorder.none,
+                    contentPadding: EdgeInsets.symmetric(vertical: 12),
                   ),
                 ),
               ),
-              const SizedBox(width: 12),
               ElevatedButton.icon(
                 onPressed: () {},
                 icon: const Icon(Icons.search, size: 16),
@@ -272,7 +270,6 @@ class _LabHistoryScreenState extends State<LabHistoryScreen> {
                   elevation: 0,
                 ),
               ),
-              const SizedBox(width: 12),
               _buildActionButton(Icons.refresh, 'Reset'),
             ],
           ),
@@ -290,16 +287,22 @@ class _LabHistoryScreenState extends State<LabHistoryScreen> {
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(color: const Color(0xFFE2E8F0)),
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
+                    child: SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
                         // Tabs & Export Row
                         Padding(
                           padding: const EdgeInsets.only(left: 24, right: 24, top: 16, bottom: 0),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          child: Wrap(
+                            alignment: WrapAlignment.spaceBetween,
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            runSpacing: 16,
+                            spacing: 16,
                             children: [
-                              Row(
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
                                 children: _tabs.map((tab) {
                                   bool isSelected = _selectedTab == tab;
                                   String tabLabel = tab;
@@ -355,10 +358,14 @@ class _LabHistoryScreenState extends State<LabHistoryScreen> {
                         const Divider(height: 1, color: Color(0xFFE2E8F0)),
                         
                         // Table Body
-                        Expanded(
-                          child: _isLoading ? const Center(child: CircularProgressIndicator(color: Color(0xFFEA580C))) : ListView.separated(
-                            itemCount: displayedActivities.length,
-                            separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFE2E8F0)),
+                        _isLoading ? const Padding(
+                          padding: EdgeInsets.all(32.0),
+                          child: Center(child: CircularProgressIndicator(color: Color(0xFFEA580C))),
+                        ) : ListView.separated(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: displayedActivities.length,
+                          separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFE2E8F0)),
                             itemBuilder: (context, index) {
                               final activity = displayedActivities[index];
                               final isSelected = _selectedActivity?.id == activity.id;
@@ -399,7 +406,6 @@ class _LabHistoryScreenState extends State<LabHistoryScreen> {
                               );
                             },
                           ),
-                        ),
                         
                         // Pagination
                         const Divider(height: 1, color: Color(0xFFE2E8F0)),
@@ -436,6 +442,7 @@ class _LabHistoryScreenState extends State<LabHistoryScreen> {
                       ],
                     ),
                   ),
+                ),
                 rightPane: SingleChildScrollView(
                     child: Column(
                       children: [

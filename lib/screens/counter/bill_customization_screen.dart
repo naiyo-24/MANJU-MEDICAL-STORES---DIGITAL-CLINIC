@@ -555,11 +555,17 @@ class _BillCustomizationScreenState extends State<BillCustomizationScreen> {
                     padding: const EdgeInsets.all(16.0),
                     child: Column(
                       children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        Wrap(
+                          alignment: WrapAlignment.spaceBetween,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          runSpacing: 16,
+                          spacing: 16,
                           children: [
                             const Text('Live Preview', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
-                            Row(
+                            Wrap(
+                              spacing: 16,
+                              runSpacing: 16,
+                              crossAxisAlignment: WrapCrossAlignment.center,
                               children: [
                                 ToggleButtons(
                                   isSelected: [_previewFormat == 'Thermal', _previewFormat == 'A4', _previewFormat == 'A5'],
@@ -579,7 +585,6 @@ class _BillCustomizationScreenState extends State<BillCustomizationScreen> {
                                     Padding(padding: EdgeInsets.symmetric(horizontal: 12), child: Text('A5', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12))),
                                   ],
                                 ),
-                                const SizedBox(width: 16),
                                 ElevatedButton.icon(
                                   onPressed: _isGenerating ? null : _generatePreviewPdf,
                                   icon: const Icon(Icons.refresh),

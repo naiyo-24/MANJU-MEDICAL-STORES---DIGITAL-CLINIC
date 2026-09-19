@@ -146,9 +146,8 @@ class _LabPackagesScreenState extends ConsumerState<LabPackagesScreen> {
   }
 
   Widget _buildStatCard(IconData icon, String title, String value, Color color) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.all(20),
+    return Container(
+      padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
@@ -162,25 +161,26 @@ class _LabPackagesScreenState extends ConsumerState<LabPackagesScreen> {
               child: Icon(icon, color: color, size: 24),
             ),
             const SizedBox(width: 16),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(value, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
-                    const SizedBox(width: 8),
-                    const Text('↑+20%', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.green)),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Text(title, style: const TextStyle(fontSize: 13, color: Color(0xFF64748B))),
-              ],
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.end,
+                    spacing: 8,
+                    children: [
+                      Text(value, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                      const Text('↑+20%', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.green)),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(title, style: const TextStyle(fontSize: 13, color: Color(0xFF64748B)), maxLines: 2, overflow: TextOverflow.ellipsis),
+                ],
+              ),
             ),
           ],
         ),
-      ),
-    );
+      );
   }
 
   Widget _buildDropdown(String text) {
@@ -310,15 +310,14 @@ class _LabPackagesScreenState extends ConsumerState<LabPackagesScreen> {
           const SizedBox(height: 32),
 
           // Stats Row
-          Row(
+          Wrap(
+            spacing: 16,
+            runSpacing: 16,
             children: [
-              _buildStatCard(Icons.inventory_2, 'Total Packages', totalPackages.toString(), const Color(0xFFEA580C)),
-              const SizedBox(width: 16),
-              _buildStatCard(Icons.check_circle, 'Active Packages', activePackages.toString(), Colors.green),
-              const SizedBox(width: 16),
-              _buildStatCard(Icons.pause_circle, 'Inactive Packages', inactivePackages.toString(), Colors.red),
-              const SizedBox(width: 16),
-              _buildStatCard(Icons.group, 'Package Tests Booked', '1,248', Colors.purple),
+              SizedBox(width: 250, child: _buildStatCard(Icons.inventory_2, 'Total Packages', totalPackages.toString(), const Color(0xFFEA580C))),
+              SizedBox(width: 250, child: _buildStatCard(Icons.check_circle, 'Active Packages', activePackages.toString(), Colors.green)),
+              SizedBox(width: 250, child: _buildStatCard(Icons.pause_circle, 'Inactive Packages', inactivePackages.toString(), Colors.red)),
+              SizedBox(width: 250, child: _buildStatCard(Icons.group, 'Package Tests Booked', '1,248', Colors.purple)),
             ],
           ),
           const SizedBox(height: 24),
@@ -335,48 +334,53 @@ class _LabPackagesScreenState extends ConsumerState<LabPackagesScreen> {
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(color: const Color(0xFFE2E8F0)),
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
+                    child: SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
                         // Search & Filters
                         Padding(
                           padding: const EdgeInsets.all(16),
-                          child: Row(
+                          child: Wrap(
+                            spacing: 12,
+                            runSpacing: 12,
+                            crossAxisAlignment: WrapCrossAlignment.center,
                             children: [
-                              Expanded(
-                                flex: 3,
-                                child: Container(
-                                  height: 40,
-                                  decoration: BoxDecoration(color: const Color(0xFFF8FAFC), borderRadius: BorderRadius.circular(8), border: Border.all(color: const Color(0xFFE2E8F0))),
-                                  child: TextField(
-                                    onChanged: (v) => setState(() => _searchQuery = v.toLowerCase()),
-                                    decoration: const InputDecoration(
-                                      hintText: 'Search package name...',
-                                      hintStyle: TextStyle(color: Color(0xFF94A3B8), fontSize: 13),
-                                      prefixIcon: Icon(Icons.search, color: Color(0xFF94A3B8), size: 20),
-                                      border: InputBorder.none,
-                                      contentPadding: EdgeInsets.symmetric(vertical: 12),
-                                    ),
+                              Container(
+                                width: 250,
+                                height: 40,
+                                decoration: BoxDecoration(color: const Color(0xFFF8FAFC), borderRadius: BorderRadius.circular(8), border: Border.all(color: const Color(0xFFE2E8F0))),
+                                child: TextField(
+                                  onChanged: (v) => setState(() => _searchQuery = v.toLowerCase()),
+                                  decoration: const InputDecoration(
+                                    hintText: 'Search package name...',
+                                    hintStyle: TextStyle(color: Color(0xFF94A3B8), fontSize: 13),
+                                    prefixIcon: Icon(Icons.search, color: Color(0xFF94A3B8), size: 20),
+                                    border: InputBorder.none,
+                                    contentPadding: EdgeInsets.symmetric(vertical: 12),
                                   ),
                                 ),
                               ),
-                              const SizedBox(width: 12),
                               _buildDropdown('All Categories'),
-                              const SizedBox(width: 12),
                               _buildDropdown('All Status'),
-                              const SizedBox(width: 12),
                               _buildActionButton(Icons.refresh, 'Reset', () {}),
-                              const SizedBox(width: 12),
                               _buildActionButton(Icons.download, 'Export (Excel)', () {}),
                             ],
                           ),
                         ),
                         
                         // Table Header
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                          color: const Color(0xFFF8FAFC),
-                          child: Row(
+                        SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(minWidth: 800),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                                  color: const Color(0xFFF8FAFC),
+                                  child: Row(
                             children: const [
                               SizedBox(width: 30, child: Text('#', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)))),
                               Expanded(flex: 3, child: Text('Package Name', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)))),
@@ -391,10 +395,14 @@ class _LabPackagesScreenState extends ConsumerState<LabPackagesScreen> {
                         const Divider(height: 1, color: Color(0xFFE2E8F0)),
                         
                         // Table Body
-                        Expanded(
-                          child: _isLoading ? const Center(child: CircularProgressIndicator(color: Color(0xFFEA580C))) : ListView.separated(
-                            itemCount: _packages.where((p) => p.name.toLowerCase().contains(_searchQuery)).length,
-                            separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFE2E8F0)),
+                        _isLoading ? const Padding(
+                          padding: EdgeInsets.all(32.0),
+                          child: Center(child: CircularProgressIndicator(color: Color(0xFFEA580C))),
+                        ) : ListView.separated(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: _packages.where((p) => p.name.toLowerCase().contains(_searchQuery)).length,
+                          separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFE2E8F0)),
                             itemBuilder: (context, index) {
                               final filtered = _packages.where((p) => p.name.toLowerCase().contains(_searchQuery)).toList();
                               final package = filtered[index];
@@ -456,24 +464,27 @@ class _LabPackagesScreenState extends ConsumerState<LabPackagesScreen> {
                               );
                             },
                           ),
-                        ),
+                        ],
+                      ),
+                    ),
+                  ),
                         
                         // Pagination
                         const Divider(height: 1, color: Color(0xFFE2E8F0)),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          child: Wrap(
+                            alignment: WrapAlignment.spaceBetween,
+                            spacing: 16,
+                            runSpacing: 16,
                             children: [
                               Text('Showing 1 to 10 of $totalPackages packages', style: const TextStyle(color: Color(0xFF64748B), fontSize: 13)),
-                              Row(
+                              Wrap(
+                                spacing: 8,
                                 children: [
                                   Container(padding: const EdgeInsets.all(6), decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE2E8F0)), borderRadius: BorderRadius.circular(4)), child: const Icon(Icons.chevron_left, size: 16)),
-                                  const SizedBox(width: 8),
                                   Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6), decoration: BoxDecoration(color: const Color(0xFFEA580C), borderRadius: BorderRadius.circular(4)), child: const Text('1', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
-                                  const SizedBox(width: 8),
                                   Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6), decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE2E8F0)), borderRadius: BorderRadius.circular(4)), child: const Text('2', style: TextStyle(color: Color(0xFF1E293B)))),
-                                  const SizedBox(width: 8),
                                   Container(padding: const EdgeInsets.all(6), decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE2E8F0)), borderRadius: BorderRadius.circular(4)), child: const Icon(Icons.chevron_right, size: 16)),
                                 ],
                               ),
@@ -483,6 +494,7 @@ class _LabPackagesScreenState extends ConsumerState<LabPackagesScreen> {
                       ],
                     ),
                   ),
+                ),
               rightPane: SingleChildScrollView(
                     child: Column(
                       children: [
