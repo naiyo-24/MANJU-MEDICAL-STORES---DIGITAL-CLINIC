@@ -1,13 +1,12 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
-import '../config/api_constants.dart';
+import 'package:dio/dio.dart';
+import '../config/api_client.dart';
 
 class AccountingExtendedService {
   static Future<Map<String, dynamic>> getReceivables() async {
     try {
-      final response = await http.get(Uri.parse('${ApiConstants.baseUrl}/api/accounts/extended/receivables'));
+      final response = await ApiClient().dio.get('/api/accounts/extended/receivables');
       if (response.statusCode == 200) {
-        return json.decode(response.body)['data'];
+        return response.data['data'];
       }
       return {"receivables": [], "total_receivables": 0.0};
     } catch (e) {
@@ -18,9 +17,9 @@ class AccountingExtendedService {
 
   static Future<Map<String, dynamic>> getPayables() async {
     try {
-      final response = await http.get(Uri.parse('${ApiConstants.baseUrl}/api/accounts/extended/payables'));
+      final response = await ApiClient().dio.get('/api/accounts/extended/payables');
       if (response.statusCode == 200) {
-        return json.decode(response.body)['data'];
+        return response.data['data'];
       }
       return {"payables": [], "total_payables": 0.0};
     } catch (e) {
@@ -31,9 +30,9 @@ class AccountingExtendedService {
 
   static Future<List<dynamic>> getLedger() async {
     try {
-      final response = await http.get(Uri.parse('${ApiConstants.baseUrl}/api/accounts/extended/ledger'));
+      final response = await ApiClient().dio.get('/api/accounts/extended/ledger');
       if (response.statusCode == 200) {
-        return json.decode(response.body)['data'];
+        return response.data['data'];
       }
       return [];
     } catch (e) {
@@ -44,17 +43,15 @@ class AccountingExtendedService {
 
   static Future<Map<String, dynamic>> getPnL(String? startDate, String? endDate) async {
     try {
-      String url = '${ApiConstants.baseUrl}/api/accounts/extended/reports/pnl';
-      List<String> queryParams = [];
-      if (startDate != null) queryParams.add('start_date=$startDate');
-      if (endDate != null) queryParams.add('end_date=$endDate');
-      if (queryParams.isNotEmpty) {
-        url += '?${queryParams.join('&')}';
-      }
-      
-      final response = await http.get(Uri.parse(url));
+      final response = await ApiClient().dio.get(
+        '/api/accounts/extended/reports/pnl',
+        queryParameters: {
+          if (startDate != null) 'start_date': startDate,
+          if (endDate != null) 'end_date': endDate,
+        },
+      );
       if (response.statusCode == 200) {
-        return json.decode(response.body)['data'];
+        return response.data['data'];
       }
       return {"total_income": 0.0, "total_expense": 0.0, "net_profit": 0.0};
     } catch (e) {

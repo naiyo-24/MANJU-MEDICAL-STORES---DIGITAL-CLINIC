@@ -1,8 +1,6 @@
-import 'dart:convert';
 import 'dart:typed_data';
-import 'package:http/http.dart' as http;
-import '../config/api_constants.dart';
-import 'auth_service.dart';
+import 'package:dio/dio.dart';
+import '../config/api_client.dart';
 
 class InventoryItem {
   final String id;
@@ -84,16 +82,10 @@ class InventoryService {
   static Future<String> getShopId() async {
     if (_cachedShopId != null) return _cachedShopId!;
 
-    final token = await AuthService.getToken();
-    final response = await http.get(
-      Uri.parse('${ApiConstants.baseUrl}/api/admin/shops'),
-      headers: {
-        if (token != null) 'Authorization': 'Bearer $token',
-      },
-    );
+    final response = await ApiClient().dio.get('/api/admin/shops');
 
     if (response.statusCode == 200) {
-      final List<dynamic> shops = json.decode(response.body);
+      final List<dynamic> shops = response.data;
       if (shops.isNotEmpty) {
         _cachedShopId = shops.first['id'];
         return _cachedShopId!;
@@ -107,29 +99,16 @@ class InventoryService {
 
   static Future<List<InventoryItem>> fetchInventory({String? searchQuery, String? startDate, String? endDate}) async {
     try {
-      final token = await AuthService.getToken();
       final shopId = await getShopId();
-      String url = '${ApiConstants.baseUrl}/api/admin/shop/inventory?shop_id=$shopId';
-      if (searchQuery != null && searchQuery.isNotEmpty) {
-        url += '&search=$searchQuery';
-      }
-      if (startDate != null && startDate.isNotEmpty) {
-        url += '&start_date=$startDate';
-      }
-      if (endDate != null && endDate.isNotEmpty) {
-        url += '&end_date=$endDate';
-      }
-
-      final response = await http.get(
-        Uri.parse(url),
-        headers: {
-          if (token != null) 'Authorization': 'Bearer $token',
-        },
-      );
+      final response = await ApiClient().dio.get('/api/admin/shop/inventory', queryParameters: {
+        'shop_id': shopId,
+        if (searchQuery != null && searchQuery.isNotEmpty) 'search': searchQuery,
+        if (startDate != null && startDate.isNotEmpty) 'start_date': startDate,
+        if (endDate != null && endDate.isNotEmpty) 'end_date': endDate,
+      });
 
       if (response.statusCode == 200) {
-        final Map<String, dynamic> data = json.decode(response.body);
-        final List<dynamic> itemsList = data['items'] ?? [];
+        final List<dynamic> itemsList = response.data['items'] ?? [];
         return itemsList.map((item) => InventoryItem.fromJson(item)).toList();
       } else {
         throw Exception('Failed to load inventory');
@@ -141,25 +120,21 @@ class InventoryService {
 
   static Future<String> uploadInventory(String filePath) async {
     try {
-      final token = await AuthService.getToken();
       final shopId = await getShopId();
-      final url = Uri.parse('${ApiConstants.baseUrl}/api/admin/shop/upload-inventory?shop_id=$shopId');
-      var request = http.MultipartRequest('POST', url);
-      if (token != null) {
-        request.headers['Authorization'] = 'Bearer $token';
-      }
-      
-      request.files.add(await http.MultipartFile.fromPath('file', filePath));
-      
-      var response = await request.send();
+      FormData formData = FormData.fromMap({
+        'file': await MultipartFile.fromFile(filePath),
+      });
+
+      final response = await ApiClient().dio.post(
+        '/api/admin/shop/upload-inventory',
+        queryParameters: {'shop_id': shopId},
+        data: formData,
+      );
       
       if (response.statusCode == 201) {
-        final respStr = await response.stream.bytesToString();
-        final jsonResp = json.decode(respStr);
-        return jsonResp['message'] ?? 'Upload successful';
+        return response.data['message'] ?? 'Upload successful';
       } else {
-        final respStr = await response.stream.bytesToString();
-        throw Exception('Upload failed: $respStr');
+        throw Exception('Upload failed: ${response.data}');
       }
     } catch (e) {
       throw Exception('Error uploading inventory: $e');
@@ -168,19 +143,14 @@ class InventoryService {
 
   static Future<void> addMedicine(Map<String, dynamic> itemData) async {
     try {
-      final token = await AuthService.getToken();
       itemData['shop_id'] = await getShopId();
-      final response = await http.post(
-        Uri.parse('${ApiConstants.baseUrl}/api/admin/shop/inventory/add'),
-        headers: {
-          'Content-Type': 'application/json',
-          if (token != null) 'Authorization': 'Bearer $token',
-        },
-        body: jsonEncode(itemData),
+      final response = await ApiClient().dio.post(
+        '/api/admin/shop/inventory/add',
+        data: itemData,
       );
 
       if (response.statusCode != 200 && response.statusCode != 201) {
-        throw Exception('Failed to add medicine: ${response.body}');
+        throw Exception('Failed to add medicine: ${response.data}');
       }
     } catch (e) {
       throw Exception('Error adding medicine: $e');
@@ -189,24 +159,19 @@ class InventoryService {
 
   static Future<String> uploadMedicineImage(Uint8List bytes, String filename) async {
     try {
-      final token = await AuthService.getToken();
-      final url = Uri.parse('${ApiConstants.baseUrl}/api/admin/shop/inventory/upload-image');
-      var request = http.MultipartRequest('POST', url);
-      if (token != null) {
-        request.headers['Authorization'] = 'Bearer $token';
-      }
+      FormData formData = FormData.fromMap({
+        'file': MultipartFile.fromBytes(bytes, filename: filename),
+      });
       
-      request.files.add(http.MultipartFile.fromBytes('file', bytes, filename: filename));
-      
-      var response = await request.send();
+      final response = await ApiClient().dio.post(
+        '/api/admin/shop/inventory/upload-image',
+        data: formData,
+      );
       
       if (response.statusCode == 200) {
-        final respStr = await response.stream.bytesToString();
-        final jsonResp = json.decode(respStr);
-        return jsonResp['image_url'];
+        return response.data['image_url'];
       } else {
-        final respStr = await response.stream.bytesToString();
-        throw Exception('Image upload failed: $respStr');
+        throw Exception('Image upload failed: ${response.data}');
       }
     } catch (e) {
       throw Exception('Error uploading image: $e');
@@ -215,18 +180,13 @@ class InventoryService {
 
   static Future<void> updateMedicine(String itemId, Map<String, dynamic> itemData) async {
     try {
-      final token = await AuthService.getToken();
-      final response = await http.patch(
-        Uri.parse('${ApiConstants.baseUrl}/api/admin/shop/inventory/$itemId/update'),
-        headers: {
-          'Content-Type': 'application/json',
-          if (token != null) 'Authorization': 'Bearer $token',
-        },
-        body: jsonEncode(itemData),
+      final response = await ApiClient().dio.patch(
+        '/api/admin/shop/inventory/$itemId/update',
+        data: itemData,
       );
 
       if (response.statusCode != 200) {
-        throw Exception('Failed to update medicine: ${response.body}');
+        throw Exception('Failed to update medicine: ${response.data}');
       }
     } catch (e) {
       throw Exception('Error updating medicine: $e');
@@ -235,16 +195,12 @@ class InventoryService {
 
   static Future<void> deleteMedicine(String itemId) async {
     try {
-      final token = await AuthService.getToken();
-      final response = await http.delete(
-        Uri.parse('${ApiConstants.baseUrl}/api/admin/shop/inventory/$itemId/delete'),
-        headers: {
-          if (token != null) 'Authorization': 'Bearer $token',
-        },
+      final response = await ApiClient().dio.delete(
+        '/api/admin/shop/inventory/$itemId/delete',
       );
 
       if (response.statusCode != 200) {
-        throw Exception('Failed to delete medicine: ${response.body}');
+        throw Exception('Failed to delete medicine: ${response.data}');
       }
     } catch (e) {
       throw Exception('Error deleting medicine: $e');

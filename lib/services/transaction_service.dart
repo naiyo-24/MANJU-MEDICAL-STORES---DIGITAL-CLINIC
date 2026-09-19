@@ -1,7 +1,5 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
-import '../config/api_constants.dart';
-import 'auth_service.dart';
+import 'package:dio/dio.dart';
+import '../config/api_client.dart';
 import 'package:intl/intl.dart';
 
 class TransactionModel {
@@ -65,21 +63,11 @@ class TransactionModel {
 }
 
 class TransactionService {
-  static Future<Map<String, String>> _getHeaders() async {
-    final token = await AuthService.getToken();
-    return {
-      'Content-Type': 'application/json',
-      if (token != null) 'Authorization': 'Bearer $token',
-    };
-  }
-
   static Future<void> saveTransaction(Map<String, dynamic> payload) async {
     try {
-      final url = Uri.parse('${ApiConstants.baseUrl}/api/transactions');
-      final response = await http.post(
-        url,
-        headers: await _getHeaders(),
-        body: json.encode(payload),
+      final response = await ApiClient().dio.post(
+        '/api/transactions',
+        data: payload,
       );
       if (response.statusCode != 201 && response.statusCode != 200) {
         throw 'Failed to create transaction';
@@ -91,11 +79,13 @@ class TransactionService {
 
   static Future<List<TransactionModel>> getTransactions({int skip = 0, int limit = 100}) async {
     try {
-      final url = Uri.parse('${ApiConstants.baseUrl}/api/transactions?skip=$skip&limit=$limit');
-      final response = await http.get(url, headers: await _getHeaders());
+      final response = await ApiClient().dio.get(
+        '/api/transactions',
+        queryParameters: {'skip': skip, 'limit': limit},
+      );
 
       if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
+        final List<dynamic> data = response.data;
         return data.map((json) => TransactionModel.fromJson(json)).toList();
       } else {
         throw 'Failed to load transactions';
@@ -107,8 +97,7 @@ class TransactionService {
 
   static Future<void> deleteTransaction(String id) async {
     try {
-      final url = Uri.parse('${ApiConstants.baseUrl}/api/transactions/$id');
-      final response = await http.delete(url, headers: await _getHeaders());
+      final response = await ApiClient().dio.delete('/api/transactions/$id');
       if (response.statusCode != 200 && response.statusCode != 204) {
         throw 'Failed to delete transaction';
       }

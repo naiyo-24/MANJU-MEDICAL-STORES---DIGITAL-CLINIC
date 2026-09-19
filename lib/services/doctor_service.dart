@@ -1,7 +1,5 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
-import '../config/api_constants.dart';
-import 'auth_service.dart';
+import 'package:dio/dio.dart';
+import '../config/api_client.dart';
 
 class Doctor {
   final String id;
@@ -19,21 +17,13 @@ class Doctor {
 
 class DoctorService {
   static Future<List<Doctor>> fetchDoctors() async {
-    final token = await AuthService.getToken();
-    
-    final response = await http.get(
-      Uri.parse('${ApiConstants.baseUrl}/api/admin/doctors/'),
-      headers: {
-        'Content-Type': 'application/json',
-        if (token != null) 'Authorization': 'Bearer $token',
-      },
-    );
+    final response = await ApiClient().dio.get('/api/admin/doctors/');
 
     if (response.statusCode == 200) {
-      final List<dynamic> data = jsonDecode(response.body);
+      final List<dynamic> data = response.data;
       return data.map((json) => Doctor.fromJson(json)).toList();
     } else {
-      throw Exception('Failed to fetch doctors: ${response.body}');
+      throw Exception('Failed to fetch doctors: ${response.data}');
     }
   }
 }

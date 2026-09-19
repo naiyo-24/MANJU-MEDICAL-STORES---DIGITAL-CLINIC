@@ -1,7 +1,5 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
-import '../config/api_constants.dart';
-import 'auth_service.dart';
+import 'package:dio/dio.dart';
+import '../config/api_client.dart';
 
 class AccountSummaryModel {
   final double cashInHand;
@@ -53,22 +51,12 @@ class AccountModel {
 }
 
 class AccountService {
-  static Future<Map<String, String>> _getHeaders() async {
-    final token = await AuthService.getToken();
-    return {
-      'Content-Type': 'application/json',
-      if (token != null) 'Authorization': 'Bearer $token',
-    };
-  }
-
   static Future<AccountSummaryModel> getSummary() async {
     try {
-      final url = Uri.parse('${ApiConstants.baseUrl}/api/accounts/summary');
-      final response = await http.get(url, headers: await _getHeaders());
+      final response = await ApiClient().dio.get('/api/accounts/summary');
 
       if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        return AccountSummaryModel.fromJson(data);
+        return AccountSummaryModel.fromJson(response.data);
       } else {
         throw 'Failed to load account summary';
       }
@@ -86,11 +74,10 @@ class AccountService {
 
   static Future<List<AccountModel>> getAccounts() async {
     try {
-      final url = Uri.parse('${ApiConstants.baseUrl}/api/accounts');
-      final response = await http.get(url, headers: await _getHeaders());
+      final response = await ApiClient().dio.get('/api/accounts');
 
       if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
+        final List<dynamic> data = response.data;
         return data.map((json) => AccountModel.fromJson(json)).toList();
       } else {
         throw 'Failed to load accounts';

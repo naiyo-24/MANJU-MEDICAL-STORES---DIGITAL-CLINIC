@@ -1,8 +1,8 @@
 import 'dart:convert';
+import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:http/http.dart' as http;
 import '../models/lab_models.dart';
-import '../config/api_constants.dart';
+import '../config/api_client.dart';
 import 'auth_service.dart';
 
 class LabDataService {
@@ -14,10 +14,9 @@ class LabDataService {
   // --- Custom Categories (API) ---
   static Future<String?> _getCategoryIdByName(String name) async {
     try {
-      final headers = await _getHeaders();
-      final response = await http.get(Uri.parse('${ApiConstants.baseUrl}/api/admin/lab-category/'), headers: headers);
+      final response = await ApiClient().dio.get('/api/admin/lab-category/');
       if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
+        final List<dynamic> data = response.data;
         for (var item in data) {
           if (item['name'] == name) return item['id'];
         }
@@ -30,10 +29,9 @@ class LabDataService {
 
   static Future<List<String>> getCustomCategories() async {
     try {
-      final headers = await _getHeaders();
-      final response = await http.get(Uri.parse('${ApiConstants.baseUrl}/api/admin/lab-category/'), headers: headers);
+      final response = await ApiClient().dio.get('/api/admin/lab-category/');
       if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
+        final List<dynamic> data = response.data;
         return data.map((e) => e['name'].toString()).toList();
       }
     } catch (e) {
@@ -44,11 +42,9 @@ class LabDataService {
 
   static Future<void> saveCustomCategory(String category) async {
     try {
-      final headers = await _getHeaders();
-      await http.post(
-        Uri.parse('${ApiConstants.baseUrl}/api/admin/lab-category/'),
-        headers: headers,
-        body: json.encode({'name': category}),
+      await ApiClient().dio.post(
+        '/api/admin/lab-category/',
+        data: {'name': category},
       );
     } catch (e) {
       print('Error saving category: $e');
@@ -59,8 +55,7 @@ class LabDataService {
     final id = await _getCategoryIdByName(category);
     if (id != null) {
       try {
-        final headers = await _getHeaders();
-        await http.delete(Uri.parse('${ApiConstants.baseUrl}/api/admin/lab-category/$id'), headers: headers);
+        await ApiClient().dio.delete('/api/admin/lab-category/$id');
       } catch (e) {
         print('Error deleting category: $e');
       }
@@ -71,11 +66,9 @@ class LabDataService {
     final id = await _getCategoryIdByName(oldName);
     if (id != null) {
       try {
-        final headers = await _getHeaders();
-        await http.patch(
-          Uri.parse('${ApiConstants.baseUrl}/api/admin/lab-category/$id'),
-          headers: headers,
-          body: json.encode({'name': newName}),
+        await ApiClient().dio.patch(
+          '/api/admin/lab-category/$id',
+          data: {'name': newName},
         );
       } catch (e) {
         print('Error renaming category: $e');
@@ -85,22 +78,12 @@ class LabDataService {
     }
   }
 
-  // --- Common HTTP ---
-  static Future<Map<String, String>> _getHeaders() async {
-    final token = await AuthService.getToken();
-    return {
-      'Content-Type': 'application/json',
-      if (token != null) 'Authorization': 'Bearer $token',
-    };
-  }
-
   // --- Tests ---
   static Future<List<LabTest>> getTests() async {
     try {
-      final headers = await _getHeaders();
-      final response = await http.get(Uri.parse('${ApiConstants.baseUrl}/api/admin/lab-catalog/'), headers: headers);
+      final response = await ApiClient().dio.get('/api/admin/lab-catalog/');
       if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
+        final List<dynamic> data = response.data;
         return data.where((item) => item['type'] == 'SINGLE_TEST').map((j) => LabTest.fromJson(j)).toList();
       }
     } catch (e) {
@@ -111,30 +94,24 @@ class LabDataService {
 
   static Future<void> saveTest(LabTest test) async {
     try {
-      final headers = await _getHeaders();
-      final body = json.encode(test.toJson());
+      final body = test.toJson();
       
       if (test.id.isEmpty) {
-        await http.post(
-          Uri.parse('${ApiConstants.baseUrl}/api/admin/lab-catalog/'),
-          headers: headers,
-          body: body,
-        );
+        await ApiClient().dio.post('/api/admin/lab-catalog/', data: body);
         return;
       }
       
-      final patchResponse = await http.patch(
-        Uri.parse('${ApiConstants.baseUrl}/api/admin/lab-catalog/${test.id}'),
-        headers: headers,
-        body: body,
-      );
-      
-      if (patchResponse.statusCode == 404 || patchResponse.statusCode == 422 || patchResponse.statusCode == 405) {
-        await http.post(
-          Uri.parse('${ApiConstants.baseUrl}/api/admin/lab-catalog/'),
-          headers: headers,
-          body: body,
+      try {
+        await ApiClient().dio.patch(
+          '/api/admin/lab-catalog/${test.id}',
+          data: body,
         );
+      } on DioException catch (e) {
+        if (e.response?.statusCode == 404 || e.response?.statusCode == 422 || e.response?.statusCode == 405) {
+          await ApiClient().dio.post('/api/admin/lab-catalog/', data: body);
+        } else {
+          rethrow;
+        }
       }
     } catch (e) {
       print('Error saving test: $e');
@@ -143,20 +120,14 @@ class LabDataService {
 
   static Future<bool> uploadCSV(List<int> fileBytes, String fileName) async {
     try {
-      final token = await AuthService.getToken();
-      var request = http.MultipartRequest('POST', Uri.parse('${ApiConstants.baseUrl}/api/admin/lab-catalog/upload-csv'));
-      if (token != null) {
-        request.headers['Authorization'] = 'Bearer $token';
-      }
-      
-      request.files.add(http.MultipartFile.fromBytes(
-        'file', 
-        fileBytes,
-        filename: fileName,
-      ));
-      
-      var response = await request.send();
-      return response.statusCode == 200;
+      FormData formData = FormData.fromMap({
+        'file': MultipartFile.fromBytes(fileBytes, filename: fileName),
+      });
+      var response = await ApiClient().dio.post(
+        '/api/admin/lab-catalog/upload-csv',
+        data: formData,
+      );
+      return response.statusCode == 200 || response.statusCode == 201;
     } catch (e) {
       print('CSV upload error: $e');
       return false;
@@ -165,8 +136,7 @@ class LabDataService {
 
   static Future<void> deleteTest(String id) async {
     try {
-      final headers = await _getHeaders();
-      await http.delete(Uri.parse('${ApiConstants.baseUrl}/api/admin/lab-catalog/$id'), headers: headers);
+      await ApiClient().dio.delete('/api/admin/lab-catalog/$id');
     } catch (e) {
       print('Error deleting test: $e');
     }
@@ -175,10 +145,9 @@ class LabDataService {
   // --- Templates ---
   static Future<List<LabTemplate>> getTemplates() async {
     try {
-      final headers = await _getHeaders();
-      final response = await http.get(Uri.parse('${ApiConstants.baseUrl}/api/admin/lab-template/'), headers: headers);
+      final response = await ApiClient().dio.get('/api/admin/lab-template/');
       if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
+        final List<dynamic> data = response.data;
         return data.map((j) => LabTemplate.fromJson(j)).toList();
       }
     } catch (e) {
@@ -189,21 +158,19 @@ class LabDataService {
 
   static Future<void> saveTemplate(LabTemplate template) async {
     try {
-      final headers = await _getHeaders();
-      final body = json.encode(template.toJson());
+      final body = template.toJson();
       
-      final patchResponse = await http.patch(
-        Uri.parse('${ApiConstants.baseUrl}/api/admin/lab-template/${template.id}'),
-        headers: headers,
-        body: body,
-      );
-      
-      if (patchResponse.statusCode == 404 || patchResponse.statusCode == 405) {
-        await http.post(
-          Uri.parse('${ApiConstants.baseUrl}/api/admin/lab-template/'),
-          headers: headers,
-          body: body,
+      try {
+        await ApiClient().dio.patch(
+          '/api/admin/lab-template/${template.id}',
+          data: body,
         );
+      } on DioException catch (e) {
+        if (e.response?.statusCode == 404 || e.response?.statusCode == 405) {
+          await ApiClient().dio.post('/api/admin/lab-template/', data: body);
+        } else {
+          rethrow;
+        }
       }
     } catch (e) {
       print('Error saving template: $e');
@@ -212,8 +179,7 @@ class LabDataService {
 
   static Future<void> deleteTemplate(String id) async {
     try {
-      final headers = await _getHeaders();
-      await http.delete(Uri.parse('${ApiConstants.baseUrl}/api/admin/lab-template/$id'), headers: headers);
+      await ApiClient().dio.delete('/api/admin/lab-template/$id');
     } catch (e) {
       print('Error deleting template: $e');
     }
@@ -222,10 +188,9 @@ class LabDataService {
   // --- Packages ---
   static Future<List<LabPackage>> getPackages() async {
     try {
-      final headers = await _getHeaders();
-      final response = await http.get(Uri.parse('${ApiConstants.baseUrl}/api/admin/lab-catalog/'), headers: headers);
+      final response = await ApiClient().dio.get('/api/admin/lab-catalog/');
       if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
+        final List<dynamic> data = response.data;
         return data.where((item) => item['type'] == 'PACKAGE').map((j) => LabPackage.fromJson(j)).toList();
       }
     } catch (e) {
@@ -236,25 +201,15 @@ class LabDataService {
 
   static Future<bool> uploadCatalogCsv(List<int> fileBytes, String filename) async {
     try {
-      final headers = await _getHeaders();
-      final request = http.MultipartRequest(
-        'POST',
-        Uri.parse('${ApiConstants.baseUrl}/api/admin/lab-catalog/upload-csv'),
-      );
-      
-      request.headers.addAll({
-        if (headers.containsKey('Authorization')) 
-          'Authorization': headers['Authorization']!
+      FormData formData = FormData.fromMap({
+        'file': MultipartFile.fromBytes(fileBytes, filename: filename),
       });
 
-      request.files.add(http.MultipartFile.fromBytes(
-        'file',
-        fileBytes,
-        filename: filename,
-      ));
-
-      final streamedResponse = await request.send();
-      return streamedResponse.statusCode == 201;
+      final response = await ApiClient().dio.post(
+        '/api/admin/lab-catalog/upload-csv',
+        data: formData,
+      );
+      return response.statusCode == 201 || response.statusCode == 200;
     } catch (e) {
       print('Error uploading CSV: $e');
       return false;
@@ -263,21 +218,19 @@ class LabDataService {
 
   static Future<void> savePackage(LabPackage pkg) async {
     try {
-      final headers = await _getHeaders();
-      final body = json.encode(pkg.toJson());
+      final body = pkg.toJson();
       
-      final patchResponse = await http.patch(
-        Uri.parse('${ApiConstants.baseUrl}/api/admin/lab-catalog/${pkg.id}'),
-        headers: headers,
-        body: body,
-      );
-      
-      if (patchResponse.statusCode == 404 || patchResponse.statusCode == 422) {
-        await http.post(
-          Uri.parse('${ApiConstants.baseUrl}/api/admin/lab-catalog/'),
-          headers: headers,
-          body: body,
+      try {
+        await ApiClient().dio.patch(
+          '/api/admin/lab-catalog/${pkg.id}',
+          data: body,
         );
+      } on DioException catch (e) {
+        if (e.response?.statusCode == 404 || e.response?.statusCode == 422) {
+          await ApiClient().dio.post('/api/admin/lab-catalog/', data: body);
+        } else {
+          rethrow;
+        }
       }
     } catch (e) {
       print('Error saving package: $e');
@@ -286,8 +239,7 @@ class LabDataService {
 
   static Future<void> deletePackage(String id) async {
     try {
-      final headers = await _getHeaders();
-      await http.delete(Uri.parse('${ApiConstants.baseUrl}/api/admin/lab-catalog/$id'), headers: headers);
+      await ApiClient().dio.delete('/api/admin/lab-catalog/$id');
     } catch (e) {
       print('Error deleting package: $e');
     }
@@ -298,14 +250,10 @@ class LabDataService {
 
   static Future<List<LabBooking>> getBookings() async {
     try {
-      final headers = await _getHeaders();
-      final response = await http.get(
-        Uri.parse('${ApiConstants.baseUrl}/api/lab-bookings'),
-        headers: headers,
-      );
+      final response = await ApiClient().dio.get('/api/lab-bookings');
 
       if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
+        final List<dynamic> data = response.data;
         return data.map((item) {
           final formDetails = item['form_details'] ?? {};
           final bookedItems = item['booked_items'] as List<dynamic>? ?? [];
@@ -334,7 +282,6 @@ class LabDataService {
 
   static Future<void> saveBooking(LabBooking booking) async {
     try {
-      final headers = await _getHeaders();
       final userId = await AuthService.getUserId() ?? ''; // Or generate UUID if not logged in
       
       final body = {
@@ -350,14 +297,13 @@ class LabDataService {
         },
       };
 
-      final response = await http.post(
-        Uri.parse('${ApiConstants.baseUrl}/api/lab-bookings'),
-        headers: headers,
-        body: json.encode(body),
+      final response = await ApiClient().dio.post(
+        '/api/lab-bookings',
+        data: body,
       );
 
       if (response.statusCode != 201) {
-        print('Failed to save booking: ${response.body}');
+        print('Failed to save booking: ${response.data}');
       }
     } catch (e) {
       print('Error saving booking: $e');
@@ -366,13 +312,9 @@ class LabDataService {
 
   static Future<void> deleteBooking(String id) async {
     try {
-      final headers = await _getHeaders();
-      final response = await http.patch(
-        Uri.parse('${ApiConstants.baseUrl}/api/lab-bookings/$id/cancel'),
-        headers: headers,
-      );
+      final response = await ApiClient().dio.patch('/api/lab-bookings/$id/cancel');
       if (response.statusCode != 200) {
-        print('Failed to delete booking: ${response.body}');
+        print('Failed to delete booking: ${response.data}');
       }
     } catch (e) {
       print('Error deleting booking: $e');

@@ -3,7 +3,8 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:intl/intl.dart';
 import 'package:flutter/services.dart' show rootBundle;
-import 'package:http/http.dart' as http;
+import 'package:dio/dio.dart';
+import 'package:manju_medical/config/api_client.dart';
 import 'package:manju_medical/config/api_constants.dart';
 
 Future<Uint8List> generateBillIsolate(Map<String, dynamic> args) async {
@@ -62,9 +63,12 @@ class PdfGenerator {
         logoImage = pw.MemoryImage(_cachedLogoBytes!);
       } else {
         try {
-          final res = await http.get(Uri.parse('${ApiConstants.baseUrl}$url'));
+          final res = await ApiClient().dio.get(
+            url,
+            options: Options(responseType: ResponseType.bytes),
+          );
           if (res.statusCode == 200) {
-            _cachedLogoBytes = res.bodyBytes;
+            _cachedLogoBytes = res.data;
             _cachedLogoUrl = url;
             logoImage = pw.MemoryImage(_cachedLogoBytes!);
           }
@@ -95,9 +99,12 @@ class PdfGenerator {
         qrImage = pw.MemoryImage(_cachedQrBytes!);
       } else {
         try {
-          final res = await http.get(Uri.parse('${ApiConstants.baseUrl}$url'));
+          final res = await ApiClient().dio.get(
+            url,
+            options: Options(responseType: ResponseType.bytes),
+          );
           if (res.statusCode == 200) {
-            _cachedQrBytes = res.bodyBytes;
+            _cachedQrBytes = res.data;
             _cachedQrUrl = url;
             qrImage = pw.MemoryImage(_cachedQrBytes!);
           }

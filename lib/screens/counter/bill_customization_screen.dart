@@ -9,7 +9,8 @@ import '../../services/shop_settings_service.dart';
 import '../../utils/responsive.dart';
 import '../../utils/pdf_generator.dart';
 import '../../config/api_constants.dart';
-import 'package:http/http.dart' as http;
+import 'package:dio/dio.dart';
+import '../../config/api_client.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
 class BillCustomizationScreen extends StatefulWidget {
@@ -204,9 +205,12 @@ class _BillCustomizationScreenState extends State<BillCustomizationScreen> {
         if (_cachedLogoUrl == _logoUrl && _cachedLogoBytes != null) {
           finalLogoBytes = _cachedLogoBytes;
         } else {
-          final res = await http.get(Uri.parse('${ApiConstants.baseUrl}$_logoUrl'));
+          final res = await ApiClient().dio.get(
+            _logoUrl!,
+            options: Options(responseType: ResponseType.bytes),
+          );
           if (res.statusCode == 200) {
-            _cachedLogoBytes = res.bodyBytes;
+            _cachedLogoBytes = res.data;
             _cachedLogoUrl = _logoUrl;
             finalLogoBytes = _cachedLogoBytes;
           }
@@ -223,9 +227,12 @@ class _BillCustomizationScreenState extends State<BillCustomizationScreen> {
         if (_cachedQrUrl == _qrUrl && _cachedQrBytes != null) {
           finalQrBytes = _cachedQrBytes;
         } else {
-          final res = await http.get(Uri.parse('${ApiConstants.baseUrl}$_qrUrl'));
+          final res = await ApiClient().dio.get(
+            _qrUrl!,
+            options: Options(responseType: ResponseType.bytes),
+          );
           if (res.statusCode == 200) {
-            _cachedQrBytes = res.bodyBytes;
+            _cachedQrBytes = res.data;
             _cachedQrUrl = _qrUrl;
             finalQrBytes = _cachedQrBytes;
           }

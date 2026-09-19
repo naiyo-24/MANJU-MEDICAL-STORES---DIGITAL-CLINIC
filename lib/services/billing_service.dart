@@ -1,7 +1,5 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
-import '../config/api_constants.dart';
-import 'auth_service.dart';
+import 'package:dio/dio.dart';
+import '../config/api_client.dart';
 import 'inventory_service.dart';
 
 class BillingService {
@@ -12,16 +10,11 @@ class BillingService {
     String paymentMethod = 'CASH',
   }) async {
     try {
-      final token = await AuthService.getToken();
       final shopId = await InventoryService.getShopId();
 
-      final response = await http.post(
-        Uri.parse('${ApiConstants.baseUrl}/api/admin/pos/checkout'),
-        headers: {
-          'Content-Type': 'application/json',
-          if (token != null) 'Authorization': 'Bearer $token',
-        },
-        body: jsonEncode({
+      final response = await ApiClient().dio.post(
+        '/api/admin/pos/checkout',
+        data: {
           'shop_id': shopId,
           if (customerId != null) 'user_id': customerId,
           'items': items.map((item) => {
@@ -30,13 +23,13 @@ class BillingService {
           }).toList(),
           'total_amount': totalAmount,
           'payment_method': paymentMethod,
-        }),
+        },
       );
 
       if (response.statusCode == 201 || response.statusCode == 200) {
-        return json.decode(response.body);
+        return response.data;
       } else {
-        throw Exception('Checkout failed: ${response.body}');
+        throw Exception('Checkout failed: ${response.data}');
       }
     } catch (e) {
       throw Exception('Error during checkout: $e');
@@ -45,23 +38,17 @@ class BillingService {
 
   static Future<Map<String, dynamic>> getPosHistory() async {
     try {
-      final token = await AuthService.getToken();
       final shopId = await InventoryService.getShopId();
 
-      if (shopId == null) throw Exception('Shop ID not found');
-
-      final response = await http.get(
-        Uri.parse('${ApiConstants.baseUrl}/api/admin/pos/history?shop_id=$shopId'),
-        headers: {
-          'Content-Type': 'application/json',
-          if (token != null) 'Authorization': 'Bearer $token',
-        },
+      final response = await ApiClient().dio.get(
+        '/api/admin/pos/history',
+        queryParameters: {'shop_id': shopId},
       );
 
       if (response.statusCode == 200) {
-        return json.decode(response.body);
+        return response.data;
       } else {
-        throw Exception('Failed to fetch POS history: ${response.body}');
+        throw Exception('Failed to fetch POS history: ${response.data}');
       }
     } catch (e) {
       throw Exception('Error fetching POS history: $e');

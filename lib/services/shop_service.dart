@@ -1,7 +1,5 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
-import '../config/api_constants.dart';
-import 'auth_service.dart';
+import 'package:dio/dio.dart';
+import '../config/api_client.dart';
 
 class Shop {
   final String id;
@@ -52,22 +50,12 @@ class Shop {
 }
 
 class ShopService {
-  static Future<Map<String, String>> _getHeaders() async {
-    final token = await AuthService.getToken();
-    return {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer $token',
-    };
-  }
-
   static Future<List<Shop>> getShops() async {
     try {
-      final headers = await _getHeaders();
-      final url = Uri.parse('${ApiConstants.baseUrl}/api/admin/shops');
-      final response = await http.get(url, headers: headers);
+      final response = await ApiClient().dio.get('/api/admin/shops');
 
       if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
+        final List<dynamic> data = response.data;
         return data.map((json) => Shop.fromJson(json)).toList();
       } else {
         throw Exception('Failed to load shops: ${response.statusCode}');
@@ -87,12 +75,9 @@ class ShopService {
     required bool isPrimary,
   }) async {
     try {
-      final headers = await _getHeaders();
-      final url = Uri.parse('${ApiConstants.baseUrl}/api/admin/shop');
-      final response = await http.post(
-        url,
-        headers: headers,
-        body: json.encode({
+      final response = await ApiClient().dio.post(
+        '/api/admin/shop',
+        data: {
           'name': name,
           'code': code,
           'address': address,
@@ -100,16 +85,16 @@ class ShopService {
           'contact_number': contactNumber,
           'status': status,
           'is_primary': isPrimary,
-        }),
+        },
       );
 
       if (response.statusCode == 201) {
-        final data = json.decode(response.body);
-        return Shop.fromJson(data);
+        return Shop.fromJson(response.data);
       } else {
-        final data = json.decode(response.body);
-        throw Exception(data['detail'] ?? 'Failed to create shop');
+        throw Exception('Failed to create shop');
       }
+    } on DioException catch (e) {
+      throw Exception(e.response?.data['detail'] ?? 'Failed to create shop');
     } catch (e) {
       throw Exception('Error creating shop: $e');
     }
