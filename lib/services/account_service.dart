@@ -1,4 +1,3 @@
-import 'package:dio/dio.dart';
 import '../config/api_client.dart';
 
 class AccountSummaryModel {

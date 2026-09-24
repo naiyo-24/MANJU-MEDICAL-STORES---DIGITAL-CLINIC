@@ -31,8 +31,11 @@ class _RoleLoginScreenState extends State<RoleLoginScreen> {
       final userId = _userIdController.text.trim();
       
       String expectedUserId = '';
-      if (widget.roleName == 'Counter') expectedUserId = 'admin_counter';
-      else if (widget.roleName == 'Lab Test') expectedUserId = 'admin_lab';
+      if (widget.roleName == 'Counter') {
+        expectedUserId = 'admin_counter';
+      // ignore: curly_braces_in_flow_control_structures
+      } else if (widget.roleName == 'Lab Test') expectedUserId = 'admin_lab';
+      // ignore: curly_braces_in_flow_control_structures
       else if (widget.roleName == 'CRM') expectedUserId = 'admin_crm';
 
       if (expectedUserId.isNotEmpty && userId != expectedUserId) {
@@ -113,7 +116,7 @@ class _RoleLoginScreenState extends State<RoleLoginScreen> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: widget.themeColor.withOpacity(0.15),
+              color: widget.themeColor.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(icon, color: widget.themeColor, size: 24),
@@ -161,7 +164,7 @@ class _RoleLoginScreenState extends State<RoleLoginScreen> {
                 return LinearGradient(
                   begin: Alignment.centerLeft,
                   end: Alignment.centerRight,
-                  colors: [Colors.white, Colors.white.withOpacity(0.2)],
+                  colors: [Colors.white, Colors.white.withValues(alpha: 0.2)],
                   stops: const [0.4, 1.0],
                 ).createShader(rect);
               },
@@ -181,8 +184,8 @@ class _RoleLoginScreenState extends State<RoleLoginScreen> {
                   begin: Alignment.centerLeft,
                   end: Alignment.centerRight,
                   colors: [
-                    const Color(0xFFF8FAFC).withOpacity(0.95),
-                    const Color(0xFFF8FAFC).withOpacity(0.6),
+                    const Color(0xFFF8FAFC).withValues(alpha: 0.95),
+                    const Color(0xFFF8FAFC).withValues(alpha: 0.6),
                   ],
                 ),
               ),
@@ -402,7 +405,7 @@ class _RoleLoginScreenState extends State<RoleLoginScreen> {
             Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: widget.themeColor.withOpacity(0.1),
+                color: widget.themeColor.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: Icon(Icons.admin_panel_settings, size: 64, color: widget.themeColor),

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../themes/app_colors.dart';
 
-import '../../../../models/counter_models.dart';
 import '../../../../services/customer_service.dart';
 
 Widget buildModernTextField(TextEditingController controller, String hint, IconData icon, {bool isNumber = false}) {
@@ -40,7 +39,7 @@ void showAddCustomerDialog(BuildContext context, VoidCallback onCustomerAdded) {
           color: Colors.white,
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
-            BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 20, offset: const Offset(0, 10)),
+            BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 20, offset: const Offset(0, 10)),
           ],
         ),
         width: 400,
@@ -136,7 +135,7 @@ void showEditCustomerDialog(BuildContext context, Map<String, dynamic> customerM
             color: Colors.white,
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
-              BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 20, offset: const Offset(0, 10)),
+              BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 20, offset: const Offset(0, 10)),
             ],
           ),
           width: 400,
@@ -175,7 +174,7 @@ void showEditCustomerDialog(BuildContext context, Map<String, dynamic> customerM
                         isActive = val;
                       });
                     },
-                    activeColor: AppColors.info,
+                    activeThumbColor: AppColors.info,
                   ),
                 ],
               ),

@@ -53,7 +53,7 @@ class _LabHistoryScreenState extends State<LabHistoryScreen> {
           children: [
             Container(
               padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(color: color.withOpacity(0.1), shape: BoxShape.circle),
+              decoration: BoxDecoration(color: color.withValues(alpha: 0.1), shape: BoxShape.circle),
               child: Icon(icon, color: color, size: 24),
             ),
             const SizedBox(width: 16),
@@ -103,7 +103,7 @@ class _LabHistoryScreenState extends State<LabHistoryScreen> {
         backgroundColor: bgColor ?? Colors.white,
         foregroundColor: color ?? const Color(0xFF1E293B),
         elevation: 0,
-        side: BorderSide(color: bgColor == null ? const Color(0xFFE2E8F0) : bgColor),
+        side: BorderSide(color: bgColor ?? const Color(0xFFE2E8F0)),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
@@ -130,7 +130,7 @@ class _LabHistoryScreenState extends State<LabHistoryScreen> {
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(4)),
+      decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(4)),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -162,7 +162,7 @@ class _LabHistoryScreenState extends State<LabHistoryScreen> {
       label: Text(label, style: const TextStyle(color: Color(0xFFEA580C), fontSize: 12, fontWeight: FontWeight.bold)),
       style: OutlinedButton.styleFrom(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-        side: BorderSide(color: const Color(0xFFEA580C).withOpacity(0.2)),
+        side: BorderSide(color: const Color(0xFFEA580C).withValues(alpha: 0.2)),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
     );
@@ -461,7 +461,7 @@ class _LabHistoryScreenState extends State<LabHistoryScreen> {
                                 children: [
                                   Container(
                                     padding: const EdgeInsets.all(8),
-                                    decoration: BoxDecoration(color: const Color(0xFFEA580C).withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
+                                    decoration: BoxDecoration(color: const Color(0xFFEA580C).withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
                                     child: const Icon(Icons.assignment, color: Color(0xFFEA580C), size: 18),
                                   ),
                                   const SizedBox(width: 12),
@@ -524,7 +524,7 @@ class _LabHistoryScreenState extends State<LabHistoryScreen> {
                                 children: [
                                   Container(
                                     padding: const EdgeInsets.all(8),
-                                    decoration: BoxDecoration(color: const Color(0xFFEA580C).withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
+                                    decoration: BoxDecoration(color: const Color(0xFFEA580C).withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
                                     child: const Icon(Icons.shopping_bag, color: Color(0xFFEA580C), size: 18),
                                   ),
                                   const SizedBox(width: 12),

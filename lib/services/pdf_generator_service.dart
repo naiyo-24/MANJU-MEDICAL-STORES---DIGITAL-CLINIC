@@ -214,7 +214,7 @@ class PdfGeneratorService {
             pw.Padding(padding: const pw.EdgeInsets.symmetric(vertical: 8), child: pw.Text(f.unit, style: const pw.TextStyle(fontSize: 10))),
             pw.Padding(padding: const pw.EdgeInsets.symmetric(vertical: 8), child: pw.Text(f.normalRange, style: const pw.TextStyle(fontSize: 10))),
           ]
-        )).toList(),
+        )),
       ],
     );
   }

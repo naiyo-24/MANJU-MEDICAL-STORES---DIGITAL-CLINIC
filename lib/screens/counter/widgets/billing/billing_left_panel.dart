@@ -15,7 +15,7 @@ class BillingLeftPanel extends ConsumerWidget {
   final Function(String) onSearch;
 
   const BillingLeftPanel({
-    Key? key,
+    super.key,
     required this.isDesktopWidth,
     required this.hasEnoughHeight,
     required this.filteredMedicines,
@@ -24,7 +24,7 @@ class BillingLeftPanel extends ConsumerWidget {
     required this.onAddToCart,
     required this.onCategorySelected,
     required this.onSearch,
-  }) : super(key: key);
+  });
 
   Widget _buildFilterChip(String label, int index) {
     bool isSelected = selectedCategoryIndex == index;
@@ -165,10 +165,11 @@ class BillingLeftPanel extends ConsumerWidget {
                       ),
 
                       // Medicines Table Body
-                      Expanded(
-                        child: ListView.separated(
-                          shrinkWrap: !isDesktopWidth,
-                          physics: isDesktopWidth ? const AlwaysScrollableScrollPhysics() : const NeverScrollableScrollPhysics(),
+                      _buildConditionalExpanded(
+                        hasEnoughHeight,
+                        ListView.separated(
+                          shrinkWrap: !hasEnoughHeight,
+                          physics: hasEnoughHeight ? const AlwaysScrollableScrollPhysics() : const NeverScrollableScrollPhysics(),
                           itemCount: filteredMedicines.length,
                           separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFE2E8F0)),
                           itemBuilder: (context, index) {

@@ -71,6 +71,7 @@ class _CounterDashboardState extends State<CounterDashboard> {
 
   void _showOverlay() {
     if (_overlayEntry != null) return;
+    // ignore: unused_local_variable
     final renderBox = context.findRenderObject() as RenderBox?;
     _overlayEntry = OverlayEntry(
       builder: (context) => Positioned(
@@ -182,7 +183,7 @@ class _CounterDashboardState extends State<CounterDashboard> {
         decoration: BoxDecoration(
           color: isSelected ? const Color(0xFFE8F5E9) : Colors.transparent,
           borderRadius: BorderRadius.circular(12),
-          border: isSelected ? Border.all(color: const Color(0xFF22C55E).withOpacity(0.3), width: 1) : null,
+          border: isSelected ? Border.all(color: const Color(0xFF22C55E).withValues(alpha: 0.3), width: 1) : null,
         ),
         child: Row(
           children: [

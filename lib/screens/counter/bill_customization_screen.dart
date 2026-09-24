@@ -6,7 +6,6 @@ import '../../models/settings_models.dart';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:printing/printing.dart';
-import 'package:pdf/pdf.dart';
 import '../../services/shop_settings_service.dart';
 import '../../utils/responsive.dart';
 import '../../utils/pdf_generator.dart';

@@ -5,7 +5,6 @@ import '../../services/transaction_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/counter_providers.dart';
 import '../../notifiers/accounts_notifier.dart';
-import '../../services/account_service.dart';
 
 import 'widgets/accounts/receivables_view.dart';
 import 'widgets/accounts/payables_view.dart';
@@ -104,7 +103,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                 const SizedBox(height: 24),
                 
                 DropdownButtonFormField<String>(
-                  value: typeCtrl.text,
+                  initialValue: typeCtrl.text,
                   decoration: const InputDecoration(labelText: 'Transaction Type', border: OutlineInputBorder()),
                   items: ['Income', 'Expense'].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
                   onChanged: (val) => setStateDialog(() => typeCtrl.text = val!),
@@ -125,7 +124,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                 const SizedBox(height: 16),
 
                 DropdownButtonFormField<String>(
-                  value: paymentModeCtrl.text,
+                  initialValue: paymentModeCtrl.text,
                   decoration: const InputDecoration(labelText: 'Payment Mode', border: OutlineInputBorder()),
                   items: ['Cash', 'Bank Transfer', 'UPI', 'Card'].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
                   onChanged: (val) => setStateDialog(() => paymentModeCtrl.text = val!),
@@ -269,7 +268,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(12),
                       boxShadow: [
-                        BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4)),
+                        BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 10, offset: const Offset(0, 4)),
                       ],
                     ),
                     child: Column(

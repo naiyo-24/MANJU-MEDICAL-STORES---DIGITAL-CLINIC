@@ -1,4 +1,3 @@
-import 'package:dio/dio.dart';
 import '../config/api_client.dart';
 import 'inventory_service.dart';
 
@@ -16,7 +15,7 @@ class BillingService {
         '/api/admin/pos/checkout',
         data: {
           'shop_id': shopId,
-          if (customerId != null) 'user_id': customerId,
+          'user_id': customerId,
           'items': items.map((item) => {
             'inventory_item_id': item['inventory_item_id'],
             'quantity': item['qty'],

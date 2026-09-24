@@ -6,11 +6,11 @@ class Responsive extends StatelessWidget {
   final Widget desktop;
 
   const Responsive({
-    Key? key,
+    super.key,
     required this.mobile,
     this.tablet,
     required this.desktop,
-  }) : super(key: key);
+  });
 
   static bool isMobile(BuildContext context) =>
       MediaQuery.of(context).size.width < 850;
@@ -45,13 +45,13 @@ class ResponsiveSplitView extends StatelessWidget {
   final bool showRightPane;
 
   const ResponsiveSplitView({
-    Key? key,
+    super.key,
     required this.leftPane,
     required this.rightPane,
     this.leftFlex = 1,
     this.rightFlex = 1,
     this.showRightPane = true,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

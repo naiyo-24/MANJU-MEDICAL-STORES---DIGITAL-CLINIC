@@ -46,7 +46,7 @@ class CustomerNotifier extends AsyncNotifier<List<Map<String, dynamic>>> {
         if (!dateStr.endsWith('Z')) dateStr += 'Z';
         final dt = DateTime.tryParse(dateStr)?.toLocal();
         if (dt != null) {
-          if (lastPurchaseDate == null || dt.isAfter(lastPurchaseDate!)) {
+          if (lastPurchaseDate == null || dt.isAfter(lastPurchaseDate)) {
             lastPurchaseDate = dt;
           }
         }
@@ -62,7 +62,7 @@ class CustomerNotifier extends AsyncNotifier<List<Map<String, dynamic>>> {
         'city': c.location.isNotEmpty ? c.location : 'Local',
         'totalPurchases': totalPurchases,
         'bills': custHistory.length,
-        'lastPurchase': lastPurchaseDate != null ? DateFormat('dd MMM yyyy').format(lastPurchaseDate!) : 'N/A',
+        'lastPurchase': lastPurchaseDate != null ? DateFormat('dd MMM yyyy').format(lastPurchaseDate) : 'N/A',
         'status': c.isActive ? 'Active' : 'Inactive',
         'memberSince': c.createdAt != null ? DateFormat('MMM yyyy').format(DateTime.parse(c.createdAt!)) : 'Unknown',
         'history': custHistory,

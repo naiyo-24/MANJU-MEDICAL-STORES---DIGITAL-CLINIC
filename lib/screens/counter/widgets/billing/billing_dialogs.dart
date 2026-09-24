@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../../../services/customer_service.dart';
 
 class BillingDialogs {
   static void showAddCustomerDialog(BuildContext context, Function(String, String, String) onSuccess) {

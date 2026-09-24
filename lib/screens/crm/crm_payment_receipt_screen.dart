@@ -136,7 +136,7 @@ class _CrmPaymentReceiptScreenState extends State<CrmPaymentReceiptScreen> {
                         style: OutlinedButton.styleFrom(
                           foregroundColor: const Color(0xFF8B5CF6),
                           side: const BorderSide(color: Color(0xFFE9D5FF)),
-                          backgroundColor: const Color(0xFFF3E8FF).withOpacity(0.5),
+                          backgroundColor: const Color(0xFFF3E8FF).withValues(alpha: 0.5),
                           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                         ),
@@ -373,7 +373,7 @@ class _CrmPaymentReceiptScreenState extends State<CrmPaymentReceiptScreen> {
               color: Colors.white,
               borderRadius: BorderRadius.circular(4),
               boxShadow: [
-                BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4)),
+                BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 4)),
               ],
             ),
             child: SingleChildScrollView(

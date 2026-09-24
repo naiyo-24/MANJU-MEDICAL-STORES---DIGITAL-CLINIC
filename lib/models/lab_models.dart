@@ -226,7 +226,7 @@ class LabTemplate {
     this.defaultRemarks = '',
     this.fields = const [],
     ReportLayoutConfig? layoutConfig,
-  }) : this.layoutConfig = layoutConfig ?? ReportLayoutConfig();
+  }) : layoutConfig = layoutConfig ?? ReportLayoutConfig();
 
   Map<String, dynamic> toJson() => {
     'id': id,

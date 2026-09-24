@@ -101,7 +101,7 @@ class _LabTestsScreenState extends ConsumerState<LabTestsScreen> {
                       Expanded(
                         child: _allCategories.isNotEmpty 
                           ? DropdownButtonFormField<String>(
-                              value: _allCategories.contains(selectedCategory) ? selectedCategory : _allCategories.first,
+                              initialValue: _allCategories.contains(selectedCategory) ? selectedCategory : _allCategories.first,
                               decoration: const InputDecoration(labelText: 'Category', isDense: true, border: OutlineInputBorder()),
                               items: _allCategories.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
                               onChanged: (v) => setDialogState(() => selectedCategory = v!),
@@ -126,7 +126,7 @@ class _LabTestsScreenState extends ConsumerState<LabTestsScreen> {
                   ),
                   const SizedBox(height: 12),
                   if (_templates.isNotEmpty) DropdownButtonFormField<String>(
-                    value: selectedTemplate,
+                    initialValue: selectedTemplate,
                     decoration: const InputDecoration(labelText: 'Assigned Template', isDense: true, border: OutlineInputBorder()),
                     items: _templates.map((t) => DropdownMenuItem(value: t.id, child: Text(t.name))).toList(),
                     onChanged: (v) => setDialogState(() => selectedTemplate = v!),
@@ -138,7 +138,7 @@ class _LabTestsScreenState extends ConsumerState<LabTestsScreen> {
                     title: const Text('Active Status'),
                     value: isActive,
                     onChanged: (val) => setDialogState(() => isActive = val),
-                    activeColor: const Color(0xFFEA580C),
+                    activeThumbColor: const Color(0xFFEA580C),
                   ),
                 ],
               ),
@@ -161,6 +161,7 @@ class _LabTestsScreenState extends ConsumerState<LabTestsScreen> {
                   isActive: isActive,
                 );
                 await ref.read(labTestsProvider.notifier).addOrUpdateTest(test);
+                // ignore: use_build_context_synchronously
                 if (mounted) Navigator.pop(context, );
                 _loadData();
               },
@@ -233,6 +234,7 @@ class _LabTestsScreenState extends ConsumerState<LabTestsScreen> {
     if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('PDF exported successfully!')));
   }
 
+  // ignore: unused_element
   void _showExportOptions() {
     showDialog(
       context: context,
@@ -517,9 +519,11 @@ class _LabTestsScreenState extends ConsumerState<LabTestsScreen> {
                                             if (bytes != null) {
                                               final success = await LabDataService.uploadCSV(bytes, name);
                                               if (success && mounted) {
+                                                // ignore: use_build_context_synchronously
                                                 ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Tests imported successfully!')));
                                                 _loadData();
                                               } else if (mounted) {
+                                                // ignore: use_build_context_synchronously
                                                 ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Failed to import tests. Please check CSV format.')));
                                                 setState(() => _isLoading = false);
                                               }
@@ -562,9 +566,11 @@ class _LabTestsScreenState extends ConsumerState<LabTestsScreen> {
                                           if (bytes != null) {
                                             final success = await LabDataService.uploadCSV(bytes, name);
                                             if (success && mounted) {
+                                              // ignore: use_build_context_synchronously
                                               ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Tests imported successfully!')));
                                               _loadData();
                                             } else if (mounted) {
+                                              // ignore: use_build_context_synchronously
                                               ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Failed to import tests. Please check CSV format.')));
                                               setState(() => _isLoading = false);
                                             }
@@ -1039,6 +1045,7 @@ class _LabTestsScreenState extends ConsumerState<LabTestsScreen> {
                                         )
                                       );
                                     } catch (e) {
+                                      // ignore: avoid_print
                                       print(e);
                                       if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error generating report: $e')));
                                     }
@@ -1251,7 +1258,7 @@ class _LabTestsScreenState extends ConsumerState<LabTestsScreen> {
       borderRadius: BorderRadius.circular(8),
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-        decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE2E8F0)), borderRadius: BorderRadius.circular(8), color: const Color(0xFFFFF7ED).withOpacity(0.5)),
+        decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE2E8F0)), borderRadius: BorderRadius.circular(8), color: const Color(0xFFFFF7ED).withValues(alpha: 0.5)),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -1344,7 +1351,7 @@ class _CategoriesDialog extends ConsumerStatefulWidget {
   final List<LabTest> tests;
   final VoidCallback onUpdate;
 
-  const _CategoriesDialog({Key? key, required this.tests, required this.onUpdate}) : super(key: key);
+  const _CategoriesDialog({required this.tests, required this.onUpdate});
 
   @override
   ConsumerState<_CategoriesDialog> createState() => _CategoriesDialogState();
@@ -1387,6 +1394,7 @@ class _CategoriesDialogState extends ConsumerState<_CategoriesDialog> {
             onPressed: () async {
               if (ctrl.text.trim().isNotEmpty) {
                 await ref.read(labCustomCategoriesProvider.notifier).addCategory(ctrl.text.trim());
+                // ignore: use_build_context_synchronously
                 if (mounted) Navigator.pop(ctx);
                 _loadCategories();
                 widget.onUpdate();

@@ -5,7 +5,6 @@ import 'package:intl/intl.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:dio/dio.dart';
 import 'package:manju_medical/config/api_client.dart';
-import 'package:manju_medical/config/api_constants.dart';
 
 Future<Uint8List> generateBillIsolate(Map<String, dynamic> args) async {
   return PdfGenerator.generateBill(

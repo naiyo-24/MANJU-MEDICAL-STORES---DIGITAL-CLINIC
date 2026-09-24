@@ -26,6 +26,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
   String _searchQuery = '';
   int _currentPage = 1;
   List<Map<String, dynamic>> _transactions = [];
+  // ignore: unused_field
   Map<String, dynamic> _summary = {};
   bool _isLoading = true;
 

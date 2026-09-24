@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../models/crm_models.dart';
-import '../../services/crm_data_service.dart';
 import '../../providers/crm_providers.dart';
 
 class CrmAppointmentsScreen extends ConsumerStatefulWidget {
@@ -15,6 +13,7 @@ class CrmAppointmentsScreen extends ConsumerStatefulWidget {
 class _CrmAppointmentsScreenState extends ConsumerState<CrmAppointmentsScreen> {
   List<CrmAppointment> _appointments = [];
   CrmAppointment? _selectedAppointment;
+  // ignore: unused_field
   bool _isLoading = true;
   String _activeTab = 'All Appointments';
 
@@ -203,7 +202,7 @@ class _CrmAppointmentsScreenState extends ConsumerState<CrmAppointmentsScreen> {
         children: [
           Container(
             padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(color: color.withOpacity(0.1), shape: BoxShape.circle),
+            decoration: BoxDecoration(color: color.withValues(alpha: 0.1), shape: BoxShape.circle),
             child: Icon(icon, color: color, size: 24),
           ),
           const SizedBox(width: 16),
@@ -329,7 +328,7 @@ class _CrmAppointmentsScreenState extends ConsumerState<CrmAppointmentsScreen> {
                               onTap: () => _selectAppointment(apt),
                               child: Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                                color: isSelected ? const Color(0xFFF3E8FF).withOpacity(0.3) : Colors.transparent,
+                                color: isSelected ? const Color(0xFFF3E8FF).withValues(alpha: 0.3) : Colors.transparent,
                                 child: Row(
                                   children: [
                                     const SizedBox(width: 32, child: Icon(Icons.check_box_outline_blank, color: Color(0xFFCBD5E1), size: 18)),
@@ -341,7 +340,7 @@ class _CrmAppointmentsScreenState extends ConsumerState<CrmAppointmentsScreen> {
                                         children: [
                                           CircleAvatar(
                                             radius: 12,
-                                            backgroundColor: const Color(0xFF8B5CF6).withOpacity(0.1),
+                                            backgroundColor: const Color(0xFF8B5CF6).withValues(alpha: 0.1),
                                             child: Text(apt.patientName.substring(0, 2).toUpperCase(), style: const TextStyle(color: Color(0xFF8B5CF6), fontSize: 10, fontWeight: FontWeight.bold)),
                                           ),
                                           const SizedBox(width: 8),

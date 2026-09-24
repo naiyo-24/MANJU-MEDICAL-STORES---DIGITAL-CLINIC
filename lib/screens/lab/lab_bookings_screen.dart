@@ -203,9 +203,9 @@ class _LabBookingsScreenState extends State<LabBookingsScreen> {
                                           child: Container(
                                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                             decoration: BoxDecoration(
-                                              color: _getStatusColor(booking.status).withOpacity(0.1),
+                                              color: _getStatusColor(booking.status).withValues(alpha: 0.1),
                                               borderRadius: BorderRadius.circular(12),
-                                              border: Border.all(color: _getStatusColor(booking.status).withOpacity(0.5)),
+                                              border: Border.all(color: _getStatusColor(booking.status).withValues(alpha: 0.5)),
                                             ),
                                             child: Text(
                                               booking.status,

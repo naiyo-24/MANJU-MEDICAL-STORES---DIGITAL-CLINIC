@@ -7,9 +7,6 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../widgets/custom_pagination.dart';
 import '../../services/customer_service.dart';
-import '../../services/billing_service.dart';
-import 'package:printing/printing.dart';
-import '../../utils/pdf_generator.dart';
 import '../../services/billing_history_service.dart';
 
 import 'widgets/customers/customer_stat_card.dart';
@@ -52,9 +49,9 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
     return customerAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (err, stack) => Center(child: Text('Error: $err')),
-      data: (_allCustomers) {
+      data: (allCustomers) {
         if (_selectedCustomer != null) {
-          final updatedCust = _allCustomers.where((c) => c['full_id'] == _selectedCustomer!['full_id']).firstOrNull;
+          final updatedCust = allCustomers.where((c) => c['full_id'] == _selectedCustomer!['full_id']).firstOrNull;
           if (updatedCust != null && updatedCust != _selectedCustomer) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               if (mounted) setState(() => _selectedCustomer = updatedCust);
@@ -62,7 +59,7 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
           }
         }
 
-    final filteredCustomers = _allCustomers.where((c) {
+    final filteredCustomers = allCustomers.where((c) {
       final matchesSearch = c['name'].toString().toLowerCase().contains(_searchQuery.toLowerCase()) ||
                             c['phone'].toString().contains(_searchQuery) ||
                             c['id'].toString().toLowerCase().contains(_searchQuery.toLowerCase());
@@ -145,9 +142,9 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
               scrollDirection: Axis.horizontal,
               child: Row(
                 children: [
-                  SizedBox(width: isDesktop ? (constraints.maxWidth - 48) / 4 : 250, child: CustomerStatCard(title: 'Total Customers', value: '${_allCustomers.length}', icon: Icons.people, bgColor: AppColors.primaryLight, iconColor: AppColors.primaryDark)),
+                  SizedBox(width: isDesktop ? (constraints.maxWidth - 48) / 4 : 250, child: CustomerStatCard(title: 'Total Customers', value: '${allCustomers.length}', icon: Icons.people, bgColor: AppColors.primaryLight, iconColor: AppColors.primaryDark)),
                   const SizedBox(width: 16),
-                  SizedBox(width: isDesktop ? (constraints.maxWidth - 48) / 4 : 250, child: CustomerStatCard(title: 'Active Customers', value: '${_allCustomers.length}', icon: Icons.check_circle_outline, bgColor: AppColors.infoLight, iconColor: AppColors.info)),
+                  SizedBox(width: isDesktop ? (constraints.maxWidth - 48) / 4 : 250, child: CustomerStatCard(title: 'Active Customers', value: '${allCustomers.length}', icon: Icons.check_circle_outline, bgColor: AppColors.infoLight, iconColor: AppColors.info)),
                   const SizedBox(width: 16),
                   SizedBox(width: isDesktop ? (constraints.maxWidth - 48) / 4 : 250, child: CustomerStatCard(title: 'New This Month', value: '0', icon: Icons.person_add_alt_1, bgColor: AppColors.warningLight, iconColor: AppColors.warning)),
                   const SizedBox(width: 16),
@@ -169,7 +166,7 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(12),
                       boxShadow: [
-                        BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4)),
+                        BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 10, offset: const Offset(0, 4)),
                       ],
                     ),
                     child: Column(
@@ -207,8 +204,8 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: AppColors.border)),
                                     contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 12),
                                   ),
-                                  value: _selectedStatus,
-                                  items: ['All Status', ..._allCustomers.map((e) => e['status'].toString()).toSet()]
+                                  initialValue: _selectedStatus,
+                                  items: ['All Status', ...allCustomers.map((e) => e['status'].toString()).toSet()]
                                       .map((s) => DropdownMenuItem(value: s, child: Text(s, style: const TextStyle(fontSize: 14))))
                                       .toList(),
                                   onChanged: (val) => setState(() {
@@ -225,8 +222,8 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: AppColors.border)),
                                     contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 12),
                                   ),
-                                  value: _selectedCity,
-                                  items: ['All Cities', ..._allCustomers.map((e) => e['city'].toString()).toSet()]
+                                  initialValue: _selectedCity,
+                                  items: ['All Cities', ...allCustomers.map((e) => e['city'].toString()).toSet()]
                                       .map((s) => DropdownMenuItem(value: s, child: Text(s, style: const TextStyle(fontSize: 14))))
                                       .toList(),
                                   onChanged: (val) => setState(() {
@@ -477,7 +474,7 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4)),
+          BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 10, offset: const Offset(0, 4)),
         ],
       ),
       child: Column(
@@ -768,6 +765,7 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
     );
   }
 
+  // ignore: unused_element
   Widget _buildHistoryRow(String date, String billNo, String amount) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),

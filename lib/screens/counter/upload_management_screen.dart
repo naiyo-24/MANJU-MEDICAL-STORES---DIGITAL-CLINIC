@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:file_picker/file_picker.dart';
 import '../../services/inventory_service.dart';
 
@@ -145,6 +144,7 @@ class _UploadManagementScreenState extends State<UploadManagementScreen> {
     );
   }
 
+  // ignore: unused_element
   Widget _buildDropdown(String label, String hint, {bool isRequired = false}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -541,7 +541,7 @@ class _UploadManagementScreenState extends State<UploadManagementScreen> {
                         'unit_price': double.tryParse(_priceCtrl.text) ?? 0.0,
                         'expiry_date': _expiryCtrl.text.isNotEmpty ? _expiryCtrl.text : '2026-12-31',
                         'gst': double.tryParse(_gstCtrl.text) ?? 0.0,
-                        if (uploadedImageUrl != null) 'image_url': uploadedImageUrl,
+                        'image_url': ?uploadedImageUrl,
                       });
                       if (context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Medicine added successfully!', style: TextStyle(color: Colors.white)), backgroundColor: Colors.green));

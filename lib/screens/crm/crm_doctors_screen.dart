@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../models/crm_models.dart';
-import '../../services/crm_data_service.dart';
 import '../../providers/crm_providers.dart';
 
 class CrmDoctorsScreen extends ConsumerStatefulWidget {
@@ -13,6 +12,7 @@ class CrmDoctorsScreen extends ConsumerStatefulWidget {
 
 class _CrmDoctorsScreenState extends ConsumerState<CrmDoctorsScreen> {
   List<CrmDoctor> _doctors = [];
+  // ignore: unused_field
   bool _isLoading = true;
 
   @override
@@ -154,7 +154,7 @@ class _CrmDoctorsScreenState extends ConsumerState<CrmDoctorsScreen> {
         children: [
           Container(
             padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(color: color.withOpacity(0.1), shape: BoxShape.circle),
+            decoration: BoxDecoration(color: color.withValues(alpha: 0.1), shape: BoxShape.circle),
             child: Icon(icon, color: color, size: 24),
           ),
           const SizedBox(width: 16),

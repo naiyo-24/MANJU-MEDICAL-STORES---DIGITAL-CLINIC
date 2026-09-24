@@ -25,7 +25,8 @@ class _CrmPatientsScreenState extends ConsumerState<CrmPatientsScreen> {
   String _selectedGender = 'All Gender';
   String _selectedAge = 'All Age Groups';
   String _selectedStatus = 'All Status';
-  int _currentPage = 1;
+  // ignore: unused_field
+  final int _currentPage = 1;
 
   @override
   void initState() {
@@ -215,7 +216,7 @@ class _CrmPatientsScreenState extends ConsumerState<CrmPatientsScreen> {
                           const SizedBox(width: 16),
                           Expanded(
                             child: DropdownButtonFormField<String>(
-                              value: gender,
+                              initialValue: gender,
                               decoration: const InputDecoration(labelText: 'Gender', border: OutlineInputBorder()),
                               items: ['Male', 'Female', 'Other'].map((g) => DropdownMenuItem(value: g, child: Text(g))).toList(),
                               onChanged: (v) => setState(() => gender = v!),
@@ -225,7 +226,7 @@ class _CrmPatientsScreenState extends ConsumerState<CrmPatientsScreen> {
                       ),
                       const SizedBox(height: 16),
                       DropdownButtonFormField<String>(
-                        value: bloodGroup,
+                        initialValue: bloodGroup,
                         decoration: const InputDecoration(labelText: 'Blood Group', border: OutlineInputBorder()),
                         items: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map((g) => DropdownMenuItem(value: g, child: Text(g))).toList(),
                         onChanged: (v) => setState(() => bloodGroup = v!),
@@ -311,7 +312,7 @@ class _CrmPatientsScreenState extends ConsumerState<CrmPatientsScreen> {
                           const SizedBox(width: 16),
                           Expanded(
                             child: DropdownButtonFormField<String>(
-                              value: gender,
+                              initialValue: gender,
                               decoration: const InputDecoration(labelText: 'Gender', border: OutlineInputBorder()),
                               items: ['Male', 'Female', 'Other'].map((g) => DropdownMenuItem(value: g, child: Text(g))).toList(),
                               onChanged: (v) => setState(() => gender = v!),
@@ -321,7 +322,7 @@ class _CrmPatientsScreenState extends ConsumerState<CrmPatientsScreen> {
                       ),
                       const SizedBox(height: 16),
                       DropdownButtonFormField<String>(
-                        value: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].contains(bloodGroup) ? bloodGroup : 'O+',
+                        initialValue: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].contains(bloodGroup) ? bloodGroup : 'O+',
                         decoration: const InputDecoration(labelText: 'Blood Group', border: OutlineInputBorder()),
                         items: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map((g) => DropdownMenuItem(value: g, child: Text(g))).toList(),
                         onChanged: (v) => setState(() => bloodGroup = v!),
@@ -437,7 +438,7 @@ class _CrmPatientsScreenState extends ConsumerState<CrmPatientsScreen> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
+              color: color.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
             child: Icon(icon, color: color, size: 28),
@@ -606,7 +607,7 @@ class _CrmPatientsScreenState extends ConsumerState<CrmPatientsScreen> {
                               onTap: () => _selectPatient(patient),
                               child: Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                                color: isSelected ? const Color(0xFFF3E8FF).withOpacity(0.3) : Colors.transparent,
+                                color: isSelected ? const Color(0xFFF3E8FF).withValues(alpha: 0.3) : Colors.transparent,
                                 child: Row(
                                   children: [
                                     const SizedBox(width: 32, child: Icon(Icons.check_box_outline_blank, color: Color(0xFFCBD5E1), size: 18)),
@@ -975,13 +976,13 @@ class _CrmPatientsScreenState extends ConsumerState<CrmPatientsScreen> {
     Color bgColor;
     if (status == 'Active') {
       color = const Color(0xFF22C55E);
-      bgColor = const Color(0xFF22C55E).withOpacity(0.1);
+      bgColor = const Color(0xFF22C55E).withValues(alpha: 0.1);
     } else if (status == 'Follow Up') {
       color = const Color(0xFFF59E0B);
-      bgColor = const Color(0xFFF59E0B).withOpacity(0.1);
+      bgColor = const Color(0xFFF59E0B).withValues(alpha: 0.1);
     } else {
       color = const Color(0xFFEF4444);
-      bgColor = const Color(0xFFEF4444).withOpacity(0.1);
+      bgColor = const Color(0xFFEF4444).withValues(alpha: 0.1);
     }
 
     return Container(
@@ -1005,7 +1006,7 @@ class _CrmPatientsScreenState extends ConsumerState<CrmPatientsScreen> {
       child: Container(
         padding: const EdgeInsets.all(6),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
+          color: color.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(6),
         ),
         child: Icon(icon, size: 14, color: color),

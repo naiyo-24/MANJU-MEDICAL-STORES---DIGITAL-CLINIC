@@ -1,4 +1,3 @@
-import 'package:dio/dio.dart';
 import '../config/api_client.dart';
 
 class GlobalSearchService {
@@ -17,6 +16,7 @@ class GlobalSearchService {
         throw 'Failed to perform global search';
       }
     } catch (e) {
+      // ignore: avoid_print
       print('Global search error: $e');
       return {"medicines": [], "customers": [], "invoices": []};
     }

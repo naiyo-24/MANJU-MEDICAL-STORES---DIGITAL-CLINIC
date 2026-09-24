@@ -1,14 +1,16 @@
-import 'dart:convert';
 import 'package:dio/dio.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../models/lab_models.dart';
 import '../config/api_client.dart';
 import 'auth_service.dart';
 
 class LabDataService {
+  // ignore: unused_field
   static const String _testsKey = 'lab_tests';
+  // ignore: unused_field
   static const String _templatesKey = 'lab_templates';
+  // ignore: unused_field
   static const String _packagesKey = 'lab_packages';
+  // ignore: unused_field
   static const String _customCategoriesKey = 'custom_categories';
 
   // --- Custom Categories (API) ---
@@ -22,6 +24,7 @@ class LabDataService {
         }
       }
     } catch (e) {
+      // ignore: avoid_print
       print('Error getting category ID: $e');
     }
     return null;
@@ -35,6 +38,7 @@ class LabDataService {
         return data.map((e) => e['name'].toString()).toList();
       }
     } catch (e) {
+      // ignore: avoid_print
       print('Error getting categories: $e');
     }
     return [];
@@ -47,6 +51,7 @@ class LabDataService {
         data: {'name': category},
       );
     } catch (e) {
+      // ignore: avoid_print
       print('Error saving category: $e');
     }
   }
@@ -57,6 +62,7 @@ class LabDataService {
       try {
         await ApiClient().dio.delete('/api/admin/lab-category/$id');
       } catch (e) {
+        // ignore: avoid_print
         print('Error deleting category: $e');
       }
     }
@@ -71,6 +77,7 @@ class LabDataService {
           data: {'name': newName},
         );
       } catch (e) {
+        // ignore: avoid_print
         print('Error renaming category: $e');
       }
     } else {
@@ -87,6 +94,7 @@ class LabDataService {
         return data.where((item) => item['type'] == 'SINGLE_TEST').map((j) => LabTest.fromJson(j)).toList();
       }
     } catch (e) {
+      // ignore: avoid_print
       print('Error fetching tests: $e');
     }
     return [];
@@ -114,6 +122,7 @@ class LabDataService {
         }
       }
     } catch (e) {
+      // ignore: avoid_print
       print('Error saving test: $e');
     }
   }
@@ -129,6 +138,7 @@ class LabDataService {
       );
       return response.statusCode == 200 || response.statusCode == 201;
     } catch (e) {
+      // ignore: avoid_print
       print('CSV upload error: $e');
       return false;
     }
@@ -138,6 +148,7 @@ class LabDataService {
     try {
       await ApiClient().dio.delete('/api/admin/lab-catalog/$id');
     } catch (e) {
+      // ignore: avoid_print
       print('Error deleting test: $e');
     }
   }
@@ -151,6 +162,7 @@ class LabDataService {
         return data.map((j) => LabTemplate.fromJson(j)).toList();
       }
     } catch (e) {
+      // ignore: avoid_print
       print('Error getting templates: $e');
     }
     return [];
@@ -173,6 +185,7 @@ class LabDataService {
         }
       }
     } catch (e) {
+      // ignore: avoid_print
       print('Error saving template: $e');
     }
   }
@@ -181,6 +194,7 @@ class LabDataService {
     try {
       await ApiClient().dio.delete('/api/admin/lab-template/$id');
     } catch (e) {
+      // ignore: avoid_print
       print('Error deleting template: $e');
     }
   }
@@ -194,6 +208,7 @@ class LabDataService {
         return data.where((item) => item['type'] == 'PACKAGE').map((j) => LabPackage.fromJson(j)).toList();
       }
     } catch (e) {
+      // ignore: avoid_print
       print('Error fetching packages: $e');
     }
     return [];
@@ -211,6 +226,7 @@ class LabDataService {
       );
       return response.statusCode == 201 || response.statusCode == 200;
     } catch (e) {
+      // ignore: avoid_print
       print('Error uploading CSV: $e');
       return false;
     }
@@ -233,6 +249,7 @@ class LabDataService {
         }
       }
     } catch (e) {
+      // ignore: avoid_print
       print('Error saving package: $e');
     }
   }
@@ -241,11 +258,13 @@ class LabDataService {
     try {
       await ApiClient().dio.delete('/api/admin/lab-catalog/$id');
     } catch (e) {
+      // ignore: avoid_print
       print('Error deleting package: $e');
     }
   }
 
   // --- Bookings ---
+  // ignore: unused_field
   static const String _bookingsKey = 'lab_bookings';
 
   static Future<List<LabBooking>> getBookings() async {
@@ -275,6 +294,7 @@ class LabDataService {
         }).toList();
       }
     } catch (e) {
+      // ignore: avoid_print
       print('Error getting bookings: $e');
     }
     return [];
@@ -303,9 +323,11 @@ class LabDataService {
       );
 
       if (response.statusCode != 201) {
+        // ignore: avoid_print
         print('Failed to save booking: ${response.data}');
       }
     } catch (e) {
+      // ignore: avoid_print
       print('Error saving booking: $e');
     }
   }
@@ -314,14 +336,17 @@ class LabDataService {
     try {
       final response = await ApiClient().dio.patch('/api/lab-bookings/$id/cancel');
       if (response.statusCode != 200) {
+        // ignore: avoid_print
         print('Failed to delete booking: ${response.data}');
       }
     } catch (e) {
+      // ignore: avoid_print
       print('Error deleting booking: $e');
     }
   }
 
   // --- Reports ---
+  // ignore: unused_field
   static const String _reportsKey = 'lab_reports';
 
   static Future<List<LabReport>> getReports() async {
@@ -347,12 +372,13 @@ class LabDataService {
             reportDate: item['created_at'] != null ? DateTime.parse(item['created_at']) : DateTime.now(),
             status: item['status'] ?? 'Pending',
             isSent: item['status'] == 'DELIVERED',
-            sampleId: 'S' + item['id'].toString().substring(0, 6).toUpperCase(),
+            sampleId: 'S${item['id'].toString().substring(0, 6).toUpperCase()}',
             collectionDate: item['preferred_date'] != null ? DateTime.parse(item['preferred_date']) : DateTime.now(),
           );
         }).toList();
       }
     } catch (e) {
+      // ignore: avoid_print
       print('Error getting reports: $e');
     }
     return [];

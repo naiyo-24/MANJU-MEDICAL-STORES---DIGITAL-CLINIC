@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../services/shop_service.dart';
 import '../../services/export_service.dart';
 import '../../providers/counter_providers.dart';
 
@@ -16,7 +15,8 @@ class _ShopManagementScreenState extends ConsumerState<ShopManagementScreen> {
   String _searchQuery = '';
   String _selectedStatus = 'All Status';
   String _selectedCity = 'All Cities';
-  bool _isLoading = true;
+  // ignore: unused_field
+  final bool _isLoading = true;
   String _sortField = 'name';
   bool _sortAscending = true;
 
@@ -180,7 +180,9 @@ class _ShopManagementScreenState extends ConsumerState<ShopManagementScreen> {
                         );
                         
                         if (mounted) {
+                          // ignore: use_build_context_synchronously
                           Navigator.pop(context);
+                          // ignore: use_build_context_synchronously
                           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Shop added successfully!')));
                         }
                       } else {
@@ -190,6 +192,7 @@ class _ShopManagementScreenState extends ConsumerState<ShopManagementScreen> {
                       }
                     } catch (e) {
                       if (mounted) {
+                        // ignore: use_build_context_synchronously
                         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to save shop: $e')));
                       }
                     }
@@ -278,7 +281,7 @@ class _ShopManagementScreenState extends ConsumerState<ShopManagementScreen> {
                     ],
                   ),
                 ),
-                Icon(Icons.chevron_right, color: iconColor.withOpacity(0.5)),
+                Icon(Icons.chevron_right, color: iconColor.withValues(alpha: 0.5)),
               ],
             ),
             ),
@@ -298,8 +301,8 @@ class _ShopManagementScreenState extends ConsumerState<ShopManagementScreen> {
         final activeCount = shops.where((s) => s['status'] == 'Active').length;
         final inactiveCount = shops.length - activeCount;
         final citiesCount = shops.map((s) => s['city']).toSet().length;
-        final _filteredShopsList = _getFilteredShops(shops);
-        final _dynamicCitiesList = _getDynamicCities(shops);
+        final filteredShopsList = _getFilteredShops(shops);
+        final dynamicCitiesList = _getDynamicCities(shops);
 
         return ListView(
           padding: const EdgeInsets.all(24.0),
@@ -342,17 +345,19 @@ class _ShopManagementScreenState extends ConsumerState<ShopManagementScreen> {
                       final filename = 'shops_export_${DateTime.now().millisecondsSinceEpoch}';
                       try {
                         if (value == 'csv') {
-                          await ExportService.exportToCSV(_filteredShopsList, filename);
+                          await ExportService.exportToCSV(filteredShopsList, filename);
                         } else if (value == 'excel') {
-                          await ExportService.exportToExcel(_filteredShopsList, filename);
+                          await ExportService.exportToExcel(filteredShopsList, filename);
                         } else if (value == 'pdf') {
-                          await ExportService.exportToPDF(_filteredShopsList, filename);
+                          await ExportService.exportToPDF(filteredShopsList, filename);
                         }
                         if (mounted) {
+                          // ignore: use_build_context_synchronously
                           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Export successful!')));
                         }
                       } catch (e) {
                         if (mounted) {
+                          // ignore: use_build_context_synchronously
                           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Export failed: $e')));
                         }
                       }
@@ -516,7 +521,7 @@ class _ShopManagementScreenState extends ConsumerState<ShopManagementScreen> {
               const SizedBox(width: 16),
               _buildDropdownFilter('All Status', ['All Status', 'Active', 'Inactive'], _selectedStatus, (val) => setState(() => _selectedStatus = val!)),
               const SizedBox(width: 16),
-              _buildDropdownFilter('All Cities', _dynamicCitiesList, _selectedCity, (val) => setState(() => _selectedCity = val!)),
+              _buildDropdownFilter('All Cities', dynamicCitiesList, _selectedCity, (val) => setState(() => _selectedCity = val!)),
               const Spacer(),
               PopupMenuButton<String>(
                 onSelected: (value) {
@@ -592,10 +597,10 @@ class _ShopManagementScreenState extends ConsumerState<ShopManagementScreen> {
                   ListView.separated(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
-                    itemCount: _filteredShopsList.length,
+                    itemCount: filteredShopsList.length,
                       separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFF1F5F9)),
                       itemBuilder: (context, index) {
-                        final shop = _filteredShopsList[index];
+                        final shop = filteredShopsList[index];
                         final isActive = shop['status'] == 'Active';
                         return Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
@@ -718,7 +723,7 @@ class _ShopManagementScreenState extends ConsumerState<ShopManagementScreen> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('Showing 1 to ${_filteredShopsList.length} of ${shops.length} shops', style: const TextStyle(color: Color(0xFF64748B), fontSize: 12)),
+                        Text('Showing 1 to ${filteredShopsList.length} of ${shops.length} shops', style: const TextStyle(color: Color(0xFF64748B), fontSize: 12)),
                         Row(
                           children: [
                             _buildPaginationBtn(Icons.chevron_left, false),

@@ -1,7 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../notifiers/counter_notifier.dart';
 import '../notifiers/customer_notifier.dart';
-import '../services/shop_service.dart';
 import '../notifiers/inventory_notifier.dart';
 import '../services/inventory_service.dart';
 import '../notifiers/doctor_notifier.dart';

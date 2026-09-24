@@ -26,8 +26,6 @@ import '../screens/lab/lab_sample_tracking_screen.dart';
 import '../screens/lab/lab_reports_screen.dart';
 import '../screens/lab/lab_send_reports_screen.dart';
 import '../screens/lab/lab_history_screen.dart';
-import '../screens/lab/lab_accounts_screen.dart';
-import '../screens/lab/lab_settings_screen.dart';
 
 import '../screens/crm/crm_dashboard.dart';
 import '../screens/crm/crm_dashboard_home.dart';

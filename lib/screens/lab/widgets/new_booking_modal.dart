@@ -166,7 +166,7 @@ class _NewBookingModalState extends State<NewBookingModal> {
                               clipBehavior: Clip.none,
                               children: [
                                 DropdownButtonFormField<String>(
-                                  value: _patientGender,
+                                  initialValue: _patientGender,
                                   decoration: inputDecoration.copyWith(contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10)),
                                   items: ['Male', 'Female', 'Other'].map((g) => DropdownMenuItem(value: g, child: Text(g))).toList(),
                                   onChanged: (val) => setState(() => _patientGender = val!),
@@ -215,8 +215,11 @@ class _NewBookingModalState extends State<NewBookingModal> {
                                 isSelected: _selectedPackageIds.contains(p.id),
                                 onChanged: (val) {
                                   setState(() {
-                                    if (val == true) _selectedPackageIds.add(p.id);
-                                    else _selectedPackageIds.remove(p.id);
+                                    if (val == true) {
+                                      _selectedPackageIds.add(p.id);
+                                    } else {
+                                      _selectedPackageIds.remove(p.id);
+                                    }
                                   });
                                 },
                               )),
@@ -231,8 +234,11 @@ class _NewBookingModalState extends State<NewBookingModal> {
                                 isSelected: _selectedTestIds.contains(t.id),
                                 onChanged: (val) {
                                   setState(() {
-                                    if (val == true) _selectedTestIds.add(t.id);
-                                    else _selectedTestIds.remove(t.id);
+                                    if (val == true) {
+                                      _selectedTestIds.add(t.id);
+                                    } else {
+                                      _selectedTestIds.remove(t.id);
+                                    }
                                   });
                                 },
                               )),

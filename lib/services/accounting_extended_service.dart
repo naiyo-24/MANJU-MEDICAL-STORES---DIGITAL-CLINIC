@@ -1,4 +1,3 @@
-import 'package:dio/dio.dart';
 import '../config/api_client.dart';
 
 class AccountingExtendedService {
@@ -10,6 +9,7 @@ class AccountingExtendedService {
       }
       return {"receivables": [], "total_receivables": 0.0};
     } catch (e) {
+      // ignore: avoid_print
       print('Error fetching receivables: $e');
       return {"receivables": [], "total_receivables": 0.0};
     }
@@ -23,6 +23,7 @@ class AccountingExtendedService {
       }
       return {"payables": [], "total_payables": 0.0};
     } catch (e) {
+      // ignore: avoid_print
       print('Error fetching payables: $e');
       return {"payables": [], "total_payables": 0.0};
     }
@@ -36,6 +37,7 @@ class AccountingExtendedService {
       }
       return [];
     } catch (e) {
+      // ignore: avoid_print
       print('Error fetching ledger: $e');
       return [];
     }
@@ -46,8 +48,8 @@ class AccountingExtendedService {
       final response = await ApiClient().dio.get(
         '/api/accounts/extended/reports/pnl',
         queryParameters: {
-          if (startDate != null) 'start_date': startDate,
-          if (endDate != null) 'end_date': endDate,
+          'start_date': ?startDate,
+          'end_date': ?endDate,
         },
       );
       if (response.statusCode == 200) {
@@ -55,6 +57,7 @@ class AccountingExtendedService {
       }
       return {"total_income": 0.0, "total_expense": 0.0, "net_profit": 0.0};
     } catch (e) {
+      // ignore: avoid_print
       print('Error fetching PnL: $e');
       return {"total_income": 0.0, "total_expense": 0.0, "net_profit": 0.0};
     }

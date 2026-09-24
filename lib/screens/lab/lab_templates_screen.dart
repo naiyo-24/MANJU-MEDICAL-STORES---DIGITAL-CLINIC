@@ -458,7 +458,7 @@ class _LabTemplatesScreenState extends State<LabTemplatesScreen> {
         children: [
           Container(
             padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(color: iconColor.withOpacity(0.1), shape: BoxShape.circle),
+            decoration: BoxDecoration(color: iconColor.withValues(alpha: 0.1), shape: BoxShape.circle),
             child: Icon(icon, color: iconColor, size: 24),
           ),
           const SizedBox(width: 16),
@@ -548,6 +548,7 @@ class _LabTemplatesScreenState extends State<LabTemplatesScreen> {
 
 
 
+  // ignore: unused_element
   Widget _buildTextField(String label, String value, ValueChanged<String> onChanged) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -591,7 +592,7 @@ class _LabTemplatesScreenState extends State<LabTemplatesScreen> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
-                        color: _selectedTemplate!.isActive ? Colors.green.withOpacity(0.1) : Colors.grey.withOpacity(0.1),
+                        color: _selectedTemplate!.isActive ? Colors.green.withValues(alpha: 0.1) : Colors.grey.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Text(
@@ -662,7 +663,7 @@ class _LabTemplatesScreenState extends State<LabTemplatesScreen> {
                       Expanded(flex: 3, child: Text(f.normalRange.isNotEmpty ? f.normalRange : '-', style: const TextStyle(fontSize: 13, color: Color(0xFF64748B)))),
                     ],
                   ),
-                )).toList(),
+                )),
             ],
           ),
         ),
@@ -700,6 +701,7 @@ class _LabTemplatesScreenState extends State<LabTemplatesScreen> {
   }
 
 
+  // ignore: unused_element
   Color _parseColor(String hexColor) {
     try {
       hexColor = hexColor.toUpperCase().replaceAll("#", "");
@@ -712,6 +714,7 @@ class _LabTemplatesScreenState extends State<LabTemplatesScreen> {
 }
 
 
+// ignore: unused_element
 class _DocVarRow extends StatelessWidget {
   final String label;
   final String val;

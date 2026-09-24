@@ -26,7 +26,7 @@ class BillingRightPanel extends ConsumerWidget {
   final bool isGeneratingBill;
 
   const BillingRightPanel({
-    Key? key,
+    super.key,
     required this.hasEnoughHeight,
     required this.discountController,
     required this.gstController,
@@ -46,7 +46,7 @@ class BillingRightPanel extends ConsumerWidget {
     required this.onGenerateBill,
     required this.customerSearchField,
     required this.isGeneratingBill,
-  }) : super(key: key);
+  });
 
   Widget _buildCompactField(String label, TextEditingController controller, {bool isNumber = false, String? hint, Function(String)? onChanged}) {
     return Column(
@@ -141,10 +141,13 @@ return Container(
                                       ),
 
                                       // Bill Table Body
-                                      Expanded(
-                                        child: billingState.currentBill.isEmpty
-                                            ? const Center(child: Text('Cart is empty', style: TextStyle(color: Color(0xFF94A3B8))))
+                                      _buildConditionalExpanded(
+                                        hasEnoughHeight,
+                                        billingState.currentBill.isEmpty
+                                            ? const Center(child: Padding(padding: EdgeInsets.all(16.0), child: Text('Cart is empty', style: TextStyle(color: Color(0xFF94A3B8)))))
                                             : ListView.separated(
+                                          shrinkWrap: !hasEnoughHeight,
+                                          physics: hasEnoughHeight ? const AlwaysScrollableScrollPhysics() : const NeverScrollableScrollPhysics(),
                                           itemCount: billingState.currentBill.length,
                                           separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFE2E8F0)),
                                           itemBuilder: (context, index) {

@@ -61,7 +61,7 @@ class _LabReportsScreenState extends State<LabReportsScreen> {
           children: [
             Container(
               padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(color: color.withOpacity(0.1), shape: BoxShape.circle),
+              decoration: BoxDecoration(color: color.withValues(alpha: 0.1), shape: BoxShape.circle),
               child: Icon(icon, color: color, size: 24),
             ),
             const SizedBox(width: 16),
@@ -112,7 +112,7 @@ class _LabReportsScreenState extends State<LabReportsScreen> {
         backgroundColor: bgColor ?? Colors.white,
         foregroundColor: color ?? const Color(0xFF1E293B),
         elevation: 0,
-        side: BorderSide(color: bgColor == null ? const Color(0xFFE2E8F0) : bgColor),
+        side: BorderSide(color: bgColor ?? const Color(0xFFE2E8F0)),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
@@ -141,6 +141,7 @@ class _LabReportsScreenState extends State<LabReportsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // ignore: unused_local_variable
     int totalReports = _reports.length;
     int pending = _reports.where((r) => r.status == 'Pending').length;
     int inProcessing = _reports.where((r) => r.status == 'In Processing').length;
@@ -378,7 +379,7 @@ class _LabReportsScreenState extends State<LabReportsScreen> {
                                           children: [
                                             Container(
                                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                              decoration: BoxDecoration(color: statusColor.withOpacity(0.1), borderRadius: BorderRadius.circular(4)),
+                                              decoration: BoxDecoration(color: statusColor.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(4)),
                                               child: Row(
                                                 mainAxisSize: MainAxisSize.min,
                                                 children: [
@@ -465,7 +466,7 @@ class _LabReportsScreenState extends State<LabReportsScreen> {
                               children: [
                                 Container(
                                   padding: const EdgeInsets.all(8),
-                                  decoration: BoxDecoration(color: const Color(0xFFEA580C).withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
+                                  decoration: BoxDecoration(color: const Color(0xFFEA580C).withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
                                   child: const Icon(Icons.description, color: Color(0xFFEA580C)),
                                 ),
                                 const SizedBox(width: 12),

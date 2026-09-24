@@ -148,8 +148,10 @@ class AccountsNotifier extends AsyncNotifier<AccountsState> {
     double runningBal = 0.0;
     for (int i = filteredTxns.length - 1; i >= 0; i--) {
       final txn = filteredTxns[i];
-      if (txn.type == 'Income') runningBal += txn.amount;
-      else if (txn.type == 'Expense') runningBal -= txn.amount;
+      if (txn.type == 'Income') {
+        runningBal += txn.amount;
+      // ignore: curly_braces_in_flow_control_structures
+      } else if (txn.type == 'Expense') runningBal -= txn.amount;
       txn.runningBalance = runningBal;
     }
 

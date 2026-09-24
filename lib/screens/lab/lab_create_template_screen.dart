@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
 import '../../models/lab_models.dart';
 import '../../services/lab_data_service.dart';
@@ -456,7 +455,7 @@ class _LabCreateTemplateScreenState extends State<LabCreateTemplateScreen> {
                                         children: [
                                           Container(
                                             padding: const EdgeInsets.all(8),
-                                            decoration: BoxDecoration(color: const Color(0xFFEA580C).withOpacity(0.1), shape: BoxShape.circle),
+                                            decoration: BoxDecoration(color: const Color(0xFFEA580C).withValues(alpha: 0.1), shape: BoxShape.circle),
                                             child: const Icon(Icons.local_hospital, color: Color(0xFFEA580C), size: 32),
                                           ),
                                           const SizedBox(width: 16),
@@ -681,6 +680,7 @@ class _LabCreateTemplateScreenState extends State<LabCreateTemplateScreen> {
     );
   }
   
+  // ignore: unused_element
   Widget _buildTableInput(String value, Function(String) onChanged) {
     return _tableInput(value, onChanged);
   }
@@ -722,6 +722,7 @@ class _LabCreateTemplateScreenState extends State<LabCreateTemplateScreen> {
   }
 
 
+  // ignore: unused_element
   Color _parseColor(String hexColor) {
     try {
       hexColor = hexColor.toUpperCase().replaceAll("#", "");
@@ -740,7 +741,7 @@ class _LabCreateTemplateScreenState extends State<LabCreateTemplateScreen> {
           Switch(
             value: value,
             onChanged: onChanged,
-            activeColor: const Color(0xFFEA580C),
+            activeThumbColor: const Color(0xFFEA580C),
             materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
           ),
           const SizedBox(width: 8),

@@ -18,7 +18,7 @@ class _LabSendReportsScreenState extends State<LabSendReportsScreen> {
   String _selectedTab = 'Pending to Send';
   LabReport? _selectedReport;
   
-  Set<String> _selectedReportIds = {};
+  final Set<String> _selectedReportIds = {};
   
   bool _sendViaWhatsApp = true;
   bool _sendViaEmail = false;
@@ -44,6 +44,7 @@ class _LabSendReportsScreenState extends State<LabSendReportsScreen> {
     });
   }
 
+  // ignore: unused_element
   Color _getStatusColor(String status) {
     switch (status) {
       case 'Pending': return Colors.red;
@@ -66,7 +67,7 @@ class _LabSendReportsScreenState extends State<LabSendReportsScreen> {
           children: [
             Container(
               padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(color: color.withOpacity(0.1), shape: BoxShape.circle),
+              decoration: BoxDecoration(color: color.withValues(alpha: 0.1), shape: BoxShape.circle),
               child: Icon(icon, color: color, size: 24),
             ),
             const SizedBox(width: 16),
@@ -116,7 +117,7 @@ class _LabSendReportsScreenState extends State<LabSendReportsScreen> {
         backgroundColor: bgColor ?? Colors.white,
         foregroundColor: color ?? const Color(0xFF1E293B),
         elevation: 0,
-        side: BorderSide(color: bgColor == null ? const Color(0xFFE2E8F0) : bgColor),
+        side: BorderSide(color: bgColor ?? const Color(0xFFE2E8F0)),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
@@ -136,7 +137,7 @@ class _LabSendReportsScreenState extends State<LabSendReportsScreen> {
           children: [
             Container(
               padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(color: const Color(0xFFEA580C).withOpacity(0.1), shape: BoxShape.circle),
+              decoration: BoxDecoration(color: const Color(0xFFEA580C).withValues(alpha: 0.1), shape: BoxShape.circle),
               child: Icon(icon, color: const Color(0xFFEA580C), size: 28),
             ),
             const SizedBox(width: 16),
@@ -426,8 +427,11 @@ class _LabSendReportsScreenState extends State<LabSendReportsScreen> {
                                         child: InkWell(
                                           onTap: () {
                                             setState(() {
-                                              if (isChecked) _selectedReportIds.remove(report.id);
-                                              else _selectedReportIds.add(report.id);
+                                              if (isChecked) {
+                                                _selectedReportIds.remove(report.id);
+                                              } else {
+                                                _selectedReportIds.add(report.id);
+                                              }
                                             });
                                           },
                                           child: Icon(isChecked ? Icons.check_box : Icons.check_box_outline_blank, size: 18, color: isChecked ? const Color(0xFFEA580C) : const Color(0xFF94A3B8)),
@@ -445,7 +449,7 @@ class _LabSendReportsScreenState extends State<LabSendReportsScreen> {
                                           children: [
                                             Container(
                                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                              decoration: BoxDecoration(color: statusColor.withOpacity(0.1), borderRadius: BorderRadius.circular(4)),
+                                              decoration: BoxDecoration(color: statusColor.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(4)),
                                               child: Row(
                                                 mainAxisSize: MainAxisSize.min,
                                                 children: [
@@ -519,7 +523,7 @@ class _LabSendReportsScreenState extends State<LabSendReportsScreen> {
                             children: [
                               Container(
                                 padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(color: const Color(0xFFEA580C).withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
+                                decoration: BoxDecoration(color: const Color(0xFFEA580C).withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
                                 child: const Icon(Icons.send, color: Color(0xFFEA580C), size: 18),
                               ),
                               const SizedBox(width: 12),

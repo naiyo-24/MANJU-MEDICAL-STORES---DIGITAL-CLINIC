@@ -10,11 +10,11 @@ class ExportService {
     if (data.isEmpty) return;
     
     final headers = data.first.keys.where((k) => k != 'id').toList();
-    String csv = headers.join(',') + '\n';
+    String csv = '${headers.join(',')}\n';
     
     for (var row in data) {
       final values = headers.map((h) => '"${row[h]?.toString().replaceAll('"', '""') ?? ''}"').join(',');
-      csv += values + '\n';
+      csv += '$values\n';
     }
     
     final bytes = Uint8List.fromList(utf8.encode(csv));

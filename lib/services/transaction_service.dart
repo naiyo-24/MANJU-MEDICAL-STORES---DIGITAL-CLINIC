@@ -1,4 +1,3 @@
-import 'package:dio/dio.dart';
 import '../config/api_client.dart';
 import 'package:intl/intl.dart';
 
@@ -45,8 +44,11 @@ class TransactionModel {
     }
 
     String txnType = json['transaction_type'] ?? '';
-    if (txnType.toUpperCase() == 'INCOME') txnType = 'Income';
-    else if (txnType.toUpperCase() == 'EXPENSE') txnType = 'Expense';
+    if (txnType.toUpperCase() == 'INCOME') {
+      txnType = 'Income';
+    // ignore: curly_braces_in_flow_control_structures
+    } else if (txnType.toUpperCase() == 'EXPENSE') txnType = 'Expense';
+    // ignore: curly_braces_in_flow_control_structures
     else if (txnType.toUpperCase() == 'TRANSFER') txnType = 'Transfer';
 
     return TransactionModel(

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../utils/responsive.dart';
 import '../../models/lab_models.dart';
-import '../../services/lab_data_service.dart';
 import '../../providers/lab_providers.dart';
 import 'package:uuid/uuid.dart';
 
@@ -74,7 +73,7 @@ class _LabPackagesScreenState extends ConsumerState<LabPackagesScreen> {
                           title: const Text('Active Status', style: TextStyle(fontSize: 14)),
                           value: isActive,
                           onChanged: (val) => setDialogState(() => isActive = val),
-                          activeColor: const Color(0xFFEA580C),
+                          activeThumbColor: const Color(0xFFEA580C),
                           contentPadding: EdgeInsets.zero,
                         ),
                       ),
@@ -134,6 +133,7 @@ class _LabPackagesScreenState extends ConsumerState<LabPackagesScreen> {
                   isActive: isActive,
                 );
                 await ref.read(labPackagesProvider.notifier).addOrUpdatePackage(pkg);
+                // ignore: use_build_context_synchronously
                 if (mounted) Navigator.pop(context, );
                 _loadData();
               },
@@ -157,7 +157,7 @@ class _LabPackagesScreenState extends ConsumerState<LabPackagesScreen> {
           children: [
             Container(
               padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(color: color.withOpacity(0.1), shape: BoxShape.circle),
+              decoration: BoxDecoration(color: color.withValues(alpha: 0.1), shape: BoxShape.circle),
               child: Icon(icon, color: color, size: 24),
             ),
             const SizedBox(width: 16),
@@ -428,7 +428,7 @@ class _LabPackagesScreenState extends ConsumerState<LabPackagesScreen> {
                                             const SizedBox(width: 6),
                                             Container(
                                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                              decoration: BoxDecoration(color: package.isActive ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1), borderRadius: BorderRadius.circular(4)),
+                                              decoration: BoxDecoration(color: package.isActive ? Colors.green.withValues(alpha: 0.1) : Colors.red.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(4)),
                                               child: Text(package.isActive ? 'Active' : 'Inactive', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: package.isActive ? Colors.green : Colors.red)),
                                             ),
                                           ],
@@ -516,7 +516,7 @@ class _LabPackagesScreenState extends ConsumerState<LabPackagesScreen> {
                                     children: [
                                       Container(
                                         padding: const EdgeInsets.all(8),
-                                        decoration: BoxDecoration(color: const Color(0xFFEA580C).withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
+                                        decoration: BoxDecoration(color: const Color(0xFFEA580C).withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
                                         child: const Icon(Icons.inventory_2, color: Color(0xFFEA580C)),
                                       ),
                                       const SizedBox(width: 12),
@@ -556,7 +556,7 @@ class _LabPackagesScreenState extends ConsumerState<LabPackagesScreen> {
                                                 const SizedBox(width: 100, child: Text('Status', style: TextStyle(color: Color(0xFF64748B), fontSize: 13))),
                                                 Container(
                                                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                                  decoration: BoxDecoration(color: _selectedPackage!.isActive ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1), borderRadius: BorderRadius.circular(4)),
+                                                  decoration: BoxDecoration(color: _selectedPackage!.isActive ? Colors.green.withValues(alpha: 0.1) : Colors.red.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(4)),
                                                   child: Row(
                                                     mainAxisSize: MainAxisSize.min,
                                                     children: [

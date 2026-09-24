@@ -1,4 +1,3 @@
-import 'package:dio/dio.dart';
 import '../config/api_client.dart';
 import '../models/counter_models.dart';
 export '../models/counter_models.dart';

@@ -63,7 +63,7 @@ class _LabSampleTrackingScreenState extends State<LabSampleTrackingScreen> {
           children: [
             Container(
               padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(color: color.withOpacity(0.1), shape: BoxShape.circle),
+              decoration: BoxDecoration(color: color.withValues(alpha: 0.1), shape: BoxShape.circle),
               child: Icon(icon, color: color, size: 24),
             ),
             const SizedBox(width: 16),
@@ -180,9 +180,13 @@ class _LabSampleTrackingScreenState extends State<LabSampleTrackingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // ignore: unused_local_variable
     int collectedToday = _bookings.where((b) => b.status == 'Collected').length;
+    // ignore: unused_local_variable
     int inProcessing = _bookings.where((b) => b.status == 'In Processing').length;
+    // ignore: unused_local_variable
     int ready = _bookings.where((b) => b.status == 'Ready').length;
+    // ignore: unused_local_variable
     int delivered = _bookings.where((b) => b.status == 'Delivered').length;
 
     List<LabBooking> displayedBookings = _bookings.where((b) {
@@ -401,7 +405,7 @@ class _LabSampleTrackingScreenState extends State<LabSampleTrackingScreen> {
                                           children: [
                                             Container(
                                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                              decoration: BoxDecoration(color: statusColor.withOpacity(0.1), borderRadius: BorderRadius.circular(4)),
+                                              decoration: BoxDecoration(color: statusColor.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(4)),
                                               child: Row(
                                                 mainAxisSize: MainAxisSize.min,
                                                 children: [
@@ -489,7 +493,7 @@ class _LabSampleTrackingScreenState extends State<LabSampleTrackingScreen> {
                                   children: [
                                     Container(
                                       padding: const EdgeInsets.all(8),
-                                      decoration: BoxDecoration(color: const Color(0xFFEA580C).withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
+                                      decoration: BoxDecoration(color: const Color(0xFFEA580C).withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
                                       child: const Icon(Icons.assignment, color: Color(0xFFEA580C)),
                                     ),
                                     const SizedBox(width: 12),
@@ -543,7 +547,7 @@ class _LabSampleTrackingScreenState extends State<LabSampleTrackingScreen> {
                                     const SizedBox(width: 100, child: Text('Current Status', style: TextStyle(color: Color(0xFF64748B), fontSize: 13))),
                                     Container(
                                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                      decoration: BoxDecoration(color: _getStatusColor(_selectedBooking!.status).withOpacity(0.1), borderRadius: BorderRadius.circular(4)),
+                                      decoration: BoxDecoration(color: _getStatusColor(_selectedBooking!.status).withValues(alpha: 0.1), borderRadius: BorderRadius.circular(4)),
                                       child: Row(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [

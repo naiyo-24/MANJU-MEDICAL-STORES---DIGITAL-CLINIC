@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:pdf/pdf.dart';
-import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import 'package:file_saver/file_saver.dart';
 import 'dart:async';
-import '../../services/inventory_service.dart';
 import '../../services/customer_service.dart';
 import '../../services/billing_service.dart';
 import '../../services/doctor_service.dart';
@@ -16,6 +13,7 @@ import '../../services/shop_settings_service.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/billing_provider.dart';
+import '../../providers/counter_providers.dart';
 import 'widgets/billing/billing_left_panel.dart';
 import 'widgets/billing/billing_right_panel.dart';
 
@@ -31,9 +29,8 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
 
   List<Map<String, dynamic>> get _currentBill => ref.watch(billingProvider).currentBill;
 
-  List<Map<String, dynamic>> _medicines = [];
   List<Customer> _allCustomers = [];
-  List<Map<String, dynamic>> _filteredMedicines = [];
+  String _searchQuery = '';
 
   // Modifiable Data for Current Bill
   
@@ -45,7 +42,7 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
   double _discountValue = 0.0;
   final TextEditingController _discountController = TextEditingController();
   
-  bool _isGstPercentage = true;
+  final bool _isGstPercentage = true;
   double _gstValue = 0.0;
   final TextEditingController _gstController = TextEditingController();
 
@@ -53,7 +50,7 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
   final TextEditingController _customerPhoneController = TextEditingController();
   final TextEditingController _customerLocationController = TextEditingController();
 
-  String _paymentMethod = 'CASH'; // CASH, UPI, CARD
+  final String _paymentMethod = 'CASH'; // CASH, UPI, CARD
 
   final TextEditingController _newDoctorController = TextEditingController();
   
@@ -72,7 +69,6 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
   void initState() {
     super.initState();
     _startClock();
-    _fetchMedicines();
     _fetchDoctors();
     _fetchCustomers();
     _discountController.addListener(() {
@@ -193,6 +189,7 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
     return _currentBill.fold(0.0, (sum, item) => sum + (item['total'] as double));
   }
 
+  // ignore: unused_element
   int get _totalItems => _currentBill.length;
 
   double get _discountAmount {
@@ -223,37 +220,11 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
         });
       }
     } catch (e) {
+      // ignore: avoid_print
       print('Error fetching customers: $e');
     }
   }
 
-  Future<void> _fetchMedicines() async {
-    try {
-      final fetchedMedicines = await InventoryService.fetchInventory();
-      if (mounted) {
-        setState(() {
-          _medicines = fetchedMedicines.map((item) => {
-            'inventory_item_id': item.id,
-            'name': item.name,
-            'brand': item.manufacturer,
-            'pack': item.sku,
-            'mrp': item.unitPrice,
-            'stock': item.stockQuantity,
-            'batch': item.batchNumber,
-            'hsn': item.hsnCode ?? '-',
-            'expiry': item.expiryDate,
-            'cgst': (item.gst ?? 0.0) / 2,
-            'sgst': (item.gst ?? 0.0) / 2,
-          }).toList();
-          _filteredMedicines = _medicines;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error loading inventory: $e'), backgroundColor: Colors.red));
-      }
-    }
-  }
 
   Future<void> _fetchDoctors() async {
     try {
@@ -512,7 +483,7 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
       }
 
       // 2. Refresh Inventory to reflect new stock
-      await _fetchMedicines();
+      ref.invalidate(inventoryProvider);
 
       // 3. Generate PDF and Save/Print
       Map<String, dynamic>? shopSettings;
@@ -614,6 +585,7 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
     }
   }
 
+  // ignore: unused_element
   void _showAddCustomerDialog() {
     final nameController = TextEditingController();
     final phoneController = TextEditingController();
@@ -815,6 +787,7 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
     });
   }
 
+  // ignore: unused_element
   void _showAddCustomItemDialog() {
     final nameController = TextEditingController();
     final brandController = TextEditingController();
@@ -1075,6 +1048,7 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
     );
   }
 
+  // ignore: unused_element
   Widget _buildCompactField(String label, TextEditingController controller, {bool isNumber = false}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1102,6 +1076,7 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
     );
   }
 
+  // ignore: unused_element
   Widget _buildFilterChip(String label, int index) {
     bool isSelected = _selectedCategoryIndex == index;
     return Padding(
@@ -1128,12 +1103,46 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
     );
   }
 
+  // ignore: unused_element
   Widget _buildConditionalExpanded(bool isDesktop, Widget child) {
     return isDesktop ? Expanded(child: child) : SizedBox(height: 400, child: child);
   }
 
   @override
   Widget build(BuildContext context) {
+    final inventoryState = ref.watch(inventoryProvider);
+    final allMedicines = inventoryState.when(
+      data: (items) => items.map((item) => {
+        'inventory_item_id': item.id,
+        'name': item.name,
+        'brand': item.manufacturer,
+        'pack': item.sku,
+        'mrp': item.unitPrice,
+        'stock': item.stockQuantity,
+        'batch': item.batchNumber,
+        'hsn': item.hsnCode ?? '-',
+        'expiry': item.expiryDate,
+        'cgst': (item.gst ?? 0.0) / 2,
+        'sgst': (item.gst ?? 0.0) / 2,
+      }).toList(),
+      loading: () => <Map<String, dynamic>>[],
+      error: (err, stack) => <Map<String, dynamic>>[],
+    );
+
+    List<Map<String, dynamic>> computedFilteredMedicines = allMedicines;
+    
+    int currentCatIndex = ref.watch(billingProvider).selectedCategoryIndex;
+    if (currentCatIndex != 0) {
+      String category = _categories[currentCatIndex];
+      computedFilteredMedicines = computedFilteredMedicines.where((m) => m['category'] == category).toList();
+    }
+    
+    if (_searchQuery.isNotEmpty) {
+      computedFilteredMedicines = computedFilteredMedicines.where((m) => 
+        m['name'].toString().toLowerCase().contains(_searchQuery.toLowerCase()) || 
+        m['brand'].toString().toLowerCase().contains(_searchQuery.toLowerCase())
+      ).toList();
+    }
     return Container(
       color: const Color(0xFFF8FAFC),
       child: Column(
@@ -1177,7 +1186,7 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                   decoration: BoxDecoration(
                     color: const Color(0xFFF1F8F5),
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: const Color(0xFF22C55E).withOpacity(0.3)),
+                    border: Border.all(color: const Color(0xFF22C55E).withValues(alpha: 0.3)),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -1204,36 +1213,21 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
               padding: const EdgeInsets.all(24.0),
               child: LayoutBuilder(builder: (context, constraints) {
                 bool isDesktopWidth = constraints.maxWidth > 1100;
-                bool hasEnoughHeight = constraints.maxHeight > 700;
+                bool hasEnoughHeight = constraints.maxHeight > 850;
                 
                 Widget leftSide = BillingLeftPanel(
                   isDesktopWidth: isDesktopWidth,
                   hasEnoughHeight: hasEnoughHeight,
-                  filteredMedicines: _filteredMedicines,
+                  filteredMedicines: computedFilteredMedicines,
                   categories: _categories,
                   selectedCategoryIndex: ref.watch(billingProvider).selectedCategoryIndex,
                   onAddToCart: _addToCart,
                   onCategorySelected: (index) {
                     ref.read(billingProvider.notifier).updateCategory(index);
-                    setState(() {
-                      if (index == 0) {
-                        _filteredMedicines = _medicines;
-                      } else {
-                        String category = _categories[index];
-                        _filteredMedicines = _medicines.where((m) => m['category'] == category).toList();
-                      }
-                    });
                   },
                   onSearch: (q) {
                     setState(() {
-                      if (q.isEmpty) {
-                        _filteredMedicines = _medicines;
-                      } else {
-                        _filteredMedicines = _medicines.where((m) => 
-                          m['name'].toString().toLowerCase().contains(q.toLowerCase()) || 
-                          m['brand'].toString().toLowerCase().contains(q.toLowerCase())
-                        ).toList();
-                      }
+                      _searchQuery = q;
                     });
                   },
                 );

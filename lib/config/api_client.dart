@@ -5,7 +5,7 @@ import 'api_constants.dart';
 
 class ApiClient {
   static final ApiClient _instance = ApiClient._internal();
-  
+
   late final Dio dio;
 
   factory ApiClient() {
@@ -40,28 +40,36 @@ class ApiClient {
         },
         onError: (DioException e, handler) {
           // Centralized error logging
-          print('API Error [${e.response?.statusCode}]: ${e.requestOptions.path}');
+          // ignore: avoid_print
+          print(
+            'API Error [${e.response?.statusCode}]: ${e.requestOptions.path}',
+          );
+          // ignore: avoid_print
           print('Message: ${e.message}');
-          
+
           if (e.response?.statusCode == 401) {
-            print('Unauthorized: Token might be expired. Consider logging out the user.');
-            // TODO: Dispatch a global logout event or clear token
+            // ignore: avoid_print
+            print(
+              'Unauthorized: Token might be expired. Consider logging out the user.',
+            );
           }
-          
+
           return handler.next(e);
         },
       ),
     );
 
     // Add PrettyDioLogger for debugging
-    dio.interceptors.add(PrettyDioLogger(
-      requestHeader: true,
-      requestBody: true,
-      responseBody: true,
-      responseHeader: false,
-      error: true,
-      compact: true,
-      maxWidth: 90,
-    ));
+    dio.interceptors.add(
+      PrettyDioLogger(
+        requestHeader: true,
+        requestBody: true,
+        responseBody: true,
+        responseHeader: false,
+        error: true,
+        compact: true,
+        maxWidth: 90,
+      ),
+    );
   }
 }
