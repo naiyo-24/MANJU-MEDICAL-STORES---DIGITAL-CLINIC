@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import '../../models/settings_models.dart';
+
 import 'package:file_picker/file_picker.dart';
 import 'package:printing/printing.dart';
 import 'package:pdf/pdf.dart';
@@ -239,51 +241,29 @@ class _BillCustomizationScreenState extends State<BillCustomizationScreen> {
         }
       }
 
-      final settings = {
-        'shop_name': _shopNameCtrl.text,
-        'tagline': _taglineCtrl.text,
-        'address': _addressCtrl.text,
-        'phone': _phoneCtrl.text,
-        'landline': _landlineCtrl.text,
-        'email': _emailCtrl.text,
-        'gst_number': _gstCtrl.text,
-        'bank_name': _bankNameCtrl.text,
-        'branch_name': _branchNameCtrl.text,
-        'ac_holder_name': _acHolderCtrl.text,
-        'ac_number': _acNumberCtrl.text,
-        'ifsc_code': _ifscCtrl.text,
-        'terms_1': _terms1Ctrl.text,
-        'terms_2': _terms2Ctrl.text,
-        'terms_3': _terms3Ctrl.text,
-      };
+      final settings = ShopSettings(
+        shopName: _shopNameCtrl.text,
+        tagline: _taglineCtrl.text,
+        address: _addressCtrl.text,
+        phone: _phoneCtrl.text,
+        landline: _landlineCtrl.text,
+        email: _emailCtrl.text,
+        gstNumber: _gstCtrl.text,
+        bankName: _bankNameCtrl.text,
+        branchName: _branchNameCtrl.text,
+        acHolderName: _acHolderCtrl.text,
+        acNumber: _acNumberCtrl.text,
+        ifscCode: _ifscCtrl.text,
+        terms1: _terms1Ctrl.text,
+        terms2: _terms2Ctrl.text,
+        terms3: _terms3Ctrl.text,
+      );
 
       final dummyItems = [
-        {'name': 'Paracetamol 500mg', 'batch': 'B123', 'expiry': '12/25', 'hsn': '3004', 'qty': 2, 'mrp': 25.0, 'cgst': 6, 'sgst': 6, 'total': 50.0},
-        {'name': 'Amoxicillin 250mg', 'batch': 'B456', 'expiry': '10/24', 'hsn': '3004', 'qty': 1, 'mrp': 120.0, 'cgst': 6, 'sgst': 6, 'total': 120.0},
-        {'name': 'Cough Syrup 100ml', 'batch': 'C789', 'expiry': '05/26', 'hsn': '3004', 'qty': 1, 'mrp': 85.0, 'cgst': 6, 'sgst': 6, 'total': 85.0},
-        {'name': 'Vitamin C Zinc', 'batch': 'V001', 'expiry': '11/25', 'hsn': '3004', 'qty': 3, 'mrp': 40.0, 'cgst': 6, 'sgst': 6, 'total': 120.0},
-        {'name': 'Ibuprofen 400mg', 'batch': 'I222', 'expiry': '01/26', 'hsn': '3004', 'qty': 2, 'mrp': 30.0, 'cgst': 6, 'sgst': 6, 'total': 60.0},
-        {'name': 'Cetirizine 10mg', 'batch': 'C333', 'expiry': '08/25', 'hsn': '3004', 'qty': 5, 'mrp': 15.0, 'cgst': 6, 'sgst': 6, 'total': 75.0},
-        {'name': 'Azithromycin 500', 'batch': 'A444', 'expiry': '03/26', 'hsn': '3004', 'qty': 1, 'mrp': 150.0, 'cgst': 6, 'sgst': 6, 'total': 150.0},
-        {'name': 'Band-Aid Pack', 'batch': 'B555', 'expiry': '12/28', 'hsn': '3005', 'qty': 2, 'mrp': 20.0, 'cgst': 6, 'sgst': 6, 'total': 40.0},
-        {'name': 'Volini Spray', 'batch': 'V666', 'expiry': '09/25', 'hsn': '3004', 'qty': 1, 'mrp': 190.0, 'cgst': 6, 'sgst': 6, 'total': 190.0},
-        {'name': 'Dolo 650', 'batch': 'D777', 'expiry': '02/26', 'hsn': '3004', 'qty': 4, 'mrp': 32.0, 'cgst': 6, 'sgst': 6, 'total': 128.0},
-        {'name': 'Pantocid DSR', 'batch': 'P888', 'expiry': '07/26', 'hsn': '3004', 'qty': 2, 'mrp': 135.0, 'cgst': 6, 'sgst': 6, 'total': 270.0},
-        {'name': 'ORS Powder', 'batch': 'O999', 'expiry': '10/25', 'hsn': '3004', 'qty': 5, 'mrp': 22.0, 'cgst': 6, 'sgst': 6, 'total': 110.0},
-        {'name': 'Ecosprin 75', 'batch': 'E111', 'expiry': '04/27', 'hsn': '3004', 'qty': 2, 'mrp': 45.0, 'cgst': 6, 'sgst': 6, 'total': 90.0},
-        {'name': 'Betadine Ointment', 'batch': 'B222', 'expiry': '11/26', 'hsn': '3004', 'qty': 1, 'mrp': 95.0, 'cgst': 6, 'sgst': 6, 'total': 95.0},
-        {'name': 'Vicks VapoRub', 'batch': 'V333', 'expiry': '01/28', 'hsn': '3004', 'qty': 1, 'mrp': 85.0, 'cgst': 6, 'sgst': 6, 'total': 85.0},
-        {'name': 'Benadryl Syrup', 'batch': 'B444', 'expiry': '05/25', 'hsn': '3004', 'qty': 1, 'mrp': 115.0, 'cgst': 6, 'sgst': 6, 'total': 115.0},
-        {'name': 'Crocin Advance', 'batch': 'C555', 'expiry': '08/26', 'hsn': '3004', 'qty': 3, 'mrp': 18.0, 'cgst': 6, 'sgst': 6, 'total': 54.0},
-        {'name': 'Pudin Hara', 'batch': 'P666', 'expiry': '12/24', 'hsn': '3004', 'qty': 2, 'mrp': 25.0, 'cgst': 6, 'sgst': 6, 'total': 50.0},
-        {'name': 'Gelusil MPS', 'batch': 'G777', 'expiry': '09/25', 'hsn': '3004', 'qty': 1, 'mrp': 140.0, 'cgst': 6, 'sgst': 6, 'total': 140.0},
-        {'name': 'Eno Fruit Salt', 'batch': 'E888', 'expiry': '03/26', 'hsn': '3004', 'qty': 4, 'mrp': 10.0, 'cgst': 6, 'sgst': 6, 'total': 40.0},
-        {'name': 'Aspirin 75mg', 'batch': 'A999', 'expiry': '06/25', 'hsn': '3004', 'qty': 2, 'mrp': 12.0, 'cgst': 6, 'sgst': 6, 'total': 24.0},
-        {'name': 'Zandu Balm', 'batch': 'Z111', 'expiry': '11/25', 'hsn': '3004', 'qty': 1, 'mrp': 45.0, 'cgst': 6, 'sgst': 6, 'total': 45.0},
-        {'name': 'Honitus Syrup', 'batch': 'H222', 'expiry': '02/26', 'hsn': '3004', 'qty': 1, 'mrp': 95.0, 'cgst': 6, 'sgst': 6, 'total': 95.0},
-        {'name': 'Saridon', 'batch': 'S333', 'expiry': '09/26', 'hsn': '3004', 'qty': 5, 'mrp': 35.0, 'cgst': 6, 'sgst': 6, 'total': 175.0},
-        {'name': 'Soframycin Cream', 'batch': 'S444', 'expiry': '04/27', 'hsn': '3004', 'qty': 1, 'mrp': 55.0, 'cgst': 6, 'sgst': 6, 'total': 55.0},
-      ];
+        BillItem(id: '1', name: 'Paracetamol 500mg', batch: 'B123', expiry: '12/25', hsn: '3004', qty: 2, mrp: 25.0, price: 25.0, cgst: 6, sgst: 6, total: 50.0),
+        BillItem(id: '2', name: 'Amoxicillin 250mg', batch: 'B456', expiry: '10/24', hsn: '3004', qty: 1, mrp: 120.0, price: 120.0, cgst: 6, sgst: 6, total: 120.0),
+        BillItem(id: '3', name: 'Cough Syrup 100ml', batch: 'C789', expiry: '05/26', hsn: '3004', qty: 1, mrp: 85.0, price: 85.0, cgst: 6, sgst: 6, total: 85.0),
+      ].map((e) => e.toMap()).toList();
 
       final args = {
         'items': dummyItems,

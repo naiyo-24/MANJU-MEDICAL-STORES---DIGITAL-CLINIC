@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../services/accounting_extended_service.dart';
+import '../../../../services/accounting_extended_service.dart';
 
 class LedgerView extends StatefulWidget {
   const LedgerView({super.key});

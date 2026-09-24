@@ -1,34 +1,39 @@
 import 'package:flutter/material.dart';
 import '../../widgets/custom_pagination.dart';
-
 import 'package:intl/intl.dart';
 import '../../services/transaction_service.dart';
-
-import 'package:intl/intl.dart';
-import '../../services/transaction_service.dart';
-
-import 'package:intl/intl.dart';
-import '../../services/transaction_service.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../providers/counter_providers.dart';
+import '../../notifiers/accounts_notifier.dart';
 import '../../services/account_service.dart';
 
-import 'widgets/receivables_view.dart';
-import 'widgets/payables_view.dart';
-import 'widgets/ledger_view.dart';
-import 'widgets/reports_view.dart';
+import 'widgets/accounts/receivables_view.dart';
+import 'widgets/accounts/payables_view.dart';
+import 'widgets/accounts/ledger_view.dart';
+import 'widgets/accounts/reports_view.dart';
+import 'widgets/accounts/accounts_common_widgets.dart';
 
-class AccountsScreen extends StatefulWidget {
+class AccountsScreen extends ConsumerStatefulWidget {
   const AccountsScreen({super.key});
 
   @override
-  State<AccountsScreen> createState() => _AccountsScreenState();
+  ConsumerState<AccountsScreen> createState() => _AccountsScreenState();
 }
 
-class _AccountsScreenState extends State<AccountsScreen> {
+class _AccountsScreenState extends ConsumerState<AccountsScreen> {
   int _activeTab = 0;
   final List<String> _tabs = ['Transactions', 'Receivables (Credit)', 'Payables', 'Ledger', 'Reports'];
 
-  List<TransactionModel> _transactions = [];
-  bool _isLoading = true;
+  AccountsState get _state => ref.watch(accountsProvider).value ?? AccountsState();
+  List<TransactionModel> get _transactions => _state.transactions;
+  List<String> get _categories => _state.categories;
+  double get _totalIncome => _state.totalIncome;
+  double get _totalExpenses => _state.totalExpenses;
+  double get _netProfit => _state.netProfit;
+  double get _cashInHand => _state.cashInHand;
+  double get _bankBalance => _state.bankBalance;
+  double get _outstandingReceivables => _state.outstandingReceivables;
+  bool get _isLoading => ref.watch(accountsProvider).isLoading;
 
   String _selectedPeriod = 'All Time';
   final List<String> _periods = ['Today', 'This Week', 'This Month', 'This Year', 'All Time'];
@@ -37,17 +42,8 @@ class _AccountsScreenState extends State<AccountsScreen> {
   final List<String> _types = ['All Types', 'Income', 'Expense'];
 
   String _selectedCategory = 'All Categories';
-  List<String> _categories = ['All Categories'];
-
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
-
-  double _totalIncome = 0;
-  double _totalExpenses = 0;
-  double _netProfit = 0;
-  double _cashInHand = 0;
-  double _bankBalance = 0;
-  double _outstandingReceivables = 0;
 
   int _currentPage = 1;
   final int _itemsPerPage = 10;
@@ -55,7 +51,9 @@ class _AccountsScreenState extends State<AccountsScreen> {
   @override
   void initState() {
     super.initState();
-    _loadTransactions();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadTransactions();
+    });
   }
 
   @override
@@ -65,107 +63,12 @@ class _AccountsScreenState extends State<AccountsScreen> {
   }
 
   Future<void> _loadTransactions() async {
-    setState(() {
-      _isLoading = true;
-      _currentPage = 1; // Reset to page 1 on reload
-    });
-    final allTxns = await TransactionService.getTransactions();
-    
-    // Dynamically build category list from all transactions
-    final Set<String> catSet = {};
-    for (var t in allTxns) {
-      if (t.category.isNotEmpty) catSet.add(t.category);
-    }
-    final List<String> loadedCategories = ['All Categories', ...catSet.toList()..sort()];
-    // If the currently selected category is not in the new list, reset it
-    if (!loadedCategories.contains(_selectedCategory)) {
-      _selectedCategory = 'All Categories';
-    }
-    
-    final now = DateTime.now();
-    final DateFormat format = DateFormat('dd MMM yyyy');
-    
-    List<TransactionModel> filteredTxns = [];
-    
-    for (var txn in allTxns) {
-      try {
-        final txnDate = format.parse(txn.date);
-        bool include = false;
-        
-        // 1. Period Filter
-        switch (_selectedPeriod) {
-          case 'Today':
-            include = txnDate.year == now.year && txnDate.month == now.month && txnDate.day == now.day;
-            break;
-          case 'This Week':
-            final startOfWeek = now.subtract(Duration(days: now.weekday - 1));
-            include = txnDate.isAfter(startOfWeek.subtract(const Duration(days: 1)));
-            break;
-          case 'This Month':
-            include = txnDate.year == now.year && txnDate.month == now.month;
-            break;
-          case 'This Year':
-            include = txnDate.year == now.year;
-            break;
-          case 'All Time':
-          default:
-            include = true;
-            break;
-        }
-        
-        // 2. Type Filter
-        if (include && _selectedType != 'All Types' && txn.type != _selectedType) {
-          include = false;
-        }
-
-        // 3. Category Filter
-        if (include && _selectedCategory != 'All Categories' && txn.category != _selectedCategory) {
-          include = false;
-        }
-
-        // 4. Search Filter
-        if (include && _searchQuery.isNotEmpty) {
-          final query = _searchQuery.toLowerCase();
-          if (!txn.description.toLowerCase().contains(query) &&
-              !txn.category.toLowerCase().contains(query)) {
-            include = false;
-          }
-        }
-        
-        if (include) {
-          filteredTxns.add(txn);
-        }
-      } catch (e) {
-        // Fallback for parsing errors, just include but still apply other filters if possible
-        if (_selectedType != 'All Types' && txn.type != _selectedType) continue;
-        if (_selectedCategory != 'All Categories' && txn.category != _selectedCategory) continue;
-        filteredTxns.add(txn);
-      }
-    }
-    
-    double runningBal = 0.0;
-    for (int i = filteredTxns.length - 1; i >= 0; i--) {
-      final txn = filteredTxns[i];
-      if (txn.type == 'Income') runningBal += txn.amount;
-      else if (txn.type == 'Expense') runningBal -= txn.amount;
-      txn.runningBalance = runningBal;
-    }
-
-    final summary = await AccountService.getSummary();
-
-    if (mounted) {
-      setState(() {
-        _categories = loadedCategories;
-        _transactions = filteredTxns;
-        _totalIncome = summary.totalIncome;
-        _totalExpenses = summary.totalExpenses;
-        _netProfit = summary.netProfit;
-        _cashInHand = summary.cashInHand;
-        _bankBalance = summary.bankBalance;
-        _outstandingReceivables = 0; // Replace with backend value if added later
-        _isLoading = false;
-      });
-    }
+    ref.read(accountsProvider.notifier).loadTransactions(
+      selectedPeriod: _selectedPeriod,
+      selectedType: _selectedType,
+      selectedCategory: _selectedCategory,
+      searchQuery: _searchQuery,
+    );
   }
 
   void _showAddTransactionDialog({String defaultType = 'Income'}) {
@@ -348,13 +251,13 @@ class _AccountsScreenState extends State<AccountsScreen> {
                   scrollDirection: Axis.horizontal,
                   child: Row(
                     children: [
-                      SizedBox(width: 250, child: _buildStatCard('Total Income', _fmt(_totalIncome), Icons.currency_rupee, const Color(0xFFDCFCE7), const Color(0xFF166534))),
+                      SizedBox(width: 250, child: AccountsWidgets.buildStatCard('Total Income', _fmt(_totalIncome), Icons.currency_rupee, const Color(0xFFDCFCE7), const Color(0xFF166534))),
                       const SizedBox(width: 16),
-                      SizedBox(width: 250, child: _buildStatCard('Total Expenses', _fmt(_totalExpenses), Icons.credit_card, const Color(0xFFFEE2E2), const Color(0xFFB91C1C))),
+                      SizedBox(width: 250, child: AccountsWidgets.buildStatCard('Total Expenses', _fmt(_totalExpenses), Icons.credit_card, const Color(0xFFFEE2E2), const Color(0xFFB91C1C))),
                       const SizedBox(width: 16),
-                      SizedBox(width: 250, child: _buildStatCard('Net Profit', _fmt(_netProfit), Icons.bar_chart, const Color(0xFFE0F2FE), const Color(0xFF0369A1))),
+                      SizedBox(width: 250, child: AccountsWidgets.buildStatCard('Net Profit', _fmt(_netProfit), Icons.bar_chart, const Color(0xFFE0F2FE), const Color(0xFF0369A1))),
                       const SizedBox(width: 16),
-                      SizedBox(width: 250, child: _buildStatCard('Outstanding Receivables', _fmt(_outstandingReceivables), Icons.people_alt, const Color(0xFFF3E8FF), const Color(0xFF7E22CE))),
+                      SizedBox(width: 250, child: AccountsWidgets.buildStatCard('Outstanding Receivables', _fmt(_outstandingReceivables), Icons.people_alt, const Color(0xFFF3E8FF), const Color(0xFF7E22CE))),
                     ],
                   ),
                 ),
@@ -417,19 +320,19 @@ class _AccountsScreenState extends State<AccountsScreen> {
                               runSpacing: 12,
                               crossAxisAlignment: WrapCrossAlignment.center,
                               children: [
-                                _buildDynamicDropdown(_selectedPeriod, _periods, (String? newValue) {
+                                AccountsWidgets.buildDynamicDropdown(_selectedPeriod, _periods, (String? newValue) {
                                   if (newValue != null) {
                                     setState(() => _selectedPeriod = newValue);
                                     _loadTransactions();
                                   }
                                 }),
-                                _buildDynamicDropdown(_selectedType, _types, (String? newValue) {
+                                AccountsWidgets.buildDynamicDropdown(_selectedType, _types, (String? newValue) {
                                   if (newValue != null) {
                                     setState(() => _selectedType = newValue);
                                     _loadTransactions();
                                   }
                                 }),
-                                _buildDynamicDropdown(_selectedCategory, _categories, (String? newValue) {
+                                AccountsWidgets.buildDynamicDropdown(_selectedCategory, _categories, (String? newValue) {
                                   if (newValue != null) {
                                     setState(() => _selectedCategory = newValue);
                                     _loadTransactions();
@@ -564,7 +467,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                                         mainAxisAlignment: MainAxisAlignment.center,
                                         children: [
                                           IconButton(icon: const Icon(Icons.remove_red_eye_outlined, size: 16, color: Color(0xFF64748B)), onPressed: () {
-                                            _showTransactionDetails(txn);
+                                            AccountsWidgets.showTransactionDetails(context, txn);
                                           }, constraints: const BoxConstraints(), padding: EdgeInsets.zero),
                                           const SizedBox(width: 8),
                                           IconButton(icon: const Icon(Icons.delete_outline, size: 16, color: Color(0xFF64748B)), onPressed: () {
@@ -639,20 +542,20 @@ class _AccountsScreenState extends State<AccountsScreen> {
 
         Widget rightSidebar = Column(
               children: [
-                _buildRightCard(
+                AccountsWidgets.buildRightCard(
                   title: 'Account Summary',
                   child: Column(
                     children: [
-                      _buildSummaryRow(Icons.money, 'Cash in Hand', _fmt(_cashInHand), const Color(0xFF22C55E)),
-                      _buildSummaryRow(Icons.account_balance, 'Bank Balance', _fmt(_bankBalance), const Color(0xFF3B82F6)),
-                      _buildSummaryRow(Icons.credit_card, 'Total Income', _fmt(_totalIncome), const Color(0xFF64748B)),
-                      _buildSummaryRow(Icons.credit_score, 'Total Expenses', _fmt(_totalExpenses), const Color(0xFFEF4444)),
-                      _buildSummaryRow(Icons.bar_chart, 'Net Profit', _fmt(_netProfit), const Color(0xFF3B82F6)),
+                      AccountsWidgets.buildSummaryRow(Icons.money, 'Cash in Hand', _fmt(_cashInHand), const Color(0xFF22C55E)),
+                      AccountsWidgets.buildSummaryRow(Icons.account_balance, 'Bank Balance', _fmt(_bankBalance), const Color(0xFF3B82F6)),
+                      AccountsWidgets.buildSummaryRow(Icons.credit_card, 'Total Income', _fmt(_totalIncome), const Color(0xFF64748B)),
+                      AccountsWidgets.buildSummaryRow(Icons.credit_score, 'Total Expenses', _fmt(_totalExpenses), const Color(0xFFEF4444)),
+                      AccountsWidgets.buildSummaryRow(Icons.bar_chart, 'Net Profit', _fmt(_netProfit), const Color(0xFF3B82F6)),
                     ],
                   ),
                 ),
                 const SizedBox(height: 24),
-                _buildRightCard(
+                AccountsWidgets.buildRightCard(
                   title: 'Quick Actions',
                   child: Column(
                     children: [
@@ -660,24 +563,24 @@ class _AccountsScreenState extends State<AccountsScreen> {
                         spacing: 12,
                         runSpacing: 12,
                         children: [
-                          _buildActionBtn('Receive Payment', Icons.download, const Color(0xFFDCFCE7), const Color(0xFF166534), () => _showAddTransactionDialog(defaultType: 'Income')),
-                          _buildActionBtn('Make Payment', Icons.upload, const Color(0xFFFEE2E2), const Color(0xFFB91C1C), () => _showAddTransactionDialog(defaultType: 'Expense')),
-                          _buildActionBtn('Add Expense', Icons.receipt_long, const Color(0xFFF3E8FF), const Color(0xFF7E22CE), () => _showAddTransactionDialog(defaultType: 'Expense')),
-                          _buildActionBtn('Bank Transfer', Icons.account_balance, const Color(0xFFE0F2FE), const Color(0xFF0369A1), () => _showAddTransactionDialog(defaultType: 'Expense')),
+                          AccountsWidgets.buildActionBtn('Receive Payment', Icons.download, const Color(0xFFDCFCE7), const Color(0xFF166534), () => _showAddTransactionDialog(defaultType: 'Income')),
+                          AccountsWidgets.buildActionBtn('Make Payment', Icons.upload, const Color(0xFFFEE2E2), const Color(0xFFB91C1C), () => _showAddTransactionDialog(defaultType: 'Expense')),
+                          AccountsWidgets.buildActionBtn('Add Expense', Icons.receipt_long, const Color(0xFFF3E8FF), const Color(0xFF7E22CE), () => _showAddTransactionDialog(defaultType: 'Expense')),
+                          AccountsWidgets.buildActionBtn('Bank Transfer', Icons.account_balance, const Color(0xFFE0F2FE), const Color(0xFF0369A1), () => _showAddTransactionDialog(defaultType: 'Expense')),
                         ],
                       ),
                     ],
                   ),
                 ),
                 const SizedBox(height: 24),
-                _buildRightCard(
+                AccountsWidgets.buildRightCard(
                   title: 'Recent Activities',
                   actionText: 'View All',
                   expandChild: false,
                   child: _transactions.isEmpty ? const Center(child: Text('No recent activities', style: TextStyle(color: Color(0xFF94A3B8)))) : ListView(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
-                    children: _transactions.take(5).map((txn) => _buildActivityItem(
+                    children: _transactions.take(5).map((txn) => AccountsWidgets.buildActivityItem(
                         '${txn.type == 'Income' ? 'Payment received' : 'Payment sent'}: ${txn.category}', 
                         _fmt(txn.amount), 
                         '${txn.date} ${txn.time}', 
@@ -714,230 +617,4 @@ class _AccountsScreenState extends State<AccountsScreen> {
     );
   }
 
-  Widget _buildStatCard(String title, String value, IconData icon, Color iconBgColor, Color iconColor, [String? trend]) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4)),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(color: iconBgColor, shape: BoxShape.circle),
-                child: Icon(icon, color: iconColor, size: 24),
-              ),
-              if (trend != null) ...[
-                const Spacer(),
-                Row(
-                  children: [
-                    Icon(Icons.arrow_upward, size: 12, color: iconColor),
-                    const SizedBox(width: 4),
-                    Text(trend, style: TextStyle(color: iconColor, fontWeight: FontWeight.bold, fontSize: 12)),
-                  ],
-                ),
-              ]
-            ],
-          ),
-          const SizedBox(height: 16),
-          Text(value, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
-          const SizedBox(height: 4),
-          Text(title, style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDynamicDropdown(String value, List<String> items, ValueChanged<String?> onChanged) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
-      decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE2E8F0)), borderRadius: BorderRadius.circular(8)),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<String>(
-          value: value,
-          icon: const Icon(Icons.keyboard_arrow_down, size: 16, color: Color(0xFF64748B)),
-          style: const TextStyle(fontSize: 12, color: Color(0xFF1E293B)),
-          items: items.map((String val) {
-            return DropdownMenuItem<String>(
-              value: val,
-              child: Text(val),
-            );
-          }).toList(),
-          onChanged: onChanged,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildRightCard({required String title, required Widget child, String? actionText, bool expandChild = false}) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4)),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFF1E293B))),
-              if (actionText != null)
-                Text(actionText, style: const TextStyle(color: Color(0xFF22C55E), fontSize: 12, fontWeight: FontWeight.bold)),
-            ],
-          ),
-          const SizedBox(height: 16),
-          if (expandChild) Expanded(child: child) else child,
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSummaryRow(IconData icon, String label, String value, Color color) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16.0),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
-            child: Icon(icon, size: 16, color: color),
-          ),
-          const SizedBox(width: 12),
-          Text(label, style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
-          const Spacer(),
-          Text(value, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildActionBtn(String label, IconData icon, Color bgColor, Color fgColor, VoidCallback onTap) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        decoration: BoxDecoration(
-          color: bgColor,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: fgColor.withOpacity(0.2)),
-        ),
-        child: Column(
-          children: [
-            Icon(icon, color: fgColor, size: 28),
-            const SizedBox(height: 8),
-            Text(label, style: TextStyle(color: fgColor, fontWeight: FontWeight.bold, fontSize: 13)),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showTransactionDetails(TransactionModel txn) {
-    showDialog(
-      context: context,
-      builder: (context) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        child: Container(
-          width: 400,
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text('Transaction Details', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                  IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(context)),
-                ],
-              ),
-              const Divider(),
-              const SizedBox(height: 16),
-              _buildDetailRow('Date & Time', "${txn.date} ${txn.time}"),
-              _buildDetailRow('Type', txn.type),
-              _buildDetailRow('Category', txn.category),
-              _buildDetailRow('Payment Mode', txn.paymentMode),
-              _buildDetailRow('Amount', _fmt(txn.amount)),
-              const SizedBox(height: 16),
-              const Text('Description', style: TextStyle(color: Colors.grey, fontSize: 12)),
-              const SizedBox(height: 4),
-              Text(txn.description, style: const TextStyle(fontSize: 14)),
-              const SizedBox(height: 24),
-              Align(
-                alignment: Alignment.centerRight,
-                child: ElevatedButton(
-                  onPressed: () => Navigator.pop(context),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF16A34A),
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                  ),
-                  child: const Text('Close', style: TextStyle(color: Colors.white)),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDetailRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(label, style: const TextStyle(color: Colors.grey, fontSize: 14)),
-          Text(value, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildActivityItem(String title, String amount, String time, Color indicatorColor) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            margin: const EdgeInsets.only(top: 4),
-            width: 8,
-            height: 8,
-            decoration: BoxDecoration(color: indicatorColor, shape: BoxShape.circle),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: const TextStyle(fontSize: 12, color: Color(0xFF1E293B))),
-                const SizedBox(height: 4),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(amount, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
-                    Text(time, style: const TextStyle(fontSize: 10, color: Color(0xFF64748B))),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }

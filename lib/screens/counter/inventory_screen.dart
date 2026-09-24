@@ -1,23 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../providers/counter_providers.dart';
 import 'package:go_router/go_router.dart';
 import '../../services/inventory_service.dart';
 import '../../config/api_constants.dart';
 import '../../services/export_service.dart';
+import 'widgets/inventory/inventory_row.dart';
 import '../../widgets/custom_date_range_picker.dart';
 import 'package:intl/intl.dart';
 
-class InventoryScreen extends StatefulWidget {
+class InventoryScreen extends ConsumerStatefulWidget {
   const InventoryScreen({super.key});
 
   @override
-  State<InventoryScreen> createState() => _InventoryScreenState();
+  ConsumerState<InventoryScreen> createState() => _InventoryScreenState();
 }
 
-class _InventoryScreenState extends State<InventoryScreen> {
+class _InventoryScreenState extends ConsumerState<InventoryScreen> {
   final TextEditingController _searchController = TextEditingController();
-  List<InventoryItem> _medicines = [];
-  bool _isLoading = true;
-  String _errorMessage = '';
 
   String _selectedDateFilter = 'All Time';
   DateTime? _startDate;
@@ -26,30 +26,17 @@ class _InventoryScreenState extends State<InventoryScreen> {
   @override
   void initState() {
     super.initState();
-    _fetchData();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _fetchData();
+    });
   }
 
   Future<void> _fetchData([String? query]) async {
-    setState(() {
-      _isLoading = true;
-      _errorMessage = '';
-    });
-    try {
-      final items = await InventoryService.fetchInventory(
-        searchQuery: query ?? _searchController.text,
-        startDate: _startDate != null ? DateFormat('yyyy-MM-dd').format(_startDate!) : null,
-        endDate: _endDate != null ? DateFormat('yyyy-MM-dd').format(_endDate!) : null,
-      );
-      setState(() {
-        _medicines = items;
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        _errorMessage = e.toString();
-        _isLoading = false;
-      });
-    }
+    ref.read(inventoryProvider.notifier).loadInventory(
+      searchQuery: query ?? _searchController.text,
+      startDate: _startDate != null ? DateFormat('yyyy-MM-dd').format(_startDate!) : null,
+      endDate: _endDate != null ? DateFormat('yyyy-MM-dd').format(_endDate!) : null,
+    );
   }
 
   Future<void> _selectDateRange() async {
@@ -106,7 +93,8 @@ class _InventoryScreenState extends State<InventoryScreen> {
   }
 
   void _exportData(String format) async {
-    final data = _medicines.map((m) => m.toMap()).toList();
+    final currentState = ref.read(inventoryProvider);
+    final data = currentState.value?.map((m) => m.toMap()).toList() ?? [];
     final filename = 'inventory_export_${DateFormat('yyyyMMdd').format(DateTime.now())}';
     try {
       if (format == 'CSV') {
@@ -126,9 +114,6 @@ class _InventoryScreenState extends State<InventoryScreen> {
     }
   }
 
-  void _onSearchChanged(String value) {
-    _fetchData(value);
-  }
 
   Future<void> _confirmDeleteMedicine(String itemId) async {
     final confirmed = await showDialog<bool>(
@@ -267,52 +252,13 @@ class _InventoryScreenState extends State<InventoryScreen> {
     );
   }
 
-  Widget _buildStatusBadge(String status, [String? text]) {
-    Color bgColor;
-    Color textColor;
-
-    switch (status) {
-      case 'In Stock':
-      case 'OK':
-        bgColor = const Color(0xFFDCFCE7);
-        textColor = const Color(0xFF166534);
-        break;
-      case 'Medium Stock':
-        bgColor = const Color(0xFFDBEAFE); // Blueish
-        textColor = const Color(0xFF1E40AF);
-        break;
-      case 'Low Stock':
-        bgColor = const Color(0xFFFEF9C3);
-        textColor = const Color(0xFF854D0E);
-        break;
-      case 'Out of Stock':
-        bgColor = const Color(0xFFFEE2E2);
-        textColor = const Color(0xFF991B1B);
-        break;
-      default:
-        bgColor = const Color(0xFFF1F5F9);
-        textColor = const Color(0xFF475569);
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Text(
-        text ?? status,
-        style: TextStyle(color: textColor, fontSize: 10, fontWeight: FontWeight.bold),
-      ),
-    );
-  }
-
   Widget _buildConditionalWrapper(bool isShort, Widget child) {
     return isShort ? SizedBox(height: 500, child: child) : Expanded(child: child);
   }
 
   @override
   Widget build(BuildContext context) {
+    final inventoryAsync = ref.watch(inventoryProvider);
     return Container(
       color: const Color(0xFFF8FAFC),
       child: LayoutBuilder(builder: (context, screenConstraints) {
@@ -504,115 +450,27 @@ class _InventoryScreenState extends State<InventoryScreen> {
                               
                               // Table Body
                               Expanded(
-                                child: _isLoading
-                                    ? const Center(child: CircularProgressIndicator(color: Color(0xFF22C55E)))
-                            : _errorMessage.isNotEmpty
-                                ? Center(child: Text(_errorMessage, style: const TextStyle(color: Colors.red)))
-                                : _medicines.isEmpty
-                                    ? const Center(child: Text('No inventory items found.'))
-                                    : ListView.separated(
-                                        itemCount: _medicines.length,
+                                child: inventoryAsync.when(
+                                loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF22C55E))),
+                                error: (err, stack) => Center(child: Text(err.toString(), style: const TextStyle(color: Colors.red))),
+                                data: (medicines) {
+                                  if (medicines.isEmpty) {
+                                    return const Center(child: Text('No inventory items found.'));
+                                  }
+                                  return ListView.separated(
+                                        itemCount: medicines.length,
                                         separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFE2E8F0)),
                                         itemBuilder: (context, index) {
-                                          final medicine = _medicines[index];
+                                          final medicine = medicines[index];
                                           // Simple status logic based on stock
-                                          final status = medicine.stockQuantity <= 0 
-                                              ? 'Out of Stock' 
-                                              : (medicine.stockQuantity <= (medicine.lowStockThreshold ?? 10) 
-                                                  ? 'Low Stock' 
-                                                  : (medicine.stockQuantity <= 50 ? 'Medium Stock' : 'OK'));
-                                          
-                                          return Padding(
-                                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                                            child: Row(
-                                              children: [
-                                                Expanded(
-                                                  flex: 3,
-                                                  child: Row(
-                                                    children: [
-                                                      Container(
-                                                        width: 40,
-                                                        height: 40,
-                                                        decoration: BoxDecoration(
-                                                          color: const Color(0xFFF1F5F9),
-                                                          borderRadius: BorderRadius.circular(8),
-                                                          image: medicine.imageUrl != null
-                                                              ? DecorationImage(
-                                                                  image: NetworkImage('${ApiConstants.baseUrl}${medicine.imageUrl}'),
-                                                                  fit: BoxFit.cover,
-                                                                )
-                                                              : null,
-                                                        ),
-                                                        child: medicine.imageUrl == null
-                                                            ? const Icon(Icons.medication, color: Color(0xFF94A3B8), size: 20)
-                                                            : null,
-                                                      ),
-                                                      const SizedBox(width: 12),
-                                                      Expanded(
-                                                        child: Column(
-                                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                                          children: [
-                                                            Text(medicine.name, style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E293B), fontSize: 14), maxLines: 1, overflow: TextOverflow.ellipsis),
-                                                            const SizedBox(height: 4),
-                                                            Text(medicine.manufacturer.isNotEmpty ? medicine.manufacturer : 'Unknown', style: const TextStyle(color: Color(0xFF64748B), fontSize: 10), maxLines: 1, overflow: TextOverflow.ellipsis),
-                                                          ],
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ),
-                                                Expanded(
-                                                  flex: 2, 
-                                                  child: Column(
-                                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                                    mainAxisAlignment: MainAxisAlignment.center,
-                                                    children: [
-                                                      Text(medicine.createdAt != null ? DateFormat('MMM dd, yyyy').format(DateTime.parse(medicine.createdAt!).toLocal()) : 'N/A', style: const TextStyle(color: Color(0xFF1E293B), fontSize: 12)),
-                                                      if (medicine.updatedAt != null)
-                                                        Text('Updated: ${DateFormat('MMM dd, yyyy').format(DateTime.parse(medicine.updatedAt!).toLocal())}', style: const TextStyle(color: Color(0xFF64748B), fontSize: 10)),
-                                                    ],
-                                                  ),
-                                                ),
-                                                Expanded(
-                                                  flex: 2,
-                                                  child: Text(
-                                                    medicine.stockQuantity.toString(),
-                                                    style: TextStyle(
-                                                      color: medicine.stockQuantity <= 0 
-                                                          ? const Color(0xFFDC2626) // Red
-                                                          : (medicine.stockQuantity <= (medicine.lowStockThreshold ?? 10) 
-                                                              ? const Color(0xFFD97706) // Yellow/Orange
-                                                              : (medicine.stockQuantity <= 50 ? const Color(0xFF2563EB) : const Color(0xFF16A34A))), // Blue / Green
-                                                      fontWeight: FontWeight.bold,
-                                                      fontSize: 12,
-                                                    ),
-                                                  ),
-                                                ),
-                                                Expanded(flex: 2, child: Text('₹${medicine.unitPrice.toStringAsFixed(2)}', style: const TextStyle(color: Color(0xFF1E293B), fontSize: 12, fontWeight: FontWeight.bold))),
-                                                Expanded(flex: 2, child: Text(medicine.expiryDate, style: const TextStyle(color: Color(0xFF64748B), fontSize: 12))),
-                                                Expanded(flex: 2, child: Align(alignment: Alignment.centerLeft, child: _buildStatusBadge(status))),
-                                                SizedBox(
-                                                  width: 40,
-                                                  child: PopupMenuButton<String>(
-                                                    icon: const Icon(Icons.more_vert, color: Color(0xFF94A3B8), size: 20),
-                                                    onSelected: (value) {
-                                                      if (value == 'edit') {
-                                                        _showEditMedicineDialog(medicine);
-                                                      } else if (value == 'delete') {
-                                                        _confirmDeleteMedicine(medicine.id);
-                                                      }
-                                                    },
-                                                    itemBuilder: (context) => [
-                                                      const PopupMenuItem(value: 'edit', child: Row(children: [Icon(Icons.edit, size: 16), SizedBox(width: 8), Text('Edit')])),
-                                                      const PopupMenuItem(value: 'delete', child: Row(children: [Icon(Icons.delete, color: Colors.red, size: 16), SizedBox(width: 8), Text('Delete', style: TextStyle(color: Colors.red))])),
-                                                    ],
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
+return InventoryRowWidget(
+                                            medicine: medicine,
+                                            onEdit: () => _showEditMedicineDialog(medicine),
+                                            onDelete: () => _confirmDeleteMedicine(medicine.id),
                                           );
-                                        },
-                                      ),
+},
+                                      );
+                                }),
                       ),
                     ],
                   );

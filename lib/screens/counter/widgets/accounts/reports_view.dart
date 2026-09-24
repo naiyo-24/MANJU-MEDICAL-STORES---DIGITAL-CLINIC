@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
-import '../../../services/accounting_extended_service.dart';
+import '../../../../services/accounting_extended_service.dart';
 
 class ReportsView extends StatefulWidget {
   const ReportsView({super.key});
