@@ -13,16 +13,17 @@ import '../../config/api_constants.dart';
 import 'package:dio/dio.dart';
 import '../../config/api_client.dart';
 import 'package:flutter/services.dart' show rootBundle;
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../providers/counter_providers.dart';
 
-class BillCustomizationScreen extends StatefulWidget {
+class BillCustomizationScreen extends ConsumerStatefulWidget {
   const BillCustomizationScreen({super.key});
 
   @override
-  State<BillCustomizationScreen> createState() => _BillCustomizationScreenState();
+  ConsumerState<BillCustomizationScreen> createState() => _BillCustomizationScreenState();
 }
 
-class _BillCustomizationScreenState extends State<BillCustomizationScreen> {
-  bool _isLoading = true;
+class _BillCustomizationScreenState extends ConsumerState<BillCustomizationScreen> {
   bool _isSaving = false;
   bool _isGenerating = false;
 
@@ -53,43 +54,44 @@ class _BillCustomizationScreenState extends State<BillCustomizationScreen> {
   @override
   void initState() {
     super.initState();
-    _fetchSettings();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      try {
+        final settings = await ref.read(settingsProvider.future);
+        _populateFields(settings);
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error loading settings: $e'), backgroundColor: Colors.red),
+          );
+        }
+      }
+    });
   }
 
-  Future<void> _fetchSettings() async {
-    try {
-      final settings = await ShopSettingsService.getSettings();
-      setState(() {
-        _shopNameCtrl.text = settings['shop_name'] ?? '';
-        _taglineCtrl.text = settings['tagline'] ?? '';
-        _addressCtrl.text = settings['address'] ?? '';
-        _phoneCtrl.text = settings['phone'] ?? '';
-        _landlineCtrl.text = settings['landline'] ?? '';
-        _emailCtrl.text = settings['email'] ?? '';
-        _gstCtrl.text = settings['gst_number'] ?? '';
+  void _populateFields(Map<String, dynamic> settings) {
+    if (!mounted) return;
+    setState(() {
+      _shopNameCtrl.text = settings['shop_name'] ?? '';
+      _taglineCtrl.text = settings['tagline'] ?? '';
+      _addressCtrl.text = settings['address'] ?? '';
+      _phoneCtrl.text = settings['phone'] ?? '';
+      _landlineCtrl.text = settings['landline'] ?? '';
+      _emailCtrl.text = settings['email'] ?? '';
+      _gstCtrl.text = settings['gst_number'] ?? '';
 
-        _bankNameCtrl.text = settings['bank_name'] ?? '';
-        _branchNameCtrl.text = settings['branch_name'] ?? '';
-        _acHolderCtrl.text = settings['ac_holder_name'] ?? '';
-        _acNumberCtrl.text = settings['ac_number'] ?? '';
-        _ifscCtrl.text = settings['ifsc_code'] ?? '';
+      _bankNameCtrl.text = settings['bank_name'] ?? '';
+      _branchNameCtrl.text = settings['branch_name'] ?? '';
+      _acHolderCtrl.text = settings['ac_holder_name'] ?? '';
+      _acNumberCtrl.text = settings['ac_number'] ?? '';
+      _ifscCtrl.text = settings['ifsc_code'] ?? '';
 
-        _terms1Ctrl.text = settings['terms_1'] ?? '';
-        _terms2Ctrl.text = settings['terms_2'] ?? '';
-        _terms3Ctrl.text = settings['terms_3'] ?? '';
+      _terms1Ctrl.text = settings['terms_1'] ?? '';
+      _terms2Ctrl.text = settings['terms_2'] ?? '';
+      _terms3Ctrl.text = settings['terms_3'] ?? '';
 
-        _logoUrl = settings['logo_url'];
-        _qrUrl = settings['qr_url'];
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() => _isLoading = false);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error loading settings: $e'), backgroundColor: Colors.red),
-        );
-      }
-    }
+      _logoUrl = settings['logo_url'];
+      _qrUrl = settings['qr_url'];
+    });
   }
 
   Future<void> _saveSettings() async {
@@ -129,7 +131,7 @@ class _BillCustomizationScreenState extends State<BillCustomizationScreen> {
         'terms_3': _terms3Ctrl.text,
       };
 
-      await ShopSettingsService.updateSettings(data);
+      await ref.read(settingsProvider.notifier).updateSettings(data);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Settings saved successfully'), backgroundColor: Colors.green),
@@ -353,7 +355,8 @@ class _BillCustomizationScreenState extends State<BillCustomizationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
+    final settingsAsync = ref.watch(settingsProvider);
+    if (settingsAsync.isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
 

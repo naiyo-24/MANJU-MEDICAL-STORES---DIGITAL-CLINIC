@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:file_picker/file_picker.dart';
 import '../../services/inventory_service.dart';
+import '../../providers/counter_providers.dart';
 
-class UploadManagementScreen extends StatefulWidget {
+class UploadManagementScreen extends ConsumerStatefulWidget {
   const UploadManagementScreen({super.key});
 
   @override
-  State<UploadManagementScreen> createState() => _UploadManagementScreenState();
+  ConsumerState<UploadManagementScreen> createState() => _UploadManagementScreenState();
 }
 
-class _UploadManagementScreenState extends State<UploadManagementScreen> {
+class _UploadManagementScreenState extends ConsumerState<UploadManagementScreen> {
   bool _isUploading = false;
   final _nameCtrl = TextEditingController();
   final _skuCtrl = TextEditingController();
@@ -51,6 +53,7 @@ class _UploadManagementScreenState extends State<UploadManagementScreen> {
         final message = await InventoryService.uploadInventory(result.files.single.path!);
         
         if (mounted) {
+          ref.invalidate(inventoryProvider);
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message, style: const TextStyle(color: Colors.white)), backgroundColor: Colors.green));
         }
       }
@@ -544,6 +547,7 @@ class _UploadManagementScreenState extends State<UploadManagementScreen> {
                         'image_url': ?uploadedImageUrl,
                       });
                       if (context.mounted) {
+                        ref.invalidate(inventoryProvider);
                         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Medicine added successfully!', style: TextStyle(color: Colors.white)), backgroundColor: Colors.green));
                         Navigator.pop(context, true);
                       }

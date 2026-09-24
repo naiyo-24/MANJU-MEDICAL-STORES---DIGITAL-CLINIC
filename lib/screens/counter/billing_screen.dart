@@ -38,12 +38,8 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
   final List<String> _categories = ['All', 'Tablets', 'Capsules', 'Syrups', 'Injections', 'Ointments', 'Others'];
   int _selectedCategoryIndex = 0;
 
-  bool _isDiscountPercentage = true;
-  double _discountValue = 0.0;
   final TextEditingController _discountController = TextEditingController();
   
-  final bool _isGstPercentage = true;
-  double _gstValue = 0.0;
   final TextEditingController _gstController = TextEditingController();
 
   final TextEditingController _customerNameController = TextEditingController();
@@ -72,14 +68,18 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
     _fetchDoctors();
     _fetchCustomers();
     _discountController.addListener(() {
-      setState(() {
-        _discountValue = double.tryParse(_discountController.text) ?? 0.0;
-      });
+      final val = double.tryParse(_discountController.text) ?? 0.0;
+      final isPerc = ref.read(billingProvider).isDiscountPercentage;
+      if (ref.read(billingProvider).discountValue != val) {
+        ref.read(billingProvider.notifier).updateDiscount(val, isPerc);
+      }
     });
     _gstController.addListener(() {
-      setState(() {
-        _gstValue = double.tryParse(_gstController.text) ?? 0.0;
-      });
+      final val = double.tryParse(_gstController.text) ?? 0.0;
+      final isPerc = ref.read(billingProvider).isGstPercentage;
+      if (ref.read(billingProvider).gstValue != val) {
+        ref.read(billingProvider.notifier).updateGst(val, isPerc);
+      }
     });
   }
 
@@ -137,8 +137,8 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
       doctorName: _selectedDoctorId == 'new' ? _newDoctorController.text : _selectedDoctorName,
       format: _selectedFormat,
       items: List.from(_currentBill),
-      discountValue: _discountValue,
-      isDiscountPercentage: _isDiscountPercentage,
+      discountValue: ref.read(billingProvider).discountValue,
+      isDiscountPercentage: ref.read(billingProvider).isDiscountPercentage,
       createdAt: DateTime.now(),
     );
 
@@ -146,13 +146,12 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Bill saved as draft!')));
-      _currentBill.clear();
+      ref.read(billingProvider.notifier).clearBill();
       _customerNameController.clear();
       _customerPhoneController.clear();
       _customerLocationController.clear();
 
       _newDoctorController.clear();
-      _discountValue = 0.0;
       _discountController.clear();
       setState(() {});
     }
@@ -185,31 +184,10 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
     }
   }
 
-  double get _subtotal {
-    return _currentBill.fold(0.0, (sum, item) => sum + (item['total'] as double));
-  }
-
-  // ignore: unused_element
-  int get _totalItems => _currentBill.length;
-
-  double get _discountAmount {
-    if (_isDiscountPercentage) {
-      return _subtotal * (_discountValue / 100);
-    }
-    return _discountValue;
-  }
-  
-  double get _gstAmount {
-    final amountAfterDiscount = _subtotal - _discountAmount;
-    if (_isGstPercentage) {
-      return amountAfterDiscount * (_gstValue / 100);
-    }
-    return _gstValue;
-  }
-
-  double get _grandTotal {
-    return _subtotal - _discountAmount + _gstAmount;
-  }
+  double get _subtotal => ref.read(billingProvider).subtotal;
+  double get _discountAmount => ref.read(billingProvider).discountAmount;
+  double get _gstAmount => ref.read(billingProvider).gstAmount;
+  double get _grandTotal => ref.read(billingProvider).grandTotal;
 
   Future<void> _fetchCustomers() async {
     try {
@@ -305,9 +283,8 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                                   _newDoctorController.clear();
                                 }
                                 _selectedFormat = draft.format.isNotEmpty ? draft.format : 'A4';
-                                _discountValue = draft.discountValue;
-                                _isDiscountPercentage = draft.isDiscountPercentage;
-                                _discountController.text = _discountValue > 0 ? _discountValue.toString() : '';
+                                ref.read(billingProvider.notifier).updateDiscount(draft.discountValue, draft.isDiscountPercentage);
+                                _discountController.text = draft.discountValue > 0 ? draft.discountValue.toString() : '';
                               });
                               Navigator.pop(context, );
                               ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Draft loaded successfully!')));

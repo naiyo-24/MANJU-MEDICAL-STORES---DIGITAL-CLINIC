@@ -11,18 +11,23 @@ class BillingService {
     try {
       final shopId = await InventoryService.getShopId();
 
+      final requestData = {
+        'shop_id': shopId,
+        'items': items.map((item) => {
+          'inventory_item_id': item['inventory_item_id'],
+          'quantity': item['qty'],
+        }).toList(),
+        'total_amount': totalAmount,
+        'payment_method': paymentMethod,
+      };
+
+      if (customerId != null && customerId.isNotEmpty) {
+        requestData['user_id'] = customerId;
+      }
+
       final response = await ApiClient().dio.post(
         '/api/admin/pos/checkout',
-        data: {
-          'shop_id': shopId,
-          'user_id': customerId,
-          'items': items.map((item) => {
-            'inventory_item_id': item['inventory_item_id'],
-            'quantity': item['qty'],
-          }).toList(),
-          'total_amount': totalAmount,
-          'payment_method': paymentMethod,
-        },
+        data: requestData,
       );
 
       if (response.statusCode == 201 || response.statusCode == 200) {

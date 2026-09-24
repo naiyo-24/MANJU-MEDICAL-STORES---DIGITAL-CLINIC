@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../providers/counter_providers.dart';
 import 'dart:typed_data';
 import 'package:excel/excel.dart' hide Border;
 import 'package:file_saver/file_saver.dart';
@@ -8,106 +10,44 @@ import 'package:printing/printing.dart';
 import '../../widgets/custom_date_range_picker.dart';
 import '../../widgets/custom_pagination.dart';
 import '../../services/billing_history_service.dart';
-import '../../services/billing_service.dart';
+import '../../services/billing_history_service.dart';
 import '../../utils/pdf_generator.dart';
-import 'package:intl/intl.dart';
 
-class HistoryScreen extends StatefulWidget {
+class HistoryScreen extends ConsumerStatefulWidget {
   const HistoryScreen({super.key});
 
   @override
-  State<HistoryScreen> createState() => _HistoryScreenState();
+  ConsumerState<HistoryScreen> createState() => _HistoryScreenState();
 }
 
-class _HistoryScreenState extends State<HistoryScreen> {
+class _HistoryScreenState extends ConsumerState<HistoryScreen> {
   String _activeDateRange = 'Today';
   String _selectedType = 'All';
   String _selectedPaymentMode = 'All';
   String _searchQuery = '';
   int _currentPage = 1;
-  List<Map<String, dynamic>> _transactions = [];
-  // ignore: unused_field
-  Map<String, dynamic> _summary = {};
-  bool _isLoading = true;
-
   @override
   void initState() {
     super.initState();
-    _loadHistory();
-    BillingHistoryService.historyUpdated.addListener(_loadHistory);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(historyProvider.notifier).reloadHistory();
+    });
+    BillingHistoryService.historyUpdated.addListener(_onHistoryUpdated);
+  }
+
+  void _onHistoryUpdated() {
+    ref.read(historyProvider.notifier).reloadHistory();
   }
 
   @override
   void dispose() {
-    BillingHistoryService.historyUpdated.removeListener(_loadHistory);
+    BillingHistoryService.historyUpdated.removeListener(_onHistoryUpdated);
     super.dispose();
   }
 
-  Future<void> _loadHistory() async {
-    setState(() => _isLoading = true);
-    try {
-      final response = await BillingService.getPosHistory();
-      
-      if (mounted) {
-        setState(() {
-          if (response['summary'] != null) {
-            _summary = response['summary'];
-          }
-          final historyList = response['history'] as List? ?? [];
-          
-          _transactions = historyList.map((item) {
-            String dateStr = item['date'].toString();
-            if (!dateStr.endsWith('Z')) dateStr += 'Z';
-            final dt = (DateTime.tryParse(dateStr) ?? DateTime.now()).toLocal();
-              final itemsList = (item['items_detail'] as List?)?.map((i) => Map<String, dynamic>.from(i)).toList() ?? [];
-              double calculatedSubtotal = 0.0;
-              for (var i in itemsList) {
-                calculatedSubtotal += ((i['price'] as num?)?.toDouble() ?? 0.0) * ((i['qty'] as num?)?.toInt() ?? 1);
-              }
-              double grandTotalVal = (item['amount'] as num?)?.toDouble() ?? 0.0;
-              double calculatedDiscount = calculatedSubtotal > grandTotalVal ? calculatedSubtotal - grandTotalVal : 0.0;
-
-              return {
-                'date': DateFormat('dd MMM yyyy').format(dt),
-                'time': DateFormat('hh:mm a').format(dt),
-                'createdAtDate': dt,
-                'refNo': item['bill_no'],
-                'customerName': item['customer_name']?.isEmpty ?? true ? 'Walk-in' : item['customer_name'],
-                'customerPhone': item['customer_phone'] ?? '',
-                'type': item['type'] ?? 'Sale',
-                'items': item['items'] ?? 0,
-                'amount': grandTotalVal,
-                'paymentMode': item['payment_mode'] ?? 'Cash',
-                'status': item['status'] ?? 'Completed',
-                'originalBill': SavedBill(
-                  id: item['id'].toString(),
-                  invoiceNo: item['bill_no'].toString(),
-                  customerName: item['customer_name']?.isEmpty ?? true ? 'Walk-in' : item['customer_name'],
-                  customerPhone: item['customer_phone']?.toString() ?? '',
-                  doctorName: '',
-                  subtotal: calculatedSubtotal > 0 ? calculatedSubtotal : grandTotalVal,
-                  discount: calculatedDiscount,
-                  tax: 0.0,
-                  grandTotal: grandTotalVal,
-                  items: itemsList,
-                createdAt: dt,
-              ),
-            };
-          }).toList();
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() => _isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error loading history: $e')));
-      }
-    }
-  }
-
-  List<Map<String, dynamic>> get _filteredTransactions {
+  List<Map<String, dynamic>> _filteredTransactions(List<Map<String, dynamic>> allTransactions) {
     final now = DateTime.now();
-    return _transactions.where((tx) {
+    return allTransactions.where((tx) {
       DateTime date = tx['createdAtDate'] ?? now;
       
       bool matchesDate = false;
@@ -149,7 +89,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
     });
   }
 
-  Future<void> _exportToExcel() async {
+  Future<void> _exportToExcel(List<Map<String, dynamic>> allTransactions) async {
     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Generating Excel Report...')));
     
     var excel = Excel.createExcel();
@@ -162,7 +102,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
       TextCellValue('Amount'), TextCellValue('Payment Mode'), TextCellValue('Status'),
     ]);
 
-    for (var tx in _filteredTransactions) {
+    for (var tx in _filteredTransactions(allTransactions)) {
       sheetObject.appendRow([
         TextCellValue(tx['date'].toString()), TextCellValue(tx['time'].toString()),
         TextCellValue(tx['refNo'].toString()), TextCellValue(tx['customerName'].toString()),
@@ -183,7 +123,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
     }
   }
 
-  Future<void> _exportToPdf() async {
+  Future<void> _exportToPdf(List<Map<String, dynamic>> allTransactions) async {
     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Generating PDF Report...')));
     
     final pdf = pw.Document();
@@ -201,7 +141,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 context: context,
                 headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold),
                 headers: ['Date', 'Bill No', 'Customer Name', 'Type', 'Amount', 'Mode', 'Status'],
-                data: _filteredTransactions.map((tx) => [
+                data: _filteredTransactions(allTransactions).map((tx) => [
                   tx['date'].toString(),
                   tx['refNo'].toString(),
                   tx['customerName'].toString(),
@@ -450,14 +390,21 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final filtered = _filteredTransactions;
+    final historyAsync = ref.watch(historyProvider);
     
-    return Container(
-      color: const Color(0xFFF8FAFC),
-      child: ListView(
-        padding: const EdgeInsets.all(32.0),
-        children: [
-          // Header
+    return historyAsync.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (error, stack) => Center(child: Text('Error: $error')),
+      data: (historyState) {
+        final filtered = _filteredTransactions(historyState.transactions);
+        final summary = historyState.summary;
+
+        return Container(
+          color: const Color(0xFFF8FAFC),
+          child: ListView(
+            padding: const EdgeInsets.all(32.0),
+            children: [
+              // Header
           Wrap(
             alignment: WrapAlignment.spaceBetween,
             crossAxisAlignment: WrapCrossAlignment.center,
@@ -484,15 +431,15 @@ class _HistoryScreenState extends State<HistoryScreen> {
               Row(
                 children: [
                   IconButton(
-                    onPressed: () => _loadHistory(),
+                    onPressed: () => ref.read(historyProvider.notifier).reloadHistory(),
                     icon: const Icon(Icons.refresh, color: Color(0xFF64748B)),
                     tooltip: 'Refresh',
                   ),
                   const SizedBox(width: 8),
                   PopupMenuButton<String>(
                     onSelected: (value) {
-                      if (value == 'Excel') _exportToExcel();
-                      if (value == 'PDF') _exportToPdf();
+                      if (value == 'Excel') _exportToExcel(historyState.transactions);
+                      if (value == 'PDF') _exportToPdf(historyState.transactions);
                     },
                     offset: const Offset(0, 50),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
@@ -528,35 +475,17 @@ class _HistoryScreenState extends State<HistoryScreen> {
           LayoutBuilder(builder: (context, constraints) {
             bool isDesktop = constraints.maxWidth > 800;
             
-            double totalRevenue = 0;
-            int totalInvoices = 0;
-            double totalReturns = 0;
-            double cashInHand = 0;
-            
-            for (var tx in _filteredTransactions) {
-              double amount = (tx['amount'] as num?)?.toDouble() ?? 0.0;
-              if (tx['type'] == 'Return') {
-                totalReturns += amount;
-              } else {
-                totalRevenue += amount;
-                totalInvoices += 1;
-                if (tx['paymentMode'] == 'Cash') {
-                  cashInHand += amount;
-                }
-              }
-            }
-
             return SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
                 children: [
-                  SizedBox(width: isDesktop ? (constraints.maxWidth - 48) / 4 : 250, child: _buildStatCard('₹${totalRevenue.toStringAsFixed(2)}', 'Total Revenue', const Color(0xFFDCFCE7), const Color(0xFF166534), Icons.currency_rupee, '')),
+                  SizedBox(width: isDesktop ? (constraints.maxWidth - 48) / 4 : 250, child: _buildStatCard('₹${(summary['total_revenue'] ?? 0.0).toStringAsFixed(2)}', 'Total Revenue', const Color(0xFFDCFCE7), const Color(0xFF166534), Icons.currency_rupee, '')),
                   const SizedBox(width: 16),
-                  SizedBox(width: isDesktop ? (constraints.maxWidth - 48) / 4 : 250, child: _buildStatCard(totalInvoices.toString(), 'Total Invoices', const Color(0xFFE0F2FE), const Color(0xFF0369A1), Icons.receipt_long, '')),
+                  SizedBox(width: isDesktop ? (constraints.maxWidth - 48) / 4 : 250, child: _buildStatCard('${summary['total_orders'] ?? 0}', 'Total Invoices', const Color(0xFFE0F2FE), const Color(0xFF0369A1), Icons.receipt_long, '')),
                   const SizedBox(width: 16),
-                  SizedBox(width: isDesktop ? (constraints.maxWidth - 48) / 4 : 250, child: _buildStatCard('₹${totalReturns.toStringAsFixed(2)}', 'Total Returns', const Color(0xFFFEE2E2), Colors.red, Icons.keyboard_return, '')),
+                  SizedBox(width: isDesktop ? (constraints.maxWidth - 48) / 4 : 250, child: _buildStatCard('₹${(summary['total_returns'] ?? 0.0).toStringAsFixed(2)}', 'Total Returns', const Color(0xFFFEE2E2), Colors.red, Icons.keyboard_return, '')),
                   const SizedBox(width: 16),
-                  SizedBox(width: isDesktop ? (constraints.maxWidth - 48) / 4 : 250, child: _buildStatCard('₹${cashInHand.toStringAsFixed(2)}', 'Cash in Hand', const Color(0xFFF3E8FF), const Color(0xFF7E22CE), Icons.account_balance_wallet, '')),
+                  SizedBox(width: isDesktop ? (constraints.maxWidth - 48) / 4 : 250, child: _buildStatCard('₹${(summary['cash_in_hand'] ?? 0.0).toStringAsFixed(2)}', 'Cash in Hand', const Color(0xFFF3E8FF), const Color(0xFF7E22CE), Icons.account_balance_wallet, '')),
                 ],
               ),
             );
@@ -760,12 +689,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         ),
                         const Divider(height: 1, color: Color(0xFFE2E8F0)),
                         // Table Body
-                        _isLoading 
-                          ? const Padding(
-                              padding: EdgeInsets.all(32.0),
-                              child: Center(child: CircularProgressIndicator()),
-                            )
-                          : filtered.isEmpty 
+                        filtered.isEmpty 
                             ? const Padding(
                                 padding: EdgeInsets.all(32.0),
                                 child: Center(child: Text('No history found')),
@@ -878,7 +802,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('Showing 1 to ${filtered.length} of ${_transactions.length} records', style: const TextStyle(color: Color(0xFF64748B), fontSize: 12)),
+                        Text('Showing 1 to ${filtered.length} of ${historyState.transactions.length} records', style: const TextStyle(color: Color(0xFF64748B), fontSize: 12)),
                         CustomPagination(
                           currentPage: _currentPage,
                           totalPages: 1, // Only 1 page for now since it's local
@@ -901,5 +825,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
           ],
         ),
       );
+    },
+   );
   }
 }
