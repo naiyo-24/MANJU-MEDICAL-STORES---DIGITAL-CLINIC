@@ -44,15 +44,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   fit: BoxFit.contain,
                 ),
                 const SizedBox(height: 16),
-                const Text(
-                  'SirfBill\nBill Karo, Befikar Raho',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.blueAccent,
-                  ),
-                ),
                 const SizedBox(height: 48),
                 TextFormField(
                   controller: _passwordController,

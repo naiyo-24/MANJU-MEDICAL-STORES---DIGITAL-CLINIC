@@ -10,7 +10,6 @@ import 'package:printing/printing.dart';
 import '../../widgets/custom_date_range_picker.dart';
 import '../../widgets/custom_pagination.dart';
 import '../../services/billing_history_service.dart';
-import '../../services/billing_history_service.dart';
 import '../../utils/pdf_generator.dart';
 
 class HistoryScreen extends ConsumerStatefulWidget {
@@ -210,13 +209,18 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                         customerName: bill.customerName,
                         customerPhone: bill.customerPhone,
                         doctorName: bill.doctorName,
-                        format: 'A4',
+                        format: bill.format,
                       );
                     },
                     allowSharing: true,
                     allowPrinting: true,
                     canChangeOrientation: false,
                     canChangePageFormat: false,
+                    initialPageFormat: bill.format == 'Thermal' 
+                        ? const PdfPageFormat(80 * PdfPageFormat.mm, 300 * PdfPageFormat.mm)
+                        : bill.format == 'A5' 
+                            ? PdfPageFormat.a5.landscape 
+                            : PdfPageFormat.a4,
                   ),
                 ),
               ],
@@ -397,7 +401,6 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
       error: (error, stack) => Center(child: Text('Error: $error')),
       data: (historyState) {
         final filtered = _filteredTransactions(historyState.transactions);
-        final summary = historyState.summary;
 
         return Container(
           color: const Color(0xFFF8FAFC),

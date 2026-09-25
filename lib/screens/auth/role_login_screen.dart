@@ -280,41 +280,7 @@ class _RoleLoginScreenState extends State<RoleLoginScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: const BoxDecoration(
-                        color: Colors.white,
-                        shape: BoxShape.circle,
-                        boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 10)],
-                      ),
-                      child: Image.asset('assets/LOGO.png', height: 80, cacheHeight: 250),
-                    ),
-                    const SizedBox(width: 24),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'SirfBill',
-                            style: TextStyle(
-                              color: widget.themeColor,
-                              fontWeight: FontWeight.w900,
-                              fontSize: 32,
-                              letterSpacing: -0.5,
-                            ),
-                          ),
-                          const Text(
-                            'Bill Karo, Befikar Raho',
-                            style: TextStyle(color: Color(0xFF64748B), fontWeight: FontWeight.w600, fontSize: 20),
-                          ),
-
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
+                Image.asset('assets/LOGO.png', height: 80, cacheHeight: 250),
                 const SizedBox(height: 48),
                 const Text('Welcome to', style: TextStyle(fontSize: 24, color: Color(0xFF64748B))),
                 Text(

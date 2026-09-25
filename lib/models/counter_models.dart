@@ -53,6 +53,7 @@ class SavedBill {
   final double grandTotal;
   final List<Map<String, dynamic>> items;
   final DateTime createdAt;
+  final String format;
 
   SavedBill({
     required this.id,
@@ -66,6 +67,7 @@ class SavedBill {
     required this.grandTotal,
     required this.items,
     required this.createdAt,
+    this.format = 'A4',
   });
 
   Map<String, dynamic> toJson() => {
@@ -80,6 +82,7 @@ class SavedBill {
     'grandTotal': grandTotal,
     'items': items,
     'createdAt': createdAt.toIso8601String(),
+    'format': format,
   };
 
   factory SavedBill.fromJson(Map<String, dynamic> json) => SavedBill(
@@ -94,5 +97,6 @@ class SavedBill {
     grandTotal: (json['grandTotal'] as num?)?.toDouble() ?? 0.0,
     items: List<Map<String, dynamic>>.from(json['items'] ?? []),
     createdAt: DateTime.parse(json['createdAt']),
+    format: json['format'] ?? 'A4',
   );
 }

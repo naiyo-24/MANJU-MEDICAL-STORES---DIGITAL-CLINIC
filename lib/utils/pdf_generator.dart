@@ -48,6 +48,7 @@ class PdfGenerator {
     String? customerPhone,
     String? customerLocation,
     String? doctorName,
+    String? gstNumber,
     Map<String, dynamic>? shopSettings,
     Uint8List? logoBytes,
     Uint8List? qrBytes,
@@ -132,7 +133,7 @@ class PdfGenerator {
     final String phone = shopSettings?['phone'] ?? '+91 98765 43210';
     final String landline = shopSettings?['landline'] ?? '';
     final String email = shopSettings?['email'] ?? 'contact@sirfbill.com';
-    final String gstNo = shopSettings?['gst_number'] ?? 'GSTIN27XXXXX1234';
+    final String gstNo = gstNumber?.isNotEmpty == true ? gstNumber! : (shopSettings?['gst_number'] ?? 'GSTIN27XXXXX1234');
 
     final String bankName = shopSettings?['bank_name'] ?? 'State Bank of India';
     final String branchName = shopSettings?['branch_name'] ?? 'Main Branch';

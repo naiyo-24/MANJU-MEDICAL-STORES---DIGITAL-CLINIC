@@ -4,8 +4,6 @@ class BillingState {
   final List<Map<String, dynamic>> currentBill;
   final double discountValue;
   final bool isDiscountPercentage;
-  final double gstValue;
-  final bool isGstPercentage;
   final double receivedAmount;
   final String paymentMethod;
   final String? selectedDoctorId;
@@ -17,13 +15,15 @@ class BillingState {
   final String searchQuery;
   final int selectedCategoryIndex;
   final String selectedFormat;
+  final bool isGstEnabled;
+  final String gstNumber;
 
   BillingState({
     this.currentBill = const [],
+    this.isGstEnabled = false,
+    this.gstNumber = '',
     this.discountValue = 0.0,
     this.isDiscountPercentage = true,
-    this.gstValue = 0.0,
-    this.isGstPercentage = true,
     this.receivedAmount = 0.0,
     this.paymentMethod = 'CASH',
     this.selectedDoctorId,
@@ -41,8 +41,6 @@ class BillingState {
     List<Map<String, dynamic>>? currentBill,
     double? discountValue,
     bool? isDiscountPercentage,
-    double? gstValue,
-    bool? isGstPercentage,
     double? receivedAmount,
     String? paymentMethod,
     String? selectedDoctorId,
@@ -54,13 +52,13 @@ class BillingState {
     String? searchQuery,
     int? selectedCategoryIndex,
     String? selectedFormat,
+    bool? isGstEnabled,
+    String? gstNumber,
   }) {
     return BillingState(
       currentBill: currentBill ?? this.currentBill,
       discountValue: discountValue ?? this.discountValue,
       isDiscountPercentage: isDiscountPercentage ?? this.isDiscountPercentage,
-      gstValue: gstValue ?? this.gstValue,
-      isGstPercentage: isGstPercentage ?? this.isGstPercentage,
       receivedAmount: receivedAmount ?? this.receivedAmount,
       paymentMethod: paymentMethod ?? this.paymentMethod,
       selectedDoctorId: selectedDoctorId ?? this.selectedDoctorId,
@@ -72,13 +70,28 @@ class BillingState {
       searchQuery: searchQuery ?? this.searchQuery,
       selectedCategoryIndex: selectedCategoryIndex ?? this.selectedCategoryIndex,
       selectedFormat: selectedFormat ?? this.selectedFormat,
+      isGstEnabled: isGstEnabled ?? this.isGstEnabled,
+      gstNumber: gstNumber ?? this.gstNumber,
     );
   }
 
   double get subtotal => currentBill.fold(0.0, (sum, item) => sum + ((item['total'] ?? 0.0) as num).toDouble());
   double get discountAmount => isDiscountPercentage ? (subtotal * (discountValue / 100)) : discountValue;
   double get totalAfterDiscount => subtotal - discountAmount;
-  double get gstAmount => isGstPercentage ? (totalAfterDiscount * (gstValue / 100)) : gstValue;
+  
+  double get itemGstAmount {
+    return currentBill.fold(0.0, (sum, item) {
+      double cgst = (item['cgst'] as num?)?.toDouble() ?? 0.0;
+      double sgst = (item['sgst'] as num?)?.toDouble() ?? 0.0;
+      double total = (item['total'] as num?)?.toDouble() ?? 0.0;
+      // Subtract proportional item discount from the item total
+      double proportionalDiscount = subtotal > 0 ? (total / subtotal) * discountAmount : 0.0;
+      double itemTotalAfterDiscount = total - proportionalDiscount;
+      return sum + (itemTotalAfterDiscount * (cgst + sgst) / 100);
+    });
+  }
+
+  double get gstAmount => isGstEnabled ? itemGstAmount : 0.0;
   double get grandTotal => totalAfterDiscount + gstAmount;
 }
 
@@ -135,11 +148,16 @@ class BillingNotifier extends Notifier<BillingState> {
     );
   }
 
-  void updateGst(double value, bool isPercentage) {
-    state = state.copyWith(
-      gstValue: value,
-      isGstPercentage: isPercentage,
-    );
+  void updateItemGst(int index, bool enabled, double rate) {
+    final updatedBill = List<Map<String, dynamic>>.from(state.currentBill);
+    updatedBill[index] = {
+      ...updatedBill[index],
+      'gst_enabled': enabled,
+      'gst_rate': rate,
+      'cgst': enabled ? rate / 2 : 0.0,
+      'sgst': enabled ? rate / 2 : 0.0,
+    };
+    state = state.copyWith(currentBill: updatedBill);
   }
 
   void updateReceivedAmount(double amount) {
@@ -177,5 +195,15 @@ class BillingNotifier extends Notifier<BillingState> {
 
   void clearBill() {
     state = BillingState();
+  }
+
+  void toggleGst(bool? value) {
+    if (value != null) {
+      state = state.copyWith(isGstEnabled: value);
+    }
+  }
+
+  void updateGstNumber(String number) {
+    state = state.copyWith(gstNumber: number);
   }
 }

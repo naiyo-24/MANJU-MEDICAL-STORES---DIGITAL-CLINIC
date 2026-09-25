@@ -156,6 +156,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
     final batchCtrl = TextEditingController(text: item.batchNumber);
     final stockCtrl = TextEditingController(text: item.stockQuantity.toString());
     final priceCtrl = TextEditingController(text: item.unitPrice.toString());
+    final gstCtrl = TextEditingController(text: item.gst?.toString() ?? '0');
     final expiryCtrl = TextEditingController(text: item.expiryDate);
 
     showDialog(
@@ -178,6 +179,8 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
               Row(
                 children: [
                   Expanded(child: TextField(controller: priceCtrl, decoration: const InputDecoration(labelText: 'Selling Price (₹)'))),
+                  const SizedBox(width: 16),
+                  Expanded(child: TextField(controller: gstCtrl, decoration: const InputDecoration(labelText: 'GST (%)'))),
                   const SizedBox(width: 16),
                   Expanded(child: TextField(controller: stockCtrl, decoration: const InputDecoration(labelText: 'Stock Quantity'))),
                 ],
@@ -226,6 +229,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                           'batch_number': batchCtrl.text,
                           'stock_quantity': int.tryParse(stockCtrl.text) ?? 0,
                           'unit_price': double.tryParse(priceCtrl.text) ?? 0.0,
+                          'gst': double.tryParse(gstCtrl.text) ?? 0.0,
                           'expiry_date': expiryCtrl.text,
                         });
                         if (context.mounted) {
@@ -438,8 +442,9 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                                   children: [
                                     Expanded(flex: 3, child: Text('Medicine Name', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 12))),
                                     Expanded(flex: 2, child: Text('Added/Updated', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 12))),
-                                    Expanded(flex: 2, child: Text('Stock', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 12))),
+                                    Expanded(flex: 1, child: Text('Stock', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 12))),
                                     Expanded(flex: 2, child: Text('Price (₹)', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 12))),
+                                    Expanded(flex: 1, child: Text('GST (%)', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 12))),
                                     Expanded(flex: 2, child: Text('Expiry Date', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 12))),
                                     Expanded(flex: 2, child: Text('Status', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 12))),
                                     SizedBox(width: 40), // For action button

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:file_picker/file_picker.dart';
 import '../../services/inventory_service.dart';
 import '../../providers/counter_providers.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 class UploadManagementScreen extends ConsumerStatefulWidget {
   const UploadManagementScreen({super.key});
@@ -42,21 +43,32 @@ class _UploadManagementScreenState extends ConsumerState<UploadManagementScreen>
     try {
       FilePickerResult? result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
-        allowedExtensions: ['xlsx', 'xls'],
+        allowedExtensions: ['xlsx', 'xls', 'csv'],
+        withData: true,
       );
 
-      if (result != null && result.files.single.path != null) {
-        setState(() {
-          _isUploading = true;
-        });
+      if (result != null) {
+        final platformFile = result.files.single;
+        final bool hasBytes = platformFile.bytes != null;
+        final bool hasPath = !kIsWeb && platformFile.path != null;
+        
+        if (hasBytes || hasPath) {
+          setState(() {
+            _isUploading = true;
+          });
 
-        final message = await InventoryService.uploadInventory(result.files.single.path!);
+          final message = await InventoryService.uploadInventory(
+            filename: platformFile.name,
+            bytes: platformFile.bytes,
+            path: kIsWeb ? null : platformFile.path,
+          );
         
         if (mounted) {
           ref.invalidate(inventoryProvider);
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message, style: const TextStyle(color: Colors.white)), backgroundColor: Colors.green));
         }
       }
+    }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Upload failed: $e', style: const TextStyle(color: Colors.white)), backgroundColor: Colors.red));

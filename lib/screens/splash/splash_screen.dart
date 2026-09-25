@@ -36,15 +36,6 @@ class _SplashScreenState extends State<SplashScreen> {
                 fit: BoxFit.contain,
               ),
               const SizedBox(height: 24),
-              const Text(
-                'SirfBill\nBill Karo, Befikar Raho',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.green,
-                ),
-              ),
               const SizedBox(height: 48),
               const CircularProgressIndicator(
                 color: Colors.green,

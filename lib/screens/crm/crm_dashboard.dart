@@ -158,30 +158,6 @@ class _CrmDashboardState extends State<CrmDashboard> {
           Row(
             children: [
               Image.asset('assets/LOGO.png', height: 40, cacheHeight: 120),
-              const SizedBox(width: 12),
-              const Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'SirfBill',
-                    style: TextStyle(
-                      color: Color(0xFF166534),
-                      fontWeight: FontWeight.w900,
-                      fontSize: 16,
-                      letterSpacing: -0.5,
-                    ),
-                  ),
-                  Text(
-                    'Bill Karo, Befikar Raho',
-                    style: TextStyle(
-                      color: Color(0xFF64748B),
-                      fontWeight: FontWeight.w600,
-                      fontSize: 12,
-                    ),
-                  ),
-                ],
-              ),
             ],
           ),
           const Spacer(),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../../themes/app_colors.dart';
 
 import 'package:printing/printing.dart';
+import 'package:pdf/pdf.dart';
 import '../../../../utils/pdf_generator.dart';
 import '../../../../models/counter_models.dart';
 
@@ -48,13 +49,18 @@ void showViewBillDialog(BuildContext context, SavedBill bill) {
                       customerName: bill.customerName,
                       customerPhone: bill.customerPhone,
                       doctorName: bill.doctorName,
-                      format: 'A4',
+                      format: bill.format,
                     );
                   },
                   allowSharing: true,
                   allowPrinting: true,
                   canChangeOrientation: false,
                   canChangePageFormat: false,
+                  initialPageFormat: bill.format == 'Thermal' 
+                      ? const PdfPageFormat(80 * PdfPageFormat.mm, 300 * PdfPageFormat.mm)
+                      : bill.format == 'A5' 
+                          ? PdfPageFormat.a5.landscape 
+                          : PdfPageFormat.a4,
                 ),
               ),
             ],

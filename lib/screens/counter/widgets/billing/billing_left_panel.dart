@@ -158,6 +158,7 @@ class BillingLeftPanel extends ConsumerWidget {
                             Expanded(flex: 2, child: Text('Brand', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 12))),
                             Expanded(flex: 2, child: Text('SKU / Barcode', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 12))),
                             Expanded(flex: 2, child: Text('MRP (₹)', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 12))),
+                            Expanded(flex: 1, child: Text('GST (%)', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 12))),
                             Expanded(flex: 1, child: Text('Stock', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 12))),
                             SizedBox(width: 80, child: Text('Action', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 12))),
                           ],
@@ -182,6 +183,7 @@ class BillingLeftPanel extends ConsumerWidget {
                                   Expanded(flex: 2, child: Text(item['brand'], style: const TextStyle(color: Color(0xFF1E293B), fontSize: 12))),
                                   Expanded(flex: 2, child: Text(item['pack'], style: const TextStyle(color: Color(0xFF64748B), fontSize: 12))),
                                   Expanded(flex: 2, child: Text(item['mrp'].toStringAsFixed(2), style: const TextStyle(color: Color(0xFF1E293B), fontSize: 12))),
+                                  Expanded(flex: 1, child: Text(((item['cgst'] as num? ?? 0) + (item['sgst'] as num? ?? 0)) > 0 ? '${((item['cgst'] as num? ?? 0) + (item['sgst'] as num? ?? 0)).toStringAsFixed(1)}%' : '-', style: const TextStyle(color: Color(0xFF64748B), fontSize: 12))),
                                   Expanded(flex: 1, child: Text(item['stock'].toString(), style: const TextStyle(color: Color(0xFF1E293B), fontSize: 12))),
                                   SizedBox(
                                     width: 80,

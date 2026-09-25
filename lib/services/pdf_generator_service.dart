@@ -1,4 +1,4 @@
-import 'dart:typed_data';
+import 'package:flutter/services.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import '../models/lab_models.dart';
@@ -9,12 +9,21 @@ class PdfGeneratorService {
     final pdf = pw.Document();
     final config = template.layoutConfig;
 
+    // Load the logo image from assets
+    pw.MemoryImage? logoImage;
+    try {
+      final ByteData logoData = await rootBundle.load('assets/LOGO.png');
+      logoImage = pw.MemoryImage(logoData.buffer.asUint8List());
+    } catch (_) {
+      // If logo can't be loaded, logoImage stays null
+    }
+
     pdf.addPage(
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
         margin: const pw.EdgeInsets.all(0), // Full page for banners
         build: (context) => [
-          _buildRichHeader(config, patientData),
+          _buildRichHeader(config, patientData, logoImage: logoImage),
           pw.Padding(
             padding: const pw.EdgeInsets.symmetric(horizontal: 40, vertical: 20),
             child: pw.Column(
@@ -41,7 +50,7 @@ class PdfGeneratorService {
     return pdf.save();
   }
 
-  static pw.Widget _buildRichHeader(ReportLayoutConfig config, Map<String, dynamic> patientData) {
+  static pw.Widget _buildRichHeader(ReportLayoutConfig config, Map<String, dynamic> patientData, {pw.MemoryImage? logoImage}) {
     return pw.Column(
       children: [
         // Logo and Title Area
@@ -50,16 +59,23 @@ class PdfGeneratorService {
           child: pw.Row(
             crossAxisAlignment: pw.CrossAxisAlignment.center,
             children: [
-              // Logo Placeholder
-              pw.Container(
-                width: 80,
-                height: 80,
-                decoration: pw.BoxDecoration(
-                  color: PdfColors.grey200,
-                  borderRadius: pw.BorderRadius.circular(40),
+              // Logo
+              if (logoImage != null)
+                pw.ClipRRect(
+                  horizontalRadius: 40,
+                  verticalRadius: 40,
+                  child: pw.Image(logoImage, width: 80, height: 80, fit: pw.BoxFit.contain),
+                )
+              else
+                pw.Container(
+                  width: 80,
+                  height: 80,
+                  decoration: pw.BoxDecoration(
+                    color: PdfColors.grey200,
+                    borderRadius: pw.BorderRadius.circular(40),
+                  ),
+                  child: pw.Center(child: pw.Text('LOGO', style: pw.TextStyle(color: PdfColors.grey500))),
                 ),
-                child: pw.Center(child: pw.Text('LOGO', style: pw.TextStyle(color: PdfColors.grey500))),
-              ),
               pw.SizedBox(width: 20),
               // Clinic Name
               pw.Column(

@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../utils/responsive.dart';
 import 'package:go_router/go_router.dart';
-import 'dart:async';
-import '../../services/global_search_service.dart';
+
 
 class CounterDashboard extends StatefulWidget {
   final StatefulNavigationShell navigationShell;
@@ -14,154 +13,17 @@ class CounterDashboard extends StatefulWidget {
 
 class _CounterDashboardState extends State<CounterDashboard> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  final LayerLink _searchLayerLink = LayerLink();
-  final FocusNode _searchFocusNode = FocusNode();
-  final TextEditingController _searchController = TextEditingController();
-  OverlayEntry? _overlayEntry;
-  Map<String, dynamic> _searchResults = {"medicines": [], "customers": [], "invoices": []};
-  bool _isSearching = false;
-  Timer? _debounce;
 
   @override
   void initState() {
     super.initState();
-    _searchFocusNode.addListener(() {
-      if (_searchFocusNode.hasFocus) {
-        _showOverlay();
-      } else {
-        _hideOverlay();
-      }
-    });
   }
 
   @override
   void dispose() {
-    _debounce?.cancel();
-    _searchFocusNode.dispose();
-    _searchController.dispose();
-    _hideOverlay();
     super.dispose();
   }
 
-  void _onSearchChanged(String query) {
-    if (_debounce?.isActive ?? false) _debounce!.cancel();
-    _debounce = Timer(const Duration(milliseconds: 300), () async {
-      if (query.length < 2) {
-        setState(() {
-          _searchResults = {"medicines": [], "customers": [], "invoices": []};
-          _isSearching = false;
-        });
-        _overlayEntry?.markNeedsBuild();
-        return;
-      }
-      
-      setState(() => _isSearching = true);
-      _overlayEntry?.markNeedsBuild();
-      
-      final results = await GlobalSearchService.searchGlobal(query);
-      if (mounted) {
-        setState(() {
-          _searchResults = results;
-          _isSearching = false;
-        });
-        _overlayEntry?.markNeedsBuild();
-      }
-    });
-  }
-
-  void _showOverlay() {
-    if (_overlayEntry != null) return;
-    // ignore: unused_local_variable
-    final renderBox = context.findRenderObject() as RenderBox?;
-    _overlayEntry = OverlayEntry(
-      builder: (context) => Positioned(
-        width: 400,
-        child: CompositedTransformFollower(
-          link: _searchLayerLink,
-          showWhenUnlinked: false,
-          offset: const Offset(0.0, 50.0),
-          child: Material(
-            elevation: 8,
-            borderRadius: BorderRadius.circular(12),
-            color: Colors.white,
-            child: Container(
-              constraints: const BoxConstraints(maxHeight: 400),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey.shade200),
-              ),
-              child: _buildSearchResults(),
-            ),
-          ),
-        ),
-      ),
-    );
-    Overlay.of(context).insert(_overlayEntry!);
-  }
-
-  void _hideOverlay() {
-    _overlayEntry?.remove();
-    _overlayEntry = null;
-  }
-
-  Widget _buildSearchResults() {
-    if (_isSearching) {
-      return const Padding(padding: EdgeInsets.all(24), child: Center(child: CircularProgressIndicator()));
-    }
-    
-    final meds = _searchResults['medicines'] as List? ?? [];
-    final custs = _searchResults['customers'] as List? ?? [];
-    final invs = _searchResults['invoices'] as List? ?? [];
-    
-    if (meds.isEmpty && custs.isEmpty && invs.isEmpty) {
-      return const Padding(padding: EdgeInsets.all(24), child: Center(child: Text('No results found.', style: TextStyle(color: Colors.grey))));
-    }
-    
-    return ListView(
-      shrinkWrap: true,
-      padding: EdgeInsets.zero,
-      children: [
-        if (meds.isNotEmpty) ...[
-          const Padding(padding: EdgeInsets.fromLTRB(16, 16, 16, 8), child: Text('MEDICINES', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey))),
-          ...meds.map((m) => ListTile(
-            leading: const Icon(Icons.medication, color: Colors.green),
-            title: Text(m['name']),
-            subtitle: Text('SKU: ${m['sku']} • Stock: ${m['stock']}'),
-            trailing: Text('₹${m['price']}', style: const TextStyle(fontWeight: FontWeight.bold)),
-            onTap: () {
-               _searchFocusNode.unfocus();
-               widget.navigationShell.goBranch(3); // Inventory tab
-            },
-          )),
-        ],
-        if (custs.isNotEmpty) ...[
-          const Padding(padding: EdgeInsets.fromLTRB(16, 16, 16, 8), child: Text('CUSTOMERS', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey))),
-          ...custs.map((c) => ListTile(
-            leading: const Icon(Icons.person, color: Colors.blue),
-            title: Text(c['name']),
-            subtitle: Text(c['phone']),
-            onTap: () {
-               _searchFocusNode.unfocus();
-               widget.navigationShell.goBranch(2); // Customers tab
-            },
-          )),
-        ],
-        if (invs.isNotEmpty) ...[
-          const Padding(padding: EdgeInsets.fromLTRB(16, 16, 16, 8), child: Text('INVOICES', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey))),
-          ...invs.map((i) => ListTile(
-            leading: const Icon(Icons.receipt, color: Colors.orange),
-            title: Text(i['id']),
-            subtitle: Text(i['date']),
-            trailing: Text('₹${i['amount']}', style: const TextStyle(fontWeight: FontWeight.bold)),
-            onTap: () {
-               _searchFocusNode.unfocus();
-               widget.navigationShell.goBranch(1); // History tab
-            },
-          )),
-        ],
-      ],
-    );
-  }
 
   Widget _buildSidebarItem({
     required int index,
@@ -258,30 +120,6 @@ class _CounterDashboardState extends State<CounterDashboard> {
                 Row(
                   children: [
                     Image.asset('assets/LOGO.png', height: 40, cacheHeight: 120),
-                    const SizedBox(width: 12),
-                    const Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'SirfBill',
-                          style: TextStyle(
-                            color: Color(0xFF166534),
-                            fontWeight: FontWeight.w900,
-                            fontSize: 16,
-                            letterSpacing: -0.5,
-                          ),
-                        ),
-                        Text(
-                          'Bill Karo, Befikar Raho',
-                          style: TextStyle(
-                            color: Color(0xFF64748B),
-                            fontWeight: FontWeight.w600,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
-                    ),
                   ],
                 ),
                 
@@ -374,8 +212,8 @@ class _CounterDashboardState extends State<CounterDashboard> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              _buildSidebarItem(index: 0, icon: Icons.inventory_2, label: 'Inventory'),
-                              _buildSidebarItem(index: 1, icon: Icons.receipt_long, label: 'Billing'),
+                              _buildSidebarItem(index: 0, icon: Icons.receipt_long, label: 'Billing'),
+                              _buildSidebarItem(index: 1, icon: Icons.inventory_2, label: 'Inventory'),
                               _buildSidebarItem(index: 2, icon: Icons.storefront, label: 'Shops'),
                               _buildSidebarItem(index: 3, icon: Icons.people, label: 'Customers'),
                               _buildSidebarItem(index: 4, icon: Icons.account_balance_wallet, label: 'Accounts'),

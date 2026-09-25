@@ -121,11 +121,21 @@ class InventoryService {
     }
   }
 
-  static Future<String> uploadInventory(String filePath) async {
+  static Future<String> uploadInventory({required String filename, List<int>? bytes, String? path}) async {
     try {
       final shopId = await getShopId();
+      
+      MultipartFile multipartFile;
+      if (bytes != null) {
+        multipartFile = MultipartFile.fromBytes(bytes, filename: filename);
+      } else if (path != null) {
+        multipartFile = await MultipartFile.fromFile(path, filename: filename);
+      } else {
+        throw Exception("File data is missing");
+      }
+
       FormData formData = FormData.fromMap({
-        'file': await MultipartFile.fromFile(filePath),
+        'file': multipartFile,
       });
 
       final response = await ApiClient().dio.post(

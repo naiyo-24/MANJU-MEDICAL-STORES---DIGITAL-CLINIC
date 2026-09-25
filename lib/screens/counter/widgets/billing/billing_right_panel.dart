@@ -6,7 +6,6 @@ import '../../../../services/doctor_service.dart';
 class BillingRightPanel extends ConsumerWidget {
   final bool hasEnoughHeight;
   final TextEditingController discountController;
-  final TextEditingController gstController;
   final TextEditingController customerNameController;
   final TextEditingController customerPhoneController;
   final TextEditingController customerLocationController;
@@ -29,7 +28,6 @@ class BillingRightPanel extends ConsumerWidget {
     super.key,
     required this.hasEnoughHeight,
     required this.discountController,
-    required this.gstController,
     required this.customerNameController,
     required this.customerPhoneController,
     required this.customerLocationController,
@@ -134,6 +132,7 @@ return Container(
                                             Expanded(flex: 3, child: Text('Item Name', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 10))),
                                             Expanded(flex: 2, child: Text('Qty', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 10))),
                                             Expanded(flex: 2, child: Text('Price (₹)', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 10))),
+                                            Expanded(flex: 2, child: Text('GST (%)', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 10))),
                                             Expanded(flex: 2, child: Text('Total (₹)', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 10))),
                                             SizedBox(width: 45, child: Text('Action', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 10))),
                                           ],
@@ -191,6 +190,15 @@ return Container(
                                                     ),
                                                   ),
                                                   Expanded(flex: 2, child: Text(item['price'].toStringAsFixed(2), style: const TextStyle(color: Color(0xFF1E293B), fontSize: 11))),
+                                                  Expanded(
+                                                    flex: 2,
+                                                    child: Text(
+                                                      ((item['cgst'] as num? ?? 0.0) + (item['sgst'] as num? ?? 0.0)) > 0
+                                                          ? '${((item['cgst'] as num? ?? 0.0) + (item['sgst'] as num? ?? 0.0)).toStringAsFixed(1)}%'
+                                                          : '-',
+                                                      style: const TextStyle(color: Color(0xFF64748B), fontSize: 11),
+                                                    ),
+                                                  ),
                                                   Expanded(flex: 2, child: Text(item['total'].toStringAsFixed(2), style: const TextStyle(color: Color(0xFF1E293B), fontSize: 11))),
                                                   SizedBox(
                                                     width: 45,
@@ -405,48 +413,54 @@ return Container(
                                 ),
                                 const SizedBox(height: 8),
                                 Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
-                                    const SizedBox(width: 80, child: Text('Tax (GST)', style: TextStyle(color: Color(0xFF64748B), fontSize: 12))),
-                                    Container(
-                                      width: 80,
-                                      height: 32,
-                                      decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE2E8F0)), borderRadius: BorderRadius.circular(6)),
-                                      child: TextField(
-                                        controller: gstController,
-                                        keyboardType: TextInputType.number,
-                                        style: const TextStyle(fontSize: 12),
-                                        decoration: const InputDecoration(border: InputBorder.none, isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8), hintText: '0.00'),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Container(
-                                      height: 32,
-                                      decoration: BoxDecoration(color: const Color(0xFFF1F5F9), borderRadius: BorderRadius.circular(6)),
-                                      child: Row(
-                                        children: [
-                                          InkWell(
-                                            onTap: () => notifier.updateGst(billingState.gstValue, true),
-                                            child: Container(
-                                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                              decoration: BoxDecoration(color: billingState.isGstPercentage ? const Color(0xFF22C55E) : Colors.transparent, borderRadius: BorderRadius.circular(6)),
-                                              child: Text('%', style: TextStyle(color: billingState.isGstPercentage ? Colors.white : const Color(0xFF64748B), fontSize: 12, fontWeight: FontWeight.bold)),
-                                            ),
+                                    Row(
+                                      children: [
+                                        SizedBox(
+                                          width: 24,
+                                          height: 24,
+                                          child: Checkbox(
+                                            value: billingState.isGstEnabled,
+                                            onChanged: (val) {
+                                              notifier.toggleGst(val);
+                                            },
+                                            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                            activeColor: const Color(0xFF22C55E),
                                           ),
-                                          InkWell(
-                                            onTap: () => notifier.updateGst(billingState.gstValue, false),
-                                            child: Container(
-                                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                              decoration: BoxDecoration(color: !billingState.isGstPercentage ? const Color(0xFF22C55E) : Colors.transparent, borderRadius: BorderRadius.circular(6)),
-                                              child: Text('₹', style: TextStyle(color: !billingState.isGstPercentage ? Colors.white : const Color(0xFF64748B), fontSize: 12, fontWeight: FontWeight.bold)),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
+                                        ),
+                                        const SizedBox(width: 4),
+                                        const Text('Total Tax (GST)', style: TextStyle(color: Color(0xFF64748B), fontSize: 12)),
+                                      ],
                                     ),
-                                    const Spacer(),
-                                    Text('₹ ${billingState.gstAmount.toStringAsFixed(2)}', style: const TextStyle(color: Color(0xFF1E293B), fontWeight: FontWeight.bold, fontSize: 12)),
+                                    Text('+ ₹ ${billingState.gstAmount.toStringAsFixed(2)}', style: const TextStyle(color: Color(0xFF1E293B), fontWeight: FontWeight.bold, fontSize: 12)),
                                   ],
                                 ),
+                                if (billingState.isGstEnabled) ...[
+                                  const SizedBox(height: 8),
+                                  Row(
+                                    children: [
+                                      const SizedBox(width: 80, child: Text('GST No.', style: TextStyle(color: Color(0xFF64748B), fontSize: 12))),
+                                      Expanded(
+                                        child: Container(
+                                          height: 32,
+                                          decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE2E8F0)), borderRadius: BorderRadius.circular(6)),
+                                          child: TextFormField(
+                                            initialValue: billingState.gstNumber,
+                                            onChanged: (val) => notifier.updateGstNumber(val),
+                                            style: const TextStyle(fontSize: 12),
+                                            decoration: const InputDecoration(
+                                              border: InputBorder.none,
+                                              isDense: true,
+                                              contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                                              hintText: 'Enter 15-digit GST Number',
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
                                 const SizedBox(height: 12),
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),

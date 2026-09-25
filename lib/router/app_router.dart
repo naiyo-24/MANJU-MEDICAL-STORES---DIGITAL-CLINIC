@@ -71,6 +71,14 @@ final goRouter = GoRouter(
         StatefulShellBranch(
           routes: [
             GoRoute(
+              path: '/counter/billing',
+              builder: (context, state) => const BillingScreen(),
+            ),
+          ],
+        ),
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
               path: '/counter/inventory',
               builder: (context, state) => const InventoryScreen(),
               routes: [
@@ -79,14 +87,6 @@ final goRouter = GoRouter(
                   builder: (context, state) => const UploadManagementScreen(),
                 ),
               ],
-            ),
-          ],
-        ),
-        StatefulShellBranch(
-          routes: [
-            GoRoute(
-              path: '/counter/billing',
-              builder: (context, state) => const BillingScreen(),
             ),
           ],
         ),

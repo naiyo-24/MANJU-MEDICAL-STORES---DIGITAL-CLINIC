@@ -39,8 +39,6 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
   int _selectedCategoryIndex = 0;
 
   final TextEditingController _discountController = TextEditingController();
-  
-  final TextEditingController _gstController = TextEditingController();
 
   final TextEditingController _customerNameController = TextEditingController();
   final FocusNode _customerNameFocusNode = FocusNode();
@@ -57,7 +55,7 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
   
   DateTime _currentTime = DateTime.now();
   Timer? _timer;
-  String _selectedFormat = 'A4'; // Default format
+  // Format is now handled by billingProvider
   String? _savedCustomerId;
   
   bool _isGeneratingBill = false;
@@ -73,13 +71,6 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
       final isPerc = ref.read(billingProvider).isDiscountPercentage;
       if (ref.read(billingProvider).discountValue != val) {
         ref.read(billingProvider.notifier).updateDiscount(val, isPerc);
-      }
-    });
-    _gstController.addListener(() {
-      final val = double.tryParse(_gstController.text) ?? 0.0;
-      final isPerc = ref.read(billingProvider).isGstPercentage;
-      if (ref.read(billingProvider).gstValue != val) {
-        ref.read(billingProvider.notifier).updateGst(val, isPerc);
       }
     });
   }
@@ -137,7 +128,7 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
       customerAge: '',
 
       doctorName: _selectedDoctorId == 'new' ? _newDoctorController.text : _selectedDoctorName,
-      format: _selectedFormat,
+      format: ref.read(billingProvider).selectedFormat,
       items: List.from(_currentBill),
       discountValue: ref.read(billingProvider).discountValue,
       isDiscountPercentage: ref.read(billingProvider).isDiscountPercentage,
@@ -284,7 +275,7 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                                   _selectedDoctorName = 'Walk-in';
                                   _newDoctorController.clear();
                                 }
-                                _selectedFormat = draft.format.isNotEmpty ? draft.format : 'A4';
+                                ref.read(billingProvider.notifier).updateSelectedFormat(draft.format.isNotEmpty ? draft.format : 'A4');
                                 ref.read(billingProvider.notifier).updateDiscount(draft.discountValue, draft.isDiscountPercentage);
                                 _discountController.text = draft.discountValue > 0 ? draft.discountValue.toString() : '';
                               });
@@ -347,7 +338,7 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('Bill Preview ($_selectedFormat)', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                      Text('Bill Preview (${ref.read(billingProvider).selectedFormat})', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
                       IconButton(
                         icon: const Icon(Icons.close),
                         onPressed: () => Navigator.pop(context, ),
@@ -371,16 +362,16 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                       shopSettings: shopSettings,
 
                       doctorName: _selectedDoctorId == 'new' ? _newDoctorController.text : _selectedDoctorName,
-                      format: _selectedFormat,
+                      format: ref.read(billingProvider).selectedFormat,
                     ),
                     allowPrinting: true,
                     allowSharing: true,
                     canChangeOrientation: false,
                     canChangePageFormat: false,
                     pdfFileName: 'Bill_$invoiceNo.pdf',
-                    initialPageFormat: _selectedFormat == 'Thermal' 
+                    initialPageFormat: ref.read(billingProvider).selectedFormat == 'Thermal' 
                         ? const PdfPageFormat(80 * PdfPageFormat.mm, 300 * PdfPageFormat.mm)
-                        : _selectedFormat == 'A5' 
+                        : ref.read(billingProvider).selectedFormat == 'A5' 
                             ? PdfPageFormat.a5.landscape 
                             : PdfPageFormat.a4,
                   ),
@@ -490,9 +481,9 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
         customerPhone: _customerPhoneController.text,
         customerLocation: _customerLocationController.text,
         shopSettings: shopSettings,
-
         doctorName: _selectedDoctorId == 'new' ? _newDoctorController.text : _selectedDoctorName,
-        format: _selectedFormat,
+        gstNumber: ref.read(billingProvider).gstNumber,
+        format: ref.read(billingProvider).selectedFormat,
       );
 
       await FileSaver.instance.saveFile(
@@ -523,6 +514,7 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
           grandTotal: _grandTotal,
           items: List.from(_currentBill),
           createdAt: DateTime.now(),
+          format: ref.read(billingProvider).selectedFormat,
         ),
       );
 
@@ -704,58 +696,56 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
   void _addToCart(Map<String, dynamic> item) {
     final stock = item['stock'] ?? 0;
     
-    setState(() {
-      final existingIndex = _currentBill.indexWhere((element) => element['name'] == item['name']);
+    final existingIndex = _currentBill.indexWhere((element) => element['name'] == item['name']);
+    
+    if (existingIndex >= 0) {
+      final currentQty = _currentBill[existingIndex]['qty'];
+      if (currentQty >= stock) {
+        // Show error if trying to add more than available stock
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Stock Limit Reached', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red)),
+            content: Text('Cannot add more ${item['name']}. Only $stock available in stock.'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+        return;
+      }
       
-      if (existingIndex >= 0) {
-        final currentQty = _currentBill[existingIndex]['qty'];
-        if (currentQty >= stock) {
-          // Show error if trying to add more than available stock
-          showDialog(
-            context: context,
-            builder: (context) => AlertDialog(
-              title: const Text('Stock Limit Reached', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red)),
-              content: Text('Cannot add more ${item['name']}. Only $stock available in stock.'),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('OK'),
-                ),
-              ],
-            ),
-          );
-          return;
-        }
-        
-        _currentBill[existingIndex]['qty'] += 1;
-        _currentBill[existingIndex]['total'] = _currentBill[existingIndex]['qty'] * _currentBill[existingIndex]['price'];
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Added another ${item['name']} to cart'), duration: const Duration(seconds: 1)));
-      } else {
-        if (stock <= 0) {
-          showDialog(
-            context: context,
-            builder: (context) => AlertDialog(
-              title: const Text('Out of Stock', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red)),
-              content: Text('${item['name']} is currently out of stock and cannot be added to the bill.'),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('OK'),
-                ),
-              ],
-            ),
-          );
-          return;
-        }
-        
-        ref.read(billingProvider.notifier).addItem({
-          'inventory_item_id': item['inventory_item_id'],
-          'name': item['name'],
-          'brand': item['brand'],
-          'qty': 1,
-          'price': item['mrp'],
-          'mrp': item['mrp'],
-          'total': item['mrp'],
+      ref.read(billingProvider.notifier).updateItemQuantity(existingIndex, currentQty + 1);
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Added another ${item['name']} to cart'), duration: const Duration(seconds: 1)));
+    } else {
+      if (stock <= 0) {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Out of Stock', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red)),
+            content: Text('${item['name']} is currently out of stock and cannot be added to the bill.'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+        return;
+      }
+      
+      ref.read(billingProvider.notifier).addItem({
+        'inventory_item_id': item['inventory_item_id'],
+        'name': item['name'],
+        'brand': item['brand'],
+        'qty': 1,
+        'price': item['mrp'],
+        'mrp': item['mrp'],
+        'total': item['mrp'],
           'batch': item['batch'] ?? '-',
           'expiry': item['expiry'] ?? '-',
           'hsn': item['hsn'] ?? '-',
@@ -766,7 +756,6 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
         });
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Added ${item['name']} to cart'), duration: const Duration(seconds: 1)));
       }
-    });
   }
 
   // ignore: unused_element
@@ -997,20 +986,18 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                 // You can use discount/gst in total calculations later if needed
 
                 if (name.isNotEmpty && price > 0) {
-                  setState(() {
-                    _currentBill.add({
-                      'name': name,
-                      'brand': brand,
-                      'qty': qty,
-                      'price': price,
-                      'mrp': price,
-                      'total': qty * price,
-                      'batch': '-',
-                      'expiry': '-',
-                      'hsn': hsnController.text.isNotEmpty ? hsnController.text : '-',
-                      'cgst': 0,
-                      'sgst': 0,
-                    });
+                  ref.read(billingProvider.notifier).addItem({
+                    'name': name,
+                    'brand': brand,
+                    'qty': qty,
+                    'price': price,
+                    'mrp': price,
+                    'total': qty * price,
+                    'batch': '-',
+                    'expiry': '-',
+                    'hsn': hsnController.text.isNotEmpty ? hsnController.text : '-',
+                    'cgst': 0.0,
+                    'sgst': 0.0,
                   });
                   Navigator.pop(context, );
                 }
@@ -1217,7 +1204,6 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                 Widget rightSide = BillingRightPanel(
                   hasEnoughHeight: hasEnoughHeight,
                   discountController: _discountController,
-                  gstController: _gstController,
                   customerNameController: _customerNameController,
                   customerPhoneController: _customerPhoneController,
                   customerLocationController: _customerLocationController,

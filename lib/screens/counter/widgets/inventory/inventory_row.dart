@@ -94,7 +94,7 @@ class InventoryRowWidget extends StatelessWidget {
             ),
           ),
           Expanded(
-            flex: 2,
+            flex: 1,
             child: Text(
               medicine.stockQuantity.toString(),
               style: TextStyle(
@@ -113,6 +113,13 @@ class InventoryRowWidget extends StatelessWidget {
             child: Text(
               '₹${medicine.unitPrice.toStringAsFixed(2)}',
               style: const TextStyle(color: Color(0xFF1E293B), fontSize: 12, fontWeight: FontWeight.bold),
+            ),
+          ),
+          Expanded(
+            flex: 1,
+            child: Text(
+              medicine.gst != null && medicine.gst! > 0 ? '${medicine.gst!.toStringAsFixed(1)}%' : '-',
+              style: const TextStyle(color: Color(0xFF64748B), fontSize: 12),
             ),
           ),
           Expanded(

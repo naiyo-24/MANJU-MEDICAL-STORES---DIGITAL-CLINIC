@@ -206,50 +206,12 @@ class DashboardScreen extends StatelessWidget {
                         children: [
                           Row(
                             children: [
-                              Container(
-                                padding: const EdgeInsets.all(12),
-                                decoration: const BoxDecoration(
-                                  color: Colors.white,
-                                  shape: BoxShape.circle,
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black12,
-                                      blurRadius: 10,
-                                      offset: Offset(0, 4),
-                                    ),
-                                  ],
-                                ),
-                                child: Image.asset(
-                                  'assets/LOGO.png',
-                                  height: 80,
-                                  cacheHeight: 250,
-                                  fit: BoxFit.contain,
-                                  errorBuilder: (context, error, stackTrace) => const Icon(Icons.local_hospital, color: Color(0xFF166534), size: 40),
-                                ),
-                              ),
-                              const SizedBox(width: 24),
-                              const Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'SirfBill',
-                                    style: TextStyle(
-                                      color: Color(0xFF166534), // Dark Green
-                                      fontWeight: FontWeight.w900,
-                                      fontSize: 32,
-                                      letterSpacing: -0.5,
-                                    ),
-                                  ),
-                                  Text(
-                                    'Bill Karo, Befikar Raho',
-                                    style: TextStyle(
-                                      color: Color(0xFF64748B),
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 20,
-                                    ),
-                                  ),
-
-                                ],
+                              Image.asset(
+                                'assets/LOGO.png',
+                                height: 80,
+                                cacheHeight: 250,
+                                fit: BoxFit.contain,
+                                errorBuilder: (context, error, stackTrace) => const Icon(Icons.local_hospital, color: Color(0xFF166534), size: 40),
                               ),
                             ],
                           ),

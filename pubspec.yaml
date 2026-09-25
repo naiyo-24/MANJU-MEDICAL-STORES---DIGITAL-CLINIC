@@ -49,6 +49,7 @@ dependencies:
   dio: ^5.11.1
   flutter_dotenv: ^6.0.1
   pretty_dio_logger: ^1.4.0
+  path_provider: ^2.1.6
 
 dev_dependencies:
   flutter_test:
@@ -106,6 +107,11 @@ flutter:
 
 flutter_launcher_icons:
   image_path: "assets/LOGO.png"
+  web:
+    generate: true
+    image_path: "assets/LOGO.png"
+    background_color: "#ffffff"
+    theme_color: "#0175C2"
   windows:
     generate: true
     image_path: "assets/LOGO.png"

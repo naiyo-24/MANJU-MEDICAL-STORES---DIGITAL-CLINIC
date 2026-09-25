@@ -97,7 +97,6 @@ class BillingDialogs {
     final qtyController = TextEditingController(text: '1');
     final priceController = TextEditingController();
     final discountController = TextEditingController();
-    final gstController = TextEditingController();
     final hsnController = TextEditingController();
 
     showDialog(
@@ -277,27 +276,7 @@ class BillingDialogs {
                       ),
                     ),
                     const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text('GST (%)', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
-                          const SizedBox(height: 8),
-                          TextField(
-                            controller: gstController,
-                            keyboardType: TextInputType.number,
-                            decoration: InputDecoration(
-                              hintText: 'e.g. 12',
-                              hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 12),
-                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                              enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
-                              isDense: true,
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                    Expanded(child: Container()), // Empty space for alignment
                   ],
                 ),
               ],
