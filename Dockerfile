@@ -45,5 +45,5 @@ COPY nginx/nginx.conf /etc/nginx/conf.d/default.conf
 # Copy built web app
 COPY --from=build /app/build/web /usr/share/nginx/html
 
-EXPOSE 5193
+EXPOSE 5194
 CMD ["nginx", "-g", "daemon off;"]
