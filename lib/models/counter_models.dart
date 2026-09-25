@@ -46,7 +46,10 @@ class SavedBill {
   final String invoiceNo;
   final String customerName;
   final String customerPhone;
+  final String customerLocation;
+  final String customerGstin;
   final String doctorName;
+  final String paymentMode;
   final double subtotal;
   final double discount;
   final double tax;
@@ -60,7 +63,10 @@ class SavedBill {
     required this.invoiceNo,
     required this.customerName,
     required this.customerPhone,
+    this.customerLocation = '',
+    this.customerGstin = '',
     required this.doctorName,
+    this.paymentMode = 'CASH',
     required this.subtotal,
     required this.discount,
     required this.tax,
@@ -75,7 +81,10 @@ class SavedBill {
     'invoiceNo': invoiceNo,
     'customerName': customerName,
     'customerPhone': customerPhone,
+    'customerLocation': customerLocation,
+    'customerGstin': customerGstin,
     'doctorName': doctorName,
+    'paymentMode': paymentMode,
     'subtotal': subtotal,
     'discount': discount,
     'tax': tax,
@@ -90,7 +99,10 @@ class SavedBill {
     invoiceNo: json['invoiceNo'],
     customerName: json['customerName'],
     customerPhone: json['customerPhone'] ?? '',
+    customerLocation: json['customerLocation'] ?? '',
+    customerGstin: json['customerGstin'] ?? '',
     doctorName: json['doctorName'] ?? '',
+    paymentMode: json['paymentMode'] ?? 'CASH',
     subtotal: (json['subtotal'] as num?)?.toDouble() ?? 0.0,
     discount: (json['discount'] as num?)?.toDouble() ?? 0.0,
     tax: (json['tax'] as num?)?.toDouble() ?? 0.0,

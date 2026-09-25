@@ -17,7 +17,7 @@ class AppColors {
 
   static const Color error = Color(0xFFEF4444); // Red 500
   static const Color errorLight = Color(0xFFFEE2E2); // Red 100
-  
+
   static const Color background = Color(0xFFF8FAFC); // Slate 50
   static const Color surface = Colors.white;
 

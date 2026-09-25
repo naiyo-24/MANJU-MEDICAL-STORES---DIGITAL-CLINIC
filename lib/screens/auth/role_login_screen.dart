@@ -29,14 +29,15 @@ class _RoleLoginScreenState extends State<RoleLoginScreen> {
   Future<void> _login() async {
     if (_formKey.currentState!.validate()) {
       final userId = _userIdController.text.trim();
-      
+
       String expectedUserId = '';
       if (widget.roleName == 'Counter') {
         expectedUserId = 'admin_counter';
-      // ignore: curly_braces_in_flow_control_structures
-      } else if (widget.roleName == 'Lab Test') expectedUserId = 'admin_lab';
-      // ignore: curly_braces_in_flow_control_structures
-      else if (widget.roleName == 'CRM') expectedUserId = 'admin_crm';
+      } else if (widget.roleName == 'Lab Test') {
+        expectedUserId = 'admin_lab';
+      } else if (widget.roleName == 'CRM') {
+        expectedUserId = 'admin_crm';
+      }
 
       if (expectedUserId.isNotEmpty && userId != expectedUserId) {
         if (mounted) {
@@ -50,11 +51,16 @@ class _RoleLoginScreenState extends State<RoleLoginScreen> {
                   Text('Access Denied', style: TextStyle(color: Colors.red)),
                 ],
               ),
-              content: Text('Invalid User ID for the ${widget.roleName} module.'),
+              content: Text(
+                'Invalid User ID for the ${widget.roleName} module.',
+              ),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(ctx),
-                  child: const Text('OK', style: TextStyle(color: Color(0xFF1E293B))),
+                  child: const Text(
+                    'OK',
+                    style: TextStyle(color: Color(0xFF1E293B)),
+                  ),
                 ),
               ],
             ),
@@ -66,13 +72,13 @@ class _RoleLoginScreenState extends State<RoleLoginScreen> {
       setState(() {
         _isLoading = true;
       });
-      
+
       try {
         final success = await AuthService.adminLogin(
-          _userIdController.text, 
-          _passwordController.text
+          _userIdController.text,
+          _passwordController.text,
         );
-        
+
         if (success && mounted) {
           context.go(widget.nextRoute);
         }
@@ -92,7 +98,10 @@ class _RoleLoginScreenState extends State<RoleLoginScreen> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(ctx),
-                  child: const Text('OK', style: TextStyle(color: Color(0xFF1E293B))),
+                  child: const Text(
+                    'OK',
+                    style: TextStyle(color: Color(0xFF1E293B)),
+                  ),
                 ),
               ],
             ),
@@ -136,10 +145,7 @@ class _RoleLoginScreenState extends State<RoleLoginScreen> {
               const SizedBox(height: 2),
               Text(
                 subtitle,
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: Color(0xFF64748B),
-                ),
+                style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
               ),
             ],
           ),
@@ -172,7 +178,8 @@ class _RoleLoginScreenState extends State<RoleLoginScreen> {
               child: Image.asset(
                 'assets/back.png',
                 fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) => Container(color: const Color(0xFFE2E8F0)),
+                errorBuilder: (context, error, stackTrace) =>
+                    Container(color: const Color(0xFFE2E8F0)),
               ),
             ),
           ),
@@ -203,9 +210,16 @@ class _RoleLoginScreenState extends State<RoleLoginScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     TextButton.icon(
-                      onPressed: () => Navigator.pop(context, ),
-                      icon: const Icon(Icons.arrow_back, color: Colors.white, size: 18),
-                      label: const Text('Back', style: TextStyle(color: Colors.white)),
+                      onPressed: () => Navigator.pop(context),
+                      icon: const Icon(
+                        Icons.arrow_back,
+                        color: Colors.white,
+                        size: 18,
+                      ),
+                      label: const Text(
+                        'Back',
+                        style: TextStyle(color: Colors.white),
+                      ),
                     ),
                     Text(
                       '${widget.roleName} Login',
@@ -218,10 +232,7 @@ class _RoleLoginScreenState extends State<RoleLoginScreen> {
                     if (isWeb)
                       const Text(
                         'SirfBill Bill Karo, Befikar Raho',
-                        style: TextStyle(
-                          color: Colors.white70,
-                          fontSize: 12,
-                        ),
+                        style: TextStyle(color: Colors.white70, fontSize: 12),
                       )
                     else
                       const SizedBox(width: 60), // Balance the row
@@ -229,26 +240,33 @@ class _RoleLoginScreenState extends State<RoleLoginScreen> {
                 ),
               ),
 
-              Expanded(
-                child: isWeb ? _buildWebLayout() : _buildMobileLayout(),
-              ),
+              Expanded(child: isWeb ? _buildWebLayout() : _buildMobileLayout()),
 
               // Footer
               if (isWeb)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 16),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 48,
+                    vertical: 16,
+                  ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       const Text(
                         '© 2026 SirfBill Bill Karo, Befikar Raho. All rights reserved.',
-                        style: TextStyle(color: Color(0xFF94A3B8), fontSize: 12),
+                        style: TextStyle(
+                          color: Color(0xFF94A3B8),
+                          fontSize: 12,
+                        ),
                       ),
                       Row(
                         children: [
                           const Text(
                             'Together for a Healthier Tomorrow',
-                            style: TextStyle(color: Color(0xFF94A3B8), fontSize: 12),
+                            style: TextStyle(
+                              color: Color(0xFF94A3B8),
+                              fontSize: 12,
+                            ),
                           ),
                           const SizedBox(width: 8),
                           Icon(Icons.eco, size: 14, color: widget.themeColor),
@@ -273,61 +291,112 @@ class _RoleLoginScreenState extends State<RoleLoginScreen> {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-          // Left Content
-          Expanded(
-            flex: 1,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Image.asset('assets/LOGO.png', height: 80, cacheHeight: 250),
-                const SizedBox(height: 48),
-                const Text('Welcome to', style: TextStyle(fontSize: 24, color: Color(0xFF64748B))),
-                Text(
-                  '${widget.roleName} Module',
-                  style: TextStyle(fontSize: 42, fontWeight: FontWeight.w900, color: widget.themeColor),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  widget.roleName == 'Counter'
-                      ? 'Manage your pharmacy, billing, inventory\nand daily operations with ease.'
-                      : widget.roleName == 'Lab Test'
+              // Left Content
+              Expanded(
+                flex: 1,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Image.asset(
+                      'assets/LOGO.png',
+                      height: 80,
+                      cacheHeight: 250,
+                    ),
+                    const SizedBox(height: 48),
+                    const Text(
+                      'Welcome to',
+                      style: TextStyle(fontSize: 24, color: Color(0xFF64748B)),
+                    ),
+                    Text(
+                      '${widget.roleName} Module',
+                      style: TextStyle(
+                        fontSize: 42,
+                        fontWeight: FontWeight.w900,
+                        color: widget.themeColor,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      widget.roleName == 'Counter'
+                          ? 'Manage your pharmacy, billing, inventory\nand daily operations with ease.'
+                          : widget.roleName == 'Lab Test'
                           ? 'Manage your lab test bookings, reports\nand patient records effortlessly.'
                           : 'Manage patients, follow-ups and\ncustomer relationships efficiently.',
-                  style: const TextStyle(fontSize: 16, color: Color(0xFF64748B), height: 1.5),
+                      style: const TextStyle(
+                        fontSize: 16,
+                        color: Color(0xFF64748B),
+                        height: 1.5,
+                      ),
+                    ),
+                    const SizedBox(height: 48),
+                    if (widget.roleName == 'Counter') ...[
+                      _buildFeatureItem(
+                        Icons.medication,
+                        'Faster Billing',
+                        'Serve customers quickly',
+                      ),
+                      _buildFeatureItem(
+                        Icons.inventory,
+                        'Inventory Management',
+                        'Keep stock in control',
+                      ),
+                      _buildFeatureItem(
+                        Icons.security,
+                        'Reliable & Secure',
+                        'Your data is always safe',
+                      ),
+                    ] else if (widget.roleName == 'Lab Test') ...[
+                      _buildFeatureItem(
+                        Icons.science,
+                        'Easy Booking',
+                        'Schedule lab tests quickly',
+                      ),
+                      _buildFeatureItem(
+                        Icons.assignment,
+                        'Report Management',
+                        'Access and manage reports',
+                      ),
+                      _buildFeatureItem(
+                        Icons.people,
+                        'Patient Support',
+                        'Keep records organized',
+                      ),
+                    ] else ...[
+                      _buildFeatureItem(
+                        Icons.folder_shared,
+                        'Patient Management',
+                        'Keep patient records organized',
+                      ),
+                      _buildFeatureItem(
+                        Icons.notifications_active,
+                        'Smart Follow-ups',
+                        'Never miss an important follow-up',
+                      ),
+                      _buildFeatureItem(
+                        Icons.handshake,
+                        'Better Relationships',
+                        'Build stronger customer connections',
+                      ),
+                    ],
+                  ],
                 ),
-                const SizedBox(height: 48),
-                if (widget.roleName == 'Counter') ...[
-                  _buildFeatureItem(Icons.medication, 'Faster Billing', 'Serve customers quickly'),
-                  _buildFeatureItem(Icons.inventory, 'Inventory Management', 'Keep stock in control'),
-                  _buildFeatureItem(Icons.security, 'Reliable & Secure', 'Your data is always safe'),
-                ] else if (widget.roleName == 'Lab Test') ...[
-                  _buildFeatureItem(Icons.science, 'Easy Booking', 'Schedule lab tests quickly'),
-                  _buildFeatureItem(Icons.assignment, 'Report Management', 'Access and manage reports'),
-                  _buildFeatureItem(Icons.people, 'Patient Support', 'Keep records organized'),
-                ] else ...[
-                  _buildFeatureItem(Icons.folder_shared, 'Patient Management', 'Keep patient records organized'),
-                  _buildFeatureItem(Icons.notifications_active, 'Smart Follow-ups', 'Never miss an important follow-up'),
-                  _buildFeatureItem(Icons.handshake, 'Better Relationships', 'Build stronger customer connections'),
-                ],
-              ],
-            ),
-          ),
-          
-          // Right Login Card
-          Expanded(
-            flex: 1,
-            child: Align(
-              alignment: Alignment.center,
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 400),
-                child: _buildLoginCard(),
               ),
-            ),
-          ),
-        ],
-      ), // Closes Row
-      ), // Closes Padding
+
+              // Right Login Card
+              Expanded(
+                flex: 1,
+                child: Align(
+                  alignment: Alignment.center,
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 400),
+                    child: _buildLoginCard(),
+                  ),
+                ),
+              ),
+            ],
+          ), // Closes Row
+        ), // Closes Padding
       ), // Closes ConstrainedBox
     ); // Closes Center
   }
@@ -339,10 +408,7 @@ class _RoleLoginScreenState extends State<RoleLoginScreen> {
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
           child: Column(
-            children: [
-              const SizedBox(height: 32),
-              _buildLoginCard(),
-            ],
+            children: [const SizedBox(height: 32), _buildLoginCard()],
           ),
         ),
       ),
@@ -374,7 +440,11 @@ class _RoleLoginScreenState extends State<RoleLoginScreen> {
                 color: widget.themeColor.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
-              child: Icon(Icons.admin_panel_settings, size: 64, color: widget.themeColor),
+              child: Icon(
+                Icons.admin_panel_settings,
+                size: 64,
+                color: widget.themeColor,
+              ),
             ),
             const SizedBox(height: 24),
             Text(
@@ -459,11 +529,25 @@ class _RoleLoginScreenState extends State<RoleLoginScreen> {
                   elevation: 0,
                 ),
                 child: _isLoading
-                    ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
+                      )
                     : const Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Text('LOGIN', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, letterSpacing: 1)),
+                          Text(
+                            'LOGIN',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                              letterSpacing: 1,
+                            ),
+                          ),
                           SizedBox(width: 8),
                           Icon(Icons.arrow_forward, size: 18),
                         ],
@@ -474,7 +558,11 @@ class _RoleLoginScreenState extends State<RoleLoginScreen> {
             const Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.verified_user_outlined, size: 16, color: Color(0xFF64748B)),
+                Icon(
+                  Icons.verified_user_outlined,
+                  size: 16,
+                  color: Color(0xFF64748B),
+                ),
                 SizedBox(width: 8),
                 Text(
                   'Secure Access. Authorized Personnel Only.',

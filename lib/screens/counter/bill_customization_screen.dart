@@ -20,10 +20,12 @@ class BillCustomizationScreen extends ConsumerStatefulWidget {
   const BillCustomizationScreen({super.key});
 
   @override
-  ConsumerState<BillCustomizationScreen> createState() => _BillCustomizationScreenState();
+  ConsumerState<BillCustomizationScreen> createState() =>
+      _BillCustomizationScreenState();
 }
 
-class _BillCustomizationScreenState extends ConsumerState<BillCustomizationScreen> {
+class _BillCustomizationScreenState
+    extends ConsumerState<BillCustomizationScreen> {
   bool _isSaving = false;
   bool _isGenerating = false;
 
@@ -61,7 +63,10 @@ class _BillCustomizationScreenState extends ConsumerState<BillCustomizationScree
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error loading settings: $e'), backgroundColor: Colors.red),
+            SnackBar(
+              content: Text('Error loading settings: $e'),
+              backgroundColor: Colors.red,
+            ),
           );
         }
       }
@@ -98,7 +103,12 @@ class _BillCustomizationScreenState extends ConsumerState<BillCustomizationScree
     final gst = _gstCtrl.text.trim();
     if (gst.isNotEmpty && !RegExp(r'^[A-Za-z0-9]{15}$').hasMatch(gst)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('GST Number must be exactly 15 alphanumeric characters'), backgroundColor: Colors.red),
+        const SnackBar(
+          content: Text(
+            'GST Number must be exactly 15 alphanumeric characters',
+          ),
+          backgroundColor: Colors.red,
+        ),
       );
       return;
     }
@@ -106,7 +116,10 @@ class _BillCustomizationScreenState extends ConsumerState<BillCustomizationScree
     final phone = _phoneCtrl.text.trim();
     if (phone.isNotEmpty && !RegExp(r'^\d{10}$').hasMatch(phone)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Phone Number must be exactly 10 digits'), backgroundColor: Colors.red),
+        const SnackBar(
+          content: Text('Phone Number must be exactly 10 digits'),
+          backgroundColor: Colors.red,
+        ),
       );
       return;
     }
@@ -136,13 +149,19 @@ class _BillCustomizationScreenState extends ConsumerState<BillCustomizationScree
       await ref.read(settingsProvider.notifier).updateSettings(data);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Settings saved successfully'), backgroundColor: Colors.green),
+          const SnackBar(
+            content: Text('Settings saved successfully'),
+            backgroundColor: Colors.green,
+          ),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error saving settings: $e'), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text('Error saving settings: $e'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     } finally {
@@ -151,7 +170,9 @@ class _BillCustomizationScreenState extends ConsumerState<BillCustomizationScree
   }
 
   Future<void> _pickImage(bool isLogo) async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles(type: FileType.image);
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.image,
+    );
     if (result != null && result.files.single.bytes != null) {
       try {
         final bytes = result.files.single.bytes!;
@@ -167,7 +188,10 @@ class _BillCustomizationScreenState extends ConsumerState<BillCustomizationScree
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error uploading image: $e'), backgroundColor: Colors.red),
+            SnackBar(
+              content: Text('Error uploading image: $e'),
+              backgroundColor: Colors.red,
+            ),
           );
         }
       }
@@ -263,9 +287,45 @@ class _BillCustomizationScreenState extends ConsumerState<BillCustomizationScree
       );
 
       final dummyItems = [
-        BillItem(id: '1', name: 'Paracetamol 500mg', batch: 'B123', expiry: '12/25', hsn: '3004', qty: 2, mrp: 25.0, price: 25.0, cgst: 6, sgst: 6, total: 50.0),
-        BillItem(id: '2', name: 'Amoxicillin 250mg', batch: 'B456', expiry: '10/24', hsn: '3004', qty: 1, mrp: 120.0, price: 120.0, cgst: 6, sgst: 6, total: 120.0),
-        BillItem(id: '3', name: 'Cough Syrup 100ml', batch: 'C789', expiry: '05/26', hsn: '3004', qty: 1, mrp: 85.0, price: 85.0, cgst: 6, sgst: 6, total: 85.0),
+        BillItem(
+          id: '1',
+          name: 'Paracetamol 500mg',
+          batch: 'B123',
+          expiry: '12/25',
+          hsn: '3004',
+          qty: 2,
+          mrp: 25.0,
+          price: 25.0,
+          cgst: 6,
+          sgst: 6,
+          total: 50.0,
+        ),
+        BillItem(
+          id: '2',
+          name: 'Amoxicillin 250mg',
+          batch: 'B456',
+          expiry: '10/24',
+          hsn: '3004',
+          qty: 1,
+          mrp: 120.0,
+          price: 120.0,
+          cgst: 6,
+          sgst: 6,
+          total: 120.0,
+        ),
+        BillItem(
+          id: '3',
+          name: 'Cough Syrup 100ml',
+          batch: 'C789',
+          expiry: '05/26',
+          hsn: '3004',
+          qty: 1,
+          mrp: 85.0,
+          price: 85.0,
+          cgst: 6,
+          sgst: 6,
+          total: 85.0,
+        ),
       ].map((e) => e.toMap()).toList();
 
       final args = {
@@ -310,7 +370,10 @@ class _BillCustomizationScreenState extends ConsumerState<BillCustomizationScree
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error generating preview: $e'), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text('Error generating preview: $e'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     } finally {
@@ -323,13 +386,25 @@ class _BillCustomizationScreenState extends ConsumerState<BillCustomizationScree
     }
   }
 
-  Widget _buildTextField(String label, TextEditingController controller, {int maxLines = 1, int? maxLength, TextInputType? keyboardType}) {
+  Widget _buildTextField(
+    String label,
+    TextEditingController controller, {
+    int maxLines = 1,
+    int? maxLength,
+    TextInputType? keyboardType,
+  }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF64748B))),
+          Text(
+            label,
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF64748B),
+            ),
+          ),
           const SizedBox(height: 8),
           TextField(
             controller: controller,
@@ -347,7 +422,10 @@ class _BillCustomizationScreenState extends ConsumerState<BillCustomizationScree
                 borderRadius: BorderRadius.circular(8),
                 borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
               ),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 12,
+              ),
             ),
           ),
         ],
@@ -371,21 +449,43 @@ class _BillCustomizationScreenState extends ConsumerState<BillCustomizationScree
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('Bill Customization', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                const Text(
+                  'Bill Customization',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1E293B),
+                  ),
+                ),
                 Row(
                   children: [
                     ElevatedButton.icon(
                       onPressed: _isSaving ? null : _saveSettings,
-                      icon: _isSaving ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)) : const Icon(Icons.save),
-                      label: const Text('Save Settings', style: TextStyle(fontWeight: FontWeight.bold)),
+                      icon: _isSaving
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : const Icon(Icons.save),
+                      label: const Text(
+                        'Save Settings',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF22C55E),
                         foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 16,
+                        ),
                       ),
                     ),
                   ],
-                )
+                ),
               ],
             ),
             const SizedBox(height: 24),
@@ -397,29 +497,62 @@ class _BillCustomizationScreenState extends ConsumerState<BillCustomizationScree
                       Card(
                         color: Colors.white,
                         elevation: 0,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                         child: Padding(
                           padding: const EdgeInsets.all(24.0),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text('Shop Details', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                              const Text(
+                                'Shop Details',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF1E293B),
+                                ),
+                              ),
                               const SizedBox(height: 16),
                               _buildTextField('Shop Name', _shopNameCtrl),
                               _buildTextField('Tagline', _taglineCtrl),
-                              _buildTextField('Address', _addressCtrl, maxLines: 2),
+                              _buildTextField(
+                                'Address',
+                                _addressCtrl,
+                                maxLines: 2,
+                              ),
                               Row(
                                 children: [
-                                  Expanded(child: _buildTextField('Phone', _phoneCtrl, maxLength: 10, keyboardType: TextInputType.phone)),
+                                  Expanded(
+                                    child: _buildTextField(
+                                      'Phone',
+                                      _phoneCtrl,
+                                      maxLength: 10,
+                                      keyboardType: TextInputType.phone,
+                                    ),
+                                  ),
                                   const SizedBox(width: 12),
-                                  Expanded(child: _buildTextField('Landline', _landlineCtrl)),
+                                  Expanded(
+                                    child: _buildTextField(
+                                      'Landline',
+                                      _landlineCtrl,
+                                    ),
+                                  ),
                                 ],
                               ),
                               Row(
                                 children: [
-                                  Expanded(child: _buildTextField('Email', _emailCtrl)),
+                                  Expanded(
+                                    child: _buildTextField('Email', _emailCtrl),
+                                  ),
                                   const SizedBox(width: 12),
-                                  Expanded(child: _buildTextField('GST Number', _gstCtrl, maxLength: 15)),
+                                  Expanded(
+                                    child: _buildTextField(
+                                      'GST Number',
+                                      _gstCtrl,
+                                      maxLength: 15,
+                                    ),
+                                  ),
                                 ],
                               ),
                             ],
@@ -430,22 +563,41 @@ class _BillCustomizationScreenState extends ConsumerState<BillCustomizationScree
                       Card(
                         color: Colors.white,
                         elevation: 0,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                         child: Padding(
                           padding: const EdgeInsets.all(24.0),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text('Bank Details', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                              const Text(
+                                'Bank Details',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF1E293B),
+                                ),
+                              ),
                               const SizedBox(height: 16),
                               _buildTextField('Bank Name', _bankNameCtrl),
                               _buildTextField('Branch Name', _branchNameCtrl),
                               _buildTextField('A/C Holder Name', _acHolderCtrl),
                               Row(
                                 children: [
-                                  Expanded(child: _buildTextField('Account Number', _acNumberCtrl)),
+                                  Expanded(
+                                    child: _buildTextField(
+                                      'Account Number',
+                                      _acNumberCtrl,
+                                    ),
+                                  ),
                                   const SizedBox(width: 12),
-                                  Expanded(child: _buildTextField('IFSC Code', _ifscCtrl)),
+                                  Expanded(
+                                    child: _buildTextField(
+                                      'IFSC Code',
+                                      _ifscCtrl,
+                                    ),
+                                  ),
                                 ],
                               ),
                             ],
@@ -456,13 +608,22 @@ class _BillCustomizationScreenState extends ConsumerState<BillCustomizationScree
                       Card(
                         color: Colors.white,
                         elevation: 0,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                         child: Padding(
                           padding: const EdgeInsets.all(24.0),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text('Terms & Conditions (Footer)', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                              const Text(
+                                'Terms & Conditions (Footer)',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF1E293B),
+                                ),
+                              ),
                               const SizedBox(height: 16),
                               _buildTextField('Term 1', _terms1Ctrl),
                               _buildTextField('Term 2', _terms2Ctrl),
@@ -475,66 +636,122 @@ class _BillCustomizationScreenState extends ConsumerState<BillCustomizationScree
                       Card(
                         color: Colors.white,
                         elevation: 0,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                         child: Padding(
                           padding: const EdgeInsets.all(24.0),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text('Media (Logo & UPI QR)', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                              const Text(
+                                'Media (Logo & UPI QR)',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF1E293B),
+                                ),
+                              ),
                               const SizedBox(height: 16),
                               Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceAround,
                                 children: [
                                   Column(
                                     children: [
-                                      const Text('Shop Logo', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF64748B))),
-                                      const SizedBox(height: 8),
-                                      Container(
-                                        width: 120, height: 120,
-                                        decoration: BoxDecoration(
-                                          border: Border.all(color: Colors.grey.shade300),
-                                          borderRadius: BorderRadius.circular(8)
+                                      const Text(
+                                        'Shop Logo',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: Color(0xFF64748B),
                                         ),
-                                        child: _logoUrl != null 
-                                          ? Image.network('${ApiConstants.baseUrl}$_logoUrl', fit: BoxFit.contain)
-                                          : const Icon(Icons.image, size: 40, color: Colors.grey),
                                       ),
                                       const SizedBox(height: 8),
-                                      OutlinedButton.icon(onPressed: () => _pickImage(true), icon: const Icon(Icons.upload), label: const Text('Upload'))
+                                      Container(
+                                        width: 120,
+                                        height: 120,
+                                        decoration: BoxDecoration(
+                                          border: Border.all(
+                                            color: Colors.grey.shade300,
+                                          ),
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
+                                        ),
+                                        child: _logoUrl != null
+                                            ? Image.network(
+                                                '${ApiConstants.baseUrl}$_logoUrl',
+                                                fit: BoxFit.contain,
+                                              )
+                                            : const Icon(
+                                                Icons.image,
+                                                size: 40,
+                                                color: Colors.grey,
+                                              ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      OutlinedButton.icon(
+                                        onPressed: () => _pickImage(true),
+                                        icon: const Icon(Icons.upload),
+                                        label: const Text('Upload'),
+                                      ),
                                     ],
                                   ),
                                   Column(
                                     children: [
-                                      const Text('UPI QR Code', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF64748B))),
-                                      const SizedBox(height: 8),
-                                      Container(
-                                        width: 120, height: 120,
-                                        decoration: BoxDecoration(
-                                          border: Border.all(color: Colors.grey.shade300),
-                                          borderRadius: BorderRadius.circular(8)
+                                      const Text(
+                                        'UPI QR Code',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: Color(0xFF64748B),
                                         ),
-                                        child: _qrUrl != null 
-                                          ? Image.network('${ApiConstants.baseUrl}$_qrUrl', fit: BoxFit.contain)
-                                          : const Icon(Icons.qr_code, size: 40, color: Colors.grey),
                                       ),
                                       const SizedBox(height: 8),
-                                      OutlinedButton.icon(onPressed: () => _pickImage(false), icon: const Icon(Icons.upload), label: const Text('Upload'))
+                                      Container(
+                                        width: 120,
+                                        height: 120,
+                                        decoration: BoxDecoration(
+                                          border: Border.all(
+                                            color: Colors.grey.shade300,
+                                          ),
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
+                                        ),
+                                        child: _qrUrl != null
+                                            ? Image.network(
+                                                '${ApiConstants.baseUrl}$_qrUrl',
+                                                fit: BoxFit.contain,
+                                              )
+                                            : const Icon(
+                                                Icons.qr_code,
+                                                size: 40,
+                                                color: Colors.grey,
+                                              ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      OutlinedButton.icon(
+                                        onPressed: () => _pickImage(false),
+                                        icon: const Icon(Icons.upload),
+                                        label: const Text('Upload'),
+                                      ),
                                     ],
                                   ),
                                 ],
-                              )
+                              ),
                             ],
                           ),
                         ),
-                      )
+                      ),
                     ],
                   ),
                 ),
                 rightPane: Card(
                   color: Colors.white,
                   elevation: 0,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: Column(
@@ -545,18 +762,32 @@ class _BillCustomizationScreenState extends ConsumerState<BillCustomizationScree
                           runSpacing: 16,
                           spacing: 16,
                           children: [
-                            const Text('Live Preview', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                            const Text(
+                              'Live Preview',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF1E293B),
+                              ),
+                            ),
                             Wrap(
                               spacing: 16,
                               runSpacing: 16,
                               crossAxisAlignment: WrapCrossAlignment.center,
                               children: [
                                 ToggleButtons(
-                                  isSelected: [_previewFormat == 'Thermal', _previewFormat == 'A4', _previewFormat == 'A5'],
+                                  isSelected: [
+                                    _previewFormat == 'Thermal',
+                                    _previewFormat == 'A4',
+                                    _previewFormat == 'A5',
+                                  ],
                                   onPressed: (index) {
                                     setState(() {
-                                      _previewFormat = index == 0 ? 'Thermal' : (index == 1 ? 'A4' : 'A5');
-                                      _previewBytes = null; // Clear old preview on format change
+                                      _previewFormat = index == 0
+                                          ? 'Thermal'
+                                          : (index == 1 ? 'A4' : 'A5');
+                                      _previewBytes =
+                                          null; // Clear old preview on format change
                                     });
                                   },
                                   borderRadius: BorderRadius.circular(8),
@@ -564,13 +795,48 @@ class _BillCustomizationScreenState extends ConsumerState<BillCustomizationScree
                                   selectedColor: const Color(0xFF22C55E),
                                   fillColor: const Color(0xFFF1F8F5),
                                   children: const [
-                                    Padding(padding: EdgeInsets.symmetric(horizontal: 12), child: Text('Thermal', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12))),
-                                    Padding(padding: EdgeInsets.symmetric(horizontal: 12), child: Text('A4', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12))),
-                                    Padding(padding: EdgeInsets.symmetric(horizontal: 12), child: Text('A5', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12))),
+                                    Padding(
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: 12,
+                                      ),
+                                      child: Text(
+                                        'Thermal',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ),
+                                    Padding(
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: 12,
+                                      ),
+                                      child: Text(
+                                        'A4',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ),
+                                    Padding(
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: 12,
+                                      ),
+                                      child: Text(
+                                        'A5',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ),
                                   ],
                                 ),
                                 ElevatedButton.icon(
-                                  onPressed: _isGenerating ? null : _generatePreviewPdf,
+                                  onPressed: _isGenerating
+                                      ? null
+                                      : _generatePreviewPdf,
                                   icon: const Icon(Icons.refresh),
                                   label: const Text('Generate Preview'),
                                   style: ElevatedButton.styleFrom(
@@ -588,7 +854,10 @@ class _BillCustomizationScreenState extends ConsumerState<BillCustomizationScree
                               ? const Center(
                                   child: Text(
                                     'Click "Generate Preview" to see the bill format',
-                                    style: TextStyle(color: Colors.grey, fontSize: 16),
+                                    style: TextStyle(
+                                      color: Colors.grey,
+                                      fontSize: 16,
+                                    ),
                                   ),
                                 )
                               : PdfPreview(
@@ -599,7 +868,7 @@ class _BillCustomizationScreenState extends ConsumerState<BillCustomizationScree
                                   allowPrinting: false,
                                   allowSharing: false,
                                 ),
-                        )
+                        ),
                       ],
                     ),
                   ),

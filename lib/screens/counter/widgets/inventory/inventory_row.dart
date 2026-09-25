@@ -21,8 +21,8 @@ class InventoryRowWidget extends StatelessWidget {
     final status = medicine.stockQuantity <= 0
         ? 'Out of Stock'
         : (medicine.stockQuantity <= (medicine.lowStockThreshold ?? 10)
-            ? 'Low Stock'
-            : (medicine.stockQuantity <= 50 ? 'Medium Stock' : 'OK'));
+              ? 'Low Stock'
+              : (medicine.stockQuantity <= 50 ? 'Medium Stock' : 'OK'));
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
@@ -40,13 +40,19 @@ class InventoryRowWidget extends StatelessWidget {
                     borderRadius: BorderRadius.circular(8),
                     image: medicine.imageUrl != null
                         ? DecorationImage(
-                            image: NetworkImage('${ApiConstants.baseUrl}${medicine.imageUrl}'),
+                            image: NetworkImage(
+                              '${ApiConstants.baseUrl}${medicine.imageUrl}',
+                            ),
                             fit: BoxFit.cover,
                           )
                         : null,
                   ),
                   child: medicine.imageUrl == null
-                      ? const Icon(Icons.medication, color: Color(0xFF94A3B8), size: 20)
+                      ? const Icon(
+                          Icons.medication,
+                          color: Color(0xFF94A3B8),
+                          size: 20,
+                        )
                       : null,
                 ),
                 const SizedBox(width: 12),
@@ -56,14 +62,23 @@ class InventoryRowWidget extends StatelessWidget {
                     children: [
                       Text(
                         medicine.name,
-                        style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E293B), fontSize: 14),
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1E293B),
+                          fontSize: 14,
+                        ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        medicine.manufacturer.isNotEmpty ? medicine.manufacturer : 'Unknown',
-                        style: const TextStyle(color: Color(0xFF64748B), fontSize: 10),
+                        medicine.manufacturer.isNotEmpty
+                            ? medicine.manufacturer
+                            : 'Unknown',
+                        style: const TextStyle(
+                          color: Color(0xFF64748B),
+                          fontSize: 10,
+                        ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -81,14 +96,22 @@ class InventoryRowWidget extends StatelessWidget {
               children: [
                 Text(
                   medicine.createdAt != null
-                      ? DateFormat('MMM dd, yyyy').format(DateTime.parse(medicine.createdAt!).toLocal())
+                      ? DateFormat(
+                          'MMM dd, yyyy',
+                        ).format(DateTime.parse(medicine.createdAt!).toLocal())
                       : 'N/A',
-                  style: const TextStyle(color: Color(0xFF1E293B), fontSize: 12),
+                  style: const TextStyle(
+                    color: Color(0xFF1E293B),
+                    fontSize: 12,
+                  ),
                 ),
                 if (medicine.updatedAt != null)
                   Text(
                     'Updated: ${DateFormat('MMM dd, yyyy').format(DateTime.parse(medicine.updatedAt!).toLocal())}',
-                    style: const TextStyle(color: Color(0xFF64748B), fontSize: 10),
+                    style: const TextStyle(
+                      color: Color(0xFF64748B),
+                      fontSize: 10,
+                    ),
                   ),
               ],
             ),
@@ -100,9 +123,12 @@ class InventoryRowWidget extends StatelessWidget {
               style: TextStyle(
                 color: medicine.stockQuantity <= 0
                     ? const Color(0xFFDC2626) // Red
-                    : (medicine.stockQuantity <= (medicine.lowStockThreshold ?? 10)
-                        ? const Color(0xFFD97706) // Yellow/Orange
-                        : (medicine.stockQuantity <= 50 ? const Color(0xFF2563EB) : const Color(0xFF16A34A))), // Blue / Green
+                    : (medicine.stockQuantity <=
+                              (medicine.lowStockThreshold ?? 10)
+                          ? const Color(0xFFD97706) // Yellow/Orange
+                          : (medicine.stockQuantity <= 50
+                                ? const Color(0xFF2563EB)
+                                : const Color(0xFF16A34A))), // Blue / Green
                 fontWeight: FontWeight.bold,
                 fontSize: 12,
               ),
@@ -112,13 +138,19 @@ class InventoryRowWidget extends StatelessWidget {
             flex: 2,
             child: Text(
               '₹${medicine.unitPrice.toStringAsFixed(2)}',
-              style: const TextStyle(color: Color(0xFF1E293B), fontSize: 12, fontWeight: FontWeight.bold),
+              style: const TextStyle(
+                color: Color(0xFF1E293B),
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
           Expanded(
             flex: 1,
             child: Text(
-              medicine.gst != null && medicine.gst! > 0 ? '${medicine.gst!.toStringAsFixed(1)}%' : '-',
+              medicine.gst != null && medicine.gst! > 0
+                  ? '${medicine.gst!.toStringAsFixed(1)}%'
+                  : '-',
               style: const TextStyle(color: Color(0xFF64748B), fontSize: 12),
             ),
           ),
@@ -139,7 +171,11 @@ class InventoryRowWidget extends StatelessWidget {
           SizedBox(
             width: 40,
             child: PopupMenuButton<String>(
-              icon: const Icon(Icons.more_vert, color: Color(0xFF94A3B8), size: 20),
+              icon: const Icon(
+                Icons.more_vert,
+                color: Color(0xFF94A3B8),
+                size: 20,
+              ),
               onSelected: (value) {
                 if (value == 'edit') {
                   onEdit();

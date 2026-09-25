@@ -30,29 +30,121 @@ class CustomPagination extends StatelessWidget {
     // Page Numbers logic
     if (totalPages <= 7) {
       for (int i = 1; i <= totalPages; i++) {
-        pageButtons.add(_buildPaginationBtn(text: '$i', isActive: currentPage == i, onTap: () => onPageChanged(i)));
+        pageButtons.add(
+          _buildPaginationBtn(
+            text: '$i',
+            isActive: currentPage == i,
+            onTap: () => onPageChanged(i),
+          ),
+        );
       }
     } else {
       if (currentPage <= 4) {
         for (int i = 1; i <= 5; i++) {
-          pageButtons.add(_buildPaginationBtn(text: '$i', isActive: currentPage == i, onTap: () => onPageChanged(i)));
+          pageButtons.add(
+            _buildPaginationBtn(
+              text: '$i',
+              isActive: currentPage == i,
+              onTap: () => onPageChanged(i),
+            ),
+          );
         }
-        pageButtons.add(const Padding(padding: EdgeInsets.symmetric(horizontal: 4), child: Text('...', style: TextStyle(color: Color(0xFF64748B), fontWeight: FontWeight.bold))));
-        pageButtons.add(_buildPaginationBtn(text: '$totalPages', isActive: currentPage == totalPages, onTap: () => onPageChanged(totalPages)));
+        pageButtons.add(
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 4),
+            child: Text(
+              '...',
+              style: TextStyle(
+                color: Color(0xFF64748B),
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        );
+        pageButtons.add(
+          _buildPaginationBtn(
+            text: '$totalPages',
+            isActive: currentPage == totalPages,
+            onTap: () => onPageChanged(totalPages),
+          ),
+        );
       } else if (currentPage >= totalPages - 3) {
-        pageButtons.add(_buildPaginationBtn(text: '1', isActive: currentPage == 1, onTap: () => onPageChanged(1)));
-        pageButtons.add(const Padding(padding: EdgeInsets.symmetric(horizontal: 4), child: Text('...', style: TextStyle(color: Color(0xFF64748B), fontWeight: FontWeight.bold))));
+        pageButtons.add(
+          _buildPaginationBtn(
+            text: '1',
+            isActive: currentPage == 1,
+            onTap: () => onPageChanged(1),
+          ),
+        );
+        pageButtons.add(
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 4),
+            child: Text(
+              '...',
+              style: TextStyle(
+                color: Color(0xFF64748B),
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        );
         for (int i = totalPages - 4; i <= totalPages; i++) {
-          pageButtons.add(_buildPaginationBtn(text: '$i', isActive: currentPage == i, onTap: () => onPageChanged(i)));
+          pageButtons.add(
+            _buildPaginationBtn(
+              text: '$i',
+              isActive: currentPage == i,
+              onTap: () => onPageChanged(i),
+            ),
+          );
         }
       } else {
-        pageButtons.add(_buildPaginationBtn(text: '1', isActive: currentPage == 1, onTap: () => onPageChanged(1)));
-        pageButtons.add(const Padding(padding: EdgeInsets.symmetric(horizontal: 4), child: Text('...', style: TextStyle(color: Color(0xFF64748B), fontWeight: FontWeight.bold))));
+        pageButtons.add(
+          _buildPaginationBtn(
+            text: '1',
+            isActive: currentPage == 1,
+            onTap: () => onPageChanged(1),
+          ),
+        );
+        pageButtons.add(
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 4),
+            child: Text(
+              '...',
+              style: TextStyle(
+                color: Color(0xFF64748B),
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        );
         for (int i = currentPage - 1; i <= currentPage + 1; i++) {
-          pageButtons.add(_buildPaginationBtn(text: '$i', isActive: currentPage == i, onTap: () => onPageChanged(i)));
+          pageButtons.add(
+            _buildPaginationBtn(
+              text: '$i',
+              isActive: currentPage == i,
+              onTap: () => onPageChanged(i),
+            ),
+          );
         }
-        pageButtons.add(const Padding(padding: EdgeInsets.symmetric(horizontal: 4), child: Text('...', style: TextStyle(color: Color(0xFF64748B), fontWeight: FontWeight.bold))));
-        pageButtons.add(_buildPaginationBtn(text: '$totalPages', isActive: currentPage == totalPages, onTap: () => onPageChanged(totalPages)));
+        pageButtons.add(
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 4),
+            child: Text(
+              '...',
+              style: TextStyle(
+                color: Color(0xFF64748B),
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        );
+        pageButtons.add(
+          _buildPaginationBtn(
+            text: '$totalPages',
+            isActive: currentPage == totalPages,
+            onTap: () => onPageChanged(totalPages),
+          ),
+        );
       }
     }
 
@@ -61,7 +153,9 @@ class CustomPagination extends StatelessWidget {
       _buildPaginationBtn(
         icon: Icons.chevron_right,
         isActive: false,
-        onTap: currentPage < totalPages ? () => onPageChanged(currentPage + 1) : null,
+        onTap: currentPage < totalPages
+            ? () => onPageChanged(currentPage + 1)
+            : null,
       ),
     );
 
@@ -71,7 +165,12 @@ class CustomPagination extends StatelessWidget {
     );
   }
 
-  Widget _buildPaginationBtn({IconData? icon, String? text, required bool isActive, VoidCallback? onTap}) {
+  Widget _buildPaginationBtn({
+    IconData? icon,
+    String? text,
+    required bool isActive,
+    VoidCallback? onTap,
+  }) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 4),
       child: InkWell(
@@ -82,12 +181,22 @@ class CustomPagination extends StatelessWidget {
           height: 32,
           decoration: BoxDecoration(
             color: isActive ? const Color(0xFF22C55E) : Colors.white,
-            border: Border.all(color: isActive ? const Color(0xFF22C55E) : const Color(0xFFE2E8F0)),
+            border: Border.all(
+              color: isActive
+                  ? const Color(0xFF22C55E)
+                  : const Color(0xFFE2E8F0),
+            ),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Center(
             child: icon != null
-                ? Icon(icon, size: 16, color: onTap == null ? const Color(0xFFCBD5E1) : (isActive ? Colors.white : const Color(0xFF1E293B)))
+                ? Icon(
+                    icon,
+                    size: 16,
+                    color: onTap == null
+                        ? const Color(0xFFCBD5E1)
+                        : (isActive ? Colors.white : const Color(0xFF1E293B)),
+                  )
                 : Text(
                     text!,
                     style: TextStyle(

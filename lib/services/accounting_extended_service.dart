@@ -3,7 +3,9 @@ import '../config/api_client.dart';
 class AccountingExtendedService {
   static Future<Map<String, dynamic>> getReceivables() async {
     try {
-      final response = await ApiClient().dio.get('/api/accounts/extended/receivables');
+      final response = await ApiClient().dio.get(
+        '/api/accounts/extended/receivables',
+      );
       if (response.statusCode == 200) {
         return response.data['data'];
       }
@@ -17,7 +19,9 @@ class AccountingExtendedService {
 
   static Future<Map<String, dynamic>> getPayables() async {
     try {
-      final response = await ApiClient().dio.get('/api/accounts/extended/payables');
+      final response = await ApiClient().dio.get(
+        '/api/accounts/extended/payables',
+      );
       if (response.statusCode == 200) {
         return response.data['data'];
       }
@@ -31,7 +35,9 @@ class AccountingExtendedService {
 
   static Future<List<dynamic>> getLedger() async {
     try {
-      final response = await ApiClient().dio.get('/api/accounts/extended/ledger');
+      final response = await ApiClient().dio.get(
+        '/api/accounts/extended/ledger',
+      );
       if (response.statusCode == 200) {
         return response.data['data'];
       }
@@ -43,14 +49,14 @@ class AccountingExtendedService {
     }
   }
 
-  static Future<Map<String, dynamic>> getPnL(String? startDate, String? endDate) async {
+  static Future<Map<String, dynamic>> getPnL(
+    String? startDate,
+    String? endDate,
+  ) async {
     try {
       final response = await ApiClient().dio.get(
         '/api/accounts/extended/reports/pnl',
-        queryParameters: {
-          'start_date': ?startDate,
-          'end_date': ?endDate,
-        },
+        queryParameters: {'start_date': ?startDate, 'end_date': ?endDate},
       );
       if (response.statusCode == 200) {
         return response.data['data'];

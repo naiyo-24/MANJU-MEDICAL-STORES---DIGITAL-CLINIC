@@ -4,8 +4,11 @@ import 'package:pdf/widgets.dart' as pw;
 import '../models/lab_models.dart';
 
 class PdfGeneratorService {
-  
-  static Future<Uint8List> generateReport(LabTest test, LabTemplate template, Map<String, dynamic> patientData) async {
+  static Future<Uint8List> generateReport(
+    LabTest test,
+    LabTemplate template,
+    Map<String, dynamic> patientData,
+  ) async {
     final pdf = pw.Document();
     final config = template.layoutConfig;
 
@@ -25,7 +28,10 @@ class PdfGeneratorService {
         build: (context) => [
           _buildRichHeader(config, patientData, logoImage: logoImage),
           pw.Padding(
-            padding: const pw.EdgeInsets.symmetric(horizontal: 40, vertical: 20),
+            padding: const pw.EdgeInsets.symmetric(
+              horizontal: 40,
+              vertical: 20,
+            ),
             child: pw.Column(
               crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
@@ -34,14 +40,18 @@ class PdfGeneratorService {
                 pw.Center(
                   child: pw.Text(
                     (template.category).toUpperCase(),
-                    style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold, decoration: pw.TextDecoration.underline),
+                    style: pw.TextStyle(
+                      fontSize: 14,
+                      fontWeight: pw.FontWeight.bold,
+                      decoration: pw.TextDecoration.underline,
+                    ),
                   ),
                 ),
                 pw.SizedBox(height: 20),
                 _buildTestTable(template),
               ],
             ),
-          )
+          ),
         ],
         footer: (context) => _buildRichFooter(config),
       ),
@@ -50,12 +60,21 @@ class PdfGeneratorService {
     return pdf.save();
   }
 
-  static pw.Widget _buildRichHeader(ReportLayoutConfig config, Map<String, dynamic> patientData, {pw.MemoryImage? logoImage}) {
+  static pw.Widget _buildRichHeader(
+    ReportLayoutConfig config,
+    Map<String, dynamic> patientData, {
+    pw.MemoryImage? logoImage,
+  }) {
     return pw.Column(
       children: [
         // Logo and Title Area
         pw.Padding(
-          padding: const pw.EdgeInsets.only(left: 40, right: 40, top: 40, bottom: 10),
+          padding: const pw.EdgeInsets.only(
+            left: 40,
+            right: 40,
+            top: 40,
+            bottom: 10,
+          ),
           child: pw.Row(
             crossAxisAlignment: pw.CrossAxisAlignment.center,
             children: [
@@ -64,7 +83,12 @@ class PdfGeneratorService {
                 pw.ClipRRect(
                   horizontalRadius: 40,
                   verticalRadius: 40,
-                  child: pw.Image(logoImage, width: 80, height: 80, fit: pw.BoxFit.contain),
+                  child: pw.Image(
+                    logoImage,
+                    width: 80,
+                    height: 80,
+                    fit: pw.BoxFit.contain,
+                  ),
                 )
               else
                 pw.Container(
@@ -74,7 +98,12 @@ class PdfGeneratorService {
                     color: PdfColors.grey200,
                     borderRadius: pw.BorderRadius.circular(40),
                   ),
-                  child: pw.Center(child: pw.Text('LOGO', style: pw.TextStyle(color: PdfColors.grey500))),
+                  child: pw.Center(
+                    child: pw.Text(
+                      'LOGO',
+                      style: pw.TextStyle(color: PdfColors.grey500),
+                    ),
+                  ),
                 ),
               pw.SizedBox(width: 20),
               // Clinic Name
@@ -83,11 +112,19 @@ class PdfGeneratorService {
                 children: [
                   pw.Text(
                     config.clinicName,
-                    style: pw.TextStyle(fontSize: 28, fontWeight: pw.FontWeight.bold, color: const PdfColor.fromInt(0xFF003B46)), // Dark teal
+                    style: pw.TextStyle(
+                      fontSize: 28,
+                      fontWeight: pw.FontWeight.bold,
+                      color: const PdfColor.fromInt(0xFF003B46),
+                    ), // Dark teal
                   ),
                   pw.Text(
                     '',
-                    style: pw.TextStyle(fontSize: 10, letterSpacing: 2, color: PdfColors.grey700),
+                    style: pw.TextStyle(
+                      fontSize: 10,
+                      letterSpacing: 2,
+                      color: PdfColors.grey700,
+                    ),
                   ),
                 ],
               ),
@@ -121,7 +158,12 @@ class PdfGeneratorService {
           padding: const pw.EdgeInsets.symmetric(horizontal: 40),
           child: pw.Text(
             'TRUSTED CARE  |  ACCURATE RESULTS  |  HEALTHIER TOMORROW',
-            style: pw.TextStyle(color: PdfColors.white, fontSize: 10, letterSpacing: 1, fontWeight: pw.FontWeight.bold),
+            style: pw.TextStyle(
+              color: PdfColors.white,
+              fontSize: 10,
+              letterSpacing: 1,
+              fontWeight: pw.FontWeight.bold,
+            ),
           ),
         ),
       ],
@@ -132,18 +174,33 @@ class PdfGeneratorService {
     return pw.Row(
       children: [
         pw.Container(
-          width: 24, height: 24,
-          decoration: pw.BoxDecoration(color: PdfColors.grey200, borderRadius: pw.BorderRadius.circular(12)),
-          child: pw.Center(child: pw.Text(label[0], style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey600))),
+          width: 24,
+          height: 24,
+          decoration: pw.BoxDecoration(
+            color: PdfColors.grey200,
+            borderRadius: pw.BorderRadius.circular(12),
+          ),
+          child: pw.Center(
+            child: pw.Text(
+              label[0],
+              style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey600),
+            ),
+          ),
         ),
         pw.SizedBox(width: 8),
         pw.Column(
           crossAxisAlignment: pw.CrossAxisAlignment.start,
           children: [
-            pw.Text(value, style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold)),
-            pw.Text(label, style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey600)),
+            pw.Text(
+              value,
+              style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold),
+            ),
+            pw.Text(
+              label,
+              style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey600),
+            ),
           ],
-        )
+        ),
       ],
     );
   }
@@ -164,7 +221,10 @@ class PdfGeneratorService {
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
               _detailRow('Patient Name', data['patientName'] ?? 'John Doe'),
-              _detailRow('Age / Gender', '${data['age'] ?? '30'} Y / ${data['gender'] ?? 'Male'}'),
+              _detailRow(
+                'Age / Gender',
+                '${data['age'] ?? '30'} Y / ${data['gender'] ?? 'Male'}',
+              ),
               _detailRow('Patient ID', data['patientId'] ?? 'PID-1001'),
               _detailRow('Referred By', data['referredBy'] ?? 'Self'),
             ],
@@ -174,8 +234,14 @@ class PdfGeneratorService {
             children: [
               _detailRow('Sample ID', data['sampleId'] ?? 'SID-9928'),
               _detailRow('Sample Type', data['sampleType'] ?? 'Blood'),
-              _detailRow('Collection Date', data['collectionDate'] ?? '2026-06-22'),
-              _detailRow('Reporting Date', data['reportingDate'] ?? '2026-06-22'),
+              _detailRow(
+                'Collection Date',
+                data['collectionDate'] ?? '2026-06-22',
+              ),
+              _detailRow(
+                'Reporting Date',
+                data['reportingDate'] ?? '2026-06-22',
+              ),
             ],
           ),
         ],
@@ -188,9 +254,21 @@ class PdfGeneratorService {
       padding: const pw.EdgeInsets.symmetric(vertical: 2),
       child: pw.Row(
         children: [
-          pw.Container(width: 80, child: pw.Text(label, style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey800))),
-          pw.Text(': ', style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey800)),
-          pw.Text(value, style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
+          pw.Container(
+            width: 80,
+            child: pw.Text(
+              label,
+              style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey800),
+            ),
+          ),
+          pw.Text(
+            ': ',
+            style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey800),
+          ),
+          pw.Text(
+            value,
+            style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold),
+          ),
         ],
       ),
     );
@@ -206,31 +284,123 @@ class PdfGeneratorService {
       },
       children: [
         pw.TableRow(
-          decoration: const pw.BoxDecoration(border: pw.Border(bottom: pw.BorderSide(color: PdfColors.grey400))),
+          decoration: const pw.BoxDecoration(
+            border: pw.Border(bottom: pw.BorderSide(color: PdfColors.grey400)),
+          ),
           children: [
-            pw.Padding(padding: const pw.EdgeInsets.only(bottom: 8), child: pw.Text('INVESTIGATION', style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold, decoration: pw.TextDecoration.underline))),
-            pw.Padding(padding: const pw.EdgeInsets.only(bottom: 8), child: pw.Text('RESULT', style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold, decoration: pw.TextDecoration.underline))),
-            pw.Padding(padding: const pw.EdgeInsets.only(bottom: 8), child: pw.Text('UNIT', style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold, decoration: pw.TextDecoration.underline))),
-            pw.Padding(padding: const pw.EdgeInsets.only(bottom: 8), child: pw.Text('REFERENCE VALUE', style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold, decoration: pw.TextDecoration.underline))),
+            pw.Padding(
+              padding: const pw.EdgeInsets.only(bottom: 8),
+              child: pw.Text(
+                'INVESTIGATION',
+                style: pw.TextStyle(
+                  fontSize: 10,
+                  fontWeight: pw.FontWeight.bold,
+                  decoration: pw.TextDecoration.underline,
+                ),
+              ),
+            ),
+            pw.Padding(
+              padding: const pw.EdgeInsets.only(bottom: 8),
+              child: pw.Text(
+                'RESULT',
+                style: pw.TextStyle(
+                  fontSize: 10,
+                  fontWeight: pw.FontWeight.bold,
+                  decoration: pw.TextDecoration.underline,
+                ),
+              ),
+            ),
+            pw.Padding(
+              padding: const pw.EdgeInsets.only(bottom: 8),
+              child: pw.Text(
+                'UNIT',
+                style: pw.TextStyle(
+                  fontSize: 10,
+                  fontWeight: pw.FontWeight.bold,
+                  decoration: pw.TextDecoration.underline,
+                ),
+              ),
+            ),
+            pw.Padding(
+              padding: const pw.EdgeInsets.only(bottom: 8),
+              child: pw.Text(
+                'REFERENCE VALUE',
+                style: pw.TextStyle(
+                  fontSize: 10,
+                  fontWeight: pw.FontWeight.bold,
+                  decoration: pw.TextDecoration.underline,
+                ),
+              ),
+            ),
           ],
         ),
         if (template.fields.isEmpty)
           pw.TableRow(
             children: [
-              pw.Padding(padding: const pw.EdgeInsets.symmetric(vertical: 8), child: pw.Text('Plasma Glucose (PP)', style: const pw.TextStyle(fontSize: 10))),
-              pw.Padding(padding: const pw.EdgeInsets.symmetric(vertical: 8), child: pw.Text('113.0', style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold))),
-              pw.Padding(padding: const pw.EdgeInsets.symmetric(vertical: 8), child: pw.Text('mg/dl', style: const pw.TextStyle(fontSize: 10))),
-              pw.Padding(padding: const pw.EdgeInsets.symmetric(vertical: 8), child: pw.Text('70 - 140 mg/dl', style: const pw.TextStyle(fontSize: 10))),
-            ]
+              pw.Padding(
+                padding: const pw.EdgeInsets.symmetric(vertical: 8),
+                child: pw.Text(
+                  'Plasma Glucose (PP)',
+                  style: const pw.TextStyle(fontSize: 10),
+                ),
+              ),
+              pw.Padding(
+                padding: const pw.EdgeInsets.symmetric(vertical: 8),
+                child: pw.Text(
+                  '113.0',
+                  style: pw.TextStyle(
+                    fontSize: 10,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
+                ),
+              ),
+              pw.Padding(
+                padding: const pw.EdgeInsets.symmetric(vertical: 8),
+                child: pw.Text(
+                  'mg/dl',
+                  style: const pw.TextStyle(fontSize: 10),
+                ),
+              ),
+              pw.Padding(
+                padding: const pw.EdgeInsets.symmetric(vertical: 8),
+                child: pw.Text(
+                  '70 - 140 mg/dl',
+                  style: const pw.TextStyle(fontSize: 10),
+                ),
+              ),
+            ],
           ),
-        ...template.fields.map((f) => pw.TableRow(
-          children: [
-            pw.Padding(padding: const pw.EdgeInsets.symmetric(vertical: 8), child: pw.Text(f.name, style: const pw.TextStyle(fontSize: 10))),
-            pw.Padding(padding: const pw.EdgeInsets.symmetric(vertical: 8), child: pw.Text('113.0', style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold))), // Mock result
-            pw.Padding(padding: const pw.EdgeInsets.symmetric(vertical: 8), child: pw.Text(f.unit, style: const pw.TextStyle(fontSize: 10))),
-            pw.Padding(padding: const pw.EdgeInsets.symmetric(vertical: 8), child: pw.Text(f.normalRange, style: const pw.TextStyle(fontSize: 10))),
-          ]
-        )),
+        ...template.fields.map(
+          (f) => pw.TableRow(
+            children: [
+              pw.Padding(
+                padding: const pw.EdgeInsets.symmetric(vertical: 8),
+                child: pw.Text(f.name, style: const pw.TextStyle(fontSize: 10)),
+              ),
+              pw.Padding(
+                padding: const pw.EdgeInsets.symmetric(vertical: 8),
+                child: pw.Text(
+                  '113.0',
+                  style: pw.TextStyle(
+                    fontSize: 10,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
+                ),
+              ), // Mock result
+              pw.Padding(
+                padding: const pw.EdgeInsets.symmetric(vertical: 8),
+                child: pw.Text(f.unit, style: const pw.TextStyle(fontSize: 10)),
+              ),
+              pw.Padding(
+                padding: const pw.EdgeInsets.symmetric(vertical: 8),
+                child: pw.Text(
+                  f.normalRange,
+                  style: const pw.TextStyle(fontSize: 10),
+                ),
+              ),
+            ],
+          ),
+        ),
       ],
     );
   }
@@ -248,9 +418,21 @@ class PdfGeneratorService {
                 crossAxisAlignment: pw.CrossAxisAlignment.center,
                 children: [
                   pw.SizedBox(height: 40), // Space for signature image
-                  pw.Text('DR. A. K. DUTTA', style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
-                  pw.Text('MD. PGI (Chandigarh)', style: const pw.TextStyle(fontSize: 8)),
-                  pw.Text('Pathologist', style: const pw.TextStyle(fontSize: 8)),
+                  pw.Text(
+                    'DR. A. K. DUTTA',
+                    style: pw.TextStyle(
+                      fontSize: 10,
+                      fontWeight: pw.FontWeight.bold,
+                    ),
+                  ),
+                  pw.Text(
+                    'MD. PGI (Chandigarh)',
+                    style: const pw.TextStyle(fontSize: 8),
+                  ),
+                  pw.Text(
+                    'Pathologist',
+                    style: const pw.TextStyle(fontSize: 8),
+                  ),
                 ],
               ),
               pw.SizedBox(width: 80),
@@ -258,15 +440,27 @@ class PdfGeneratorService {
                 crossAxisAlignment: pw.CrossAxisAlignment.center,
                 children: [
                   pw.SizedBox(height: 40), // Space for signature image
-                  pw.Text('DR. ANANDA SAMANTA', style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
-                  pw.Text('Msc (PGI), PhD (Cal)', style: const pw.TextStyle(fontSize: 8)),
-                  pw.Text('Consultant Clinical Biochemistry', style: const pw.TextStyle(fontSize: 8)),
+                  pw.Text(
+                    'DR. ANANDA SAMANTA',
+                    style: pw.TextStyle(
+                      fontSize: 10,
+                      fontWeight: pw.FontWeight.bold,
+                    ),
+                  ),
+                  pw.Text(
+                    'Msc (PGI), PhD (Cal)',
+                    style: const pw.TextStyle(fontSize: 8),
+                  ),
+                  pw.Text(
+                    'Consultant Clinical Biochemistry',
+                    style: const pw.TextStyle(fontSize: 8),
+                  ),
                 ],
               ),
             ],
           ),
         ),
-        
+
         // App Download / QR Code strip
         pw.Container(
           color: PdfColors.grey100,
@@ -278,7 +472,9 @@ class PdfGeneratorService {
                 children: [
                   pw.BarcodeWidget(
                     barcode: pw.Barcode.qrCode(),
-                    data: config.playStoreUrl.isNotEmpty ? config.playStoreUrl : 'https://play.google.com/store/apps/details?id=com.manjumedical.app',
+                    data: config.playStoreUrl.isNotEmpty
+                        ? config.playStoreUrl
+                        : 'https://play.google.com/store/apps/details?id=com.manjumedical.app',
                     width: 50,
                     height: 50,
                   ),
@@ -286,20 +482,52 @@ class PdfGeneratorService {
                   pw.Column(
                     crossAxisAlignment: pw.CrossAxisAlignment.start,
                     children: [
-                      pw.Text('Download Our App', style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
-                      pw.Text('Scan QR Code', style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey700)),
+                      pw.Text(
+                        'Download Our App',
+                        style: pw.TextStyle(
+                          fontSize: 10,
+                          fontWeight: pw.FontWeight.bold,
+                        ),
+                      ),
+                      pw.Text(
+                        'Scan QR Code',
+                        style: const pw.TextStyle(
+                          fontSize: 8,
+                          color: PdfColors.grey700,
+                        ),
+                      ),
                       pw.SizedBox(height: 4),
                       pw.Container(
-                        padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: pw.BoxDecoration(color: PdfColors.black, borderRadius: pw.BorderRadius.circular(4)),
-                        child: pw.Text('GET IT ON Google Play', style: pw.TextStyle(color: PdfColors.white, fontSize: 6, fontWeight: pw.FontWeight.bold)),
+                        padding: const pw.EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: pw.BoxDecoration(
+                          color: PdfColors.black,
+                          borderRadius: pw.BorderRadius.circular(4),
+                        ),
+                        child: pw.Text(
+                          'GET IT ON Google Play',
+                          style: pw.TextStyle(
+                            color: PdfColors.white,
+                            fontSize: 6,
+                            fontWeight: pw.FontWeight.bold,
+                          ),
+                        ),
                       ),
                     ],
                   ),
                 ],
               ),
               // Motivational Text
-              pw.Text('Healthy People\nHappier Lives', style: pw.TextStyle(fontSize: 16, fontStyle: pw.FontStyle.italic, color: PdfColors.green800)),
+              pw.Text(
+                'Healthy People\nHappier Lives',
+                style: pw.TextStyle(
+                  fontSize: 16,
+                  fontStyle: pw.FontStyle.italic,
+                  color: PdfColors.green800,
+                ),
+              ),
             ],
           ),
         ),
@@ -311,7 +539,12 @@ class PdfGeneratorService {
           alignment: pw.Alignment.center,
           child: pw.Text(
             'MEDICINES  |  LAB TESTS  |  DOCTOR CONSULTATIONS  |  HEALTH CHECKUPS',
-            style: pw.TextStyle(color: PdfColors.white, fontSize: 8, letterSpacing: 1, fontWeight: pw.FontWeight.bold),
+            style: pw.TextStyle(
+              color: PdfColors.white,
+              fontSize: 8,
+              letterSpacing: 1,
+              fontWeight: pw.FontWeight.bold,
+            ),
           ),
         ),
       ],

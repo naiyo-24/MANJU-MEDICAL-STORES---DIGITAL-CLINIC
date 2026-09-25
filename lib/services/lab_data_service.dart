@@ -67,8 +67,11 @@ class LabDataService {
       }
     }
   }
-  
-  static Future<void> renameCustomCategory(String oldName, String newName) async {
+
+  static Future<void> renameCustomCategory(
+    String oldName,
+    String newName,
+  ) async {
     final id = await _getCategoryIdByName(oldName);
     if (id != null) {
       try {
@@ -91,7 +94,10 @@ class LabDataService {
       final response = await ApiClient().dio.get('/api/admin/lab-catalog/');
       if (response.statusCode == 200) {
         final List<dynamic> data = response.data;
-        return data.where((item) => item['type'] == 'SINGLE_TEST').map((j) => LabTest.fromJson(j)).toList();
+        return data
+            .where((item) => item['type'] == 'SINGLE_TEST')
+            .map((j) => LabTest.fromJson(j))
+            .toList();
       }
     } catch (e) {
       // ignore: avoid_print
@@ -103,19 +109,21 @@ class LabDataService {
   static Future<void> saveTest(LabTest test) async {
     try {
       final body = test.toJson();
-      
+
       if (test.id.isEmpty) {
         await ApiClient().dio.post('/api/admin/lab-catalog/', data: body);
         return;
       }
-      
+
       try {
         await ApiClient().dio.patch(
           '/api/admin/lab-catalog/${test.id}',
           data: body,
         );
       } on DioException catch (e) {
-        if (e.response?.statusCode == 404 || e.response?.statusCode == 422 || e.response?.statusCode == 405) {
+        if (e.response?.statusCode == 404 ||
+            e.response?.statusCode == 422 ||
+            e.response?.statusCode == 405) {
           await ApiClient().dio.post('/api/admin/lab-catalog/', data: body);
         } else {
           rethrow;
@@ -171,7 +179,7 @@ class LabDataService {
   static Future<void> saveTemplate(LabTemplate template) async {
     try {
       final body = template.toJson();
-      
+
       try {
         await ApiClient().dio.patch(
           '/api/admin/lab-template/${template.id}',
@@ -205,7 +213,10 @@ class LabDataService {
       final response = await ApiClient().dio.get('/api/admin/lab-catalog/');
       if (response.statusCode == 200) {
         final List<dynamic> data = response.data;
-        return data.where((item) => item['type'] == 'PACKAGE').map((j) => LabPackage.fromJson(j)).toList();
+        return data
+            .where((item) => item['type'] == 'PACKAGE')
+            .map((j) => LabPackage.fromJson(j))
+            .toList();
       }
     } catch (e) {
       // ignore: avoid_print
@@ -214,7 +225,10 @@ class LabDataService {
     return [];
   }
 
-  static Future<bool> uploadCatalogCsv(List<int> fileBytes, String filename) async {
+  static Future<bool> uploadCatalogCsv(
+    List<int> fileBytes,
+    String filename,
+  ) async {
     try {
       FormData formData = FormData.fromMap({
         'file': MultipartFile.fromBytes(fileBytes, filename: filename),
@@ -235,7 +249,7 @@ class LabDataService {
   static Future<void> savePackage(LabPackage pkg) async {
     try {
       final body = pkg.toJson();
-      
+
       try {
         await ApiClient().dio.patch(
           '/api/admin/lab-catalog/${pkg.id}',
@@ -276,8 +290,14 @@ class LabDataService {
         return data.map((item) {
           final formDetails = item['form_details'] ?? {};
           final bookedItems = item['booked_items'] as List<dynamic>? ?? [];
-          final testIds = bookedItems.where((i) => i['type'] == 'TEST').map((i) => i['id'].toString()).toList();
-          final packageIds = bookedItems.where((i) => i['type'] == 'PACKAGE').map((i) => i['id'].toString()).toList();
+          final testIds = bookedItems
+              .where((i) => i['type'] == 'TEST')
+              .map((i) => i['id'].toString())
+              .toList();
+          final packageIds = bookedItems
+              .where((i) => i['type'] == 'PACKAGE')
+              .map((i) => i['id'].toString())
+              .toList();
 
           return LabBooking(
             id: item['id'],
@@ -285,7 +305,9 @@ class LabDataService {
             patientPhone: formDetails['patientPhone'] ?? '',
             patientAge: formDetails['patientAge'] ?? '',
             patientGender: formDetails['patientGender'] ?? 'Other',
-            bookingDate: item['preferred_date'] != null ? DateTime.parse(item['preferred_date']) : DateTime.now(),
+            bookingDate: item['preferred_date'] != null
+                ? DateTime.parse(item['preferred_date'])
+                : DateTime.now(),
             testIds: testIds,
             packageIds: packageIds,
             totalAmount: (item['total_amount'] ?? 0).toDouble(),
@@ -302,8 +324,10 @@ class LabDataService {
 
   static Future<void> saveBooking(LabBooking booking) async {
     try {
-      final userId = await AuthService.getUserId() ?? ''; // Or generate UUID if not logged in
-      
+      final userId =
+          await AuthService.getUserId() ??
+          ''; // Or generate UUID if not logged in
+
       final body = {
         'user_id': userId,
         'payment_method': 'COD',
@@ -334,7 +358,9 @@ class LabDataService {
 
   static Future<void> deleteBooking(String id) async {
     try {
-      final response = await ApiClient().dio.patch('/api/lab-bookings/$id/cancel');
+      final response = await ApiClient().dio.patch(
+        '/api/lab-bookings/$id/cancel',
+      );
       if (response.statusCode != 200) {
         // ignore: avoid_print
         print('Failed to delete booking: ${response.data}');
@@ -362,18 +388,27 @@ class LabDataService {
 
           return LabReport(
             id: item['id'],
-            reportId: item['id'].toString().substring(0, 8).toUpperCase(), // Fake report ID
+            reportId: item['id']
+                .toString()
+                .substring(0, 8)
+                .toUpperCase(), // Fake report ID
             patientName: formDetails['patientName'] ?? 'Unknown',
             patientPhone: formDetails['patientPhone'] ?? '',
             patientAge: formDetails['patientAge'] ?? '',
             patientGender: formDetails['patientGender'] ?? 'Other',
             referredBy: 'Self',
-            testsPackageName: packageNames.isNotEmpty ? packageNames : 'General Tests',
-            reportDate: item['created_at'] != null ? DateTime.parse(item['created_at']) : DateTime.now(),
+            testsPackageName: packageNames.isNotEmpty
+                ? packageNames
+                : 'General Tests',
+            reportDate: item['created_at'] != null
+                ? DateTime.parse(item['created_at'])
+                : DateTime.now(),
             status: item['status'] ?? 'Pending',
             isSent: item['status'] == 'DELIVERED',
             sampleId: 'S${item['id'].toString().substring(0, 6).toUpperCase()}',
-            collectionDate: item['preferred_date'] != null ? DateTime.parse(item['preferred_date']) : DateTime.now(),
+            collectionDate: item['preferred_date'] != null
+                ? DateTime.parse(item['preferred_date'])
+                : DateTime.now(),
           );
         }).toList();
       }

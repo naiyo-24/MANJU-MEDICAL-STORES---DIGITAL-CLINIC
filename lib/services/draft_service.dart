@@ -63,7 +63,7 @@ class DraftService {
   static Future<void> saveDraft(DraftBill draft) async {
     final prefs = await SharedPreferences.getInstance();
     List<String> draftsJson = prefs.getStringList(_draftsKey) ?? [];
-    
+
     // Check if draft already exists and update, else add new
     int index = draftsJson.indexWhere((d) {
       final map = jsonDecode(d);
@@ -82,7 +82,7 @@ class DraftService {
   static Future<List<DraftBill>> getDrafts() async {
     final prefs = await SharedPreferences.getInstance();
     List<String> draftsJson = prefs.getStringList(_draftsKey) ?? [];
-    
+
     return draftsJson.map((d) => DraftBill.fromJson(jsonDecode(d))).toList()
       ..sort((a, b) => b.createdAt.compareTo(a.createdAt)); // Newest first
   }
@@ -90,7 +90,7 @@ class DraftService {
   static Future<void> deleteDraft(String id) async {
     final prefs = await SharedPreferences.getInstance();
     List<String> draftsJson = prefs.getStringList(_draftsKey) ?? [];
-    
+
     draftsJson.removeWhere((d) {
       final map = jsonDecode(d);
       return map['id'] == id;

@@ -3,7 +3,12 @@ import '../../../../themes/app_colors.dart';
 
 import '../../../../services/customer_service.dart';
 
-Widget buildModernTextField(TextEditingController controller, String hint, IconData icon, {bool isNumber = false}) {
+Widget buildModernTextField(
+  TextEditingController controller,
+  String hint,
+  IconData icon, {
+  bool isNumber = false,
+}) {
   return TextFormField(
     controller: controller,
     keyboardType: isNumber ? TextInputType.number : TextInputType.text,
@@ -15,8 +20,14 @@ Widget buildModernTextField(TextEditingController controller, String hint, IconD
       filled: true,
       fillColor: AppColors.background,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.primary, width: 1.5)),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide.none,
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+      ),
     ),
   );
 }
@@ -39,7 +50,11 @@ void showAddCustomerDialog(BuildContext context, VoidCallback onCustomerAdded) {
           color: Colors.white,
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
-            BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 20, offset: const Offset(0, 10)),
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.1),
+              blurRadius: 20,
+              offset: const Offset(0, 10),
+            ),
           ],
         ),
         width: 400,
@@ -51,35 +66,79 @@ void showAddCustomerDialog(BuildContext context, VoidCallback onCustomerAdded) {
               children: [
                 Container(
                   padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(color: AppColors.primaryLight, borderRadius: BorderRadius.circular(12)),
-                  child: const Icon(Icons.person_add_alt_1, color: AppColors.primaryDark, size: 24),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryLight,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(
+                    Icons.person_add_alt_1,
+                    color: AppColors.primaryDark,
+                    size: 24,
+                  ),
                 ),
                 const SizedBox(width: 16),
-                const Text('Add New Customer', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                const Text(
+                  'Add New Customer',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 24),
-            buildModernTextField(nameCtrl, 'Customer Name', Icons.person_outline),
+            buildModernTextField(
+              nameCtrl,
+              'Customer Name',
+              Icons.person_outline,
+            ),
             const SizedBox(height: 16),
-            buildModernTextField(phoneCtrl, 'Phone Number', Icons.phone_outlined, isNumber: true),
+            buildModernTextField(
+              phoneCtrl,
+              'Phone Number',
+              Icons.phone_outlined,
+              isNumber: true,
+            ),
             const SizedBox(height: 16),
-            buildModernTextField(emailCtrl, 'Email Address', Icons.email_outlined),
+            buildModernTextField(
+              emailCtrl,
+              'Email Address',
+              Icons.email_outlined,
+            ),
             const SizedBox(height: 16),
-            buildModernTextField(locationCtrl, 'Location/City', Icons.location_on_outlined),
+            buildModernTextField(
+              locationCtrl,
+              'Location/City',
+              Icons.location_on_outlined,
+            ),
             const SizedBox(height: 32),
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  style: TextButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12)),
-                  child: const Text('Cancel', style: TextStyle(color: AppColors.textSecondary, fontWeight: FontWeight.bold)),
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 12,
+                    ),
+                  ),
+                  child: const Text(
+                    'Cancel',
+                    style: TextStyle(
+                      color: AppColors.textSecondary,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
                 const SizedBox(width: 12),
                 ElevatedButton(
                   onPressed: () async {
                     if (nameCtrl.text.isEmpty) {
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Name is required')));
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Name is required')),
+                      );
                       return;
                     }
                     final newCust = Customer(
@@ -94,17 +153,29 @@ void showAddCustomerDialog(BuildContext context, VoidCallback onCustomerAdded) {
                     if (context.mounted) {
                       Navigator.pop(context);
                       onCustomerAdded();
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Customer Added Successfully!')));
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Customer Added Successfully!'),
+                        ),
+                      );
                     }
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primaryDark,
                     foregroundColor: Colors.white,
                     elevation: 0,
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 12,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                   ),
-                  child: const Text('Save Customer', style: TextStyle(fontWeight: FontWeight.bold)),
+                  child: const Text(
+                    'Save Customer',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
                 ),
               ],
             ),
@@ -115,11 +186,19 @@ void showAddCustomerDialog(BuildContext context, VoidCallback onCustomerAdded) {
   );
 }
 
-void showEditCustomerDialog(BuildContext context, Map<String, dynamic> customerMap, VoidCallback onCustomerUpdated) {
+void showEditCustomerDialog(
+  BuildContext context,
+  Map<String, dynamic> customerMap,
+  VoidCallback onCustomerUpdated,
+) {
   final nameCtrl = TextEditingController(text: customerMap['name']);
   final phoneCtrl = TextEditingController(text: customerMap['phone']);
-  final emailCtrl = TextEditingController(text: customerMap['email'] == 'N/A' ? '' : customerMap['email']);
-  final locationCtrl = TextEditingController(text: customerMap['city'] == 'Local' ? '' : customerMap['city']);
+  final emailCtrl = TextEditingController(
+    text: customerMap['email'] == 'N/A' ? '' : customerMap['email'],
+  );
+  final locationCtrl = TextEditingController(
+    text: customerMap['city'] == 'Local' ? '' : customerMap['city'],
+  );
   bool isActive = customerMap['status'] == 'Active';
 
   showDialog(
@@ -135,7 +214,11 @@ void showEditCustomerDialog(BuildContext context, Map<String, dynamic> customerM
             color: Colors.white,
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
-              BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 20, offset: const Offset(0, 10)),
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.1),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
+              ),
             ],
           ),
           width: 400,
@@ -147,26 +230,63 @@ void showEditCustomerDialog(BuildContext context, Map<String, dynamic> customerM
                 children: [
                   Container(
                     padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(color: AppColors.infoLight, borderRadius: BorderRadius.circular(12)),
-                    child: const Icon(Icons.edit_outlined, color: AppColors.info, size: 24),
+                    decoration: BoxDecoration(
+                      color: AppColors.infoLight,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(
+                      Icons.edit_outlined,
+                      color: AppColors.info,
+                      size: 24,
+                    ),
                   ),
                   const SizedBox(width: 16),
-                  const Text('Edit Customer', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                  const Text(
+                    'Edit Customer',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
                 ],
               ),
               const SizedBox(height: 24),
-              buildModernTextField(nameCtrl, 'Customer Name', Icons.person_outline),
+              buildModernTextField(
+                nameCtrl,
+                'Customer Name',
+                Icons.person_outline,
+              ),
               const SizedBox(height: 16),
-              buildModernTextField(phoneCtrl, 'Phone Number', Icons.phone_outlined, isNumber: true),
+              buildModernTextField(
+                phoneCtrl,
+                'Phone Number',
+                Icons.phone_outlined,
+                isNumber: true,
+              ),
               const SizedBox(height: 16),
-              buildModernTextField(emailCtrl, 'Email Address', Icons.email_outlined),
+              buildModernTextField(
+                emailCtrl,
+                'Email Address',
+                Icons.email_outlined,
+              ),
               const SizedBox(height: 16),
-              buildModernTextField(locationCtrl, 'Location/City', Icons.location_on_outlined),
+              buildModernTextField(
+                locationCtrl,
+                'Location/City',
+                Icons.location_on_outlined,
+              ),
               const SizedBox(height: 16),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Active Status', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                  const Text(
+                    'Active Status',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
                   Switch(
                     value: isActive,
                     onChanged: (val) {
@@ -184,18 +304,33 @@ void showEditCustomerDialog(BuildContext context, Map<String, dynamic> customerM
                 children: [
                   TextButton(
                     onPressed: () => Navigator.pop(context),
-                    style: TextButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12)),
-                    child: const Text('Cancel', style: TextStyle(color: AppColors.textSecondary, fontWeight: FontWeight.bold)),
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 12,
+                      ),
+                    ),
+                    child: const Text(
+                      'Cancel',
+                      style: TextStyle(
+                        color: AppColors.textSecondary,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
                   const SizedBox(width: 12),
                   ElevatedButton(
                     onPressed: () async {
                       if (nameCtrl.text.isEmpty) {
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Name is required')));
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Name is required')),
+                        );
                         return;
                       }
                       final updatedCust = Customer(
-                        id: customerMap['full_id'] ?? customerMap['id'], // We need the full UUID to update
+                        id:
+                            customerMap['full_id'] ??
+                            customerMap['id'], // We need the full UUID to update
                         name: nameCtrl.text,
                         phone: phoneCtrl.text,
                         email: emailCtrl.text,
@@ -207,11 +342,17 @@ void showEditCustomerDialog(BuildContext context, Map<String, dynamic> customerM
                         if (context.mounted) {
                           Navigator.pop(context);
                           onCustomerUpdated();
-                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Customer Updated Successfully!')));
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Customer Updated Successfully!'),
+                            ),
+                          );
                         }
                       } catch (e) {
                         if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+                          ScaffoldMessenger.of(
+                            context,
+                          ).showSnackBar(SnackBar(content: Text('Error: $e')));
                         }
                       }
                     },
@@ -219,10 +360,18 @@ void showEditCustomerDialog(BuildContext context, Map<String, dynamic> customerM
                       backgroundColor: AppColors.info,
                       foregroundColor: Colors.white,
                       elevation: 0,
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 12,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                     ),
-                    child: const Text('Save Changes', style: TextStyle(fontWeight: FontWeight.bold)),
+                    child: const Text(
+                      'Save Changes',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
                   ),
                 ],
               ),

@@ -4,16 +4,10 @@ import '../models/crm_models.dart';
 class CrmState {
   final CrmPatient? selectedPatient;
 
-  const CrmState({
-    this.selectedPatient,
-  });
+  const CrmState({this.selectedPatient});
 
-  CrmState copyWith({
-    CrmPatient? selectedPatient,
-  }) {
-    return CrmState(
-      selectedPatient: selectedPatient ?? this.selectedPatient,
-    );
+  CrmState copyWith({CrmPatient? selectedPatient}) {
+    return CrmState(selectedPatient: selectedPatient ?? this.selectedPatient);
   }
 }
 

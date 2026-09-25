@@ -17,7 +17,6 @@ import '../../providers/counter_providers.dart';
 import 'widgets/billing/billing_left_panel.dart';
 import 'widgets/billing/billing_right_panel.dart';
 
-
 class BillingScreen extends ConsumerStatefulWidget {
   const BillingScreen({super.key});
 
@@ -26,38 +25,47 @@ class BillingScreen extends ConsumerStatefulWidget {
 }
 
 class _BillingScreenState extends ConsumerState<BillingScreen> {
-
-  List<Map<String, dynamic>> get _currentBill => ref.watch(billingProvider).currentBill;
+  List<Map<String, dynamic>> get _currentBill =>
+      ref.watch(billingProvider).currentBill;
 
   List<Customer> _allCustomers = [];
-  String _searchQuery = '';
+
 
   // Modifiable Data for Current Bill
-  
 
-  final List<String> _categories = ['All', 'Tablets', 'Capsules', 'Syrups', 'Injections', 'Ointments', 'Others'];
+  final List<String> _categories = [
+    'All',
+    'Tablets',
+    'Capsules',
+    'Syrups',
+    'Injections',
+    'Ointments',
+    'Others',
+  ];
   int _selectedCategoryIndex = 0;
 
   final TextEditingController _discountController = TextEditingController();
 
   final TextEditingController _customerNameController = TextEditingController();
   final FocusNode _customerNameFocusNode = FocusNode();
-  final TextEditingController _customerPhoneController = TextEditingController();
-  final TextEditingController _customerLocationController = TextEditingController();
+  final TextEditingController _customerPhoneController =
+      TextEditingController();
+  final TextEditingController _customerLocationController =
+      TextEditingController();
 
   final String _paymentMethod = 'CASH'; // CASH, UPI, CARD
 
   final TextEditingController _newDoctorController = TextEditingController();
-  
+
   List<Doctor> _doctorsList = [];
   String? _selectedDoctorId;
   String _selectedDoctorName = 'Walk-in';
-  
+
   DateTime _currentTime = DateTime.now();
   Timer? _timer;
   // Format is now handled by billingProvider
   String? _savedCustomerId;
-  
+
   bool _isGeneratingBill = false;
 
   @override
@@ -97,7 +105,20 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
   }
 
   String _formatDate(DateTime date) {
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
     const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     String dayName = days[date.weekday - 1];
     String monthName = months[date.month - 1];
@@ -113,21 +134,23 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
     return '$hour:$minute $period';
   }
 
-
-
   Future<void> _saveDraft() async {
     if (_currentBill.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Cannot save empty draft')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Cannot save empty draft')));
       return;
     }
-    
+
     final draft = DraftBill(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       customerName: _customerNameController.text,
       customerPhone: _customerPhoneController.text,
       customerAge: '',
 
-      doctorName: _selectedDoctorId == 'new' ? _newDoctorController.text : _selectedDoctorName,
+      doctorName: _selectedDoctorId == 'new'
+          ? _newDoctorController.text
+          : _selectedDoctorName,
       format: ref.read(billingProvider).selectedFormat,
       items: List.from(_currentBill),
       discountValue: ref.read(billingProvider).discountValue,
@@ -138,7 +161,9 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
     await DraftService.saveDraft(draft);
 
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Bill saved as draft!')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Bill saved as draft!')));
       ref.read(billingProvider.notifier).clearBill();
       _customerNameController.clear();
       _customerPhoneController.clear();
@@ -152,10 +177,12 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
 
   Future<void> _saveCustomerToDb() async {
     if (_customerNameController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please enter a customer name to save.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter a customer name to save.')),
+      );
       return;
     }
-    
+
     final customer = Customer(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       name: _customerNameController.text,
@@ -168,11 +195,20 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
         setState(() {
           _savedCustomerId = savedCustomer.id;
         });
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Customer saved to database successfully!')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Customer saved to database successfully!'),
+          ),
+        );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error saving customer: $e'), backgroundColor: Colors.red));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error saving customer: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     }
   }
@@ -195,7 +231,6 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
       print('Error fetching customers: $e');
     }
   }
-
 
   Future<void> _fetchDoctors() async {
     try {
@@ -224,85 +259,147 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                 children: [
                   Icon(Icons.folder_open, color: Color(0xFF1E293B)),
                   SizedBox(width: 8),
-                  Text('Saved Drafts', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                  Text(
+                    'Saved Drafts',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1E293B),
+                    ),
+                  ),
                 ],
               ),
               content: SizedBox(
                 width: 500,
                 height: 400,
-                child: drafts.isEmpty 
-                  ? const Center(child: Text('No drafts found.', style: TextStyle(color: Color(0xFF64748B))))
-                  : ListView.builder(
-                      itemCount: drafts.length,
-                      itemBuilder: (context, index) {
-                        final draft = drafts[index];
-                        final timeStr = "${draft.createdAt.day}/${draft.createdAt.month}/${draft.createdAt.year} ${draft.createdAt.hour}:${draft.createdAt.minute.toString().padLeft(2, '0')}";
-                        return Card(
-                          margin: const EdgeInsets.only(bottom: 8),
-                          child: ListTile(
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                            title: Text(draft.customerName.isEmpty ? 'Walk-in Customer' : draft.customerName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                            subtitle: Text('Items: ${draft.items.length} • Format: ${draft.format} • $timeStr', style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
-                            trailing: IconButton(
-                              icon: const Icon(Icons.delete_outline, color: Colors.red, size: 20),
-                              onPressed: () async {
-                                await DraftService.deleteDraft(draft.id);
-                                setDialogState(() {
-                                  drafts.removeAt(index);
+                child: drafts.isEmpty
+                    ? const Center(
+                        child: Text(
+                          'No drafts found.',
+                          style: TextStyle(color: Color(0xFF64748B)),
+                        ),
+                      )
+                    : ListView.builder(
+                        itemCount: drafts.length,
+                        itemBuilder: (context, index) {
+                          final draft = drafts[index];
+                          final timeStr =
+                              "${draft.createdAt.day}/${draft.createdAt.month}/${draft.createdAt.year} ${draft.createdAt.hour}:${draft.createdAt.minute.toString().padLeft(2, '0')}";
+                          return Card(
+                            margin: const EdgeInsets.only(bottom: 8),
+                            child: ListTile(
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 8,
+                              ),
+                              title: Text(
+                                draft.customerName.isEmpty
+                                    ? 'Walk-in Customer'
+                                    : draft.customerName,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                ),
+                              ),
+                              subtitle: Text(
+                                'Items: ${draft.items.length} • Format: ${draft.format} • $timeStr',
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: Color(0xFF64748B),
+                                ),
+                              ),
+                              trailing: IconButton(
+                                icon: const Icon(
+                                  Icons.delete_outline,
+                                  color: Colors.red,
+                                  size: 20,
+                                ),
+                                onPressed: () async {
+                                  await DraftService.deleteDraft(draft.id);
+                                  setDialogState(() {
+                                    drafts.removeAt(index);
+                                  });
+                                },
+                              ),
+                              onTap: () {
+                                setState(() {
+                                  ref
+                                      .read(billingProvider.notifier)
+                                      .setBill(List.from(draft.items));
+                                  _customerNameController.text =
+                                      draft.customerName;
+                                  _customerPhoneController.text =
+                                      draft.customerPhone;
+
+                                  final matchedDoctor = _doctorsList
+                                      .cast<Doctor?>()
+                                      .firstWhere(
+                                        (d) => d?.name == draft.doctorName,
+                                        orElse: () => null,
+                                      );
+                                  if (matchedDoctor != null) {
+                                    _selectedDoctorId = matchedDoctor.id;
+                                    _selectedDoctorName = matchedDoctor.name;
+                                    _newDoctorController.clear();
+                                  } else if (draft.doctorName.isNotEmpty &&
+                                      draft.doctorName != 'Walk-in') {
+                                    _selectedDoctorId = 'new';
+                                    _selectedDoctorName = 'New Doctor';
+                                    _newDoctorController.text =
+                                        draft.doctorName;
+                                  } else {
+                                    _selectedDoctorId = 'walk-in';
+                                    _selectedDoctorName = 'Walk-in';
+                                    _newDoctorController.clear();
+                                  }
+                                  ref
+                                      .read(billingProvider.notifier)
+                                      .updateSelectedFormat(
+                                        draft.format.isNotEmpty
+                                            ? draft.format
+                                            : 'A4',
+                                      );
+                                  ref
+                                      .read(billingProvider.notifier)
+                                      .updateDiscount(
+                                        draft.discountValue,
+                                        draft.isDiscountPercentage,
+                                      );
+                                  _discountController.text =
+                                      draft.discountValue > 0
+                                      ? draft.discountValue.toString()
+                                      : '';
                                 });
+                                Navigator.pop(context);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Draft loaded successfully!'),
+                                  ),
+                                );
                               },
                             ),
-                            onTap: () {
-                              setState(() {
-                                ref.read(billingProvider.notifier).setBill(List.from(draft.items));
-                                _customerNameController.text = draft.customerName;
-                                _customerPhoneController.text = draft.customerPhone;
-
-                                final matchedDoctor = _doctorsList.cast<Doctor?>().firstWhere(
-                                  (d) => d?.name == draft.doctorName, 
-                                  orElse: () => null
-                                );
-                                if (matchedDoctor != null) {
-                                  _selectedDoctorId = matchedDoctor.id;
-                                  _selectedDoctorName = matchedDoctor.name;
-                                  _newDoctorController.clear();
-                                } else if (draft.doctorName.isNotEmpty && draft.doctorName != 'Walk-in') {
-                                  _selectedDoctorId = 'new';
-                                  _selectedDoctorName = 'New Doctor';
-                                  _newDoctorController.text = draft.doctorName;
-                                } else {
-                                  _selectedDoctorId = 'walk-in';
-                                  _selectedDoctorName = 'Walk-in';
-                                  _newDoctorController.clear();
-                                }
-                                ref.read(billingProvider.notifier).updateSelectedFormat(draft.format.isNotEmpty ? draft.format : 'A4');
-                                ref.read(billingProvider.notifier).updateDiscount(draft.discountValue, draft.isDiscountPercentage);
-                                _discountController.text = draft.discountValue > 0 ? draft.discountValue.toString() : '';
-                              });
-                              Navigator.pop(context, );
-                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Draft loaded successfully!')));
-                            },
-                          ),
-                        );
-                      },
-                    ),
+                          );
+                        },
+                      ),
               ),
               actions: [
                 TextButton(
-                  onPressed: () => Navigator.pop(context, ),
+                  onPressed: () => Navigator.pop(context),
                   child: const Text('Close'),
                 ),
               ],
             );
           },
         );
-      }
+      },
     );
   }
 
   Future<void> _showBillPreview() async {
     if (_currentBill.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please add items to the bill first.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please add items to the bill first.')),
+      );
       return;
     }
 
@@ -314,10 +411,16 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
     }
 
     if (!mounted) return;
-    
-    String baseInvoice = shopSettings?['shop_name']?.toString().replaceAll(' ', '').toUpperCase() ?? 'INV';
+
+    String baseInvoice =
+        shopSettings?['shop_name']
+            ?.toString()
+            .replaceAll(' ', '')
+            .toUpperCase() ??
+        'INV';
     if (baseInvoice.length > 5) baseInvoice = baseInvoice.substring(0, 5);
-    final String invoiceNo = '$baseInvoice${DateTime.now().millisecondsSinceEpoch.toString().substring(5)}';
+    final String invoiceNo =
+        '$baseInvoice${DateTime.now().millisecondsSinceEpoch.toString().substring(5)}';
 
     showDialog(
       context: context,
@@ -326,7 +429,9 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
           insetPadding: const EdgeInsets.all(32),
           child: Container(
             width: 800,
-            height: MediaQuery.of(context).size.height * 0.8, // Added height constraint to fix layout freeze
+            height:
+                MediaQuery.of(context).size.height *
+                0.8, // Added height constraint to fix layout freeze
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(8),
@@ -334,14 +439,24 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
             child: Column(
               children: [
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('Bill Preview (${ref.read(billingProvider).selectedFormat})', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                      Text(
+                        'Bill Preview (${ref.read(billingProvider).selectedFormat})',
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1E293B),
+                        ),
+                      ),
                       IconButton(
                         icon: const Icon(Icons.close),
-                        onPressed: () => Navigator.pop(context, ),
+                        onPressed: () => Navigator.pop(context),
                       ),
                     ],
                   ),
@@ -356,12 +471,16 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                       tax: _gstAmount,
                       grandTotal: _grandTotal,
                       invoiceNumber: invoiceNo,
-                      customerName: _customerNameController.text.isNotEmpty ? _customerNameController.text : 'Walk-in Customer',
+                      customerName: _customerNameController.text.isNotEmpty
+                          ? _customerNameController.text
+                          : 'Walk-in Customer',
                       customerPhone: _customerPhoneController.text,
                       customerLocation: _customerLocationController.text,
                       shopSettings: shopSettings,
 
-                      doctorName: _selectedDoctorId == 'new' ? _newDoctorController.text : _selectedDoctorName,
+                      doctorName: _selectedDoctorId == 'new'
+                          ? _newDoctorController.text
+                          : _selectedDoctorName,
                       format: ref.read(billingProvider).selectedFormat,
                     ),
                     allowPrinting: true,
@@ -369,11 +488,15 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                     canChangeOrientation: false,
                     canChangePageFormat: false,
                     pdfFileName: 'Bill_$invoiceNo.pdf',
-                    initialPageFormat: ref.read(billingProvider).selectedFormat == 'Thermal' 
-                        ? const PdfPageFormat(80 * PdfPageFormat.mm, 300 * PdfPageFormat.mm)
-                        : ref.read(billingProvider).selectedFormat == 'A5' 
-                            ? PdfPageFormat.a5.landscape 
-                            : PdfPageFormat.a4,
+                    initialPageFormat:
+                        ref.read(billingProvider).selectedFormat == 'Thermal'
+                        ? const PdfPageFormat(
+                            80 * PdfPageFormat.mm,
+                            300 * PdfPageFormat.mm,
+                          )
+                        : ref.read(billingProvider).selectedFormat == 'A5'
+                        ? PdfPageFormat.a5.landscape
+                        : PdfPageFormat.a4,
                   ),
                 ),
               ],
@@ -386,9 +509,11 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
 
   Future<void> _generateAndSaveBill() async {
     if (_isGeneratingBill) return; // Prevent double clicks
-    
+
     if (_currentBill.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please add items to the bill first.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please add items to the bill first.')),
+      );
       return;
     }
 
@@ -426,28 +551,63 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
     try {
       // 0. Save Customer if new
       if (_customerNameController.text.isNotEmpty) {
-        final existingCust = _allCustomers.where((c) => c.name.toLowerCase() == _customerNameController.text.toLowerCase()).toList();
+        final existingCust = _allCustomers
+            .where(
+              (c) =>
+                  c.name.toLowerCase() ==
+                  _customerNameController.text.toLowerCase(),
+            )
+            .toList();
         if (existingCust.isNotEmpty) {
           _savedCustomerId = existingCust.first.id;
         } else {
-          final newCust = await CustomerService.saveCustomer(Customer(
-            id: DateTime.now().millisecondsSinceEpoch.toString(),
-            name: _customerNameController.text,
-            phone: _customerPhoneController.text,
-          ));
+          final newCust = await CustomerService.saveCustomer(
+            Customer(
+              id: DateTime.now().millisecondsSinceEpoch.toString(),
+              name: _customerNameController.text,
+              phone: _customerPhoneController.text,
+            ),
+          );
           _savedCustomerId = newCust.id;
           _allCustomers.add(newCust); // Keep local list updated
         }
       }
 
+      // Get shop settings for invoice number generation
+      Map<String, dynamic>? shopSettings;
+      try {
+        shopSettings = await ShopSettingsService.getSettings();
+      } catch (e) {
+        debugPrint('Error fetching shop settings: $e');
+      }
+
+      String baseInvoice =
+          shopSettings?['shop_name']
+              ?.toString()
+              .replaceAll(' ', '')
+              .toUpperCase() ??
+          'INV';
+      if (baseInvoice.length > 5) baseInvoice = baseInvoice.substring(0, 5);
+      final String invoiceNo =
+          '$baseInvoice${DateTime.now().millisecondsSinceEpoch.toString().substring(5)}';
+
       // 1. Send to Backend POS API
-      final checkoutItems = _currentBill.where((item) => item['inventory_item_id'] != null).toList();
-      
+      final checkoutItems = _currentBill
+          .where((item) => item['inventory_item_id'] != null)
+          .toList();
+
       if (checkoutItems.isNotEmpty) {
         await BillingService.checkout(
           items: checkoutItems,
           totalAmount: _grandTotal,
           customerId: _savedCustomerId,
+          customerName: _customerNameController.text.isNotEmpty
+              ? _customerNameController.text
+              : 'Walk-in Customer',
+          customerPhone: _customerPhoneController.text,
+          customerLocation: _customerLocationController.text,
+          customerGstin: ref.read(billingProvider).gstNumber,
+          invoiceNo: invoiceNo,
           paymentMethod: _paymentMethod,
         );
       }
@@ -459,17 +619,7 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
       ref.invalidate(customerProvider);
 
       // 3. Generate PDF and Save/Print
-      Map<String, dynamic>? shopSettings;
-      try {
-        shopSettings = await ShopSettingsService.getSettings();
-      } catch (e) {
-        debugPrint('Error fetching shop settings: $e');
-      }
 
-      String baseInvoice = shopSettings?['shop_name']?.toString().replaceAll(' ', '').toUpperCase() ?? 'INV';
-      if (baseInvoice.length > 5) baseInvoice = baseInvoice.substring(0, 5);
-      final String invoiceNo = '$baseInvoice${DateTime.now().millisecondsSinceEpoch.toString().substring(5)}';
-      
       final pdfBytes = await PdfGenerator.generateBill(
         items: _currentBill,
         subtotal: _subtotal,
@@ -477,11 +627,16 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
         tax: _gstAmount,
         grandTotal: _grandTotal,
         invoiceNumber: invoiceNo,
-        customerName: _customerNameController.text.isNotEmpty ? _customerNameController.text : 'Walk-in Customer',
+        customerName: _customerNameController.text.isNotEmpty
+            ? _customerNameController.text
+            : 'Walk-in Customer',
         customerPhone: _customerPhoneController.text,
         customerLocation: _customerLocationController.text,
         shopSettings: shopSettings,
-        doctorName: _selectedDoctorId == 'new' ? _newDoctorController.text : _selectedDoctorName,
+        doctorName: _selectedDoctorId == 'new'
+            ? _newDoctorController.text
+            : _selectedDoctorName,
+        paymentMethod: _paymentMethod,
         gstNumber: ref.read(billingProvider).gstNumber,
         format: ref.read(billingProvider).selectedFormat,
       );
@@ -492,12 +647,16 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
         fileExtension: 'pdf',
         mimeType: MimeType.pdf,
       );
-      
+
       if (mounted) {
-        scaffoldMessenger.showSnackBar(const SnackBar(
-          content: Text('Bill generated and saved successfully! Preparing to print...'),
-          backgroundColor: Colors.green,
-        ));
+        scaffoldMessenger.showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Bill generated and saved successfully! Preparing to print...',
+            ),
+            backgroundColor: Colors.green,
+          ),
+        );
       }
 
       // Save to local billing history FIRST
@@ -505,9 +664,13 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
         SavedBill(
           id: DateTime.now().millisecondsSinceEpoch.toString(),
           invoiceNo: invoiceNo,
-          customerName: _customerNameController.text.isNotEmpty ? _customerNameController.text : 'Walk-in Customer',
+          customerName: _customerNameController.text.isNotEmpty
+              ? _customerNameController.text
+              : 'Walk-in Customer',
           customerPhone: _customerPhoneController.text,
-          doctorName: _selectedDoctorId == 'new' ? _newDoctorController.text : _selectedDoctorName,
+          doctorName: _selectedDoctorId == 'new'
+              ? _newDoctorController.text
+              : _selectedDoctorName,
           subtotal: _subtotal,
           discount: _discountAmount,
           tax: _gstAmount,
@@ -537,19 +700,21 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
         onLayout: (PdfPageFormat format) async => pdfBytes,
         name: 'Bill_$invoiceNo.pdf',
       );
-      
+
       return; // Exit here since we already cleaned up
     } catch (e) {
       if (mounted) {
-        scaffoldMessenger.showSnackBar(SnackBar(
-          content: Text('Error generating bill: $e'),
-          backgroundColor: Colors.red,
-        ));
+        scaffoldMessenger.showSnackBar(
+          SnackBar(
+            content: Text('Error generating bill: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     } finally {
       // Fallback cleanup in case of errors
       if (dialogContext != null && dialogContext!.mounted) {
-        Navigator.pop(dialogContext!); 
+        Navigator.pop(dialogContext!);
       }
       if (mounted) {
         setState(() {
@@ -569,54 +734,115 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('New Customer', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Color(0xFF1E293B))),
+          title: const Text(
+            'New Customer',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 18,
+              color: Color(0xFF1E293B),
+            ),
+          ),
           content: SizedBox(
             width: 350,
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Customer Name *', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                const Text(
+                  'Customer Name *',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1E293B),
+                  ),
+                ),
                 const SizedBox(height: 8),
                 TextField(
                   controller: nameController,
                   decoration: InputDecoration(
                     hintText: 'e.g. John Doe',
-                    hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 12),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+                    hintStyle: const TextStyle(
+                      color: Color(0xFF94A3B8),
+                      fontSize: 12,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                    ),
                     isDense: true,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 12,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 16),
-                const Text('Phone Number *', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                const Text(
+                  'Phone Number *',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1E293B),
+                  ),
+                ),
                 const SizedBox(height: 8),
                 TextField(
                   controller: phoneController,
                   keyboardType: TextInputType.phone,
                   decoration: InputDecoration(
                     hintText: '+91 00000 00000',
-                    hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 12),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+                    hintStyle: const TextStyle(
+                      color: Color(0xFF94A3B8),
+                      fontSize: 12,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                    ),
                     isDense: true,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 12,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 16),
-                const Text('Address', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                const Text(
+                  'Address',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1E293B),
+                  ),
+                ),
                 const SizedBox(height: 8),
                 TextField(
                   controller: addressController,
                   maxLines: 2,
                   decoration: InputDecoration(
                     hintText: 'e.g. 123 Main St',
-                    hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 12),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+                    hintStyle: const TextStyle(
+                      color: Color(0xFF94A3B8),
+                      fontSize: 12,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                    ),
                     isDense: true,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 12,
+                    ),
                   ),
                 ),
               ],
@@ -624,26 +850,46 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(context, ),
-              child: const Text('Cancel', style: TextStyle(color: Color(0xFF64748B), fontWeight: FontWeight.bold)),
+              onPressed: () => Navigator.pop(context),
+              child: const Text(
+                'Cancel',
+                style: TextStyle(
+                  color: Color(0xFF64748B),
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
             ElevatedButton(
               onPressed: () {
-                if (nameController.text.isNotEmpty && phoneController.text.isNotEmpty) {
-                  Navigator.pop(context, );
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Customer ${nameController.text} added successfully!')));
+                if (nameController.text.isNotEmpty &&
+                    phoneController.text.isNotEmpty) {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        'Customer ${nameController.text} added successfully!',
+                      ),
+                    ),
+                  );
                 }
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF22C55E),
                 foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
                 elevation: 0,
               ),
-              child: const Text('Save Customer', style: TextStyle(fontWeight: FontWeight.bold)),
+              child: const Text(
+                'Save Customer',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
             ),
           ],
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
         );
       },
     );
@@ -658,8 +904,13 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('Stock Limit Reached', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red)),
-          content: Text('Cannot add more $itemName. Only $stock available in stock.'),
+          title: const Text(
+            'Stock Limit Reached',
+            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red),
+          ),
+          content: Text(
+            'Cannot add more $itemName. Only $stock available in stock.',
+          ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
@@ -671,12 +922,16 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
       return;
     }
 
-    ref.read(billingProvider.notifier).updateItemQuantity(index, _currentBill[index]['qty'] + 1);
+    ref
+        .read(billingProvider.notifier)
+        .updateItemQuantity(index, _currentBill[index]['qty'] + 1);
   }
 
   void _decreaseQty(int index) {
     if (_currentBill[index]['qty'] > 1) {
-      ref.read(billingProvider.notifier).updateItemQuantity(index, _currentBill[index]['qty'] - 1);
+      ref
+          .read(billingProvider.notifier)
+          .updateItemQuantity(index, _currentBill[index]['qty'] - 1);
     }
   }
 
@@ -695,9 +950,11 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
 
   void _addToCart(Map<String, dynamic> item) {
     final stock = item['stock'] ?? 0;
-    
-    final existingIndex = _currentBill.indexWhere((element) => element['name'] == item['name']);
-    
+
+    final existingIndex = _currentBill.indexWhere(
+      (element) => element['name'] == item['name'],
+    );
+
     if (existingIndex >= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -712,8 +969,13 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
         showDialog(
           context: context,
           builder: (context) => AlertDialog(
-            title: const Text('Out of Stock', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red)),
-            content: Text('${item['name']} is currently out of stock and cannot be added to the bill.'),
+            title: const Text(
+              'Out of Stock',
+              style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red),
+            ),
+            content: Text(
+              '${item['name']} is currently out of stock and cannot be added to the bill.',
+            ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context),
@@ -724,7 +986,7 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
         );
         return;
       }
-      
+
       ref.read(billingProvider.notifier).addItem({
         'inventory_item_id': item['inventory_item_id'],
         'name': item['name'],
@@ -733,16 +995,21 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
         'price': item['mrp'],
         'mrp': item['mrp'],
         'total': item['mrp'],
-          'batch': item['batch'] ?? '-',
-          'expiry': item['expiry'] ?? '-',
-          'hsn': item['hsn'] ?? '-',
-          'cgst': item['cgst'] ?? 0,
-          'sgst': item['sgst'] ?? 0,
-          'stock': stock,
-          'id': item['inventory_item_id'],
-        });
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Added ${item['name']} to cart'), duration: const Duration(seconds: 1)));
-      }
+        'batch': item['batch'] ?? '-',
+        'expiry': item['expiry'] ?? '-',
+        'hsn': item['hsn'] ?? '-',
+        'cgst': item['cgst'] ?? 0,
+        'sgst': item['sgst'] ?? 0,
+        'stock': stock,
+        'id': item['inventory_item_id'],
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Added ${item['name']} to cart'),
+          duration: const Duration(seconds: 1),
+        ),
+      );
+    }
   }
 
   // ignore: unused_element
@@ -760,7 +1027,14 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Add Custom Item', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Color(0xFF1E293B))),
+          title: const Text(
+            'Add Custom Item',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 18,
+              color: Color(0xFF1E293B),
+            ),
+          ),
           content: SizedBox(
             width: 400,
             child: Column(
@@ -768,21 +1042,39 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Name
-                const Text('Item Name *', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                const Text(
+                  'Item Name *',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1E293B),
+                  ),
+                ),
                 const SizedBox(height: 8),
                 TextField(
                   controller: nameController,
                   decoration: InputDecoration(
                     hintText: 'e.g. Bandage / Consultation',
-                    hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 12),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+                    hintStyle: const TextStyle(
+                      color: Color(0xFF94A3B8),
+                      fontSize: 12,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                    ),
                     isDense: true,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 12,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 16),
-                
+
                 // Brand & SKU / Barcode
                 Row(
                   children: [
@@ -790,17 +1082,37 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('Brand', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                          const Text(
+                            'Brand',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF1E293B),
+                            ),
+                          ),
                           const SizedBox(height: 8),
                           TextField(
                             controller: brandController,
                             decoration: InputDecoration(
                               hintText: 'e.g. Johnson',
-                              hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 12),
-                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                              enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+                              hintStyle: const TextStyle(
+                                color: Color(0xFF94A3B8),
+                                fontSize: 12,
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: const BorderSide(
+                                  color: Color(0xFFE2E8F0),
+                                ),
+                              ),
                               isDense: true,
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 12,
+                              ),
                             ),
                           ),
                         ],
@@ -811,17 +1123,37 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('SKU / Barcode', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                          const Text(
+                            'SKU / Barcode',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF1E293B),
+                            ),
+                          ),
                           const SizedBox(height: 8),
                           TextField(
                             controller: packController,
                             decoration: InputDecoration(
                               hintText: 'e.g. 1 Box',
-                              hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 12),
-                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                              enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+                              hintStyle: const TextStyle(
+                                color: Color(0xFF94A3B8),
+                                fontSize: 12,
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: const BorderSide(
+                                  color: Color(0xFFE2E8F0),
+                                ),
+                              ),
                               isDense: true,
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 12,
+                              ),
                             ),
                           ),
                         ],
@@ -830,7 +1162,7 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                   ],
                 ),
                 const SizedBox(height: 16),
-                
+
                 // HSN Code
                 Row(
                   children: [
@@ -838,17 +1170,37 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('HSN Code', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                          const Text(
+                            'HSN Code',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF1E293B),
+                            ),
+                          ),
                           const SizedBox(height: 8),
                           TextField(
                             controller: hsnController,
                             decoration: InputDecoration(
                               hintText: 'e.g. 3004',
-                              hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 12),
-                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                              enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+                              hintStyle: const TextStyle(
+                                color: Color(0xFF94A3B8),
+                                fontSize: 12,
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: const BorderSide(
+                                  color: Color(0xFFE2E8F0),
+                                ),
+                              ),
                               isDense: true,
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 12,
+                              ),
                             ),
                           ),
                         ],
@@ -859,7 +1211,7 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                   ],
                 ),
                 const SizedBox(height: 16),
-                
+
                 // Qty & Price
                 Row(
                   children: [
@@ -867,16 +1219,33 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('Quantity *', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                          const Text(
+                            'Quantity *',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF1E293B),
+                            ),
+                          ),
                           const SizedBox(height: 8),
                           TextField(
                             controller: qtyController,
                             keyboardType: TextInputType.number,
                             decoration: InputDecoration(
-                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                              enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: const BorderSide(
+                                  color: Color(0xFFE2E8F0),
+                                ),
+                              ),
                               isDense: true,
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 12,
+                              ),
                             ),
                           ),
                         ],
@@ -887,18 +1256,38 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('Price (₹) *', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                          const Text(
+                            'Price (₹) *',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF1E293B),
+                            ),
+                          ),
                           const SizedBox(height: 8),
                           TextField(
                             controller: priceController,
                             keyboardType: TextInputType.number,
                             decoration: InputDecoration(
                               hintText: '0.00',
-                              hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 12),
-                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                              enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+                              hintStyle: const TextStyle(
+                                color: Color(0xFF94A3B8),
+                                fontSize: 12,
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: const BorderSide(
+                                  color: Color(0xFFE2E8F0),
+                                ),
+                              ),
                               isDense: true,
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 12,
+                              ),
                             ),
                           ),
                         ],
@@ -915,18 +1304,38 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('Discount (%)', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                          const Text(
+                            'Discount (%)',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF1E293B),
+                            ),
+                          ),
                           const SizedBox(height: 8),
                           TextField(
                             controller: discountController,
                             keyboardType: TextInputType.number,
                             decoration: InputDecoration(
                               hintText: '0',
-                              hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 12),
-                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                              enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+                              hintStyle: const TextStyle(
+                                color: Color(0xFF94A3B8),
+                                fontSize: 12,
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: const BorderSide(
+                                  color: Color(0xFFE2E8F0),
+                                ),
+                              ),
                               isDense: true,
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 12,
+                              ),
                             ),
                           ),
                         ],
@@ -937,18 +1346,38 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('GST (%)', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                          const Text(
+                            'GST (%)',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF1E293B),
+                            ),
+                          ),
                           const SizedBox(height: 8),
                           TextField(
                             controller: gstController,
                             keyboardType: TextInputType.number,
                             decoration: InputDecoration(
                               hintText: 'e.g. 12',
-                              hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 12),
-                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                              enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+                              hintStyle: const TextStyle(
+                                color: Color(0xFF94A3B8),
+                                fontSize: 12,
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: const BorderSide(
+                                  color: Color(0xFFE2E8F0),
+                                ),
+                              ),
                               isDense: true,
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 12,
+                              ),
                             ),
                           ),
                         ],
@@ -961,19 +1390,30 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(context, ),
-              child: const Text('Cancel', style: TextStyle(color: Color(0xFF64748B), fontWeight: FontWeight.bold)),
+              onPressed: () => Navigator.pop(context),
+              child: const Text(
+                'Cancel',
+                style: TextStyle(
+                  color: Color(0xFF64748B),
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
             ElevatedButton(
               onPressed: () {
                 final name = nameController.text.trim();
-                final brand = brandController.text.trim().isEmpty ? 'Custom Item' : brandController.text.trim();
+                final brand = brandController.text.trim().isEmpty
+                    ? 'Custom Item'
+                    : brandController.text.trim();
                 final qty = int.tryParse(qtyController.text) ?? 1;
                 final price = double.tryParse(priceController.text) ?? 0.0;
                 // You can use discount/gst in total calculations later if needed
 
                 if (name.isNotEmpty && price > 0) {
-                  final existingIndex = ref.read(billingProvider).currentBill.indexWhere((element) => element['name'] == name);
+                  final existingIndex = ref
+                      .read(billingProvider)
+                      .currentBill
+                      .indexWhere((element) => element['name'] == name);
                   if (existingIndex >= 0) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
@@ -994,46 +1434,72 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                     'total': qty * price,
                     'batch': '-',
                     'expiry': '-',
-                    'hsn': hsnController.text.isNotEmpty ? hsnController.text : '-',
+                    'hsn': hsnController.text.isNotEmpty
+                        ? hsnController.text
+                        : '-',
                     'cgst': 0.0,
                     'sgst': 0.0,
                   });
-                  Navigator.pop(context, );
+                  Navigator.pop(context);
                 }
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF22C55E),
                 foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
                 elevation: 0,
               ),
-              child: const Text('Add to Cart', style: TextStyle(fontWeight: FontWeight.bold)),
+              child: const Text(
+                'Add to Cart',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
             ),
           ],
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
         );
       },
     );
   }
 
   // ignore: unused_element
-  Widget _buildCompactField(String label, TextEditingController controller, {bool isNumber = false}) {
+  Widget _buildCompactField(
+    String label,
+    TextEditingController controller, {
+    bool isNumber = false,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(fontSize: 10, color: Color(0xFF64748B), fontWeight: FontWeight.bold)),
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 10,
+            color: Color(0xFF64748B),
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         const SizedBox(height: 4),
         Container(
           height: 32,
           padding: const EdgeInsets.symmetric(horizontal: 8),
-          decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE2E8F0)), borderRadius: BorderRadius.circular(4)),
+          decoration: BoxDecoration(
+            border: Border.all(color: const Color(0xFFE2E8F0)),
+            borderRadius: BorderRadius.circular(4),
+          ),
           child: TextField(
             controller: controller,
             keyboardType: isNumber ? TextInputType.number : TextInputType.text,
             style: const TextStyle(fontSize: 10, color: Color(0xFF1E293B)),
             decoration: InputDecoration(
               hintText: 'Enter $label',
-              hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 10),
+              hintStyle: const TextStyle(
+                color: Color(0xFF94A3B8),
+                fontSize: 10,
+              ),
               border: InputBorder.none,
               isDense: true,
               contentPadding: const EdgeInsets.symmetric(vertical: 8),
@@ -1055,7 +1521,9 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           decoration: BoxDecoration(
-            color: isSelected ? const Color(0xFF22C55E) : const Color(0xFFF1F5F9),
+            color: isSelected
+                ? const Color(0xFF22C55E)
+                : const Color(0xFFF1F5F9),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Text(
@@ -1073,38 +1541,46 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
 
   // ignore: unused_element
   Widget _buildConditionalExpanded(bool isDesktop, Widget child) {
-    return isDesktop ? Expanded(child: child) : SizedBox(height: 400, child: child);
+    return isDesktop
+        ? Expanded(child: child)
+        : SizedBox(height: 400, child: child);
   }
 
   @override
   Widget build(BuildContext context) {
     final inventoryState = ref.watch(inventoryProvider);
     final allMedicines = inventoryState.when(
-      data: (items) => items.map((item) => {
-        'inventory_item_id': item.id,
-        'name': item.name,
-        'brand': item.manufacturer,
-        'pack': item.sku,
-        'mrp': item.unitPrice,
-        'stock': item.stockQuantity,
-        'batch': item.batchNumber,
-        'hsn': item.hsnCode ?? '-',
-        'expiry': item.expiryDate,
-        'cgst': (item.gst ?? 0.0) / 2,
-        'sgst': (item.gst ?? 0.0) / 2,
-      }).toList(),
+      data: (items) => items
+          .map(
+            (item) => {
+              'inventory_item_id': item.id,
+              'name': item.name,
+              'brand': item.manufacturer,
+              'pack': item.sku,
+              'mrp': item.unitPrice,
+              'stock': item.stockQuantity,
+              'batch': item.batchNumber,
+              'hsn': item.hsnCode ?? '-',
+              'expiry': item.expiryDate,
+              'cgst': (item.gst ?? 0.0) / 2,
+              'sgst': (item.gst ?? 0.0) / 2,
+            },
+          )
+          .toList(),
       loading: () => <Map<String, dynamic>>[],
       error: (err, stack) => <Map<String, dynamic>>[],
     );
 
     List<Map<String, dynamic>> computedFilteredMedicines = allMedicines;
-    
+
     int currentCatIndex = ref.watch(billingProvider).selectedCategoryIndex;
     if (currentCatIndex != 0) {
       String category = _categories[currentCatIndex];
-      computedFilteredMedicines = computedFilteredMedicines.where((m) => m['category'] == category).toList();
+      computedFilteredMedicines = computedFilteredMedicines
+          .where((m) => m['category'] == category)
+          .toList();
     }
-    
+
     // Removed local search filtering since we will fetch from backend
     return Container(
       color: const Color(0xFFF8FAFC),
@@ -1129,38 +1605,80 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                   children: [
                     Container(
                       padding: const EdgeInsets.all(12),
-                      decoration: const BoxDecoration(color: Color(0xFF22C55E), shape: BoxShape.circle),
-                      child: const Icon(Icons.receipt_long, color: Colors.white, size: 24),
+                      decoration: const BoxDecoration(
+                        color: Color(0xFF22C55E),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.receipt_long,
+                        color: Colors.white,
+                        size: 24,
+                      ),
                     ),
                     const SizedBox(width: 16),
                     Flexible(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('New Bill', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: Color(0xFF1E293B))),
-                          const Text('Create a new invoice, search medicines and add to cart', style: TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+                          const Text(
+                            'New Bill',
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.w900,
+                              color: Color(0xFF1E293B),
+                            ),
+                          ),
+                          const Text(
+                            'Create a new invoice, search medicines and add to cart',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Color(0xFF64748B),
+                            ),
+                          ),
                         ],
                       ),
                     ),
                   ],
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
                   decoration: BoxDecoration(
                     color: const Color(0xFFF1F8F5),
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: const Color(0xFF22C55E).withValues(alpha: 0.3)),
+                    border: Border.all(
+                      color: const Color(0xFF22C55E).withValues(alpha: 0.3),
+                    ),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.calendar_today, color: Color(0xFF166534), size: 16),
+                      const Icon(
+                        Icons.calendar_today,
+                        color: Color(0xFF166534),
+                        size: 16,
+                      ),
                       const SizedBox(width: 8),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(_formatDate(_currentTime), style: const TextStyle(color: Color(0xFF166534), fontSize: 10, fontWeight: FontWeight.bold)),
-                          Text(_formatTime(_currentTime), style: const TextStyle(color: Color(0xFF64748B), fontSize: 10)),
+                          Text(
+                            _formatDate(_currentTime),
+                            style: const TextStyle(
+                              color: Color(0xFF166534),
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(
+                            _formatTime(_currentTime),
+                            style: const TextStyle(
+                              color: Color(0xFF64748B),
+                              fontSize: 10,
+                            ),
+                          ),
                         ],
                       ),
                     ],
@@ -1174,77 +1692,85 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
           Expanded(
             child: Padding(
               padding: const EdgeInsets.all(24.0),
-              child: LayoutBuilder(builder: (context, constraints) {
-                bool isDesktopWidth = constraints.maxWidth > 1100;
-                bool hasEnoughHeight = constraints.maxHeight > 850;
-                
-                Widget leftSide = BillingLeftPanel(
-                  isDesktopWidth: isDesktopWidth,
-                  hasEnoughHeight: hasEnoughHeight,
-                  filteredMedicines: computedFilteredMedicines,
-                  categories: _categories,
-                  selectedCategoryIndex: ref.watch(billingProvider).selectedCategoryIndex,
-                  onAddToCart: _addToCart,
-                  onCategorySelected: (index) {
-                    ref.read(billingProvider.notifier).updateCategory(index);
-                  },
-                  hasMore: ref.read(inventoryProvider.notifier).hasMore,
-                  onLoadMore: () {
-                    ref.read(inventoryProvider.notifier).loadMore();
-                  },
-                  onSearch: (q) {
-                    setState(() {
-                      _searchQuery = q;
-                    });
-                    // Trigger backend search for pagination to work
-                    ref.read(inventoryProvider.notifier).loadInventory(searchQuery: q);
-                  },
-                );
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  bool isDesktopWidth = constraints.maxWidth > 1100;
+                  bool hasEnoughHeight =
+                      constraints.maxHeight >
+                      400; // Lowered to ensure internal scrolling on standard laptops
 
-                Widget rightSide = BillingRightPanel(
-                  hasEnoughHeight: hasEnoughHeight,
-                  discountController: _discountController,
-                  customerNameController: _customerNameController,
-                  customerPhoneController: _customerPhoneController,
-                  customerLocationController: _customerLocationController,
-                  newDoctorController: _newDoctorController,
-                  doctorsList: _doctorsList,
-                  onClearCart: _clearCart,
-                  onDecreaseQty: _decreaseQty,
-                  onIncreaseQty: _increaseQty,
-                  onRemoveItem: _removeItem,
-                  onSaveCustomerToDb: _saveCustomerToDb,
-                  onSaveDraft: _saveDraft,
-                  onShowDraftsDialog: _showDraftsDialog,
-                  onShowBillPreview: _showBillPreview,
-                  onGenerateBill: _generateAndSaveBill,
-                  customerSearchField: _buildCustomerSearchField(),
-                  isGeneratingBill: _isGeneratingBill,
-                );
+                  Widget leftSide = BillingLeftPanel(
+                    isDesktopWidth: isDesktopWidth,
+                    hasEnoughHeight: hasEnoughHeight,
+                    filteredMedicines: computedFilteredMedicines,
+                    categories: _categories,
+                    selectedCategoryIndex: ref
+                        .watch(billingProvider)
+                        .selectedCategoryIndex,
+                    onAddToCart: _addToCart,
+                    onCategorySelected: (index) {
+                      ref.read(billingProvider.notifier).updateCategory(index);
+                    },
+                    hasMore: ref.read(inventoryProvider.notifier).hasMore,
+                    onLoadMore: () {
+                      ref.read(inventoryProvider.notifier).loadMore();
+                    },
+                    onSearch: (q) {
 
-                if (isDesktopWidth) {
-                  Widget content = Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(flex: 13, child: leftSide),
-                      const SizedBox(width: 24),
-                      Expanded(flex: 9, child: rightSide),
-                    ],
+                      // Trigger backend search for pagination to work
+                      ref
+                          .read(inventoryProvider.notifier)
+                          .loadInventory(searchQuery: q);
+                    },
                   );
-                  return hasEnoughHeight ? content : SingleChildScrollView(child: content);
-                } else {
-                  return SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
+
+                  Widget rightSide = BillingRightPanel(
+                    hasEnoughHeight: hasEnoughHeight,
+                    discountController: _discountController,
+                    customerNameController: _customerNameController,
+                    customerPhoneController: _customerPhoneController,
+                    customerLocationController: _customerLocationController,
+                    newDoctorController: _newDoctorController,
+                    doctorsList: _doctorsList,
+                    onClearCart: _clearCart,
+                    onDecreaseQty: _decreaseQty,
+                    onIncreaseQty: _increaseQty,
+                    onRemoveItem: _removeItem,
+                    onSaveCustomerToDb: _saveCustomerToDb,
+                    onSaveDraft: _saveDraft,
+                    onShowDraftsDialog: _showDraftsDialog,
+                    onShowBillPreview: _showBillPreview,
+                    onGenerateBill: _generateAndSaveBill,
+                    customerSearchField: _buildCustomerSearchField(),
+                    isGeneratingBill: _isGeneratingBill,
+                  );
+
+                  if (isDesktopWidth) {
+                    Widget content = Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        leftSide,
-                        const SizedBox(height: 24),
-                        rightSide,
+                        Expanded(flex: 13, child: leftSide),
+                        const SizedBox(width: 24),
+                        Expanded(flex: 9, child: rightSide),
                       ],
-                    ),
-                  );
-                }
-              }),
+                    );
+                    return hasEnoughHeight
+                        ? content
+                        : SingleChildScrollView(child: content);
+                  } else {
+                    return SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          leftSide,
+                          const SizedBox(height: 24),
+                          rightSide,
+                        ],
+                      ),
+                    );
+                  }
+                },
+              ),
             ),
           ),
         ],
@@ -1256,7 +1782,14 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Search Customer', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF64748B))),
+        const Text(
+          'Search Customer',
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF64748B),
+          ),
+        ),
         const SizedBox(height: 4),
         Container(
           height: 36,
@@ -1273,17 +1806,29 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                 return const Iterable<Customer>.empty();
               }
               final matches = _allCustomers.where((Customer customer) {
-                return customer.name.toLowerCase().contains(textEditingValue.text.toLowerCase()) || 
-                       customer.phone.contains(textEditingValue.text);
+                return customer.name.toLowerCase().contains(
+                      textEditingValue.text.toLowerCase(),
+                    ) ||
+                    customer.phone.contains(textEditingValue.text);
               });
-              
+
               if (matches.isEmpty) {
-                return [Customer(id: 'NO_DATA', name: 'No data found', phone: '', location: '', createdAt: DateTime.now().toIso8601String())];
+                return [
+                  Customer(
+                    id: 'NO_DATA',
+                    name: 'No data found',
+                    phone: '',
+                    location: '',
+                    createdAt: DateTime.now().toIso8601String(),
+                  ),
+                ];
               }
-              
+
               return matches;
             },
-            displayStringForOption: (Customer option) => option.id == 'NO_DATA' ? _customerNameController.text : option.name,
+            displayStringForOption: (Customer option) => option.id == 'NO_DATA'
+                ? _customerNameController.text
+                : option.name,
             onSelected: (Customer selection) {
               if (selection.id == 'NO_DATA') return;
               _customerNameController.text = selection.name;
@@ -1293,21 +1838,32 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                 _savedCustomerId = selection.id;
               });
             },
-            fieldViewBuilder: (context, textEditingController, focusNode, onFieldSubmitted) {
-              return TextField(
-                controller: textEditingController,
-                focusNode: focusNode,
-                style: const TextStyle(fontSize: 12),
-                decoration: const InputDecoration(
-                  border: InputBorder.none,
-                  contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 10),
-                  isDense: true,
-                  hintText: 'Type name or phone number...',
-                  hintStyle: TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
-                  prefixIcon: Icon(Icons.search, size: 16, color: Color(0xFF94A3B8)),
-                ),
-              );
-            },
+            fieldViewBuilder:
+                (context, textEditingController, focusNode, onFieldSubmitted) {
+                  return TextField(
+                    controller: textEditingController,
+                    focusNode: focusNode,
+                    style: const TextStyle(fontSize: 12),
+                    decoration: const InputDecoration(
+                      border: InputBorder.none,
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 10,
+                      ),
+                      isDense: true,
+                      hintText: 'Type name or phone number...',
+                      hintStyle: TextStyle(
+                        fontSize: 12,
+                        color: Color(0xFF94A3B8),
+                      ),
+                      prefixIcon: Icon(
+                        Icons.search,
+                        size: 16,
+                        color: Color(0xFF94A3B8),
+                      ),
+                    ),
+                  );
+                },
             optionsViewBuilder: (context, onSelected, options) {
               return Align(
                 alignment: Alignment.topLeft,
@@ -1315,21 +1871,30 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                   elevation: 4,
                   borderRadius: BorderRadius.circular(8),
                   child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxHeight: 200, maxWidth: 300),
+                    constraints: const BoxConstraints(
+                      maxHeight: 200,
+                      maxWidth: 300,
+                    ),
                     child: ListView.builder(
                       padding: EdgeInsets.zero,
                       shrinkWrap: true,
                       itemCount: options.length,
                       itemBuilder: (context, index) {
                         final option = options.elementAt(index);
-                        
+
                         if (option.id == 'NO_DATA') {
                           return const Padding(
                             padding: EdgeInsets.all(12),
-                            child: Text('No data found', style: TextStyle(color: Color(0xFF64748B), fontSize: 12)),
+                            child: Text(
+                              'No data found',
+                              style: TextStyle(
+                                color: Color(0xFF64748B),
+                                fontSize: 12,
+                              ),
+                            ),
                           );
                         }
-                        
+
                         return InkWell(
                           onTap: () {
                             onSelected(option);
@@ -1341,8 +1906,20 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text(option.name, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                                Text(option.phone, style: const TextStyle(fontSize: 10, color: Colors.grey)),
+                                Text(
+                                  option.name,
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                Text(
+                                  option.phone,
+                                  style: const TextStyle(
+                                    fontSize: 10,
+                                    color: Colors.grey,
+                                  ),
+                                ),
                               ],
                             ),
                           ),

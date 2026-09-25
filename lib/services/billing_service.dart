@@ -6,6 +6,11 @@ class BillingService {
     required List<Map<String, dynamic>> items,
     required double totalAmount,
     String? customerId,
+    String? customerName,
+    String? customerPhone,
+    String? customerLocation,
+    String? customerGstin,
+    String? invoiceNo,
     String paymentMethod = 'CASH',
   }) async {
     try {
@@ -13,16 +18,35 @@ class BillingService {
 
       final requestData = {
         'shop_id': shopId,
-        'items': items.map((item) => {
-          'inventory_item_id': item['inventory_item_id'],
-          'quantity': item['qty'],
-        }).toList(),
+        'items': items
+            .map(
+              (item) => {
+                'inventory_item_id': item['inventory_item_id'],
+                'quantity': item['qty'],
+              },
+            )
+            .toList(),
         'total_amount': totalAmount,
         'payment_method': paymentMethod,
       };
 
       if (customerId != null && customerId.isNotEmpty) {
         requestData['user_id'] = customerId;
+      }
+      if (customerName != null && customerName.isNotEmpty) {
+        requestData['customer_name'] = customerName;
+      }
+      if (customerPhone != null && customerPhone.isNotEmpty) {
+        requestData['customer_phone'] = customerPhone;
+      }
+      if (customerLocation != null && customerLocation.isNotEmpty) {
+        requestData['customer_location'] = customerLocation;
+      }
+      if (customerGstin != null && customerGstin.isNotEmpty) {
+        requestData['customer_gstin'] = customerGstin;
+      }
+      if (invoiceNo != null && invoiceNo.isNotEmpty) {
+        requestData['invoice_no'] = invoiceNo;
       }
 
       final response = await ApiClient().dio.post(
@@ -56,7 +80,10 @@ class BillingService {
       }
     } catch (e) {
       if (e.toString().contains('No shops found')) {
-        return <String, dynamic>{'history': <dynamic>[], 'summary': <String, dynamic>{}};
+        return <String, dynamic>{
+          'history': <dynamic>[],
+          'summary': <String, dynamic>{},
+        };
       }
       throw Exception('Error fetching POS history: $e');
     }

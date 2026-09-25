@@ -70,7 +70,11 @@ class _LabDashboardState extends State<LabDashboard> {
                 _buildNavItem(2, Icons.description_outlined, 'Templates'),
                 _buildNavItem(3, Icons.inventory_2_outlined, 'Packages'),
                 _buildNavItem(4, Icons.calendar_today_outlined, 'Bookings'),
-                _buildNavItem(5, Icons.track_changes_outlined, 'Sample Tracking'),
+                _buildNavItem(
+                  5,
+                  Icons.track_changes_outlined,
+                  'Sample Tracking',
+                ),
                 _buildNavItem(6, Icons.analytics_outlined, 'Reports'),
                 _buildNavItem(7, Icons.send_outlined, 'Send Reports'),
                 _buildNavItem(8, Icons.history_outlined, 'History'),
@@ -78,9 +82,14 @@ class _LabDashboardState extends State<LabDashboard> {
             ),
           ),
           const SizedBox(height: 16),
-          const Divider(color: Color(0xFFE2E8F0), thickness: 1, indent: 16, endIndent: 16),
+          const Divider(
+            color: Color(0xFFE2E8F0),
+            thickness: 1,
+            indent: 16,
+            endIndent: 16,
+          ),
           const SizedBox(height: 8),
-          
+
           InkWell(
             onTap: () => context.go('/dashboard'),
             borderRadius: BorderRadius.circular(12),
@@ -91,7 +100,14 @@ class _LabDashboardState extends State<LabDashboard> {
                 children: const [
                   Icon(Icons.logout, color: Colors.red, size: 20),
                   SizedBox(width: 12),
-                  Text('Logout', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 14)),
+                  Text(
+                    'Logout',
+                    style: TextStyle(
+                      color: Colors.red,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -117,7 +133,11 @@ class _LabDashboardState extends State<LabDashboard> {
           ),
           child: Row(
             children: [
-              Icon(icon, size: 20, color: isSelected ? Colors.white : const Color(0xFF64748B)),
+              Icon(
+                icon,
+                size: 20,
+                color: isSelected ? Colors.white : const Color(0xFF64748B),
+              ),
               const SizedBox(width: 12),
               Text(
                 title,
@@ -156,7 +176,7 @@ class _LabDashboardState extends State<LabDashboard> {
               Image.asset('assets/LOGO.png', height: 40, cacheHeight: 120),
             ],
           ),
-          
+
           Expanded(
             child: Center(
               child: Container(
@@ -176,7 +196,10 @@ class _LabDashboardState extends State<LabDashboard> {
                         decoration: InputDecoration(
                           border: InputBorder.none,
                           hintText: 'Search patients, tests, packages...',
-                          hintStyle: TextStyle(color: Color(0xFF94A3B8), fontSize: 13),
+                          hintStyle: TextStyle(
+                            color: Color(0xFF94A3B8),
+                            fontSize: 13,
+                          ),
                           isDense: true,
                         ),
                       ),
@@ -186,13 +209,13 @@ class _LabDashboardState extends State<LabDashboard> {
               ),
             ),
           ),
-          
 
-          
           // Profile Pill
           PopupMenuButton<String>(
             offset: const Offset(0, 45),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
             onSelected: (value) {
               if (value == 'logout') {
                 context.go('/dashboard');
@@ -205,7 +228,10 @@ class _LabDashboardState extends State<LabDashboard> {
                   children: [
                     Icon(Icons.logout, size: 18, color: Colors.red),
                     SizedBox(width: 8),
-                    Text('Logout', style: TextStyle(fontSize: 14, color: Colors.red)),
+                    Text(
+                      'Logout',
+                      style: TextStyle(fontSize: 14, color: Colors.red),
+                    ),
                   ],
                 ),
               ),
@@ -221,19 +247,40 @@ class _LabDashboardState extends State<LabDashboard> {
                   const CircleAvatar(
                     radius: 12,
                     backgroundColor: Color(0xFFF1F5F9),
-                    child: Icon(Icons.person, size: 16, color: Color(0xFF64748B)),
+                    child: Icon(
+                      Icons.person,
+                      size: 16,
+                      color: Color(0xFF64748B),
+                    ),
                   ),
                   const SizedBox(width: 8),
                   const Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Lab Admin', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF1E293B))),
-                      Text('Diagnostic Lab', style: TextStyle(fontSize: 10, color: Color(0xFF64748B))),
+                      Text(
+                        'Lab Admin',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                          color: Color(0xFF1E293B),
+                        ),
+                      ),
+                      Text(
+                        'Diagnostic Lab',
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: Color(0xFF64748B),
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(width: 8),
-                  const Icon(Icons.keyboard_arrow_down, color: Color(0xFF64748B), size: 16),
+                  const Icon(
+                    Icons.keyboard_arrow_down,
+                    color: Color(0xFF64748B),
+                    size: 16,
+                  ),
                 ],
               ),
             ),

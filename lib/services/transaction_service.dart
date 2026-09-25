@@ -27,7 +27,7 @@ class TransactionModel {
   factory TransactionModel.fromJson(Map<String, dynamic> json) {
     String parsedDate = '';
     String parsedTime = '';
-    
+
     if (json['date'] != null) {
       try {
         final dt = DateTime.parse(json['date']);
@@ -46,10 +46,12 @@ class TransactionModel {
     String txnType = json['transaction_type'] ?? '';
     if (txnType.toUpperCase() == 'INCOME') {
       txnType = 'Income';
-    // ignore: curly_braces_in_flow_control_structures
-    } else if (txnType.toUpperCase() == 'EXPENSE') txnType = 'Expense';
-    // ignore: curly_braces_in_flow_control_structures
-    else if (txnType.toUpperCase() == 'TRANSFER') txnType = 'Transfer';
+
+    } else if (txnType.toUpperCase() == 'EXPENSE') {
+      txnType = 'Expense';
+    } else if (txnType.toUpperCase() == 'TRANSFER') {
+      txnType = 'Transfer';
+    }
 
     return TransactionModel(
       id: json['id'] ?? '',
@@ -59,7 +61,8 @@ class TransactionModel {
       category: categoryName,
       description: json['description'] ?? '',
       amount: (json['amount'] ?? 0.0).toDouble(),
-      paymentMode: 'Cash', // Defaulting as backend doesn't seem to store it explicitly unless we use accounts
+      paymentMode:
+          'Cash', // Defaulting as backend doesn't seem to store it explicitly unless we use accounts
     );
   }
 }
@@ -79,7 +82,10 @@ class TransactionService {
     }
   }
 
-  static Future<List<TransactionModel>> getTransactions({int skip = 0, int limit = 100}) async {
+  static Future<List<TransactionModel>> getTransactions({
+    int skip = 0,
+    int limit = 100,
+  }) async {
     try {
       final response = await ApiClient().dio.get(
         '/api/transactions',

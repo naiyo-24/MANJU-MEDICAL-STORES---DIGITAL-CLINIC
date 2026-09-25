@@ -4,7 +4,11 @@ class CrmPlaceholderScreen extends StatelessWidget {
   final String title;
   final IconData icon;
 
-  const CrmPlaceholderScreen({super.key, required this.title, required this.icon});
+  const CrmPlaceholderScreen({
+    super.key,
+    required this.title,
+    required this.icon,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -17,16 +21,29 @@ class CrmPlaceholderScreen extends StatelessWidget {
             children: [
               Container(
                 padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(color: const Color(0xFF8B5CF6).withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF8B5CF6).withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
                 child: Icon(icon, color: const Color(0xFF8B5CF6), size: 32),
               ),
               const SizedBox(width: 16),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1E293B),
+                    ),
+                  ),
                   const SizedBox(height: 4),
-                  const Text('CRM Module • SirfBill Bill Karo, Befikar Raho', style: TextStyle(fontSize: 14, color: Color(0xFF64748B))),
+                  const Text(
+                    'CRM Module • SirfBill Bill Karo, Befikar Raho',
+                    style: TextStyle(fontSize: 14, color: Color(0xFF64748B)),
+                  ),
                 ],
               ),
             ],
@@ -45,9 +62,19 @@ class CrmPlaceholderScreen extends StatelessWidget {
                   children: [
                     Icon(icon, size: 64, color: const Color(0xFFE2E8F0)),
                     const SizedBox(height: 16),
-                    Text('$title Module', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF64748B))),
+                    Text(
+                      '$title Module',
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF64748B),
+                      ),
+                    ),
                     const SizedBox(height: 8),
-                    const Text('This screen is currently under construction.', style: TextStyle(fontSize: 14, color: Color(0xFF94A3B8))),
+                    const Text(
+                      'This screen is currently under construction.',
+                      style: TextStyle(fontSize: 14, color: Color(0xFF94A3B8)),
+                    ),
                   ],
                 ),
               ),
@@ -60,7 +87,12 @@ class CrmPlaceholderScreen extends StatelessWidget {
 }
 
 // 1. Dashboard (will be replaced by real dashboard, but keep for fallback)
-class CrmDashboardFallback extends StatelessWidget { const CrmDashboardFallback({super.key}); @override Widget build(BuildContext context) => const CrmPlaceholderScreen(title: 'Dashboard', icon: Icons.dashboard); }
+class CrmDashboardFallback extends StatelessWidget {
+  const CrmDashboardFallback({super.key});
+  @override
+  Widget build(BuildContext context) =>
+      const CrmPlaceholderScreen(title: 'Dashboard', icon: Icons.dashboard);
+}
 
 // 2. Patient Management
 // Implemented in crm_patients_screen.dart
@@ -78,10 +110,22 @@ class CrmDashboardFallback extends StatelessWidget { const CrmDashboardFallback(
 // Implemented in crm_payment_receipt_screen.dart
 
 // 7. Payment History
-class CrmPaymentHistoryScreen extends StatelessWidget { const CrmPaymentHistoryScreen({super.key}); @override Widget build(BuildContext context) => const CrmPlaceholderScreen(title: 'Payment History', icon: Icons.history); }
+class CrmPaymentHistoryScreen extends StatelessWidget {
+  const CrmPaymentHistoryScreen({super.key});
+  @override
+  Widget build(BuildContext context) =>
+      const CrmPlaceholderScreen(title: 'Payment History', icon: Icons.history);
+}
 
 // 8. Lab Test Billing
-class CrmLabBillingScreen extends StatelessWidget { const CrmLabBillingScreen({super.key}); @override Widget build(BuildContext context) => const CrmPlaceholderScreen(title: 'Lab Test Billing', icon: Icons.science); }
+class CrmLabBillingScreen extends StatelessWidget {
+  const CrmLabBillingScreen({super.key});
+  @override
+  Widget build(BuildContext context) => const CrmPlaceholderScreen(
+    title: 'Lab Test Billing',
+    icon: Icons.science,
+  );
+}
 
 // 9. Send to Lab
 // Implemented in crm_send_to_lab_screen.dart

@@ -68,24 +68,31 @@ class BillingState {
       customerPhone: customerPhone ?? this.customerPhone,
       customerLocation: customerLocation ?? this.customerLocation,
       searchQuery: searchQuery ?? this.searchQuery,
-      selectedCategoryIndex: selectedCategoryIndex ?? this.selectedCategoryIndex,
+      selectedCategoryIndex:
+          selectedCategoryIndex ?? this.selectedCategoryIndex,
       selectedFormat: selectedFormat ?? this.selectedFormat,
       isGstEnabled: isGstEnabled ?? this.isGstEnabled,
       gstNumber: gstNumber ?? this.gstNumber,
     );
   }
 
-  double get subtotal => currentBill.fold(0.0, (sum, item) => sum + ((item['total'] ?? 0.0) as num).toDouble());
-  double get discountAmount => isDiscountPercentage ? (subtotal * (discountValue / 100)) : discountValue;
+  double get subtotal => currentBill.fold(
+    0.0,
+    (sum, item) => sum + ((item['total'] ?? 0.0) as num).toDouble(),
+  );
+  double get discountAmount =>
+      isDiscountPercentage ? (subtotal * (discountValue / 100)) : discountValue;
   double get totalAfterDiscount => subtotal - discountAmount;
-  
+
   double get itemGstAmount {
     return currentBill.fold(0.0, (sum, item) {
       double cgst = (item['cgst'] as num?)?.toDouble() ?? 0.0;
       double sgst = (item['sgst'] as num?)?.toDouble() ?? 0.0;
       double total = (item['total'] as num?)?.toDouble() ?? 0.0;
       // Subtract proportional item discount from the item total
-      double proportionalDiscount = subtotal > 0 ? (total / subtotal) * discountAmount : 0.0;
+      double proportionalDiscount = subtotal > 0
+          ? (total / subtotal) * discountAmount
+          : 0.0;
       double itemTotalAfterDiscount = total - proportionalDiscount;
       return sum + (itemTotalAfterDiscount * (cgst + sgst) / 100);
     });
@@ -103,7 +110,9 @@ class BillingNotifier extends Notifier<BillingState> {
 
   bool addItem(Map<String, dynamic> item) {
     // Check if it already exists by name
-    final index = state.currentBill.indexWhere((element) => element['name'] == item['name']);
+    final index = state.currentBill.indexWhere(
+      (element) => element['name'] == item['name'],
+    );
     if (index != -1) {
       return false; // Item already exists, don't add duplicate
     } else {
@@ -165,7 +174,12 @@ class BillingNotifier extends Notifier<BillingState> {
     state = state.copyWith(selectedDoctorId: id, selectedDoctorName: name);
   }
 
-  void updateCustomerInfo(String name, String phone, String location, {String? id}) {
+  void updateCustomerInfo(
+    String name,
+    String phone,
+    String location, {
+    String? id,
+  }) {
     state = state.copyWith(
       customerName: name,
       customerPhone: phone,

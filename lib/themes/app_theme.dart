@@ -27,9 +27,7 @@ class AppTheme {
           backgroundColor: AppColors.primary,
           foregroundColor: Colors.white,
           elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         ),
       ),
@@ -37,16 +35,17 @@ class AppTheme {
         style: OutlinedButton.styleFrom(
           foregroundColor: AppColors.textPrimary,
           side: const BorderSide(color: AppColors.border),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: Colors.white,
         hintStyle: const TextStyle(color: AppColors.textHint, fontSize: 13),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 12,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
           borderSide: const BorderSide(color: AppColors.border),
@@ -74,19 +73,49 @@ class AppTheme {
         space: 1,
       ),
       textTheme: const TextTheme(
-        displayLarge: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold),
-        displayMedium: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold),
-        displaySmall: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold),
-        headlineLarge: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold),
-        headlineMedium: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold),
-        headlineSmall: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold),
-        titleLarge: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold),
-        titleMedium: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold),
-        titleSmall: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold),
+        displayLarge: TextStyle(
+          color: AppColors.textPrimary,
+          fontWeight: FontWeight.bold,
+        ),
+        displayMedium: TextStyle(
+          color: AppColors.textPrimary,
+          fontWeight: FontWeight.bold,
+        ),
+        displaySmall: TextStyle(
+          color: AppColors.textPrimary,
+          fontWeight: FontWeight.bold,
+        ),
+        headlineLarge: TextStyle(
+          color: AppColors.textPrimary,
+          fontWeight: FontWeight.bold,
+        ),
+        headlineMedium: TextStyle(
+          color: AppColors.textPrimary,
+          fontWeight: FontWeight.bold,
+        ),
+        headlineSmall: TextStyle(
+          color: AppColors.textPrimary,
+          fontWeight: FontWeight.bold,
+        ),
+        titleLarge: TextStyle(
+          color: AppColors.textPrimary,
+          fontWeight: FontWeight.bold,
+        ),
+        titleMedium: TextStyle(
+          color: AppColors.textPrimary,
+          fontWeight: FontWeight.bold,
+        ),
+        titleSmall: TextStyle(
+          color: AppColors.textPrimary,
+          fontWeight: FontWeight.bold,
+        ),
         bodyLarge: TextStyle(color: AppColors.textPrimary),
         bodyMedium: TextStyle(color: AppColors.textPrimary),
         bodySmall: TextStyle(color: AppColors.textSecondary),
-        labelLarge: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold),
+        labelLarge: TextStyle(
+          color: AppColors.textPrimary,
+          fontWeight: FontWeight.bold,
+        ),
         labelMedium: TextStyle(color: AppColors.textSecondary),
         labelSmall: TextStyle(color: AppColors.textHint),
       ),

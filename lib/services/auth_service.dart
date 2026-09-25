@@ -12,10 +12,7 @@ class AuthService {
     try {
       final response = await ApiClient().dio.post(
         '/api/auth/admin-login',
-        data: {
-          'email': email,
-          'password': password,
-        },
+        data: {'email': email, 'password': password},
       );
 
       if (response.statusCode == 200) {
@@ -30,7 +27,8 @@ class AuthService {
       }
     } on DioException catch (e) {
       if (e.response != null && e.response?.data != null) {
-        throw e.response?.data['detail'] ?? 'Invalid User ID or Password. Please try again.';
+        throw e.response?.data['detail'] ??
+            'Invalid User ID or Password. Please try again.';
       }
       throw 'Unable to connect to the server. Please check your internet connection.';
     } catch (e) {

@@ -4,7 +4,7 @@ import 'package:intl/intl.dart';
 
 class CustomDateRangePicker extends StatefulWidget {
   final DateTimeRange? initialRange;
-  
+
   const CustomDateRangePicker({super.key, this.initialRange});
 
   @override
@@ -65,7 +65,9 @@ class _CustomDateRangePickerState extends State<CustomDateRangePicker> {
         child: Text(
           label,
           style: TextStyle(
-            color: isSelected ? const Color(0xFF166534) : const Color(0xFF1E293B),
+            color: isSelected
+                ? const Color(0xFF166534)
+                : const Color(0xFF1E293B),
             fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
             fontSize: 14,
           ),
@@ -100,9 +102,9 @@ class _CustomDateRangePickerState extends State<CustomDateRangePicker> {
                 ],
               ),
             ),
-            
+
             const VerticalDivider(color: Color(0xFFE2E8F0), width: 48),
-            
+
             // Middle: Calendar
             Expanded(
               child: CalendarDatePicker2(
@@ -137,16 +139,23 @@ class _CustomDateRangePickerState extends State<CustomDateRangePicker> {
                 },
               ),
             ),
-            
+
             const VerticalDivider(color: Color(0xFFE2E8F0), width: 48),
-            
+
             // Right: Selected Range & Buttons
             SizedBox(
               width: 200,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Selected Range', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFF1E293B))),
+                  const Text(
+                    'Selected Range',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: Color(0xFF1E293B),
+                    ),
+                  ),
                   const SizedBox(height: 16),
                   Container(
                     padding: const EdgeInsets.all(16),
@@ -158,24 +167,41 @@ class _CustomDateRangePickerState extends State<CustomDateRangePicker> {
                       children: [
                         Row(
                           children: [
-                            const Icon(Icons.calendar_today, color: Color(0xFF22C55E), size: 16),
+                            const Icon(
+                              Icons.calendar_today,
+                              color: Color(0xFF22C55E),
+                              size: 16,
+                            ),
                             const SizedBox(width: 8),
                             Text(
-                              _dates.isNotEmpty && _dates[0] != null ? DateFormat('dd MMM yyyy').format(_dates[0]!) : '--',
-                              style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF166534)),
+                              _dates.isNotEmpty && _dates[0] != null
+                                  ? DateFormat('dd MMM yyyy').format(_dates[0]!)
+                                  : '--',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF166534),
+                              ),
                             ),
                           ],
                         ),
                         const Padding(
                           padding: EdgeInsets.symmetric(vertical: 8),
-                          child: Text('to', style: TextStyle(color: Color(0xFF22C55E))),
+                          child: Text(
+                            'to',
+                            style: TextStyle(color: Color(0xFF22C55E)),
+                          ),
                         ),
                         Row(
                           children: [
                             const SizedBox(width: 24),
                             Text(
-                              _dates.length > 1 && _dates[1] != null ? DateFormat('dd MMM yyyy').format(_dates[1]!) : '--',
-                              style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF166534)),
+                              _dates.length > 1 && _dates[1] != null
+                                  ? DateFormat('dd MMM yyyy').format(_dates[1]!)
+                                  : '--',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF166534),
+                              ),
                             ),
                           ],
                         ),
@@ -187,13 +213,21 @@ class _CustomDateRangePickerState extends State<CustomDateRangePicker> {
                     children: [
                       Expanded(
                         child: OutlinedButton(
-                          onPressed: () => Navigator.pop(context, ),
+                          onPressed: () => Navigator.pop(context),
                           style: OutlinedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             side: const BorderSide(color: Color(0xFFE2E8F0)),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
                           ),
-                          child: const Text('Cancel', style: TextStyle(color: Color(0xFF1E293B), fontWeight: FontWeight.bold)),
+                          child: const Text(
+                            'Cancel',
+                            style: TextStyle(
+                              color: Color(0xFF1E293B),
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -201,17 +235,27 @@ class _CustomDateRangePickerState extends State<CustomDateRangePicker> {
                         child: ElevatedButton(
                           onPressed: () {
                             if (_dates.isNotEmpty && _dates[0] != null) {
-                              final end = _dates.length > 1 && _dates[1] != null ? _dates[1]! : _dates[0]!;
-                              Navigator.pop(context, DateTimeRange(start: _dates[0]!, end: end));
+                              final end = _dates.length > 1 && _dates[1] != null
+                                  ? _dates[1]!
+                                  : _dates[0]!;
+                              Navigator.pop(
+                                context,
+                                DateTimeRange(start: _dates[0]!, end: end),
+                              );
                             }
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF22C55E),
                             foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
                           ),
-                          child: const Text('Apply', style: TextStyle(fontWeight: FontWeight.bold)),
+                          child: const Text(
+                            'Apply',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
                         ),
                       ),
                     ],

@@ -38,16 +38,15 @@ import '../screens/crm/crm_send_to_lab_screen.dart';
 import '../screens/crm/crm_orders_screen.dart';
 import '../screens/crm/crm_placeholder_screens.dart';
 
-final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
+final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>(
+  debugLabel: 'root',
+);
 
 final goRouter = GoRouter(
   navigatorKey: _rootNavigatorKey,
   initialLocation: '/splash',
   routes: [
-    GoRoute(
-      path: '/splash',
-      builder: (context, state) => const SplashScreen(),
-    ),
+    GoRoute(path: '/splash', builder: (context, state) => const SplashScreen()),
     GoRoute(
       path: '/dashboard',
       builder: (context, state) => const DashboardScreen(),
@@ -55,11 +54,19 @@ final goRouter = GoRouter(
     GoRoute(
       path: '/role_login',
       builder: (context, state) {
-        final Map<String, dynamic> extra = state.extra is Map<String, dynamic> ? state.extra as Map<String, dynamic> : {};
+        final Map<String, dynamic> extra = state.extra is Map<String, dynamic>
+            ? state.extra as Map<String, dynamic>
+            : {};
         return RoleLoginScreen(
-          roleName: extra['roleName'] is String ? extra['roleName'] as String : 'Counter',
-          themeColor: extra['themeColor'] is Color ? extra['themeColor'] as Color : Colors.green,
-          nextRoute: extra['nextRoute'] is String ? extra['nextRoute'] as String : '/counter/inventory',
+          roleName: extra['roleName'] is String
+              ? extra['roleName'] as String
+              : 'Counter',
+          themeColor: extra['themeColor'] is Color
+              ? extra['themeColor'] as Color
+              : Colors.green,
+          nextRoute: extra['nextRoute'] is String
+              ? extra['nextRoute'] as String
+              : '/counter/inventory',
         );
       },
     ),
@@ -137,26 +144,86 @@ final goRouter = GoRouter(
         return LabDashboard(navigationShell: navigationShell);
       },
       branches: [
-        StatefulShellBranch(routes: [GoRoute(path: '/lab/dashboard', builder: (context, state) => const LabDashboardHome())]),
-        StatefulShellBranch(routes: [GoRoute(path: '/lab/tests', builder: (context, state) => const LabTestsScreen())]),
-        StatefulShellBranch(routes: [
-          GoRoute(
-            path: '/lab/templates',
-            builder: (context, state) => const LabTemplatesScreen(),
-            routes: [
-              GoRoute(
-                path: 'create',
-                builder: (context, state) => LabCreateTemplateScreen(existingTemplate: state.extra as LabTemplate?),
-              ),
-            ],
-          ),
-        ]),
-        StatefulShellBranch(routes: [GoRoute(path: '/lab/packages', builder: (context, state) => const LabPackagesScreen())]),
-        StatefulShellBranch(routes: [GoRoute(path: '/lab/bookings', builder: (context, state) => const LabBookingsScreen())]),
-        StatefulShellBranch(routes: [GoRoute(path: '/lab/tracking', builder: (context, state) => const LabSampleTrackingScreen())]),
-        StatefulShellBranch(routes: [GoRoute(path: '/lab/reports', builder: (context, state) => const LabReportsScreen())]),
-        StatefulShellBranch(routes: [GoRoute(path: '/lab/send_reports', builder: (context, state) => const LabSendReportsScreen())]),
-        StatefulShellBranch(routes: [GoRoute(path: '/lab/history', builder: (context, state) => const LabHistoryScreen())]),
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: '/lab/dashboard',
+              builder: (context, state) => const LabDashboardHome(),
+            ),
+          ],
+        ),
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: '/lab/tests',
+              builder: (context, state) => const LabTestsScreen(),
+            ),
+          ],
+        ),
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: '/lab/templates',
+              builder: (context, state) => const LabTemplatesScreen(),
+              routes: [
+                GoRoute(
+                  path: 'create',
+                  builder: (context, state) => LabCreateTemplateScreen(
+                    existingTemplate: state.extra as LabTemplate?,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: '/lab/packages',
+              builder: (context, state) => const LabPackagesScreen(),
+            ),
+          ],
+        ),
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: '/lab/bookings',
+              builder: (context, state) => const LabBookingsScreen(),
+            ),
+          ],
+        ),
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: '/lab/tracking',
+              builder: (context, state) => const LabSampleTrackingScreen(),
+            ),
+          ],
+        ),
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: '/lab/reports',
+              builder: (context, state) => const LabReportsScreen(),
+            ),
+          ],
+        ),
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: '/lab/send_reports',
+              builder: (context, state) => const LabSendReportsScreen(),
+            ),
+          ],
+        ),
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: '/lab/history',
+              builder: (context, state) => const LabHistoryScreen(),
+            ),
+          ],
+        ),
       ],
     ),
     StatefulShellRoute.indexedStack(
@@ -164,16 +231,86 @@ final goRouter = GoRouter(
         return CrmDashboard(navigationShell: navigationShell);
       },
       branches: [
-        StatefulShellBranch(routes: [GoRoute(path: '/crm/dashboard', builder: (context, state) => const CrmDashboardHome())]),
-        StatefulShellBranch(routes: [GoRoute(path: '/crm/patients', builder: (context, state) => const CrmPatientsScreen())]),
-        StatefulShellBranch(routes: [GoRoute(path: '/crm/appointments', builder: (context, state) => const CrmAppointmentsScreen())]),
-        StatefulShellBranch(routes: [GoRoute(path: '/crm/prescriptions', builder: (context, state) => const CrmPrescriptionsScreen())]),
-        StatefulShellBranch(routes: [GoRoute(path: '/crm/doctors', builder: (context, state) => const CrmDoctorsScreen())]),
-        StatefulShellBranch(routes: [GoRoute(path: '/crm/payment_receipt', builder: (context, state) => const CrmPaymentReceiptScreen())]),
-        StatefulShellBranch(routes: [GoRoute(path: '/crm/payment_history', builder: (context, state) => const CrmPaymentHistoryScreen())]),
-        StatefulShellBranch(routes: [GoRoute(path: '/crm/lab_billing', builder: (context, state) => const CrmLabBillingScreen())]),
-        StatefulShellBranch(routes: [GoRoute(path: '/crm/send_to_lab', builder: (context, state) => const CrmSendToLabScreen())]),
-        StatefulShellBranch(routes: [GoRoute(path: '/crm/order_management', builder: (context, state) => const CrmOrdersScreen())]),
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: '/crm/dashboard',
+              builder: (context, state) => const CrmDashboardHome(),
+            ),
+          ],
+        ),
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: '/crm/patients',
+              builder: (context, state) => const CrmPatientsScreen(),
+            ),
+          ],
+        ),
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: '/crm/appointments',
+              builder: (context, state) => const CrmAppointmentsScreen(),
+            ),
+          ],
+        ),
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: '/crm/prescriptions',
+              builder: (context, state) => const CrmPrescriptionsScreen(),
+            ),
+          ],
+        ),
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: '/crm/doctors',
+              builder: (context, state) => const CrmDoctorsScreen(),
+            ),
+          ],
+        ),
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: '/crm/payment_receipt',
+              builder: (context, state) => const CrmPaymentReceiptScreen(),
+            ),
+          ],
+        ),
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: '/crm/payment_history',
+              builder: (context, state) => const CrmPaymentHistoryScreen(),
+            ),
+          ],
+        ),
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: '/crm/lab_billing',
+              builder: (context, state) => const CrmLabBillingScreen(),
+            ),
+          ],
+        ),
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: '/crm/send_to_lab',
+              builder: (context, state) => const CrmSendToLabScreen(),
+            ),
+          ],
+        ),
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: '/crm/order_management',
+              builder: (context, state) => const CrmOrdersScreen(),
+            ),
+          ],
+        ),
       ],
     ),
   ],

@@ -7,10 +7,7 @@ class Doctor {
   Doctor({required this.id, required this.name});
 
   factory Doctor.fromJson(Map<String, dynamic> json) {
-    return Doctor(
-      id: json['id'] ?? '',
-      name: json['name'] ?? 'Unknown Doctor',
-    );
+    return Doctor(id: json['id'] ?? '', name: json['name'] ?? 'Unknown Doctor');
   }
 }
 

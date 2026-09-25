@@ -6,7 +6,7 @@ import 'package:pdf/pdf.dart';
 import '../../../../utils/pdf_generator.dart';
 import '../../../../models/counter_models.dart';
 
-void showViewBillDialog(BuildContext context, SavedBill bill) {
+void showViewBillDialog(BuildContext context, SavedBill bill, Map<String, dynamic> shopSettings) {
   showDialog(
     context: context,
     builder: (context) {
@@ -19,7 +19,10 @@ void showViewBillDialog(BuildContext context, SavedBill bill) {
           child: Column(
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 12,
+                ),
                 decoration: const BoxDecoration(
                   color: AppColors.background,
                   borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
@@ -28,7 +31,13 @@ void showViewBillDialog(BuildContext context, SavedBill bill) {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Bill View - ${bill.invoiceNo}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                    Text(
+                      'Bill View - ${bill.invoiceNo}',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
                     IconButton(
                       icon: const Icon(Icons.close),
                       onPressed: () => Navigator.of(context).pop(),
@@ -48,7 +57,11 @@ void showViewBillDialog(BuildContext context, SavedBill bill) {
                       invoiceNumber: bill.invoiceNo,
                       customerName: bill.customerName,
                       customerPhone: bill.customerPhone,
+                      customerLocation: bill.customerLocation,
+                      gstNumber: bill.customerGstin,
                       doctorName: bill.doctorName,
+                      paymentMethod: bill.paymentMode,
+                      shopSettings: shopSettings,
                       format: bill.format,
                     );
                   },
@@ -56,11 +69,14 @@ void showViewBillDialog(BuildContext context, SavedBill bill) {
                   allowPrinting: true,
                   canChangeOrientation: false,
                   canChangePageFormat: false,
-                  initialPageFormat: bill.format == 'Thermal' 
-                      ? const PdfPageFormat(80 * PdfPageFormat.mm, 300 * PdfPageFormat.mm)
-                      : bill.format == 'A5' 
-                          ? PdfPageFormat.a5.landscape 
-                          : PdfPageFormat.a4,
+                  initialPageFormat: bill.format == 'Thermal'
+                      ? const PdfPageFormat(
+                          80 * PdfPageFormat.mm,
+                          300 * PdfPageFormat.mm,
+                        )
+                      : bill.format == 'A5'
+                      ? PdfPageFormat.a5.landscape
+                      : PdfPageFormat.a4,
                 ),
               ),
             ],

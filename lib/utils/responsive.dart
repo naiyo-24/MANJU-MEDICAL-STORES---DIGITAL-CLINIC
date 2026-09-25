@@ -27,11 +27,9 @@ class Responsive extends StatelessWidget {
     final Size size = MediaQuery.of(context).size;
     if (size.width >= 1100) {
       return desktop;
-    }
-    else if (size.width >= 850 && tablet != null) {
+    } else if (size.width >= 850 && tablet != null) {
       return tablet!;
-    }
-    else {
+    } else {
       return mobile;
     }
   }
@@ -55,8 +53,9 @@ class ResponsiveSplitView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    bool isDesktop = Responsive.isDesktop(context) || Responsive.isTablet(context);
-    
+    bool isDesktop =
+        Responsive.isDesktop(context) || Responsive.isTablet(context);
+
     if (isDesktop) {
       return Row(
         crossAxisAlignment: CrossAxisAlignment.start,

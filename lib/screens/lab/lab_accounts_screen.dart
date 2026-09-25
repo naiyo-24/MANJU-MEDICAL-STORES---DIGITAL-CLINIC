@@ -16,9 +16,19 @@ class LabAccountsScreen extends StatelessWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: const [
-                  Text('Lab Accounts', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                  Text(
+                    'Lab Accounts',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1E293B),
+                    ),
+                  ),
                   SizedBox(height: 4),
-                  Text('Track laboratory revenue and financial reports', style: TextStyle(fontSize: 14, color: Color(0xFF64748B))),
+                  Text(
+                    'Track laboratory revenue and financial reports',
+                    style: TextStyle(fontSize: 14, color: Color(0xFF64748B)),
+                  ),
                 ],
               ),
             ],
@@ -40,8 +50,15 @@ class LabAccountsScreen extends StatelessWidget {
                   child: const TextField(
                     decoration: InputDecoration(
                       hintText: 'Search transactions...',
-                      hintStyle: TextStyle(color: Color(0xFF94A3B8), fontSize: 14),
-                      prefixIcon: Icon(Icons.search, color: Color(0xFF94A3B8), size: 20),
+                      hintStyle: TextStyle(
+                        color: Color(0xFF94A3B8),
+                        fontSize: 14,
+                      ),
+                      prefixIcon: Icon(
+                        Icons.search,
+                        color: Color(0xFF94A3B8),
+                        size: 20,
+                      ),
                       border: InputBorder.none,
                       contentPadding: EdgeInsets.symmetric(vertical: 10),
                     ),
@@ -56,8 +73,13 @@ class LabAccountsScreen extends StatelessWidget {
                   backgroundColor: Colors.white,
                   foregroundColor: const Color(0xFF1E293B),
                   side: const BorderSide(color: Color(0xFFE2E8F0)),
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 16,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                   elevation: 0,
                 ),
               ),
@@ -75,11 +97,25 @@ class LabAccountsScreen extends StatelessWidget {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.account_balance_wallet_outlined, size: 48, color: Color(0xFF94A3B8)),
+                    Icon(
+                      Icons.account_balance_wallet_outlined,
+                      size: 48,
+                      color: Color(0xFF94A3B8),
+                    ),
                     SizedBox(height: 16),
-                    Text('No financial data available yet', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                    Text(
+                      'No financial data available yet',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF1E293B),
+                      ),
+                    ),
                     SizedBox(height: 4),
-                    Text('Completed bookings and payments will appear here.', style: TextStyle(color: Color(0xFF64748B))),
+                    Text(
+                      'Completed bookings and payments will appear here.',
+                      style: TextStyle(color: Color(0xFF64748B)),
+                    ),
                   ],
                 ),
               ),

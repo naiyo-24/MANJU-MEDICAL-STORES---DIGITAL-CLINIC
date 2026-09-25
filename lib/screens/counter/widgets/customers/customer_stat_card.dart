@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../themes/app_colors.dart';
 
-
 class CustomerStatCard extends StatelessWidget {
   final String title;
   final String value;
@@ -50,13 +49,33 @@ class CustomerStatCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(value, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                Text(
+                  value,
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
                 const SizedBox(height: 4),
-                Text(title, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary, fontWeight: FontWeight.w500)),
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppColors.textSecondary,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
                 if (subtitle != null) ...[
                   const SizedBox(height: 2),
-                  Text(subtitle!, style: const TextStyle(fontSize: 10, color: AppColors.textHint)),
-                ]
+                  Text(
+                    subtitle!,
+                    style: const TextStyle(
+                      fontSize: 10,
+                      color: AppColors.textHint,
+                    ),
+                  ),
+                ],
               ],
             ),
           ),

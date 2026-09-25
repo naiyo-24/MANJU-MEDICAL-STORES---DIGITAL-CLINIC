@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 import 'package:dio/dio.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../config/api_client.dart';
 
 class InventoryItem {
@@ -49,7 +50,9 @@ class InventoryItem {
       buyingPrice: (json['buying_price'] ?? 0).toDouble(),
       hsnCode: json['hsn_code'],
       expiryDate: json['expiry_date'] ?? '',
-      lowStockThreshold: json['low_stock_threshold'] != null ? int.tryParse(json['low_stock_threshold'].toString()) : null,
+      lowStockThreshold: json['low_stock_threshold'] != null
+          ? int.tryParse(json['low_stock_threshold'].toString())
+          : null,
       imageUrl: json['image_url'],
       gst: json['gst'] != null ? (json['gst'] as num).toDouble() : 0.0,
       createdAt: json['created_at'],
@@ -80,6 +83,12 @@ class InventoryService {
   static String? _cachedShopId;
 
   static Future<String> getShopId() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedId = prefs.getString('selected_shop_id');
+    if (savedId != null && savedId.isNotEmpty) {
+      return savedId;
+    }
+
     if (_cachedShopId != null) return _cachedShopId!;
 
     final response = await ApiClient().dio.get('/api/admin/shops');
@@ -88,6 +97,7 @@ class InventoryService {
       final List<dynamic> shops = response.data;
       if (shops.isNotEmpty) {
         _cachedShopId = shops.first['id'];
+        await prefs.setString('selected_shop_id', _cachedShopId!);
         return _cachedShopId!;
       } else {
         throw Exception('No shops found');
@@ -97,17 +107,34 @@ class InventoryService {
     }
   }
 
-  static Future<List<InventoryItem>> fetchInventory({String? searchQuery, String? startDate, String? endDate, int skip = 0, int limit = 100}) async {
+  static Future<void> setShopId(String shopId) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('selected_shop_id', shopId);
+    _cachedShopId = shopId;
+  }
+
+  static Future<List<InventoryItem>> fetchInventory({
+    required String shopId,
+    String? searchQuery,
+    String? startDate,
+    String? endDate,
+    int skip = 0,
+    int limit = 100,
+  }) async {
     try {
-      final shopId = await getShopId();
-      final response = await ApiClient().dio.get('/api/admin/shop/inventory', queryParameters: {
-        'shop_id': shopId,
-        if (searchQuery != null && searchQuery.isNotEmpty) 'search': searchQuery,
-        if (startDate != null && startDate.isNotEmpty) 'start_date': startDate,
-        if (endDate != null && endDate.isNotEmpty) 'end_date': endDate,
-        'skip': skip,
-        'limit': limit,
-      });
+      final response = await ApiClient().dio.get(
+        '/api/admin/shop/inventory',
+        queryParameters: {
+          'shop_id': shopId,
+          if (searchQuery != null && searchQuery.isNotEmpty)
+            'search': searchQuery,
+          if (startDate != null && startDate.isNotEmpty)
+            'start_date': startDate,
+          if (endDate != null && endDate.isNotEmpty) 'end_date': endDate,
+          'skip': skip,
+          'limit': limit,
+        },
+      );
 
       if (response.statusCode == 200) {
         final List<dynamic> itemsList = response.data['items'] ?? [];
@@ -123,10 +150,14 @@ class InventoryService {
     }
   }
 
-  static Future<String> uploadInventory({required String filename, List<int>? bytes, String? path}) async {
+  static Future<String> uploadInventory({
+    required String filename,
+    List<int>? bytes,
+    String? path,
+  }) async {
     try {
       final shopId = await getShopId();
-      
+
       MultipartFile multipartFile;
       if (bytes != null) {
         multipartFile = MultipartFile.fromBytes(bytes, filename: filename);
@@ -136,16 +167,14 @@ class InventoryService {
         throw Exception("File data is missing");
       }
 
-      FormData formData = FormData.fromMap({
-        'file': multipartFile,
-      });
+      FormData formData = FormData.fromMap({'file': multipartFile});
 
       final response = await ApiClient().dio.post(
         '/api/admin/shop/upload-inventory',
         queryParameters: {'shop_id': shopId},
         data: formData,
       );
-      
+
       if (response.statusCode == 201) {
         return response.data['message'] ?? 'Upload successful';
       } else {
@@ -168,24 +197,30 @@ class InventoryService {
         throw Exception('Failed to add medicine: ${response.data}');
       }
     } catch (e) {
-      if (e is DioException && e.response != null && e.response!.data is Map && e.response!.data['detail'] != null) {
+      if (e is DioException &&
+          e.response != null &&
+          e.response!.data is Map &&
+          e.response!.data['detail'] != null) {
         throw Exception(e.response!.data['detail']);
       }
       throw Exception(e.toString());
     }
   }
 
-  static Future<String> uploadMedicineImage(Uint8List bytes, String filename) async {
+  static Future<String> uploadMedicineImage(
+    Uint8List bytes,
+    String filename,
+  ) async {
     try {
       FormData formData = FormData.fromMap({
         'file': MultipartFile.fromBytes(bytes, filename: filename),
       });
-      
+
       final response = await ApiClient().dio.post(
         '/api/admin/shop/inventory/upload-image',
         data: formData,
       );
-      
+
       if (response.statusCode == 200) {
         return response.data['image_url'];
       } else {
@@ -196,7 +231,10 @@ class InventoryService {
     }
   }
 
-  static Future<void> updateMedicine(String itemId, Map<String, dynamic> itemData) async {
+  static Future<void> updateMedicine(
+    String itemId,
+    Map<String, dynamic> itemData,
+  ) async {
     try {
       final response = await ApiClient().dio.patch(
         '/api/admin/shop/inventory/$itemId/update',

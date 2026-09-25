@@ -107,12 +107,13 @@ class DoctorSignature {
     'signatureImageUrl': signatureImageUrl,
   };
 
-  factory DoctorSignature.fromJson(Map<String, dynamic> json) => DoctorSignature(
-    doctorName: json['doctorName'] ?? '',
-    qualifications: json['qualifications'] ?? '',
-    designation: json['designation'] ?? '',
-    signatureImageUrl: json['signatureImageUrl'] ?? '',
-  );
+  factory DoctorSignature.fromJson(Map<String, dynamic> json) =>
+      DoctorSignature(
+        doctorName: json['doctorName'] ?? '',
+        qualifications: json['qualifications'] ?? '',
+        designation: json['designation'] ?? '',
+        signatureImageUrl: json['signatureImageUrl'] ?? '',
+      );
 }
 
 class ReportLayoutConfig {
@@ -153,18 +154,24 @@ class ReportLayoutConfig {
     'footerColorHex': footerColorHex,
   };
 
-  factory ReportLayoutConfig.fromJson(Map<String, dynamic> json) => ReportLayoutConfig(
-    clinicName: json['clinicName'] ?? 'SirfBill Bill Karo, Befikar Raho',
-    clinicAddress: json['clinicAddress'] ?? '123, Main Road, Kolkata - 700001',
-    clinicPhone: json['clinicPhone'] ?? '+91 98765 43210',
-    clinicEmail: json['clinicEmail'] ?? 'lab@manjumedical.com',
-    headerLogoUrl: json['headerLogoUrl'] ?? '',
-    signatures: json['signatures'] != null ? List<DoctorSignature>.from(json['signatures'].map((x) => DoctorSignature.fromJson(x))) : [],
-    qrCodeUrl: json['qrCodeUrl'] ?? '',
-    playStoreUrl: json['playStoreUrl'] ?? '',
-    footerBannerUrl: json['footerBannerUrl'] ?? '',
-    footerColorHex: json['footerColorHex'] ?? '#EA580C',
-  );
+  factory ReportLayoutConfig.fromJson(Map<String, dynamic> json) =>
+      ReportLayoutConfig(
+        clinicName: json['clinicName'] ?? 'SirfBill Bill Karo, Befikar Raho',
+        clinicAddress:
+            json['clinicAddress'] ?? '123, Main Road, Kolkata - 700001',
+        clinicPhone: json['clinicPhone'] ?? '+91 98765 43210',
+        clinicEmail: json['clinicEmail'] ?? 'lab@manjumedical.com',
+        headerLogoUrl: json['headerLogoUrl'] ?? '',
+        signatures: json['signatures'] != null
+            ? List<DoctorSignature>.from(
+                json['signatures'].map((x) => DoctorSignature.fromJson(x)),
+              )
+            : [],
+        qrCodeUrl: json['qrCodeUrl'] ?? '',
+        playStoreUrl: json['playStoreUrl'] ?? '',
+        footerBannerUrl: json['footerBannerUrl'] ?? '',
+        footerColorHex: json['footerColorHex'] ?? '#EA580C',
+      );
 
   ReportLayoutConfig copyWith({
     String? clinicName,
@@ -260,8 +267,12 @@ class LabTemplate {
     showLabLogo: json['showLabLogo'] ?? true,
     showRemarksSection: json['showRemarksSection'] ?? false,
     defaultRemarks: json['defaultRemarks'] ?? '',
-    fields: (json['fields'] as List).map((e) => TemplateField.fromJson(e)).toList(),
-    layoutConfig: json['layoutConfig'] != null ? ReportLayoutConfig.fromJson(json['layoutConfig']) : null,
+    fields: (json['fields'] as List)
+        .map((e) => TemplateField.fromJson(e))
+        .toList(),
+    layoutConfig: json['layoutConfig'] != null
+        ? ReportLayoutConfig.fromJson(json['layoutConfig'])
+        : null,
   );
 
   LabTemplate copyWith({
@@ -336,7 +347,9 @@ class LabPackage {
     name: json['title'] ?? '',
     category: json['category'] ?? 'Wellness',
     description: json['description'] ?? '',
-    testIds: json['includes'] != null ? List<String>.from(json['includes']) : [],
+    testIds: json['includes'] != null
+        ? List<String>.from(json['includes'])
+        : [],
     discountedPrice: (json['price'] as num?)?.toDouble() ?? 0.0,
     isActive: json['is_active'] ?? true,
   );
@@ -412,7 +425,9 @@ class LabBooking {
     sampleType: json['sampleType'] ?? 'Blood',
     collectedBy: json['collectedBy'] ?? '',
     assignedTo: json['assignedTo'] ?? '',
-    expectedReportDate: json['expectedReportDate'] != null ? DateTime.parse(json['expectedReportDate']) : null,
+    expectedReportDate: json['expectedReportDate'] != null
+        ? DateTime.parse(json['expectedReportDate'])
+        : null,
     totalAmount: json['totalAmount'].toDouble(),
     status: json['status'],
   );
@@ -482,7 +497,9 @@ class LabReport {
     isSent: json['isSent'] ?? false,
     sampleId: json['sampleId'] ?? '',
     sampleType: json['sampleType'] ?? 'Whole Blood',
-    collectionDate: json['collectionDate'] != null ? DateTime.parse(json['collectionDate']) : DateTime.now(),
+    collectionDate: json['collectionDate'] != null
+        ? DateTime.parse(json['collectionDate'])
+        : DateTime.now(),
   );
 }
 

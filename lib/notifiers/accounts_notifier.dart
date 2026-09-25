@@ -43,7 +43,8 @@ class AccountsState {
       netProfit: netProfit ?? this.netProfit,
       cashInHand: cashInHand ?? this.cashInHand,
       bankBalance: bankBalance ?? this.bankBalance,
-      outstandingReceivables: outstandingReceivables ?? this.outstandingReceivables,
+      outstandingReceivables:
+          outstandingReceivables ?? this.outstandingReceivables,
     );
   }
 }
@@ -61,12 +62,14 @@ class AccountsNotifier extends AsyncNotifier<AccountsState> {
     String searchQuery = '',
   }) async {
     state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() => _fetchData(
-          selectedPeriod: selectedPeriod,
-          selectedType: selectedType,
-          selectedCategory: selectedCategory,
-          searchQuery: searchQuery,
-        ));
+    state = await AsyncValue.guard(
+      () => _fetchData(
+        selectedPeriod: selectedPeriod,
+        selectedType: selectedType,
+        selectedCategory: selectedCategory,
+        searchQuery: searchQuery,
+      ),
+    );
   }
 
   Future<AccountsState> _fetchData({
@@ -76,37 +79,45 @@ class AccountsNotifier extends AsyncNotifier<AccountsState> {
     String searchQuery = '',
   }) async {
     final allTxns = await TransactionService.getTransactions();
-    
+
     // Dynamically build category list from all transactions
     final Set<String> catSet = {};
     for (var t in allTxns) {
       if (t.category.isNotEmpty) catSet.add(t.category);
     }
-    final List<String> loadedCategories = ['All Categories', ...catSet.toList()..sort()];
-    
+    final List<String> loadedCategories = [
+      'All Categories',
+      ...catSet.toList()..sort(),
+    ];
+
     // Validate selected category
     String safeCategory = selectedCategory;
     if (!loadedCategories.contains(safeCategory)) {
       safeCategory = 'All Categories';
     }
-    
+
     final now = DateTime.now();
     final DateFormat format = DateFormat('dd MMM yyyy');
-    
+
     List<TransactionModel> filteredTxns = [];
-    
+
     for (var txn in allTxns) {
       try {
         final txnDate = format.parse(txn.date);
         bool include = false;
-        
+
         switch (selectedPeriod) {
           case 'Today':
-            include = txnDate.year == now.year && txnDate.month == now.month && txnDate.day == now.day;
+            include =
+                txnDate.year == now.year &&
+                txnDate.month == now.month &&
+                txnDate.day == now.day;
             break;
           case 'This Week':
             final startOfWeek = now.subtract(Duration(days: now.weekday - 1));
-            include = txnDate.isAfter(startOfWeek.subtract(const Duration(days: 1)));
+            include = txnDate.isAfter(
+              startOfWeek.subtract(const Duration(days: 1)),
+            );
             break;
           case 'This Month':
             include = txnDate.year == now.year && txnDate.month == now.month;
@@ -119,12 +130,16 @@ class AccountsNotifier extends AsyncNotifier<AccountsState> {
             include = true;
             break;
         }
-        
-        if (include && selectedType != 'All Types' && txn.type != selectedType) {
+
+        if (include &&
+            selectedType != 'All Types' &&
+            txn.type != selectedType) {
           include = false;
         }
 
-        if (include && safeCategory != 'All Categories' && txn.category != safeCategory) {
+        if (include &&
+            safeCategory != 'All Categories' &&
+            txn.category != safeCategory) {
           include = false;
         }
 
@@ -135,30 +150,33 @@ class AccountsNotifier extends AsyncNotifier<AccountsState> {
             include = false;
           }
         }
-        
+
         if (include) {
           filteredTxns.add(txn);
         }
       } catch (e) {
         if (selectedType != 'All Types' && txn.type != selectedType) continue;
-        if (safeCategory != 'All Categories' && txn.category != safeCategory) continue;
+        if (safeCategory != 'All Categories' && txn.category != safeCategory) {
+          continue;
+        }
         filteredTxns.add(txn);
       }
     }
-    
+
     double runningBal = 0.0;
     for (int i = filteredTxns.length - 1; i >= 0; i--) {
       final txn = filteredTxns[i];
       if (txn.type == 'Income') {
         runningBal += txn.amount;
-      // ignore: curly_braces_in_flow_control_structures
-      } else if (txn.type == 'Expense') runningBal -= txn.amount;
+      } else if (txn.type == 'Expense') {
+        runningBal -= txn.amount;
+      }
       txn.runningBalance = runningBal;
     }
 
     double calculatedIncome = 0.0;
     double calculatedExpenses = 0.0;
-    
+
     for (var txn in filteredTxns) {
       if (txn.type == 'Income') {
         calculatedIncome += txn.amount;
@@ -169,7 +187,8 @@ class AccountsNotifier extends AsyncNotifier<AccountsState> {
 
     final summary = await AccountService.getSummary();
     final receivablesData = await AccountingExtendedService.getReceivables();
-    final totalReceivables = receivablesData['total_receivables']?.toDouble() ?? 0.0;
+    final totalReceivables =
+        receivablesData['total_receivables']?.toDouble() ?? 0.0;
 
     return AccountsState(
       categories: loadedCategories,
@@ -179,7 +198,7 @@ class AccountsNotifier extends AsyncNotifier<AccountsState> {
       netProfit: calculatedIncome - calculatedExpenses,
       cashInHand: summary.cashInHand,
       bankBalance: summary.bankBalance,
-      outstandingReceivables: totalReceivables, 
+      outstandingReceivables: totalReceivables,
     );
   }
 
