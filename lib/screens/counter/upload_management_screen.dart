@@ -565,7 +565,7 @@ class _UploadManagementScreenState extends ConsumerState<UploadManagementScreen>
                       }
                     } catch (e) {
                       if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to add medicine: $e', style: const TextStyle(color: Colors.white)), backgroundColor: Colors.red));
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString().replaceAll('Exception: ', ''), style: const TextStyle(color: Colors.white)), backgroundColor: Colors.red));
                       }
                     } finally {
                       if (context.mounted) {

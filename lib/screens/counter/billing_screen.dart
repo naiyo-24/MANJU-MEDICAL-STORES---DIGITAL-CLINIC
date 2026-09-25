@@ -699,27 +699,14 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
     final existingIndex = _currentBill.indexWhere((element) => element['name'] == item['name']);
     
     if (existingIndex >= 0) {
-      final currentQty = _currentBill[existingIndex]['qty'];
-      if (currentQty >= stock) {
-        // Show error if trying to add more than available stock
-        showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: const Text('Stock Limit Reached', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red)),
-            content: Text('Cannot add more ${item['name']}. Only $stock available in stock.'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('OK'),
-              ),
-            ],
-          ),
-        );
-        return;
-      }
-      
-      ref.read(billingProvider.notifier).updateItemQuantity(existingIndex, currentQty + 1);
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Added another ${item['name']} to cart'), duration: const Duration(seconds: 1)));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('${item['name']} is already in the cart!'),
+          backgroundColor: Colors.orange,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+      return;
     } else {
       if (stock <= 0) {
         showDialog(
@@ -986,6 +973,18 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                 // You can use discount/gst in total calculations later if needed
 
                 if (name.isNotEmpty && price > 0) {
+                  final existingIndex = ref.read(billingProvider).currentBill.indexWhere((element) => element['name'] == name);
+                  if (existingIndex >= 0) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('$name is already in the cart!'),
+                        backgroundColor: Colors.orange,
+                        duration: const Duration(seconds: 2),
+                      ),
+                    );
+                    return;
+                  }
+
                   ref.read(billingProvider.notifier).addItem({
                     'name': name,
                     'brand': brand,
@@ -1106,12 +1105,7 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
       computedFilteredMedicines = computedFilteredMedicines.where((m) => m['category'] == category).toList();
     }
     
-    if (_searchQuery.isNotEmpty) {
-      computedFilteredMedicines = computedFilteredMedicines.where((m) => 
-        m['name'].toString().toLowerCase().contains(_searchQuery.toLowerCase()) || 
-        m['brand'].toString().toLowerCase().contains(_searchQuery.toLowerCase())
-      ).toList();
-    }
+    // Removed local search filtering since we will fetch from backend
     return Container(
       color: const Color(0xFFF8FAFC),
       child: Column(
@@ -1194,10 +1188,16 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                   onCategorySelected: (index) {
                     ref.read(billingProvider.notifier).updateCategory(index);
                   },
+                  hasMore: ref.read(inventoryProvider.notifier).hasMore,
+                  onLoadMore: () {
+                    ref.read(inventoryProvider.notifier).loadMore();
+                  },
                   onSearch: (q) {
                     setState(() {
                       _searchQuery = q;
                     });
+                    // Trigger backend search for pagination to work
+                    ref.read(inventoryProvider.notifier).loadInventory(searchQuery: q);
                   },
                 );
 

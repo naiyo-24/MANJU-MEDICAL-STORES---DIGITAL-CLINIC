@@ -101,21 +101,14 @@ class BillingNotifier extends Notifier<BillingState> {
     return BillingState();
   }
 
-  void addItem(Map<String, dynamic> item) {
+  bool addItem(Map<String, dynamic> item) {
     // Check if it already exists by name
     final index = state.currentBill.indexWhere((element) => element['name'] == item['name']);
     if (index != -1) {
-      final updatedBill = List<Map<String, dynamic>>.from(state.currentBill);
-      int newQty = (updatedBill[index]['qty'] as int) + 1;
-      double price = (updatedBill[index]['price'] as num).toDouble();
-      updatedBill[index] = {
-        ...updatedBill[index],
-        'qty': newQty,
-        'total': newQty * price,
-      };
-      state = state.copyWith(currentBill: updatedBill);
+      return false; // Item already exists, don't add duplicate
     } else {
       state = state.copyWith(currentBill: [...state.currentBill, item]);
+      return true; // Item added successfully
     }
   }
 

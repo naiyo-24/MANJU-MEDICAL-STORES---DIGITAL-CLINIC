@@ -97,7 +97,7 @@ class InventoryService {
     }
   }
 
-  static Future<List<InventoryItem>> fetchInventory({String? searchQuery, String? startDate, String? endDate}) async {
+  static Future<List<InventoryItem>> fetchInventory({String? searchQuery, String? startDate, String? endDate, int skip = 0, int limit = 100}) async {
     try {
       final shopId = await getShopId();
       final response = await ApiClient().dio.get('/api/admin/shop/inventory', queryParameters: {
@@ -105,6 +105,8 @@ class InventoryService {
         if (searchQuery != null && searchQuery.isNotEmpty) 'search': searchQuery,
         if (startDate != null && startDate.isNotEmpty) 'start_date': startDate,
         if (endDate != null && endDate.isNotEmpty) 'end_date': endDate,
+        'skip': skip,
+        'limit': limit,
       });
 
       if (response.statusCode == 200) {
@@ -166,7 +168,10 @@ class InventoryService {
         throw Exception('Failed to add medicine: ${response.data}');
       }
     } catch (e) {
-      throw Exception('Error adding medicine: $e');
+      if (e is DioException && e.response != null && e.response!.data is Map && e.response!.data['detail'] != null) {
+        throw Exception(e.response!.data['detail']);
+      }
+      throw Exception(e.toString());
     }
   }
 

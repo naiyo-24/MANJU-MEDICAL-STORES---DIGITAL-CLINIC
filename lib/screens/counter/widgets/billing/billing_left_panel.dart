@@ -13,6 +13,8 @@ class BillingLeftPanel extends ConsumerWidget {
   final Function(Map<String, dynamic>) onAddToCart;
   final Function(int) onCategorySelected;
   final Function(String) onSearch;
+  final bool hasMore;
+  final VoidCallback onLoadMore;
 
   const BillingLeftPanel({
     super.key,
@@ -24,6 +26,8 @@ class BillingLeftPanel extends ConsumerWidget {
     required this.onAddToCart,
     required this.onCategorySelected,
     required this.onSearch,
+    required this.hasMore,
+    required this.onLoadMore,
   });
 
   Widget _buildFilterChip(String label, int index) {
@@ -171,9 +175,23 @@ class BillingLeftPanel extends ConsumerWidget {
                         ListView.separated(
                           shrinkWrap: !hasEnoughHeight,
                           physics: hasEnoughHeight ? const AlwaysScrollableScrollPhysics() : const NeverScrollableScrollPhysics(),
-                          itemCount: filteredMedicines.length,
+                          itemCount: filteredMedicines.length + 1,
                           separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFE2E8F0)),
                           itemBuilder: (context, index) {
+                            if (index == filteredMedicines.length) {
+                              if (hasMore) {
+                                return Padding(
+                                  padding: const EdgeInsets.all(16.0),
+                                  child: Center(
+                                    child: OutlinedButton(
+                                      onPressed: onLoadMore,
+                                      child: const Text('Load More'),
+                                    ),
+                                  ),
+                                );
+                              }
+                              return const SizedBox.shrink();
+                            }
                             final item = filteredMedicines[index];
                             return Padding(
                               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),

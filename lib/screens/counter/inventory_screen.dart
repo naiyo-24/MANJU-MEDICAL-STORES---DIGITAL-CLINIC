@@ -155,8 +155,11 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
     final mfgCtrl = TextEditingController(text: item.manufacturer);
     final batchCtrl = TextEditingController(text: item.batchNumber);
     final stockCtrl = TextEditingController(text: item.stockQuantity.toString());
+    final lowStockCtrl = TextEditingController(text: item.lowStockThreshold?.toString() ?? '10');
+    final buyingPriceCtrl = TextEditingController(text: item.buyingPrice.toString());
     final priceCtrl = TextEditingController(text: item.unitPrice.toString());
     final gstCtrl = TextEditingController(text: item.gst?.toString() ?? '0');
+    final hsnCtrl = TextEditingController(text: item.hsnCode ?? '');
     final expiryCtrl = TextEditingController(text: item.expiryDate);
 
     showDialog(
@@ -172,17 +175,37 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
             children: [
               const Text('Edit Medicine', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
               const SizedBox(height: 16),
-              TextField(controller: nameCtrl, decoration: const InputDecoration(labelText: 'Medicine Name')),
-              const SizedBox(height: 8),
-              TextField(controller: mfgCtrl, decoration: const InputDecoration(labelText: 'Manufacturer')),
+              Row(
+                children: [
+                  Expanded(flex: 2, child: TextField(controller: nameCtrl, decoration: const InputDecoration(labelText: 'Medicine Name'))),
+                  const SizedBox(width: 16),
+                  Expanded(flex: 1, child: TextField(controller: skuCtrl, decoration: const InputDecoration(labelText: 'SKU / Brand'))),
+                ],
+              ),
               const SizedBox(height: 8),
               Row(
                 children: [
+                  Expanded(flex: 2, child: TextField(controller: mfgCtrl, decoration: const InputDecoration(labelText: 'Manufacturer'))),
+                  const SizedBox(width: 16),
+                  Expanded(flex: 1, child: TextField(controller: hsnCtrl, decoration: const InputDecoration(labelText: 'HSN Code'))),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Expanded(child: TextField(controller: buyingPriceCtrl, decoration: const InputDecoration(labelText: 'Buying Price (₹)'))),
+                  const SizedBox(width: 16),
                   Expanded(child: TextField(controller: priceCtrl, decoration: const InputDecoration(labelText: 'Selling Price (₹)'))),
                   const SizedBox(width: 16),
                   Expanded(child: TextField(controller: gstCtrl, decoration: const InputDecoration(labelText: 'GST (%)'))),
-                  const SizedBox(width: 16),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
                   Expanded(child: TextField(controller: stockCtrl, decoration: const InputDecoration(labelText: 'Stock Quantity'))),
+                  const SizedBox(width: 16),
+                  Expanded(child: TextField(controller: lowStockCtrl, decoration: const InputDecoration(labelText: 'Low Stock Alert At'))),
                 ],
               ),
               const SizedBox(height: 8),
@@ -228,8 +251,11 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                           'manufacturer': mfgCtrl.text,
                           'batch_number': batchCtrl.text,
                           'stock_quantity': int.tryParse(stockCtrl.text) ?? 0,
+                          'low_stock_threshold': int.tryParse(lowStockCtrl.text) ?? 10,
+                          'buying_price': double.tryParse(buyingPriceCtrl.text) ?? 0.0,
                           'unit_price': double.tryParse(priceCtrl.text) ?? 0.0,
                           'gst': double.tryParse(gstCtrl.text) ?? 0.0,
+                          'hsn_code': hsnCtrl.text,
                           'expiry_date': expiryCtrl.text,
                         });
                         if (context.mounted) {
@@ -462,17 +488,32 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                                     return const Center(child: Text('No shop found or inventory is empty.'));
                                   }
                                   return ListView.separated(
-                                        itemCount: medicines.length,
+                                        itemCount: medicines.length + 1,
                                         separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFE2E8F0)),
                                         itemBuilder: (context, index) {
+                                          if (index == medicines.length) {
+                                            if (ref.read(inventoryProvider.notifier).hasMore) {
+                                              return Padding(
+                                                padding: const EdgeInsets.all(16.0),
+                                                child: Center(
+                                                  child: OutlinedButton(
+                                                    onPressed: () => ref.read(inventoryProvider.notifier).loadMore(),
+                                                    child: const Text('Load More'),
+                                                  ),
+                                                ),
+                                              );
+                                            }
+                                            return const SizedBox.shrink();
+                                          }
+
                                           final medicine = medicines[index];
                                           // Simple status logic based on stock
-return InventoryRowWidget(
+                                          return InventoryRowWidget(
                                             medicine: medicine,
                                             onEdit: () => _showEditMedicineDialog(medicine),
                                             onDelete: () => _confirmDeleteMedicine(medicine.id),
                                           );
-},
+                                        },
                                       );
                                 }),
                       ),
