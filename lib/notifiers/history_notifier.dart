@@ -66,8 +66,8 @@ class HistoryNotifier extends AsyncNotifier<HistoryState> {
     }).toList();
 
     return HistoryState(
-      transactions: transactions,
-      summary: response['summary'] ?? {},
+      transactions: transactions.cast<Map<String, dynamic>>(),
+      summary: Map<String, dynamic>.from(response['summary'] ?? {}),
     );
   }
 

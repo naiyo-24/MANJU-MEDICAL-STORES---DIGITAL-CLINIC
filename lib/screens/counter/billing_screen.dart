@@ -43,6 +43,7 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
   final TextEditingController _gstController = TextEditingController();
 
   final TextEditingController _customerNameController = TextEditingController();
+  final FocusNode _customerNameFocusNode = FocusNode();
   final TextEditingController _customerPhoneController = TextEditingController();
   final TextEditingController _customerLocationController = TextEditingController();
 
@@ -95,6 +96,7 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
   void dispose() {
     _discountController.dispose();
     _customerNameController.dispose();
+    _customerNameFocusNode.dispose();
     _customerPhoneController.dispose();
     _customerLocationController.dispose();
 
@@ -1279,17 +1281,25 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
           ),
           child: RawAutocomplete<Customer>(
             textEditingController: _customerNameController,
+            focusNode: _customerNameFocusNode,
             optionsBuilder: (TextEditingValue textEditingValue) {
               if (textEditingValue.text.isEmpty) {
                 return const Iterable<Customer>.empty();
               }
-              return _allCustomers.where((Customer customer) {
+              final matches = _allCustomers.where((Customer customer) {
                 return customer.name.toLowerCase().contains(textEditingValue.text.toLowerCase()) || 
                        customer.phone.contains(textEditingValue.text);
               });
+              
+              if (matches.isEmpty) {
+                return [Customer(id: 'NO_DATA', name: 'No data found', phone: '', location: '', createdAt: DateTime.now().toIso8601String())];
+              }
+              
+              return matches;
             },
-            displayStringForOption: (Customer option) => option.name,
+            displayStringForOption: (Customer option) => option.id == 'NO_DATA' ? _customerNameController.text : option.name,
             onSelected: (Customer selection) {
+              if (selection.id == 'NO_DATA') return;
               _customerNameController.text = selection.name;
               _customerPhoneController.text = selection.phone;
               _customerLocationController.text = selection.location;
@@ -1326,6 +1336,14 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                       itemCount: options.length,
                       itemBuilder: (context, index) {
                         final option = options.elementAt(index);
+                        
+                        if (option.id == 'NO_DATA') {
+                          return const Padding(
+                            padding: EdgeInsets.all(12),
+                            child: Text('No data found', style: TextStyle(color: Color(0xFF64748B), fontSize: 12)),
+                          );
+                        }
+                        
                         return InkWell(
                           onTap: () {
                             onSelected(option);

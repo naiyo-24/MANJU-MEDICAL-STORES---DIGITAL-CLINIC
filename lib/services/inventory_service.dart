@@ -114,6 +114,9 @@ class InventoryService {
         throw Exception('Failed to load inventory');
       }
     } catch (e) {
+      if (e.toString().contains('No shops found')) {
+        return [];
+      }
       throw Exception('Error fetching inventory: $e');
     }
   }

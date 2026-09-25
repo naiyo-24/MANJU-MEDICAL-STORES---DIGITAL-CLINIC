@@ -55,6 +55,9 @@ class BillingService {
         throw Exception('Failed to fetch POS history: ${response.data}');
       }
     } catch (e) {
+      if (e.toString().contains('No shops found')) {
+        return <String, dynamic>{'history': <dynamic>[], 'summary': <String, dynamic>{}};
+      }
       throw Exception('Error fetching POS history: $e');
     }
   }

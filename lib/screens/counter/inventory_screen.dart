@@ -454,7 +454,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                                 error: (err, stack) => Center(child: Text(err.toString(), style: const TextStyle(color: Colors.red))),
                                 data: (medicines) {
                                   if (medicines.isEmpty) {
-                                    return const Center(child: Text('No inventory items found.'));
+                                    return const Center(child: Text('No shop found or inventory is empty.'));
                                   }
                                   return ListView.separated(
                                         itemCount: medicines.length,
