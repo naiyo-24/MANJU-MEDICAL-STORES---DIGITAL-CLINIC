@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:dio/dio.dart';
 import 'package:manju_medical/config/api_client.dart';
+import 'package:printing/printing.dart';
 
 Future<Uint8List> generateBillIsolate(Map<String, dynamic> args) async {
   return PdfGenerator.generateBill(
@@ -26,6 +27,8 @@ Future<Uint8List> generateBillIsolate(Map<String, dynamic> args) async {
 }
 
 class PdfGenerator {
+  static pw.Font? _cachedFont;
+  static pw.Font? _cachedFontBold;
   static Uint8List? _cachedDefaultLogo;
   static Uint8List? _cachedLogoBytes;
   static String? _cachedLogoUrl;
@@ -49,7 +52,15 @@ class PdfGenerator {
     Uint8List? logoBytes,
     Uint8List? qrBytes,
   }) async {
-    final pdf = pw.Document();
+    _cachedFont ??= await PdfGoogleFonts.robotoRegular();
+    _cachedFontBold ??= await PdfGoogleFonts.robotoBold();
+
+    final pdf = pw.Document(
+      theme: pw.ThemeData.withFont(
+        base: _cachedFont,
+        bold: _cachedFontBold,
+      ),
+    );
 
     pw.ImageProvider? logoImage;
     pw.ImageProvider? qrImage;
@@ -81,7 +92,7 @@ class PdfGenerator {
     if (logoImage == null) {
       try {
         if (_cachedDefaultLogo == null) {
-          final ByteData data = await rootBundle.load('assets/images/logo.png');
+          final ByteData data = await rootBundle.load('assets/LOGO.png');
           _cachedDefaultLogo = data.buffer.asUint8List();
         }
         logoImage = pw.MemoryImage(_cachedDefaultLogo!);
@@ -113,15 +124,7 @@ class PdfGenerator {
       }
     }
 
-    // Final fallback for QR
-    if (qrImage == null) {
-      try {
-        final ByteData data = await rootBundle.load('assets/images/qr_code.png');
-        qrImage = pw.MemoryImage(data.buffer.asUint8List());
-      } catch (e) {
-        // ignore
-      }
-    }
+    // No default QR code fallback available
 
     final String shopName = shopSettings?['shop_name'] ?? 'SirfBill Pharmacy';
     final String tagline = shopSettings?['tagline'] ?? 'Your Trusted Health Partner';

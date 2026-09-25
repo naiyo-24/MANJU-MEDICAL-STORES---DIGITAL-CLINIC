@@ -8,8 +8,6 @@ import '../../notifiers/accounts_notifier.dart';
 
 import 'widgets/accounts/receivables_view.dart';
 import 'widgets/accounts/payables_view.dart';
-import 'widgets/accounts/ledger_view.dart';
-import 'widgets/accounts/reports_view.dart';
 import 'widgets/accounts/accounts_common_widgets.dart';
 
 class AccountsScreen extends ConsumerStatefulWidget {
@@ -21,7 +19,7 @@ class AccountsScreen extends ConsumerStatefulWidget {
 
 class _AccountsScreenState extends ConsumerState<AccountsScreen> {
   int _activeTab = 0;
-  final List<String> _tabs = ['Transactions', 'Receivables (Credit)', 'Payables', 'Ledger', 'Reports'];
+  final List<String> _tabs = ['Transactions', 'Receivables (Credit)', 'Payables'];
 
   AccountsState get _state => ref.watch(accountsProvider).value ?? AccountsState();
   List<TransactionModel> get _transactions => _state.transactions;
@@ -443,14 +441,17 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                                             color: txn.type == 'Income' ? const Color(0xFFDCFCE7) : const Color(0xFFFEE2E2),
                                             borderRadius: BorderRadius.circular(4),
                                           ),
-                                          child: Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              Icon(txn.type == 'Income' ? Icons.arrow_outward : Icons.arrow_downward, 
-                                                size: 12, color: txn.type == 'Income' ? const Color(0xFF166534) : const Color(0xFFB91C1C)),
-                                              const SizedBox(width: 4),
-                                              Text(txn.type, style: TextStyle(fontSize: 11, color: txn.type == 'Income' ? const Color(0xFF166534) : const Color(0xFFB91C1C), fontWeight: FontWeight.bold)),
-                                            ],
+                                          child: FittedBox(
+                                            fit: BoxFit.scaleDown,
+                                            child: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Icon(txn.type == 'Income' ? Icons.arrow_outward : Icons.arrow_downward, 
+                                                  size: 12, color: txn.type == 'Income' ? const Color(0xFF166534) : const Color(0xFFB91C1C)),
+                                                const SizedBox(width: 4),
+                                                Text(txn.type, style: TextStyle(fontSize: 11, color: txn.type == 'Income' ? const Color(0xFF166534) : const Color(0xFFB91C1C), fontWeight: FontWeight.bold)),
+                                              ],
+                                            ),
                                           ),
                                         ),
                                       ),
@@ -528,10 +529,6 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                           const ReceivablesView(),
                         ] else if (_activeTab == 2) ...[
                           const PayablesView(),
-                        ] else if (_activeTab == 3) ...[
-                          const LedgerView(),
-                        ] else if (_activeTab == 4) ...[
-                          const ReportsView(),
                         ],
                       ],
                     ),
@@ -553,24 +550,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 24),
-                AccountsWidgets.buildRightCard(
-                  title: 'Quick Actions',
-                  child: Column(
-                    children: [
-                      Wrap(
-                        spacing: 12,
-                        runSpacing: 12,
-                        children: [
-                          AccountsWidgets.buildActionBtn('Receive Payment', Icons.download, const Color(0xFFDCFCE7), const Color(0xFF166534), () => _showAddTransactionDialog(defaultType: 'Income')),
-                          AccountsWidgets.buildActionBtn('Make Payment', Icons.upload, const Color(0xFFFEE2E2), const Color(0xFFB91C1C), () => _showAddTransactionDialog(defaultType: 'Expense')),
-                          AccountsWidgets.buildActionBtn('Add Expense', Icons.receipt_long, const Color(0xFFF3E8FF), const Color(0xFF7E22CE), () => _showAddTransactionDialog(defaultType: 'Expense')),
-                          AccountsWidgets.buildActionBtn('Bank Transfer', Icons.account_balance, const Color(0xFFE0F2FE), const Color(0xFF0369A1), () => _showAddTransactionDialog(defaultType: 'Expense')),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
+
                 const SizedBox(height: 24),
                 AccountsWidgets.buildRightCard(
                   title: 'Recent Activities',

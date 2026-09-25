@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../services/transaction_service.dart';
 import '../services/account_service.dart';
+import '../services/accounting_extended_service.dart';
 
 class AccountsState {
   final List<TransactionModel> transactions;
@@ -155,17 +156,30 @@ class AccountsNotifier extends AsyncNotifier<AccountsState> {
       txn.runningBalance = runningBal;
     }
 
+    double calculatedIncome = 0.0;
+    double calculatedExpenses = 0.0;
+    
+    for (var txn in filteredTxns) {
+      if (txn.type == 'Income') {
+        calculatedIncome += txn.amount;
+      } else if (txn.type == 'Expense') {
+        calculatedExpenses += txn.amount;
+      }
+    }
+
     final summary = await AccountService.getSummary();
+    final receivablesData = await AccountingExtendedService.getReceivables();
+    final totalReceivables = receivablesData['total_receivables']?.toDouble() ?? 0.0;
 
     return AccountsState(
       categories: loadedCategories,
       transactions: filteredTxns,
-      totalIncome: summary.totalIncome,
-      totalExpenses: summary.totalExpenses,
-      netProfit: summary.netProfit,
+      totalIncome: calculatedIncome,
+      totalExpenses: calculatedExpenses,
+      netProfit: calculatedIncome - calculatedExpenses,
       cashInHand: summary.cashInHand,
       bankBalance: summary.bankBalance,
-      outstandingReceivables: 0, 
+      outstandingReceivables: totalReceivables, 
     );
   }
 

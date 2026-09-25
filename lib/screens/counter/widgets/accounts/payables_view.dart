@@ -36,11 +36,10 @@ class _PayablesViewState extends State<PayablesView> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Expanded(child: Center(child: CircularProgressIndicator()));
+      return const Center(child: Padding(padding: EdgeInsets.all(32), child: CircularProgressIndicator()));
     }
 
-    return Expanded(
-      child: Column(
+    return Column(
         children: [
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -53,14 +52,15 @@ class _PayablesViewState extends State<PayablesView> {
               ],
             ),
           ),
-          Expanded(
-            child: _payables.isEmpty
-                ? const Center(child: Text('No outstanding payables!', style: TextStyle(color: Color(0xFF64748B))))
-                : ListView.separated(
-                    itemCount: _payables.length,
-                    separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFF1F5F9)),
-                    itemBuilder: (context, index) {
-                      final item = _payables[index];
+          _payables.isEmpty
+              ? const Padding(padding: EdgeInsets.all(32), child: Center(child: Text('No outstanding payables!', style: TextStyle(color: Color(0xFF64748B)))))
+              : ListView.separated(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: _payables.length,
+                  separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                  itemBuilder: (context, index) {
+                    final item = _payables[index];
                       return Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                         child: Row(
@@ -72,10 +72,10 @@ class _PayablesViewState extends State<PayablesView> {
                                   CircleAvatar(
                                     radius: 16,
                                     backgroundColor: const Color(0xFFF3E8FF),
-                                    child: Text(item['entity_name'].toString()[0].toUpperCase(), style: const TextStyle(color: Color(0xFF7E22CE), fontWeight: FontWeight.bold, fontSize: 12)),
+                                    child: Text((item['entity_name']?.toString().isNotEmpty == true) ? item['entity_name'].toString()[0].toUpperCase() : '?', style: const TextStyle(color: Color(0xFF7E22CE), fontWeight: FontWeight.bold, fontSize: 12)),
                                   ),
                                   const SizedBox(width: 12),
-                                  Text(item['entity_name'].toString(), style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+                                  Text(item['entity_name']?.toString() ?? 'Unknown', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
                                 ],
                               ),
                             ),
@@ -104,7 +104,6 @@ class _PayablesViewState extends State<PayablesView> {
                       );
                     },
                   ),
-          ),
           Container(
             padding: const EdgeInsets.all(16),
             decoration: const BoxDecoration(
@@ -120,7 +119,6 @@ class _PayablesViewState extends State<PayablesView> {
             ),
           ),
         ],
-      ),
-    );
+      );
   }
 }

@@ -459,8 +459,11 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
         );
       }
 
-      // 2. Refresh Inventory to reflect new stock
+      // 2. Refresh Inventory, History, Accounts, and Customers to reflect new stock and transactions
       ref.invalidate(inventoryProvider);
+      ref.invalidate(historyProvider);
+      ref.invalidate(accountsProvider);
+      ref.invalidate(customerProvider);
 
       // 3. Generate PDF and Save/Print
       Map<String, dynamic>? shopSettings;
@@ -1275,6 +1278,7 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
             borderRadius: BorderRadius.circular(6),
           ),
           child: RawAutocomplete<Customer>(
+            textEditingController: _customerNameController,
             optionsBuilder: (TextEditingValue textEditingValue) {
               if (textEditingValue.text.isEmpty) {
                 return const Iterable<Customer>.empty();

@@ -285,43 +285,6 @@ class _CounterDashboardState extends State<CounterDashboard> {
                   ],
                 ),
                 
-                if (isDesktop)
-                  Expanded(
-                    child: Center(
-                      child: Container(
-                        width: 600,
-                        height: 40,
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF1F5F9),
-                          borderRadius: BorderRadius.circular(24),
-                        ),
-                        child: CompositedTransformTarget(
-                          link: _searchLayerLink,
-                          child: Row(
-                            children: [
-                              const Icon(Icons.search, color: Color(0xFF64748B), size: 18),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: TextField(
-                                  controller: _searchController,
-                                  focusNode: _searchFocusNode,
-                                  onChanged: _onSearchChanged,
-                                  decoration: const InputDecoration(
-                                    border: InputBorder.none,
-                                    hintText: 'Search medicines, customers, invoices...',
-                                    hintStyle: TextStyle(color: Color(0xFF94A3B8), fontSize: 13),
-                                    isDense: true,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  )
-                else
                   const Spacer(),
                 
 

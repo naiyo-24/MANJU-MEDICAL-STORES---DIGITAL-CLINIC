@@ -129,6 +129,8 @@ class _BillCustomizationScreenState extends ConsumerState<BillCustomizationScree
         'terms_1': _terms1Ctrl.text,
         'terms_2': _terms2Ctrl.text,
         'terms_3': _terms3Ctrl.text,
+        'logo_url': _logoUrl,
+        'qr_url': _qrUrl,
       };
 
       await ref.read(settingsProvider.notifier).updateSettings(data);
@@ -278,7 +280,7 @@ class _BillCustomizationScreenState extends ConsumerState<BillCustomizationScree
         'customerLocation': 'Mumbai',
         'doctorName': 'Dr. Smith',
         'format': _previewFormat,
-        'shopSettings': settings,
+        'shopSettings': settings.toMap(),
         'logoBytes': finalLogoBytes,
         'qrBytes': finalQrBytes,
       };
