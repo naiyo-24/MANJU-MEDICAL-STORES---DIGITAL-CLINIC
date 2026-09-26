@@ -66,7 +66,7 @@ final goRouter = GoRouter(
               : Colors.green,
           nextRoute: extra['nextRoute'] is String
               ? extra['nextRoute'] as String
-              : '/counter/inventory',
+              : '/counter/billing',
         );
       },
     ),

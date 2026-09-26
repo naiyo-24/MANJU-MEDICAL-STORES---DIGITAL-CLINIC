@@ -181,6 +181,10 @@ class InventoryService {
         throw Exception('Upload failed: ${response.data}');
       }
     } catch (e) {
+      if (e is DioException && e.response?.data != null) {
+        final detail = e.response!.data is Map ? (e.response!.data['detail'] ?? e.response!.data.toString()) : e.response!.data.toString();
+        throw Exception(detail);
+      }
       throw Exception('Error uploading inventory: $e');
     }
   }

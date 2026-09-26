@@ -48,12 +48,14 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
 
   final TextEditingController _customerNameController = TextEditingController();
   final FocusNode _customerNameFocusNode = FocusNode();
+  final TextEditingController _customerSearchController =
+      TextEditingController();
+  final FocusNode _customerSearchFocusNode = FocusNode();
   final TextEditingController _customerPhoneController =
       TextEditingController();
   final TextEditingController _customerLocationController =
       TextEditingController();
 
-  final String _paymentMethod = 'CASH'; // CASH, UPI, CARD
 
   final TextEditingController _newDoctorController = TextEditingController();
 
@@ -96,6 +98,8 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
     _discountController.dispose();
     _customerNameController.dispose();
     _customerNameFocusNode.dispose();
+    _customerSearchController.dispose();
+    _customerSearchFocusNode.dispose();
     _customerPhoneController.dispose();
     _customerLocationController.dispose();
 
@@ -481,6 +485,8 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                       doctorName: _selectedDoctorId == 'new'
                           ? _newDoctorController.text
                           : _selectedDoctorName,
+                      paymentMethod: ref.read(billingProvider).paymentMethod,
+                      gstNumber: ref.read(billingProvider).gstNumber,
                       format: ref.read(billingProvider).selectedFormat,
                     ),
                     allowPrinting: true,
@@ -608,7 +614,7 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
           customerLocation: _customerLocationController.text,
           customerGstin: ref.read(billingProvider).gstNumber,
           invoiceNo: invoiceNo,
-          paymentMethod: _paymentMethod,
+          paymentMethod: ref.read(billingProvider).paymentMethod,
         );
       }
 
@@ -636,7 +642,7 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
         doctorName: _selectedDoctorId == 'new'
             ? _newDoctorController.text
             : _selectedDoctorName,
-        paymentMethod: _paymentMethod,
+        paymentMethod: ref.read(billingProvider).paymentMethod,
         gstNumber: ref.read(billingProvider).gstNumber,
         format: ref.read(billingProvider).selectedFormat,
       );
@@ -668,9 +674,12 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
               ? _customerNameController.text
               : 'Walk-in Customer',
           customerPhone: _customerPhoneController.text,
+          customerLocation: _customerLocationController.text,
+          customerGstin: ref.read(billingProvider).gstNumber,
           doctorName: _selectedDoctorId == 'new'
               ? _newDoctorController.text
               : _selectedDoctorName,
+          paymentMode: ref.read(billingProvider).paymentMethod,
           subtotal: _subtotal,
           discount: _discountAmount,
           tax: _gstAmount,
@@ -1699,29 +1708,48 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                       constraints.maxHeight >
                       400; // Lowered to ensure internal scrolling on standard laptops
 
-                  Widget leftSide = BillingLeftPanel(
-                    isDesktopWidth: isDesktopWidth,
-                    hasEnoughHeight: hasEnoughHeight,
-                    filteredMedicines: computedFilteredMedicines,
-                    categories: _categories,
-                    selectedCategoryIndex: ref
-                        .watch(billingProvider)
-                        .selectedCategoryIndex,
-                    onAddToCart: _addToCart,
-                    onCategorySelected: (index) {
-                      ref.read(billingProvider.notifier).updateCategory(index);
-                    },
-                    hasMore: ref.read(inventoryProvider.notifier).hasMore,
-                    onLoadMore: () {
-                      ref.read(inventoryProvider.notifier).loadMore();
-                    },
-                    onSearch: (q) {
-
-                      // Trigger backend search for pagination to work
-                      ref
-                          .read(inventoryProvider.notifier)
-                          .loadInventory(searchQuery: q);
-                    },
+                  Widget leftSide = inventoryState.when(
+                    data: (items) => BillingLeftPanel(
+                      isDesktopWidth: isDesktopWidth,
+                      hasEnoughHeight: hasEnoughHeight,
+                      filteredMedicines: computedFilteredMedicines,
+                      categories: _categories,
+                      selectedCategoryIndex: ref
+                          .watch(billingProvider)
+                          .selectedCategoryIndex,
+                      onAddToCart: _addToCart,
+                      onCategorySelected: (index) {
+                        ref.read(billingProvider.notifier).updateCategory(index);
+                      },
+                      hasMore: ref.read(inventoryProvider.notifier).hasMore,
+                      onLoadMore: () {
+                        ref.read(inventoryProvider.notifier).loadMore();
+                      },
+                      onSearch: (q) {
+                        ref
+                            .read(inventoryProvider.notifier)
+                            .loadInventory(searchQuery: q);
+                      },
+                    ),
+                    loading: () => const Center(
+                      child: CircularProgressIndicator(color: Color(0xFF22C55E)),
+                    ),
+                    error: (err, stack) => Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            err.toString(),
+                            style: const TextStyle(color: Colors.red),
+                          ),
+                          const SizedBox(height: 16),
+                          ElevatedButton(
+                            onPressed: () => ref.read(inventoryProvider.notifier).loadInventory(),
+                            child: const Text('Retry'),
+                          ),
+                        ],
+                      ),
+                    ),
                   );
 
                   Widget rightSide = BillingRightPanel(
@@ -1799,8 +1827,8 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
             borderRadius: BorderRadius.circular(6),
           ),
           child: RawAutocomplete<Customer>(
-            textEditingController: _customerNameController,
-            focusNode: _customerNameFocusNode,
+            textEditingController: _customerSearchController,
+            focusNode: _customerSearchFocusNode,
             optionsBuilder: (TextEditingValue textEditingValue) {
               if (textEditingValue.text.isEmpty) {
                 return const Iterable<Customer>.empty();
@@ -1827,13 +1855,14 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
               return matches;
             },
             displayStringForOption: (Customer option) => option.id == 'NO_DATA'
-                ? _customerNameController.text
+                ? _customerSearchController.text
                 : option.name,
             onSelected: (Customer selection) {
               if (selection.id == 'NO_DATA') return;
               _customerNameController.text = selection.name;
               _customerPhoneController.text = selection.phone;
               _customerLocationController.text = selection.location;
+              _customerSearchController.clear();
               setState(() {
                 _savedCustomerId = selection.id;
               });

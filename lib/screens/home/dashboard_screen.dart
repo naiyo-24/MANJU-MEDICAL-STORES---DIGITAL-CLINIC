@@ -365,7 +365,7 @@ class DashboardScreen extends StatelessWidget {
                                                 primaryColor: const Color(
                                                   0xFF22C55E,
                                                 ),
-                                                nextRoute: '/counter/inventory',
+                                                nextRoute: '/counter/billing',
                                               ),
                                             ),
                                             const SizedBox(width: 32),
@@ -414,7 +414,7 @@ class DashboardScreen extends StatelessWidget {
                                               'Manage sales, billing, inventory.',
                                           icon: Icons.point_of_sale_rounded,
                                           primaryColor: const Color(0xFF22C55E),
-                                          nextRoute: '/counter/inventory',
+                                          nextRoute: '/counter/billing',
                                         ),
                                         const SizedBox(height: 16),
                                         _buildDashboardCard(

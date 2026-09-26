@@ -490,7 +490,13 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                                 ),
                                 child: DropdownButtonHideUnderline(
                                   child: DropdownButton<String>(
-                                    value: selectedShopId ?? (shops.isNotEmpty ? shops.first['id'].toString() : null),
+                                    value: (() {
+                                      final id = selectedShopId ?? (shops.isNotEmpty ? shops.first['id'].toString() : null);
+                                      if (id != null && shops.any((shop) => shop['id'].toString() == id)) {
+                                        return id;
+                                      }
+                                      return shops.isNotEmpty ? shops.first['id'].toString() : null;
+                                    })(),
                                     icon: const Icon(Icons.store, size: 16, color: Color(0xFF64748B)),
                                     style: const TextStyle(fontSize: 14, color: Color(0xFF1E293B)),
                                     onChanged: (String? newShopId) async {
@@ -514,7 +520,11 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                               );
                             },
                             loading: () => const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)),
-                            error: (_, _) => const SizedBox(),
+                            error: (err, stack) => IconButton(
+                              icon: const Icon(Icons.refresh, color: Colors.red),
+                              tooltip: 'Retry',
+                              onPressed: () => ref.read(inventoryProvider.notifier).loadInventory(),
+                            ),
                           ),
                           // Search Bar
                           Container(
@@ -826,11 +836,21 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                                             ),
                                           ),
                                           error: (err, stack) => Center(
-                                            child: Text(
-                                              err.toString(),
-                                              style: const TextStyle(
-                                                color: Colors.red,
-                                              ),
+                                            child: Column(
+                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              children: [
+                                                Text(
+                                                  err.toString(),
+                                                  style: const TextStyle(
+                                                    color: Colors.red,
+                                                  ),
+                                                ),
+                                                const SizedBox(height: 16),
+                                                ElevatedButton(
+                                                  onPressed: () => ref.read(inventoryProvider.notifier).loadInventory(),
+                                                  child: const Text('Retry'),
+                                                ),
+                                              ],
                                             ),
                                           ),
                                           data: (medicines) {

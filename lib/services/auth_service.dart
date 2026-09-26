@@ -21,6 +21,20 @@ class AuthService {
         await prefs.setString(_tokenKey, data['access_token']);
         await prefs.setString(_userIdKey, data['user_id']);
         await prefs.setString(_roleKey, data['role']);
+        
+        try {
+          // Automatically select and save the first shop
+          final shopsResp = await ApiClient().dio.get('/api/admin/shops');
+          if (shopsResp.statusCode == 200 && shopsResp.data != null) {
+            final List<dynamic> shops = shopsResp.data;
+            if (shops.isNotEmpty) {
+              await prefs.setString('selected_shop_id', shops.first['id'].toString());
+            }
+          }
+        } catch (_) {
+          // Ignore if fetching shops fails, as they can manually select it later
+        }
+
         return true;
       } else {
         throw 'Invalid User ID or Password. Please try again.';
@@ -42,6 +56,7 @@ class AuthService {
     await prefs.remove(_tokenKey);
     await prefs.remove(_userIdKey);
     await prefs.remove(_roleKey);
+    await prefs.remove('selected_shop_id');
   }
 
   static Future<String?> getToken() async {
