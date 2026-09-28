@@ -441,42 +441,42 @@ class DashboardScreen extends StatelessWidget {
                                       ],
                                     ),
                               SizedBox(height: isWeb ? 40 : 20),
-
-                              // Bottom Features Bar
-                              if (isWeb)
-                                Padding(
-                                  padding: const EdgeInsets.only(bottom: 24.0),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      _buildFeatureBadge(
-                                        Icons.security,
-                                        const Color(0xFF166534),
-                                        'Secure & Reliable',
-                                        'Your data is safe with us',
-                                      ),
-                                      const SizedBox(width: 48),
-                                      _buildFeatureBadge(
-                                        Icons.bolt,
-                                        const Color(0xFFF59E0B),
-                                        'Fast & Efficient',
-                                        'Save time, do more',
-                                      ),
-                                      const SizedBox(width: 48),
-                                      _buildFeatureBadge(
-                                        Icons.favorite,
-                                        const Color(0xFFEF4444),
-                                        'Better Healthcare',
-                                        'For a healthier community',
-                                      ),
-                                    ],
-                                  ),
-                                ),
                             ],
                           ),
                         ),
                       ),
                     ),
+
+                    // Bottom Features Bar
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 24.0, left: 24.0, right: 24.0),
+                      child: Wrap(
+                        alignment: WrapAlignment.center,
+                        spacing: 48,
+                        runSpacing: 24,
+                        children: [
+                          _buildFeatureBadge(
+                            Icons.security,
+                            const Color(0xFF166534),
+                            'Secure & Reliable',
+                            'Your data is safe with us',
+                          ),
+                          _buildFeatureBadge(
+                            Icons.bolt,
+                            const Color(0xFFF59E0B),
+                            'Fast & Efficient',
+                            'Save time, do more',
+                          ),
+                          _buildFeatureBadge(
+                            Icons.favorite,
+                            const Color(0xFFEF4444),
+                            'Better Healthcare',
+                            'For a healthier community',
+                          ),
+                        ],
+                      ),
+                    ),
+
 
                     // Footer
                     if (isWeb)

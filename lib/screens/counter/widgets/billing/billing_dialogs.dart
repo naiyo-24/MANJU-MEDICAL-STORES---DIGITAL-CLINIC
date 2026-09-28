@@ -540,9 +540,9 @@ class BillingDialogs {
                     'price': price,
                     'mrp': price,
                     'total': qty * price,
-                    'batch': '-',
-                    'expiry': '-',
-                    'hsn': hsnController.text.isNotEmpty
+                    'batch_number': '-',
+                    'expiry_date': '-',
+                    'hsn_code': hsnController.text.isNotEmpty
                         ? hsnController.text
                         : '-',
                     'cgst': 0,

@@ -8,6 +8,10 @@ import '../services/doctor_service.dart';
 import '../notifiers/accounts_notifier.dart';
 import '../notifiers/history_notifier.dart';
 import '../notifiers/settings_notifier.dart';
+import '../notifiers/rack_notifier.dart';
+import '../notifiers/category_notifier.dart';
+import '../services/rack_service.dart';
+import '../services/category_service.dart';
 
 final settingsProvider =
     AsyncNotifierProvider<SettingsNotifier, Map<String, dynamic>>(() {
@@ -35,6 +39,13 @@ final inventoryProvider =
       return InventoryNotifier();
     });
 
+class BillingInventoryNotifier extends InventoryNotifier {}
+
+final billingInventoryProvider =
+    AsyncNotifierProvider<BillingInventoryNotifier, List<InventoryItem>>(() {
+      return BillingInventoryNotifier();
+    });
+
 final doctorProvider = AsyncNotifierProvider<DoctorNotifier, List<Doctor>>(() {
   return DoctorNotifier();
 });
@@ -44,6 +55,14 @@ final accountsProvider = AsyncNotifierProvider<AccountsNotifier, AccountsState>(
     return AccountsNotifier();
   },
 );
+
+final rackProvider = AsyncNotifierProvider<RackNotifier, List<Rack>>(() {
+  return RackNotifier();
+});
+
+final categoryProvider = AsyncNotifierProvider<CategoryNotifier, List<Category>>(() {
+  return CategoryNotifier();
+});
 
 class SelectedShopIdNotifier extends Notifier<String?> {
   @override

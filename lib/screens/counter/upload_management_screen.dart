@@ -4,6 +4,8 @@ import 'package:file_picker/file_picker.dart';
 import '../../services/inventory_service.dart';
 import '../../providers/counter_providers.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import '../../widgets/rack_dropdown.dart';
+import '../../widgets/category_dropdown.dart';
 
 class UploadManagementScreen extends ConsumerStatefulWidget {
   const UploadManagementScreen({super.key});
@@ -26,6 +28,10 @@ class _UploadManagementScreenState
   final _hsnCtrl = TextEditingController();
   final _expiryCtrl = TextEditingController();
   final _gstCtrl = TextEditingController(text: '0');
+  final _discountCtrl = TextEditingController(text: '0');
+  final _distributorCtrl = TextEditingController();
+  String? _selectedRackId;
+  String? _selectedCategoryId;
   PlatformFile? _selectedImage;
 
   Future<void> _pickImage() async {
@@ -528,16 +534,23 @@ class _UploadManagementScreenState
                             ),
                           ],
                         ),
-                        // const SizedBox(height: 24),
-                        // Row(
-                        //   children: [
-                        //     Expanded(child: _buildDropdown('Category', 'Select category', isRequired: true)),
-                        //     const SizedBox(width: 24),
-                        //     Expanded(child: _buildDropdown('Sub Category', 'Select sub category')),
-                        //     const SizedBox(width: 24),
-                        //     Expanded(child: _buildTextField('Manufacturer', 'e.g. Sun Pharma', controller: _manufacturerCtrl)),
-                        //   ],
-                        // ),
+                        const SizedBox(height: 24),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: CategoryDropdown(
+                                selectedCategoryId: _selectedCategoryId,
+                                onChanged: (value) {
+                                  setState(() {
+                                    _selectedCategoryId = value;
+                                  });
+                                },
+                              ),
+                            ),
+                            const SizedBox(width: 24),
+                            const Spacer(),
+                          ],
+                        ),
                         // const SizedBox(height: 24),
                         // Row(
                         //   children: [
@@ -604,6 +617,37 @@ class _UploadManagementScreenState
                                 'GST (%)',
                                 '0',
                                 controller: _gstCtrl,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 24),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildTextField(
+                                'Discount (%)',
+                                '0',
+                                controller: _discountCtrl,
+                              ),
+                            ),
+                            const SizedBox(width: 24),
+                            Expanded(
+                              child: RackDropdown(
+                                selectedRackId: _selectedRackId,
+                                onChanged: (value) {
+                                  setState(() {
+                                    _selectedRackId = value;
+                                  });
+                                },
+                              ),
+                            ),
+                            const SizedBox(width: 24),
+                            Expanded(
+                              child: _buildTextField(
+                                'Distributor / Retailer',
+                                'e.g. Apollo Distributors',
+                                controller: _distributorCtrl,
                               ),
                             ),
                           ],
@@ -822,7 +866,11 @@ class _UploadManagementScreenState
                             ? _expiryCtrl.text
                             : '2026-12-31',
                         'gst': double.tryParse(_gstCtrl.text) ?? 0.0,
-                        'image_url': ?uploadedImageUrl,
+                        'discount': double.tryParse(_discountCtrl.text) ?? 0.0,
+                        'rack_id': _selectedRackId,
+                        'category_id': _selectedCategoryId,
+                        'distributor': _distributorCtrl.text.isNotEmpty ? _distributorCtrl.text : null,
+                        'image_url': uploadedImageUrl,
                       });
                       if (context.mounted) {
                         ref.invalidate(inventoryProvider);

@@ -7,6 +7,8 @@ import '../../services/export_service.dart';
 import 'widgets/inventory/inventory_row.dart';
 import '../../widgets/custom_date_range_picker.dart';
 import 'package:intl/intl.dart';
+import '../../widgets/rack_dropdown.dart';
+import '../../widgets/category_dropdown.dart';
 
 class InventoryScreen extends ConsumerStatefulWidget {
   const InventoryScreen({super.key});
@@ -193,16 +195,21 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
     );
     final priceCtrl = TextEditingController(text: item.unitPrice.toString());
     final gstCtrl = TextEditingController(text: item.gst?.toString() ?? '0');
+    final discountCtrl = TextEditingController(text: item.discount?.toString() ?? '0');
+    final distributorCtrl = TextEditingController(text: item.distributor ?? '');
     final hsnCtrl = TextEditingController(text: item.hsnCode ?? '');
-    final expiryCtrl = TextEditingController(text: item.expiryDate);
+    final expiryCtrl = TextEditingController(text: item.expiryDate ?? '');
+    String? selectedRackId = item.rackId;
+    String? selectedCategoryId = item.categoryId;
 
     showDialog(
       context: context,
-      builder: (context) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        child: Container(
-          width: 500,
-          padding: const EdgeInsets.all(24),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          child: Container(
+            width: 500,
+            padding: const EdgeInsets.all(24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -348,6 +355,54 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                   ),
                 ],
               ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: discountCtrl,
+                      decoration: const InputDecoration(
+                        labelText: 'Discount (%)',
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: RackDropdown(
+                      selectedRackId: selectedRackId,
+                      onChanged: (value) {
+                        setState(() {
+                          selectedRackId = value;
+                        });
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: CategoryDropdown(
+                      selectedCategoryId: selectedCategoryId,
+                      onChanged: (value) {
+                        setState(() {
+                          selectedCategoryId = value;
+                        });
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: distributorCtrl,
+                      decoration: const InputDecoration(
+                        labelText: 'Distributor / Retailer',
+                      ),
+                    ),
+                  ),
+                ],
+              ),
               const SizedBox(height: 24),
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
@@ -372,6 +427,10 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                               double.tryParse(buyingPriceCtrl.text) ?? 0.0,
                           'unit_price': double.tryParse(priceCtrl.text) ?? 0.0,
                           'gst': double.tryParse(gstCtrl.text) ?? 0.0,
+                          'discount': double.tryParse(discountCtrl.text) ?? 0.0,
+                          'rack_id': selectedRackId,
+                          'category_id': selectedCategoryId,
+                          'distributor': distributorCtrl.text,
                           'hsn_code': hsnCtrl.text,
                           'expiry_date': expiryCtrl.text,
                         });
@@ -410,6 +469,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
           ),
         ),
       ),
+    ),
     );
   }
 

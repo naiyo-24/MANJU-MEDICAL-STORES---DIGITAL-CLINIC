@@ -36,4 +36,9 @@ class ShopNotifier extends AsyncNotifier<List<Map<String, dynamic>>> {
     );
     await loadShops();
   }
+
+  Future<void> deleteShop(String id) async {
+    await ShopService.deleteShop(id);
+    await loadShops();
+  }
 }

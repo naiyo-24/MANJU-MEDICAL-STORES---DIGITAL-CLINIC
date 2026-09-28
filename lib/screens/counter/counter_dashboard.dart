@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../utils/responsive.dart';
 import 'package:go_router/go_router.dart';
+import 'dart:async';
 
 class CounterDashboard extends StatefulWidget {
   final StatefulNavigationShell navigationShell;
@@ -12,15 +13,44 @@ class CounterDashboard extends StatefulWidget {
 
 class _CounterDashboardState extends State<CounterDashboard> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  DateTime _currentTime = DateTime.now();
+  Timer? _timer;
+  bool _isSidebarExpanded = true;
 
   @override
   void initState() {
     super.initState();
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (mounted) {
+        setState(() {
+          _currentTime = DateTime.now();
+        });
+      }
+    });
   }
 
   @override
   void dispose() {
+    _timer?.cancel();
     super.dispose();
+  }
+
+  String _formatDate(DateTime date) {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    String dayName = days[date.weekday - 1];
+    String monthName = months[date.month - 1];
+    return '$dayName, ${date.day} $monthName ${date.year}';
+  }
+
+  String _formatTime(DateTime date) {
+    int hour = date.hour;
+    String period = hour >= 12 ? 'PM' : 'AM';
+    hour = hour % 12;
+    if (hour == 0) hour = 12;
+    String minute = date.minute.toString().padLeft(2, '0');
+    String second = date.second.toString().padLeft(2, '0');
+    return '$hour:$minute:$second $period';
   }
 
   Widget _buildSidebarItem({
@@ -29,50 +59,82 @@ class _CounterDashboardState extends State<CounterDashboard> {
     required String label,
   }) {
     final isSelected = widget.navigationShell.currentIndex == index;
+    
+    Widget content = Container(
+      width: _isSidebarExpanded ? 228 : 48, // Fix width to prevent flex overflow during animation
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      padding: EdgeInsets.symmetric(horizontal: _isSidebarExpanded ? 16 : 0, vertical: 12),
+      decoration: BoxDecoration(
+        color: isSelected ? const Color(0xFFE8F5E9) : Colors.transparent,
+        borderRadius: BorderRadius.circular(12),
+        border: isSelected
+            ? Border.all(
+                color: const Color(0xFF22C55E).withValues(alpha: 0.3),
+                width: 1,
+              )
+            : null,
+      ),
+      child: AnimatedCrossFade(
+        duration: const Duration(milliseconds: 200),
+        crossFadeState: _isSidebarExpanded ? CrossFadeState.showFirst : CrossFadeState.showSecond,
+        alignment: Alignment.centerLeft,
+        firstChild: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          physics: const NeverScrollableScrollPhysics(),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              Icon(
+                icon,
+                color: isSelected ? const Color(0xFF166534) : const Color(0xFF64748B),
+                size: 20,
+              ),
+              const SizedBox(width: 16),
+              SizedBox(
+                width: 140, // Fixed width instead of Expanded
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    color: isSelected ? const Color(0xFF166534) : const Color(0xFF64748B),
+                    fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                    fontSize: 14,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+        ),
+        secondChild: Center(
+          child: Icon(
+            icon,
+            color: isSelected ? const Color(0xFF166534) : const Color(0xFF64748B),
+            size: 20,
+          ),
+        ),
+      ),
+    );
+
+    if (!_isSidebarExpanded) {
+      content = Tooltip(message: label, child: content);
+    }
+
     return InkWell(
       onTap: () {
         widget.navigationShell.goBranch(
           index,
           initialLocation: index == widget.navigationShell.currentIndex,
         );
+        if (Responsive.isDesktop(context)) {
+          setState(() {
+            _isSidebarExpanded = false;
+          });
+        } else {
+          Navigator.pop(context); // Close drawer on mobile
+        }
       },
       borderRadius: BorderRadius.circular(12),
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFFE8F5E9) : Colors.transparent,
-          borderRadius: BorderRadius.circular(12),
-          border: isSelected
-              ? Border.all(
-                  color: const Color(0xFF22C55E).withValues(alpha: 0.3),
-                  width: 1,
-                )
-              : null,
-        ),
-        child: Row(
-          children: [
-            Icon(
-              icon,
-              color: isSelected
-                  ? const Color(0xFF166534)
-                  : const Color(0xFF64748B),
-              size: 20,
-            ),
-            const SizedBox(width: 16),
-            Text(
-              label,
-              style: TextStyle(
-                color: isSelected
-                    ? const Color(0xFF166534)
-                    : const Color(0xFF64748B),
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                fontSize: 14,
-              ),
-            ),
-          ],
-        ),
-      ),
+      child: content,
     );
   }
 
@@ -116,13 +178,19 @@ class _CounterDashboardState extends State<CounterDashboard> {
       ),
       child: Row(
         children: [
-          if (!isDesktop) ...[
-            IconButton(
-              icon: const Icon(Icons.menu),
-              onPressed: () => _scaffoldKey.currentState?.openDrawer(),
-            ),
-            const SizedBox(width: 16),
-          ],
+          IconButton(
+            icon: const Icon(Icons.menu),
+            onPressed: () {
+              if (isDesktop) {
+                setState(() {
+                  _isSidebarExpanded = !_isSidebarExpanded;
+                });
+              } else {
+                _scaffoldKey.currentState?.openDrawer();
+              }
+            },
+          ),
+          const SizedBox(width: 16),
           // Logo & Brand
           Row(
             children: [
@@ -130,78 +198,165 @@ class _CounterDashboardState extends State<CounterDashboard> {
             ],
           ),
 
-          const Spacer(),
-
-          // Profile Pill
-          PopupMenuButton<String>(
-            offset: const Offset(0, 45),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-            onSelected: (value) {
-              if (value == 'logout') {
-                context.go('/dashboard');
-              }
-            },
-            itemBuilder: (context) => [
-              const PopupMenuItem(
-                value: 'logout',
-                child: Row(
-                  children: [
-                    Icon(Icons.logout, size: 18, color: Colors.red),
-                    SizedBox(width: 8),
-                    Text(
-                      'Logout',
-                      style: TextStyle(fontSize: 14, color: Colors.red),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                border: Border.all(color: const Color(0xFFE2E8F0)),
-                borderRadius: BorderRadius.circular(20),
-              ),
+          Expanded(
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              reverse: true, // Allow scrolling to the left if space is tight, keeping right alignment
               child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  const CircleAvatar(
-                    radius: 12,
-                    backgroundColor: Color(0xFFF1F5F9),
-                    child: Icon(
-                      Icons.person,
-                      size: 16,
-                      color: Color(0xFF64748B),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  const Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Counter Admin',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 12,
-                          color: Color(0xFF1E293B),
+                  // Date & Time Pill
+                  InkWell(
+                    onTap: () async {
+                      await showDatePicker(
+                        context: context,
+                        initialDate: _currentTime,
+                        firstDate: DateTime(2000),
+                        lastDate: DateTime(2100),
+                        builder: (context, child) {
+                          return Theme(
+                            data: ThemeData.light().copyWith(
+                              colorScheme: const ColorScheme.light(
+                                primary: Color(0xFF166534), // Header background color
+                                onPrimary: Colors.white, // Header text color
+                                onSurface: Color(0xFF1E293B), // Body text color
+                                surface: Colors.white, // Dialog background color
+                              ),
+                              dialogBackgroundColor: Colors.white,
+                              textButtonTheme: TextButtonThemeData(
+                                style: TextButton.styleFrom(
+                                  foregroundColor: const Color(0xFF166534), // Button text color
+                                ),
+                              ),
+                            ),
+                            child: child!,
+                          );
+                        },
+                      );
+                    },
+                    borderRadius: BorderRadius.circular(8),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF1F8F5),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: const Color(0xFF22C55E).withValues(alpha: 0.3),
                         ),
                       ),
-                      Text(
-                        'Counter',
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: Color(0xFF64748B),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.calendar_today,
+                            color: Color(0xFF166534),
+                            size: 16,
+                          ),
+                          const SizedBox(width: 8),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                _formatDate(_currentTime),
+                                style: const TextStyle(
+                                  color: Color(0xFF166534),
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Text(
+                                _formatTime(_currentTime),
+                                style: const TextStyle(
+                                  color: Color(0xFF64748B),
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+
+                  // Profile Pill
+                  PopupMenuButton<String>(
+                    offset: const Offset(0, 45),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    onSelected: (value) {
+                      if (value == 'logout') {
+                        context.go('/dashboard');
+                      }
+                    },
+                    itemBuilder: (context) => [
+                      const PopupMenuItem(
+                        value: 'logout',
+                        child: Row(
+                          children: [
+                            Icon(Icons.logout, size: 18, color: Colors.red),
+                            SizedBox(width: 8),
+                            Text(
+                              'Logout',
+                              style: TextStyle(fontSize: 14, color: Colors.red),
+                            ),
+                          ],
                         ),
                       ),
                     ],
-                  ),
-                  const SizedBox(width: 8),
-                  const Icon(
-                    Icons.keyboard_arrow_down,
-                    color: Color(0xFF64748B),
-                    size: 16,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Row(
+                        children: [
+                          const CircleAvatar(
+                            radius: 12,
+                            backgroundColor: Color(0xFFF1F5F9),
+                            child: Icon(
+                              Icons.person,
+                              size: 16,
+                              color: Color(0xFF64748B),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          const Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Counter Admin',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12,
+                                  color: Color(0xFF1E293B),
+                                ),
+                              ),
+                              Text(
+                                'Counter',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: Color(0xFF64748B),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(width: 8),
+                          const Icon(
+                            Icons.keyboard_arrow_down,
+                            color: Color(0xFF64748B),
+                            size: 16,
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -213,39 +368,54 @@ class _CounterDashboardState extends State<CounterDashboard> {
   }
 
   Widget _buildSidebar() {
-    return Container(
-      width: 260,
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      width: _isSidebarExpanded ? 260 : 80,
       decoration: const BoxDecoration(
         color: Color(0xFFF8FAFC),
         border: Border(right: BorderSide(color: Color(0xFFE2E8F0), width: 1)),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: Row(
-              children: [
-                const Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Counter Module',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                        color: Color(0xFF1E293B),
-                      ),
+      child: ClipRect(
+        child: Column(
+          crossAxisAlignment: _isSidebarExpanded ? CrossAxisAlignment.start : CrossAxisAlignment.center,
+          children: [
+            Padding(
+              padding: EdgeInsets.all(_isSidebarExpanded ? 24.0 : 16.0),
+              child: AnimatedCrossFade(
+                duration: const Duration(milliseconds: 200),
+                crossFadeState: _isSidebarExpanded ? CrossFadeState.showFirst : CrossFadeState.showSecond,
+                alignment: Alignment.centerLeft,
+                firstChild: const SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  physics: NeverScrollableScrollPhysics(),
+                  child: SizedBox(
+                    width: 212,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Counter Module',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                            color: Color(0xFF1E293B),
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        Text(
+                          'Manage your pharmacy operations',
+                          style: TextStyle(fontSize: 10, color: Color(0xFF64748B)),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
                     ),
-                    Text(
-                      'Manage your pharmacy operations',
-                      style: TextStyle(fontSize: 10, color: Color(0xFF64748B)),
-                    ),
-                  ],
+                  ),
                 ),
-              ],
+                secondChild: const Center(
+                  child: Icon(Icons.local_pharmacy, color: Color(0xFF166534), size: 28),
+                ),
+              ),
             ),
-          ),
 
           Expanded(
             child: SingleChildScrollView(
@@ -297,34 +467,50 @@ class _CounterDashboardState extends State<CounterDashboard> {
                   ),
                   const SizedBox(height: 8),
 
-                  InkWell(
-                    onTap: () {
-                      // Go back to the module selection screen
-                      context.go('/dashboard');
-                    },
-                    borderRadius: BorderRadius.circular(12),
-                    child: Container(
-                      margin: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 4,
-                      ),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.logout, color: Colors.red, size: 20),
-                          const SizedBox(width: 12),
-                          const Text(
-                            'Logout',
-                            style: TextStyle(
-                              color: Colors.red,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14,
+                  Tooltip(
+                    message: _isSidebarExpanded ? '' : 'Logout',
+                    child: InkWell(
+                      onTap: () {
+                        // Go back to the module selection screen
+                        context.go('/dashboard');
+                      },
+                      borderRadius: BorderRadius.circular(12),
+                      child: Container(
+                        margin: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 4,
+                        ),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: _isSidebarExpanded ? 16 : 0,
+                          vertical: 12,
+                        ),
+                        child: AnimatedCrossFade(
+                          duration: const Duration(milliseconds: 200),
+                          crossFadeState: _isSidebarExpanded ? CrossFadeState.showFirst : CrossFadeState.showSecond,
+                          alignment: Alignment.centerLeft,
+                          firstChild: const SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            physics: NeverScrollableScrollPhysics(),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              children: [
+                                Icon(Icons.logout, color: Colors.red, size: 20),
+                                SizedBox(width: 12),
+                                Text(
+                                  'Logout',
+                                  style: TextStyle(
+                                    color: Colors.red,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                        ],
+                          secondChild: const Center(
+                            child: Icon(Icons.logout, color: Colors.red, size: 20),
+                          ),
+                        ),
                       ),
                     ),
                   ),
@@ -334,58 +520,81 @@ class _CounterDashboardState extends State<CounterDashboard> {
           ),
 
           // Bottom Sidebar Card
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Colors.black12,
-                    blurRadius: 10,
-                    offset: Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: const Row(
-                children: [
-                  Icon(Icons.eco, color: Color(0xFF22C55E)),
-                  SizedBox(width: 12),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Better Care',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 12,
-                        ),
+          AnimatedCrossFade(
+            duration: const Duration(milliseconds: 200),
+            crossFadeState: _isSidebarExpanded ? CrossFadeState.showFirst : CrossFadeState.showSecond,
+            alignment: Alignment.bottomCenter,
+            firstChild: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                physics: const NeverScrollableScrollPhysics(),
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  width: 228,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Colors.black12,
+                        blurRadius: 10,
+                        offset: Offset(0, 4),
                       ),
-                      Text(
-                        'Brighter Tomorrow',
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: Color(0xFF64748B),
+                    ],
+                  ),
+                  child: const Row(
+                    children: [
+                      Icon(Icons.eco, color: Color(0xFF22C55E)),
+                      SizedBox(width: 12),
+                      SizedBox(
+                        width: 120,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Better Care',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 12,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            Text(
+                              'Brighter Tomorrow',
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: Color(0xFF64748B),
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
                         ),
                       ),
                     ],
                   ),
-                ],
+                ),
+              ),
+            ),
+            secondChild: const Padding(
+              padding: EdgeInsets.symmetric(vertical: 16.0),
+              child: Center(
+                child: Icon(Icons.eco, color: Color(0xFF22C55E), size: 24),
               ),
             ),
           ),
-          const Padding(
-            padding: EdgeInsets.all(24.0),
+            
+          Padding(
+            padding: EdgeInsets.all(_isSidebarExpanded ? 24.0 : 16.0),
             child: Center(
               child: Text(
-                'Version 1.0.0',
-                style: TextStyle(fontSize: 10, color: Color(0xFF94A3B8)),
+                _isSidebarExpanded ? 'Version 1.0.0' : 'v1',
+                style: const TextStyle(fontSize: 10, color: Color(0xFF94A3B8)),
               ),
             ),
           ),
         ],
+      ),
       ),
     );
   }

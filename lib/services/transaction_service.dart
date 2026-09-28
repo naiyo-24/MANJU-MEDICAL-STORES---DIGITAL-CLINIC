@@ -85,11 +85,15 @@ class TransactionService {
   static Future<List<TransactionModel>> getTransactions({
     int skip = 0,
     int limit = 100,
+    String? shopId,
   }) async {
     try {
+      final queryParams = <String, dynamic>{'skip': skip, 'limit': limit};
+      if (shopId != null) queryParams['shop_id'] = shopId;
+      
       final response = await ApiClient().dio.get(
         '/api/transactions',
-        queryParameters: {'skip': skip, 'limit': limit},
+        queryParameters: queryParams,
       );
 
       if (response.statusCode == 200) {

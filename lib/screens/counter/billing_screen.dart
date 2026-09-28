@@ -65,6 +65,7 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
 
   DateTime _currentTime = DateTime.now();
   Timer? _timer;
+  Timer? _searchDebounce;
   // Format is now handled by billingProvider
   String? _savedCustomerId;
 
@@ -105,6 +106,7 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
 
     _newDoctorController.dispose();
     _timer?.cancel();
+    _searchDebounce?.cancel();
     super.dispose();
   }
 
@@ -620,6 +622,7 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
 
       // 2. Refresh Inventory, History, Accounts, and Customers to reflect new stock and transactions
       ref.invalidate(inventoryProvider);
+      ref.invalidate(billingInventoryProvider);
       ref.invalidate(historyProvider);
       ref.invalidate(accountsProvider);
       ref.invalidate(customerProvider);
@@ -953,8 +956,21 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
     setState(() {
       _customerNameController.clear();
       _customerPhoneController.clear();
+      _customerLocationController.clear();
+      _customerSearchController.clear();
+      _discountController.clear();
+      _newDoctorController.clear();
       _savedCustomerId = null;
+      _selectedDoctorId = null;
+      _selectedDoctorName = 'Walk-in';
+      _selectedCategoryIndex = 0;
     });
+    ref.read(billingProvider.notifier).updateDiscount(0.0, false);
+    
+    // Refresh inventory, doctors, and customers
+    ref.read(billingInventoryProvider.notifier).loadInventory();
+    _fetchDoctors();
+    _fetchCustomers();
   }
 
   void _addToCart(Map<String, dynamic> item) {
@@ -1557,7 +1573,7 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final inventoryState = ref.watch(inventoryProvider);
+    final inventoryState = ref.watch(billingInventoryProvider);
     final allMedicines = inventoryState.when(
       data: (items) => items
           .map(
@@ -1568,11 +1584,13 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
               'pack': item.sku,
               'mrp': item.unitPrice,
               'stock': item.stockQuantity,
-              'batch': item.batchNumber,
-              'hsn': item.hsnCode ?? '-',
-              'expiry': item.expiryDate,
+              'batch_number': item.batchNumber,
+              'hsn_code': item.hsnCode ?? '-',
+              'expiry_date': item.expiryDate,
               'cgst': (item.gst ?? 0.0) / 2,
               'sgst': (item.gst ?? 0.0) / 2,
+              'category_id': item.categoryId,
+              'rack_id': item.rackId,
             },
           )
           .toList(),
@@ -1603,95 +1621,68 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
               color: Colors.white,
               border: Border(bottom: BorderSide(color: Color(0xFFE2E8F0))),
             ),
-            child: Wrap(
-              alignment: WrapAlignment.spaceBetween,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              spacing: 16,
-              runSpacing: 16,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: const BoxDecoration(
-                        color: Color(0xFF22C55E),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.receipt_long,
-                        color: Colors.white,
-                        size: 24,
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Flexible(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'New Bill',
-                            style: TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.w900,
-                              color: Color(0xFF1E293B),
-                            ),
-                          ),
-                          const Text(
-                            'Create a new invoice, search medicines and add to cart',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Color(0xFF64748B),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF1F8F5),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: const Color(0xFF22C55E).withValues(alpha: 0.3),
-                    ),
-                  ),
+                Expanded(
                   child: Row(
-                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Icon(
-                        Icons.calendar_today,
-                        color: Color(0xFF166534),
-                        size: 16,
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: const BoxDecoration(
+                          color: Color(0xFF22C55E),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.receipt_long,
+                          color: Colors.white,
+                          size: 24,
+                        ),
                       ),
-                      const SizedBox(width: 8),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            _formatDate(_currentTime),
-                            style: const TextStyle(
-                              color: Color(0xFF166534),
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'New Bill',
+                              style: TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.w900,
+                                color: Color(0xFF1E293B),
+                              ),
                             ),
-                          ),
-                          Text(
-                            _formatTime(_currentTime),
-                            style: const TextStyle(
-                              color: Color(0xFF64748B),
-                              fontSize: 10,
+                            const Text(
+                              'Create a new invoice, search medicines and add to cart',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Color(0xFF64748B),
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ],
                   ),
+                ),
+                const SizedBox(width: 16),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      onPressed: () {
+                        ref.read(billingInventoryProvider.notifier).loadInventory();
+                        _fetchDoctors();
+                        _fetchCustomers();
+                      },
+                      icon: const Icon(
+                        Icons.refresh,
+                        color: Color(0xFF64748B),
+                      ),
+                      tooltip: 'Refresh',
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -1721,14 +1712,17 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                       onCategorySelected: (index) {
                         ref.read(billingProvider.notifier).updateCategory(index);
                       },
-                      hasMore: ref.read(inventoryProvider.notifier).hasMore,
+                      hasMore: ref.read(billingInventoryProvider.notifier).hasMore,
                       onLoadMore: () {
-                        ref.read(inventoryProvider.notifier).loadMore();
+                        ref.read(billingInventoryProvider.notifier).loadMore();
                       },
                       onSearch: (q) {
-                        ref
-                            .read(inventoryProvider.notifier)
-                            .loadInventory(searchQuery: q);
+                        if (_searchDebounce?.isActive ?? false) _searchDebounce!.cancel();
+                        _searchDebounce = Timer(const Duration(milliseconds: 500), () {
+                          ref
+                              .read(billingInventoryProvider.notifier)
+                              .loadInventory(searchQuery: q);
+                        });
                       },
                     ),
                     loading: () => const Center(
@@ -1744,7 +1738,7 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                           ),
                           const SizedBox(height: 16),
                           ElevatedButton(
-                            onPressed: () => ref.read(inventoryProvider.notifier).loadInventory(),
+                            onPressed: () => ref.read(billingInventoryProvider.notifier).loadInventory(),
                             child: const Text('Retry'),
                           ),
                         ],

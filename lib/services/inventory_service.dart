@@ -17,6 +17,10 @@ class InventoryItem {
   final int? lowStockThreshold;
   final String? imageUrl;
   final double? gst;
+  final double? discount;
+  final String? rackId;
+  final String? categoryId;
+  final String? distributor;
   final String? createdAt;
   final String? updatedAt;
 
@@ -34,6 +38,10 @@ class InventoryItem {
     this.lowStockThreshold,
     this.imageUrl,
     this.gst,
+    this.discount,
+    this.rackId,
+    this.categoryId,
+    this.distributor,
     this.createdAt,
     this.updatedAt,
   });
@@ -55,6 +63,10 @@ class InventoryItem {
           : null,
       imageUrl: json['image_url'],
       gst: json['gst'] != null ? (json['gst'] as num).toDouble() : 0.0,
+      discount: json['discount'] != null ? (json['discount'] as num).toDouble() : 0.0,
+      rackId: json['rack_id'],
+      categoryId: json['category_id'],
+      distributor: json['distributor'],
       createdAt: json['created_at'],
       updatedAt: json['updated_at'],
     );
@@ -73,6 +85,10 @@ class InventoryItem {
       'hsn_code': hsnCode,
       'expiry_date': expiryDate,
       'gst': gst,
+      'discount': discount,
+      'rack_id': rackId,
+      'category_id': categoryId,
+      'distributor': distributor,
       'created_at': createdAt,
       'updated_at': updatedAt,
     };

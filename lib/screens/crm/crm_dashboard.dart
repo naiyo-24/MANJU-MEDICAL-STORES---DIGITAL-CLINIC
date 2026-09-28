@@ -13,13 +13,18 @@ class CrmDashboard extends StatefulWidget {
 
 class _CrmDashboardState extends State<CrmDashboard> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  bool _isSidebarExpanded = true;
 
   void _onNavigationItemSelected(int index) {
     widget.navigationShell.goBranch(
       index,
       initialLocation: index == widget.navigationShell.currentIndex,
     );
-    if (!Responsive.isDesktop(context)) {
+    if (Responsive.isDesktop(context)) {
+      setState(() {
+        _isSidebarExpanded = false;
+      });
+    } else {
       Navigator.pop(context); // Close drawer
     }
   }
@@ -53,8 +58,9 @@ class _CrmDashboardState extends State<CrmDashboard> {
   }
 
   Widget _buildSidebar() {
-    return Container(
-      width: 260,
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      width: _isSidebarExpanded ? 260 : 80,
       decoration: const BoxDecoration(
         color: Colors.white,
         border: Border(right: BorderSide(color: Color(0xFFE2E8F0))),
@@ -103,25 +109,41 @@ class _CrmDashboardState extends State<CrmDashboard> {
           ),
           const SizedBox(height: 8),
 
-          InkWell(
-            onTap: () => context.go('/dashboard'),
-            borderRadius: BorderRadius.circular(12),
-            child: Container(
-              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: Row(
-                children: const [
-                  Icon(Icons.logout, color: Colors.red, size: 20),
-                  SizedBox(width: 12),
-                  Text(
-                    'Logout',
-                    style: TextStyle(
-                      color: Colors.red,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
+          Tooltip(
+            message: _isSidebarExpanded ? '' : 'Logout',
+            child: InkWell(
+              onTap: () => context.go('/dashboard'),
+              borderRadius: BorderRadius.circular(12),
+              child: Container(
+                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                padding: EdgeInsets.symmetric(horizontal: _isSidebarExpanded ? 16 : 0, vertical: 12),
+                child: AnimatedCrossFade(
+                  duration: const Duration(milliseconds: 200),
+                  crossFadeState: _isSidebarExpanded ? CrossFadeState.showFirst : CrossFadeState.showSecond,
+                  alignment: Alignment.centerLeft,
+                  firstChild: const SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    physics: NeverScrollableScrollPhysics(),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        Icon(Icons.logout, color: Colors.red, size: 20),
+                        SizedBox(width: 12),
+                        Text(
+                          'Logout',
+                          style: TextStyle(
+                            color: Colors.red,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ],
+                  secondChild: const Center(
+                    child: Icon(Icons.logout, color: Colors.red, size: 20),
+                  ),
+                ),
               ),
             ),
           ),
@@ -133,18 +155,23 @@ class _CrmDashboardState extends State<CrmDashboard> {
 
   Widget _buildNavItem(int index, IconData icon, String title) {
     final isSelected = widget.navigationShell.currentIndex == index;
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      child: InkWell(
-        onTap: () => _onNavigationItemSelected(index),
+    
+    Widget content = Container(
+      width: _isSidebarExpanded ? 228 : 48, // Fix width to prevent flex overflow during animation
+      padding: EdgeInsets.symmetric(horizontal: _isSidebarExpanded ? 16 : 0, vertical: 12),
+      decoration: BoxDecoration(
+        color: isSelected ? const Color(0xFF8B5CF6) : Colors.transparent,
         borderRadius: BorderRadius.circular(12),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: BoxDecoration(
-            color: isSelected ? const Color(0xFF8B5CF6) : Colors.transparent,
-            borderRadius: BorderRadius.circular(12),
-          ),
+      ),
+      child: AnimatedCrossFade(
+        duration: const Duration(milliseconds: 200),
+        crossFadeState: _isSidebarExpanded ? CrossFadeState.showFirst : CrossFadeState.showSecond,
+        alignment: Alignment.centerLeft,
+        firstChild: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          physics: const NeverScrollableScrollPhysics(),
           child: Row(
+            mainAxisAlignment: MainAxisAlignment.start,
             children: [
               Icon(
                 icon,
@@ -152,7 +179,8 @@ class _CrmDashboardState extends State<CrmDashboard> {
                 color: isSelected ? Colors.white : const Color(0xFF64748B),
               ),
               const SizedBox(width: 12),
-              Expanded(
+              SizedBox(
+                width: 140, // Fixed width instead of Expanded
                 child: Text(
                   title,
                   style: TextStyle(
@@ -165,6 +193,26 @@ class _CrmDashboardState extends State<CrmDashboard> {
             ],
           ),
         ),
+        secondChild: Center(
+          child: Icon(
+            icon,
+            size: 20,
+            color: isSelected ? Colors.white : const Color(0xFF64748B),
+          ),
+        ),
+      ),
+    );
+
+    if (!_isSidebarExpanded) {
+      content = Tooltip(message: title, child: content);
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      child: InkWell(
+        onTap: () => _onNavigationItemSelected(index),
+        borderRadius: BorderRadius.circular(12),
+        child: content,
       ),
     );
   }
@@ -179,13 +227,19 @@ class _CrmDashboardState extends State<CrmDashboard> {
       ),
       child: Row(
         children: [
-          if (!isDesktop) ...[
-            IconButton(
-              icon: const Icon(Icons.menu),
-              onPressed: () => _scaffoldKey.currentState?.openDrawer(),
-            ),
-            const SizedBox(width: 16),
-          ],
+          IconButton(
+            icon: const Icon(Icons.menu),
+            onPressed: () {
+              if (isDesktop) {
+                setState(() {
+                  _isSidebarExpanded = !_isSidebarExpanded;
+                });
+              } else {
+                _scaffoldKey.currentState?.openDrawer();
+              }
+            },
+          ),
+          const SizedBox(width: 16),
           // Logo & Brand
           Row(
             children: [

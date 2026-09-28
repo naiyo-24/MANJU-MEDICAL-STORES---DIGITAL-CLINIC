@@ -634,50 +634,55 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               // Header
-              Wrap(
-                alignment: WrapAlignment.spaceBetween,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                spacing: 16,
-                runSpacing: 16,
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF22C55E),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const Icon(
-                          Icons.history,
-                          color: Colors.white,
-                          size: 24,
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      const Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'History',
-                            style: TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF1E293B),
-                            ),
+                  Expanded(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF22C55E),
+                            borderRadius: BorderRadius.circular(12),
                           ),
-                          Text(
-                            'View all transactions, activities and records',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Color(0xFF64748B),
-                            ),
+                          child: const Icon(
+                            Icons.history,
+                            color: Colors.white,
+                            size: 24,
                           ),
-                        ],
-                      ),
-                    ],
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'History',
+                                style: TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF1E293B),
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              const Text(
+                                'View all transactions, activities and records',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Color(0xFF64748B),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
+                  const SizedBox(width: 16),
                   Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       IconButton(
                         onPressed: () =>

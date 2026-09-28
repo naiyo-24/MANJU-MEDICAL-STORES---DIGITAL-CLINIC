@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../providers/billing_provider.dart';
+import '../../../../providers/counter_providers.dart';
 import 'billing_dialogs.dart';
 
 class BillingLeftPanel extends ConsumerWidget {
@@ -70,6 +71,12 @@ class BillingLeftPanel extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final racksAsync = ref.watch(rackProvider);
+    final racks = racksAsync.value ?? [];
+    
+    final categoriesAsync = ref.watch(categoryProvider);
+    final allCategories = categoriesAsync.value ?? [];
+
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -205,10 +212,10 @@ class BillingLeftPanel extends ConsumerWidget {
                   scrollDirection: Axis.horizontal,
                   child: ConstrainedBox(
                     constraints: BoxConstraints(
-                      minWidth: 800,
-                      maxWidth: tableConstraints.maxWidth > 800
+                      minWidth: 1400,
+                      maxWidth: tableConstraints.maxWidth > 1400
                           ? tableConstraints.maxWidth
-                          : 800,
+                          : 1400,
                     ),
                     child: Column(
                       children: [
@@ -247,6 +254,61 @@ class BillingLeftPanel extends ConsumerWidget {
                                 flex: 2,
                                 child: Text(
                                   'SKU / Barcode',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF475569),
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                flex: 2,
+                                child: Text(
+                                  'Batch No',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF475569),
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                flex: 2,
+                                child: Text(
+                                  'Expiry',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF475569),
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                flex: 1,
+                                child: Text(
+                                  'HSN',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF475569),
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                flex: 2,
+                                child: Text(
+                                  'Category',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF475569),
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                flex: 2,
+                                child: Text(
+                                  'Rack',
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                     color: Color(0xFF475569),
@@ -331,6 +393,19 @@ class BillingLeftPanel extends ConsumerWidget {
                                 return const SizedBox.shrink();
                               }
                               final item = filteredMedicines[index];
+                              
+                              String categoryName = '-';
+                              if (item['category_id'] != null) {
+                                final cat = allCategories.where((c) => c.id == item['category_id']).firstOrNull;
+                                categoryName = cat?.name ?? '-';
+                              }
+                              
+                              String rackName = '-';
+                              if (item['rack_id'] != null) {
+                                final rack = racks.where((r) => r.id == item['rack_id']).firstOrNull;
+                                rackName = rack?.rackNumber ?? '-';
+                              }
+                              
                               return Padding(
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 16,
@@ -341,7 +416,7 @@ class BillingLeftPanel extends ConsumerWidget {
                                     Expanded(
                                       flex: 3,
                                       child: Text(
-                                        item['name'],
+                                        item['name'] ?? '',
                                         style: const TextStyle(
                                           fontWeight: FontWeight.bold,
                                           color: Color(0xFF1E293B),
@@ -352,7 +427,7 @@ class BillingLeftPanel extends ConsumerWidget {
                                     Expanded(
                                       flex: 2,
                                       child: Text(
-                                        item['brand'],
+                                        item['brand'] ?? item['manufacturer'] ?? '',
                                         style: const TextStyle(
                                           color: Color(0xFF1E293B),
                                           fontSize: 12,
@@ -362,7 +437,7 @@ class BillingLeftPanel extends ConsumerWidget {
                                     Expanded(
                                       flex: 2,
                                       child: Text(
-                                        item['pack'],
+                                        item['pack'] ?? item['sku'] ?? '',
                                         style: const TextStyle(
                                           color: Color(0xFF64748B),
                                           fontSize: 12,
@@ -372,7 +447,57 @@ class BillingLeftPanel extends ConsumerWidget {
                                     Expanded(
                                       flex: 2,
                                       child: Text(
-                                        item['mrp'].toStringAsFixed(2),
+                                        item['batch_number'] ?? '',
+                                        style: const TextStyle(
+                                          color: Color(0xFF64748B),
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ),
+                                    Expanded(
+                                      flex: 2,
+                                      child: Text(
+                                        item['expiry_date'] ?? '',
+                                        style: const TextStyle(
+                                          color: Color(0xFF64748B),
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ),
+                                    Expanded(
+                                      flex: 1,
+                                      child: Text(
+                                        item['hsn_code'] ?? '-',
+                                        style: const TextStyle(
+                                          color: Color(0xFF64748B),
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ),
+                                    Expanded(
+                                      flex: 2,
+                                      child: Text(
+                                        categoryName,
+                                        style: const TextStyle(
+                                          color: Color(0xFF64748B),
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ),
+                                    Expanded(
+                                      flex: 2,
+                                      child: Text(
+                                        rackName,
+                                        style: const TextStyle(
+                                          color: Color(0xFF64748B),
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ),
+                                    Expanded(
+                                      flex: 2,
+                                      child: Text(
+                                        (item['mrp'] ?? 0).toStringAsFixed(2),
                                         style: const TextStyle(
                                           color: Color(0xFF1E293B),
                                           fontSize: 12,

@@ -50,9 +50,10 @@ class AccountModel {
 }
 
 class AccountService {
-  static Future<AccountSummaryModel> getSummary() async {
+  static Future<AccountSummaryModel> getSummary({String? shopId}) async {
     try {
-      final response = await ApiClient().dio.get('/api/accounts/summary');
+      final queryParams = shopId != null ? {'shop_id': shopId} : null;
+      final response = await ApiClient().dio.get('/api/accounts/summary', queryParameters: queryParams);
 
       if (response.statusCode == 200) {
         return AccountSummaryModel.fromJson(response.data);

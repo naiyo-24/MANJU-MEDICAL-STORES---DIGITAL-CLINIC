@@ -63,6 +63,47 @@ class _ShopManagementScreenState extends ConsumerState<ShopManagementScreen> {
     return filtered;
   }
 
+  void _showDeleteDialog(BuildContext context, Map<String, dynamic> shop) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Colors.white,
+        title: const Text('Delete Shop'),
+        content: Text('Are you sure you want to delete ${shop['name']}?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel', style: TextStyle(color: Color(0xFF64748B))),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              try {
+                await ref.read(shopProvider.notifier).deleteShop(shop['id']);
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Shop deleted successfully')),
+                  );
+                }
+              } catch (e) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Failed to delete shop: $e')),
+                  );
+                }
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _showAddEditDialog({Map<String, dynamic>? shop}) {
     final isEditing = shop != null;
     final nameController = TextEditingController(
@@ -1276,10 +1317,14 @@ class _ShopManagementScreenState extends ConsumerState<ShopManagementScreen> {
                                                   borderRadius:
                                                       BorderRadius.circular(6),
                                                 ),
-                                                child: const Icon(
-                                                  Icons.more_vert,
-                                                  size: 16,
-                                                  color: Color(0xFF64748B),
+                                                child: IconButton(
+                                                  padding: EdgeInsets.zero,
+                                                  icon: const Icon(
+                                                    Icons.delete_outline,
+                                                    size: 16,
+                                                    color: Colors.red,
+                                                  ),
+                                                  onPressed: () => _showDeleteDialog(context, shop),
                                                 ),
                                               ),
                                             ],

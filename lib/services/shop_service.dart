@@ -99,4 +99,17 @@ class ShopService {
       throw Exception('Error creating shop: $e');
     }
   }
+
+  static Future<void> deleteShop(String id) async {
+    try {
+      final response = await ApiClient().dio.delete('/api/admin/shop/$id');
+      if (response.statusCode != 200 && response.statusCode != 204) {
+        throw Exception('Failed to delete shop');
+      }
+    } on DioException catch (e) {
+      throw Exception(e.response?.data['detail'] ?? 'Failed to delete shop');
+    } catch (e) {
+      throw Exception('Error deleting shop: $e');
+    }
+  }
 }

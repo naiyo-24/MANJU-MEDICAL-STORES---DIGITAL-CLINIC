@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import '../services/transaction_service.dart';
 import '../services/account_service.dart';
 import '../services/accounting_extended_service.dart';
+import '../providers/counter_providers.dart';
 
 class AccountsState {
   final List<TransactionModel> transactions;
@@ -52,7 +53,8 @@ class AccountsState {
 class AccountsNotifier extends AsyncNotifier<AccountsState> {
   @override
   Future<AccountsState> build() async {
-    return _fetchData();
+    final shopId = ref.watch(selectedShopIdProvider);
+    return _fetchData(shopId: shopId);
   }
 
   Future<void> loadTransactions({
@@ -61,9 +63,11 @@ class AccountsNotifier extends AsyncNotifier<AccountsState> {
     String selectedCategory = 'All Categories',
     String searchQuery = '',
   }) async {
+    final shopId = ref.read(selectedShopIdProvider);
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(
       () => _fetchData(
+        shopId: shopId,
         selectedPeriod: selectedPeriod,
         selectedType: selectedType,
         selectedCategory: selectedCategory,
@@ -73,12 +77,13 @@ class AccountsNotifier extends AsyncNotifier<AccountsState> {
   }
 
   Future<AccountsState> _fetchData({
+    String? shopId,
     String selectedPeriod = 'All Time',
     String selectedType = 'All Types',
     String selectedCategory = 'All Categories',
     String searchQuery = '',
   }) async {
-    final allTxns = await TransactionService.getTransactions();
+    final allTxns = await TransactionService.getTransactions(shopId: shopId);
 
     // Dynamically build category list from all transactions
     final Set<String> catSet = {};
@@ -185,7 +190,7 @@ class AccountsNotifier extends AsyncNotifier<AccountsState> {
       }
     }
 
-    final summary = await AccountService.getSummary();
+    final summary = await AccountService.getSummary(shopId: shopId);
     final receivablesData = await AccountingExtendedService.getReceivables();
     final totalReceivables =
         receivablesData['total_receivables']?.toDouble() ?? 0.0;
