@@ -16,6 +16,7 @@ class BillingLeftPanel extends ConsumerWidget {
   final Function(String) onSearch;
   final bool hasMore;
   final VoidCallback onLoadMore;
+  final TextEditingController searchController;
 
   const BillingLeftPanel({
     super.key,
@@ -29,6 +30,7 @@ class BillingLeftPanel extends ConsumerWidget {
     required this.onSearch,
     required this.hasMore,
     required this.onLoadMore,
+    required this.searchController,
   });
 
   Widget _buildFilterChip(String label, int index) {
@@ -108,6 +110,7 @@ class BillingLeftPanel extends ConsumerWidget {
                         const SizedBox(width: 8),
                         Expanded(
                           child: TextField(
+                            controller: searchController,
                             onChanged: onSearch,
                             decoration: const InputDecoration(
                               border: InputBorder.none,

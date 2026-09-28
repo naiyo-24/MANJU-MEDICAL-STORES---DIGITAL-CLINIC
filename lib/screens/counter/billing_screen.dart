@@ -56,6 +56,7 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
   final TextEditingController _customerLocationController =
       TextEditingController();
 
+  final TextEditingController _medicineSearchController = TextEditingController();
 
   final TextEditingController _newDoctorController = TextEditingController();
 
@@ -103,6 +104,7 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
     _customerSearchFocusNode.dispose();
     _customerPhoneController.dispose();
     _customerLocationController.dispose();
+    _medicineSearchController.dispose();
 
     _newDoctorController.dispose();
     _timer?.cancel();
@@ -1716,6 +1718,7 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                       onLoadMore: () {
                         ref.read(billingInventoryProvider.notifier).loadMore();
                       },
+                      searchController: _medicineSearchController,
                       onSearch: (q) {
                         if (_searchDebounce?.isActive ?? false) _searchDebounce!.cancel();
                         _searchDebounce = Timer(const Duration(milliseconds: 500), () {

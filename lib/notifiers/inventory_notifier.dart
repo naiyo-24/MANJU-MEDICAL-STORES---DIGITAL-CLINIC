@@ -28,7 +28,7 @@ class InventoryNotifier extends AsyncNotifier<List<InventoryItem>> {
     _lastStartDate = startDate;
     _lastEndDate = endDate;
 
-    state = const AsyncValue.loading();
+    // Removed state = const AsyncValue.loading(); to prevent UI unmounting during search
     state = await AsyncValue.guard(
       () => _fetchInventory(
         searchQuery: searchQuery,
