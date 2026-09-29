@@ -222,8 +222,8 @@ class DashboardScreen extends StatelessWidget {
                             children: [
                               Image.asset(
                                 'assets/LOGO.png',
-                                height: 80,
-                                cacheHeight: 250,
+                                height: 95,
+                                cacheHeight: 285,
                                 fit: BoxFit.contain,
                                 errorBuilder: (context, error, stackTrace) =>
                                     const Icon(

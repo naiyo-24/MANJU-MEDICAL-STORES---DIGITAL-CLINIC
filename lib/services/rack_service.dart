@@ -15,9 +15,9 @@ class Rack {
 
   factory Rack.fromJson(Map<String, dynamic> json) {
     return Rack(
-      id: json['id'],
-      rackNumber: json['rack_number'],
-      details: json['details'],
+      id: json['id'].toString(),
+      rackNumber: json['rack_number'].toString(),
+      details: json['details']?.toString(),
     );
   }
 }
@@ -26,14 +26,23 @@ class RackService {
   static Future<List<Rack>> getRacks() async {
     try {
       final shopId = await InventoryService.getShopId();
-      final response = await ApiClient().dio.get('/api/admin/racks/shop/$shopId');
+      final response = await ApiClient().dio.get('/api/admin/racks/$shopId');
       
       if (response.statusCode == 200) {
-        final List<dynamic> data = response.data;
-        return data.map((json) => Rack.fromJson(json)).toList();
+        dynamic data = response.data;
+        if (data is Map) {
+          data = data['racks'] ?? data['items'] ?? data['data'] ?? data.values.first;
+        }
+        if (data is List) {
+          return data.map((json) => Rack.fromJson(json)).toList();
+        }
+        return [];
       }
       throw Exception('Failed to load racks');
     } catch (e) {
+      if (e is DioException) {
+        throw Exception('DioError ${e.response?.statusCode} on ${e.requestOptions.path}: $e');
+      }
       throw Exception('Error loading racks: $e');
     }
   }

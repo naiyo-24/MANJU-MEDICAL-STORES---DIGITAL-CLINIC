@@ -11,7 +11,8 @@ class RackNotifier extends AsyncNotifier<List<Rack>> {
   Future<List<Rack>> _fetchRacks() async {
     try {
       return await RackService.getRacks();
-    } catch (e) {
+    } catch (e, st) {
+      print('RackNotifier Error: $e\n$st');
       return [];
     }
   }

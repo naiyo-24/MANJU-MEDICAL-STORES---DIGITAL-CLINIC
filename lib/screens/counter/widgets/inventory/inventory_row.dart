@@ -6,12 +6,16 @@ import 'status_badge.dart';
 
 class InventoryRowWidget extends StatelessWidget {
   final InventoryItem medicine;
+  final String rackName;
+  final VoidCallback onTap;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
 
   const InventoryRowWidget({
     super.key,
     required this.medicine,
+    required this.rackName,
+    required this.onTap,
     required this.onEdit,
     required this.onDelete,
   });
@@ -24,11 +28,14 @@ class InventoryRowWidget extends StatelessWidget {
               ? 'Low Stock'
               : (medicine.stockQuantity <= 50 ? 'Medium Stock' : 'OK'));
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-      child: Row(
-        children: [
-          Expanded(
+    return InkWell(
+      onTap: onTap,
+      hoverColor: const Color(0xFFF1F5F9),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+        child: Row(
+          children: [
+            Expanded(
             flex: 3,
             child: Row(
               children: [
@@ -38,7 +45,7 @@ class InventoryRowWidget extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: const Color(0xFFF1F5F9),
                     borderRadius: BorderRadius.circular(8),
-                    image: medicine.imageUrl != null
+                    image: (medicine.imageUrl != null && medicine.imageUrl!.isNotEmpty)
                         ? DecorationImage(
                             image: NetworkImage(
                               '${ApiConstants.baseUrl}${medicine.imageUrl}',
@@ -47,7 +54,7 @@ class InventoryRowWidget extends StatelessWidget {
                           )
                         : null,
                   ),
-                  child: medicine.imageUrl == null
+                  child: (medicine.imageUrl == null || medicine.imageUrl!.isEmpty)
                       ? const Icon(
                           Icons.medication,
                           color: Color(0xFF94A3B8),
@@ -89,7 +96,7 @@ class InventoryRowWidget extends StatelessWidget {
             ),
           ),
           Expanded(
-            flex: 2,
+            flex: 1,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.center,
@@ -135,7 +142,24 @@ class InventoryRowWidget extends StatelessWidget {
             ),
           ),
           Expanded(
-            flex: 2,
+            flex: 1,
+            child: Text(
+              rackName,
+              style: const TextStyle(color: Color(0xFF64748B), fontSize: 12),
+            ),
+          ),
+          Expanded(
+            flex: 1,
+            child: Text(
+              '₹${medicine.buyingPrice?.toStringAsFixed(2) ?? '0.00'}',
+              style: const TextStyle(
+                color: Color(0xFF64748B),
+                fontSize: 12,
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 1,
             child: Text(
               '₹${medicine.unitPrice.toStringAsFixed(2)}',
               style: const TextStyle(
@@ -155,14 +179,21 @@ class InventoryRowWidget extends StatelessWidget {
             ),
           ),
           Expanded(
-            flex: 2,
+            flex: 1,
+            child: Text(
+              medicine.distributor ?? '-',
+              style: const TextStyle(color: Color(0xFF64748B), fontSize: 12),
+            ),
+          ),
+          Expanded(
+            flex: 1,
             child: Text(
               medicine.expiryDate,
               style: const TextStyle(color: Color(0xFF64748B), fontSize: 12),
             ),
           ),
           Expanded(
-            flex: 2,
+            flex: 1,
             child: Align(
               alignment: Alignment.centerLeft,
               child: StatusBadge(status: status),
@@ -208,6 +239,7 @@ class InventoryRowWidget extends StatelessWidget {
             ),
           ),
         ],
+      ),
       ),
     );
   }

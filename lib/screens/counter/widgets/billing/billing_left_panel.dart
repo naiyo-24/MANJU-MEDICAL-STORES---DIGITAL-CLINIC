@@ -111,7 +111,7 @@ class BillingLeftPanel extends ConsumerWidget {
                         Expanded(
                           child: TextField(
                             controller: searchController,
-                            onChanged: onSearch,
+                            onSubmitted: onSearch,
                             decoration: const InputDecoration(
                               border: InputBorder.none,
                               hintText:
@@ -130,33 +130,6 @@ class BillingLeftPanel extends ConsumerWidget {
                           size: 18,
                         ),
                       ],
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                OutlinedButton.icon(
-                  onPressed: () {
-                    BillingDialogs.showAddCustomItemDialog(context, (item) {
-                      ref.read(billingProvider.notifier).addItem(item);
-                    });
-                  },
-                  icon: const Icon(
-                    Icons.add,
-                    color: Color(0xFF22C55E),
-                    size: 16,
-                  ),
-                  label: const Text(
-                    'Add Custom Item',
-                    style: TextStyle(
-                      color: Color(0xFF166534),
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12,
-                    ),
-                  ),
-                  style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: Color(0xFF22C55E)),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
                     ),
                   ),
                 ),

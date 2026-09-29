@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 import '../../services/inventory_service.dart';
 import '../../services/export_service.dart';
 import 'widgets/inventory/inventory_row.dart';
+import '../../services/rack_service.dart';
+import '../../services/category_service.dart';
 import '../../widgets/custom_date_range_picker.dart';
 import 'package:intl/intl.dart';
 import '../../widgets/rack_dropdown.dart';
@@ -23,6 +25,50 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
   String _selectedDateFilter = 'All Time';
   DateTime? _startDate;
   DateTime? _endDate;
+
+  String _sortColumn = 'Added/Updated';
+  bool _sortAscending = false;
+
+  void _onSort(String column) {
+    setState(() {
+      if (_sortColumn == column) {
+        _sortAscending = !_sortAscending;
+      } else {
+        _sortColumn = column;
+        _sortAscending = true;
+      }
+    });
+  }
+
+  Widget _buildSortableHeader(String title, int flex) {
+    return Expanded(
+      flex: flex,
+      child: InkWell(
+        onTap: () => _onSort(title),
+        child: Row(
+          children: [
+            Text(
+              title,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF475569),
+                fontSize: 12,
+              ),
+            ),
+            const SizedBox(width: 4),
+            if (_sortColumn == title)
+              Icon(
+                _sortAscending ? Icons.arrow_upward : Icons.arrow_downward,
+                size: 14,
+                color: const Color(0xFF22C55E),
+              )
+            else
+              const Icon(Icons.unfold_more, size: 14, color: Colors.black26),
+          ],
+        ),
+      ),
+    );
+  }
 
   @override
   void initState() {
@@ -101,7 +147,30 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
 
   void _exportData(String format) async {
     final currentState = ref.read(inventoryProvider);
-    final data = currentState.value?.map((m) => m.toMap()).toList() ?? [];
+    final racks = ref.read(rackProvider).value ?? [];
+    final categories = ref.read(categoryProvider).value ?? [];
+    
+    final data = currentState.value?.map((m) {
+      final rackName = racks.firstWhere((r) => r.id == m.rackId, orElse: () => Rack(id: '', rackNumber: 'N/A')).rackNumber;
+      final categoryName = categories.firstWhere((c) => c.id == m.categoryId, orElse: () => Category(id: '', name: 'N/A')).name;
+      
+      return {
+        'Name': m.name,
+        'SKU': m.sku,
+        'Batch': m.batchNumber,
+        'Stock': m.stockQuantity,
+        'Price (₹)': m.unitPrice,
+        'Expiry': m.expiryDate,
+        'Rack': rackName,
+        'Category': categoryName,
+      };
+    }).toList() ?? [];
+
+    final selectedShopId = ref.read(selectedShopIdProvider);
+    final shops = ref.read(shopProvider).value ?? [];
+    final shop = shops.firstWhere((s) => s['id'].toString() == selectedShopId, orElse: () => {'name': 'MANJU MEDICAL STORES'});
+    final shopName = shop['name'] as String;
+
     final filename =
         'inventory_export_${DateFormat('yyyyMMdd').format(DateTime.now())}';
     try {
@@ -110,7 +179,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
       } else if (format == 'Excel') {
         await ExportService.exportToExcel(data, filename);
       } else if (format == 'PDF') {
-        await ExportService.exportToPDF(data, filename);
+        await ExportService.exportToPDF(data, filename, shopName);
       }
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -484,6 +553,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
     final inventoryAsync = ref.watch(inventoryProvider);
     final shopsAsync = ref.watch(shopProvider);
     final selectedShopId = ref.watch(selectedShopIdProvider);
+    final racks = ref.watch(rackProvider).value ?? [];
     return Container(
       color: const Color(0xFFF8FAFC),
       child: LayoutBuilder(
@@ -563,6 +633,8 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                                       if (newShopId != null && newShopId != selectedShopId) {
                                         ref.read(selectedShopIdProvider.notifier).updateShopId(newShopId);
                                         await InventoryService.setShopId(newShopId);
+                                        ref.invalidate(rackProvider);
+                                        ref.invalidate(categoryProvider);
                                         _fetchData(); // Refetch inventory for new shop
                                       }
                                     },
@@ -672,6 +744,87 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                                       .toList(),
                             ),
                           ),
+                        ),
+                        // Sort By Dropdown
+                        PopupMenuButton<String>(
+                          onSelected: (value) {
+                            final parts = value.split('|');
+                            setState(() {
+                              _sortColumn = parts[0];
+                              _sortAscending = parts[1] == 'asc';
+                            });
+                          },
+                          child: Container(
+                            height: 44,
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: const Color(0xFFE2E8F0),
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(
+                                  Icons.sort,
+                                  color: Color(0xFF64748B),
+                                  size: 18,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'Sort By',
+                                  style: const TextStyle(
+                                    color: Color(0xFF1E293B),
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          itemBuilder: (context) => [
+                            const PopupMenuItem(
+                              value: 'Medicine Name|asc',
+                              child: Text('Medicine Name (A-Z)'),
+                            ),
+                            const PopupMenuItem(
+                              value: 'Medicine Name|desc',
+                              child: Text('Medicine Name (Z-A)'),
+                            ),
+                            const PopupMenuItem(
+                              value: 'Added/Updated|desc',
+                              child: Text('Added/Updated (Newest First)'),
+                            ),
+                            const PopupMenuItem(
+                              value: 'Added/Updated|asc',
+                              child: Text('Added/Updated (Oldest First)'),
+                            ),
+                            const PopupMenuItem(
+                              value: 'Stock|asc',
+                              child: Text('Stock (Low to High)'),
+                            ),
+                            const PopupMenuItem(
+                              value: 'Stock|desc',
+                              child: Text('Stock (High to Low)'),
+                            ),
+                            const PopupMenuItem(
+                              value: 'Price (₹)|asc',
+                              child: Text('Price (Low to High)'),
+                            ),
+                            const PopupMenuItem(
+                              value: 'Price (₹)|desc',
+                              child: Text('Price (High to Low)'),
+                            ),
+                            const PopupMenuItem(
+                              value: 'Expiry Date|asc',
+                              child: Text('Expiry Date (Earliest First)'),
+                            ),
+                            const PopupMenuItem(
+                              value: 'Expiry Date|desc',
+                              child: Text('Expiry Date (Latest First)'),
+                            ),
+                          ],
                         ),
                         // Export Buttons
                         PopupMenuButton<String>(
@@ -801,85 +954,18 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                                           horizontal: 24,
                                           vertical: 16,
                                         ),
-                                        child: const Row(
+                                        child: Row(
                                           children: [
-                                            Expanded(
-                                              flex: 3,
-                                              child: Text(
-                                                'Medicine Name',
-                                                style: TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  color: Color(0xFF475569),
-                                                  fontSize: 12,
-                                                ),
-                                              ),
-                                            ),
-                                            Expanded(
-                                              flex: 2,
-                                              child: Text(
-                                                'Added/Updated',
-                                                style: TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  color: Color(0xFF475569),
-                                                  fontSize: 12,
-                                                ),
-                                              ),
-                                            ),
-                                            Expanded(
-                                              flex: 1,
-                                              child: Text(
-                                                'Stock',
-                                                style: TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  color: Color(0xFF475569),
-                                                  fontSize: 12,
-                                                ),
-                                              ),
-                                            ),
-                                            Expanded(
-                                              flex: 2,
-                                              child: Text(
-                                                'Price (₹)',
-                                                style: TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  color: Color(0xFF475569),
-                                                  fontSize: 12,
-                                                ),
-                                              ),
-                                            ),
-                                            Expanded(
-                                              flex: 1,
-                                              child: Text(
-                                                'GST (%)',
-                                                style: TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  color: Color(0xFF475569),
-                                                  fontSize: 12,
-                                                ),
-                                              ),
-                                            ),
-                                            Expanded(
-                                              flex: 2,
-                                              child: Text(
-                                                'Expiry Date',
-                                                style: TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  color: Color(0xFF475569),
-                                                  fontSize: 12,
-                                                ),
-                                              ),
-                                            ),
-                                            Expanded(
-                                              flex: 2,
-                                              child: Text(
-                                                'Status',
-                                                style: TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  color: Color(0xFF475569),
-                                                  fontSize: 12,
-                                                ),
-                                              ),
-                                            ),
+                                            _buildSortableHeader('Medicine Name', 3),
+                                            _buildSortableHeader('Added/Updated', 1),
+                                            _buildSortableHeader('Stock', 1),
+                                            _buildSortableHeader('Rack', 1),
+                                            _buildSortableHeader('Buying Price', 1),
+                                            _buildSortableHeader('Price (₹)', 1),
+                                            _buildSortableHeader('GST (%)', 1),
+                                            _buildSortableHeader('Distributor', 1),
+                                            _buildSortableHeader('Expiry Date', 1),
+                                            _buildSortableHeader('Status', 1),
                                             SizedBox(
                                               width: 40,
                                             ), // For action button
@@ -921,8 +1007,44 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                                                 ),
                                               );
                                             }
+
+                                            final sortedItems = List<InventoryItem>.from(medicines);
+                                            sortedItems.sort((a, b) {
+                                              int cmp = 0;
+                                              switch (_sortColumn) {
+                                                case 'Medicine Name':
+                                                  cmp = a.name.toLowerCase().compareTo(b.name.toLowerCase());
+                                                  break;
+                                                case 'Added/Updated':
+                                                  final aDate = a.createdAt ?? '';
+                                                  final bDate = b.createdAt ?? '';
+                                                  cmp = aDate.compareTo(bDate);
+                                                  break;
+                                                case 'Stock':
+                                                  cmp = a.stockQuantity.compareTo(b.stockQuantity);
+                                                  break;
+                                                case 'Price (₹)':
+                                                  cmp = a.unitPrice.compareTo(b.unitPrice);
+                                                  break;
+                                                case 'GST (%)':
+                                                  cmp = (a.gst ?? 0).compareTo(b.gst ?? 0);
+                                                  break;
+                                                case 'Expiry Date':
+                                                  cmp = a.expiryDate.compareTo(b.expiryDate);
+                                                  break;
+                                                case 'Status':
+                                                  final aLow = a.lowStockThreshold ?? 10;
+                                                  final bLow = b.lowStockThreshold ?? 10;
+                                                  final aStatus = a.stockQuantity == 0 ? 0 : (a.stockQuantity <= aLow ? 1 : 2);
+                                                  final bStatus = b.stockQuantity == 0 ? 0 : (b.stockQuantity <= bLow ? 1 : 2);
+                                                  cmp = aStatus.compareTo(bStatus);
+                                                  break;
+                                              }
+                                              return _sortAscending ? cmp : -cmp;
+                                            });
+
                                             return ListView.separated(
-                                              itemCount: medicines.length + 1,
+                                              itemCount: sortedItems.length + 1,
                                               separatorBuilder:
                                                   (context, index) =>
                                                       const Divider(
@@ -932,7 +1054,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                                                         ),
                                                       ),
                                               itemBuilder: (context, index) {
-                                                if (index == medicines.length) {
+                                                if (index == sortedItems.length) {
                                                   if (ref
                                                       .read(
                                                         inventoryProvider
@@ -962,11 +1084,17 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                                                   return const SizedBox.shrink();
                                                 }
 
-                                                final medicine =
-                                                    medicines[index];
+                                                final medicine = sortedItems[index];
+                                                final rackName = racks.firstWhere(
+                                                  (r) => r.id == medicine.rackId,
+                                                  orElse: () => Rack(id: '', rackNumber: '-'),
+                                                ).rackNumber;
+                                                
                                                 // Simple status logic based on stock
                                                 return InventoryRowWidget(
                                                   medicine: medicine,
+                                                  rackName: rackName,
+                                                  onTap: () => _showEditMedicineDialog(medicine),
                                                   onEdit: () =>
                                                       _showEditMedicineDialog(
                                                         medicine,

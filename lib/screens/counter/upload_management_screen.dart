@@ -342,15 +342,30 @@ class _UploadManagementScreenState
                     if (_isUploading)
                       const CircularProgressIndicator(color: Color(0xFF22C55E))
                     else
-                      ElevatedButton.icon(
-                        onPressed: _uploadExcel,
-                        icon: const Icon(Icons.upload_file, size: 18),
-                        label: const Text('Bulk Upload (Excel)'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF1E293B),
-                          foregroundColor: Colors.white,
-                          elevation: 0,
-                        ),
+                      Row(
+                        children: [
+                          ElevatedButton.icon(
+                            onPressed: _uploadExcel,
+                            icon: const Icon(Icons.upload_file, size: 18),
+                            label: const Text('Bulk Upload (Excel)'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF1E293B),
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Tooltip(
+                            message: 'Refresh Categories and Racks',
+                            child: IconButton(
+                              onPressed: () {
+                                ref.invalidate(categoryProvider);
+                                ref.invalidate(rackProvider);
+                              },
+                              icon: const Icon(Icons.refresh, color: Color(0xFF1E293B)),
+                            ),
+                          ),
+                        ],
                       ),
                   ],
                 ),

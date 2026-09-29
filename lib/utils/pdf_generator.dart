@@ -24,6 +24,7 @@ Future<Uint8List> generateBillIsolate(Map<String, dynamic> args) async {
     shopSettings: args['shopSettings'],
     logoBytes: args['logoBytes'],
     qrBytes: args['qrBytes'],
+    billingDate: args['billingDate'] != null ? DateTime.tryParse(args['billingDate'].toString()) : null,
   );
 }
 
@@ -54,6 +55,7 @@ class PdfGenerator {
     Map<String, dynamic>? shopSettings,
     Uint8List? logoBytes,
     Uint8List? qrBytes,
+    DateTime? billingDate,
   }) async {
     _cachedFont ??= await PdfGoogleFonts.robotoRegular();
     _cachedFontBold ??= await PdfGoogleFonts.robotoBold();
@@ -210,7 +212,7 @@ class PdfGenerator {
                       style: const pw.TextStyle(fontSize: 8),
                     ),
                     pw.Text(
-                      DateFormat('dd-MM-yyyy').format(DateTime.now()),
+                      DateFormat('dd-MM-yyyy').format(billingDate ?? DateTime.now()),
                       style: const pw.TextStyle(fontSize: 8),
                     ),
                   ],
@@ -487,7 +489,7 @@ class PdfGenerator {
                           ),
                         ),
                         pw.Text(
-                          'Date: ${DateFormat('dd-MM-yyyy HH:mm').format(DateTime.now())}',
+                          'Date: ${DateFormat('dd-MM-yyyy HH:mm').format(billingDate ?? DateTime.now())}',
                           style: pw.TextStyle(
                             fontSize: format == 'A4' ? 10 : 8,
                           ),

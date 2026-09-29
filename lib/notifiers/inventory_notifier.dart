@@ -8,6 +8,7 @@ class InventoryNotifier extends AsyncNotifier<List<InventoryItem>> {
   String? _lastSearchQuery;
   String? _lastStartDate;
   String? _lastEndDate;
+  String? _lastCategoryId;
   bool _hasMore = true;
 
   bool get hasMore => _hasMore;
@@ -21,12 +22,14 @@ class InventoryNotifier extends AsyncNotifier<List<InventoryItem>> {
     String? searchQuery,
     String? startDate,
     String? endDate,
+    String? categoryId,
   }) async {
     _currentSkip = 0;
     _hasMore = true;
     _lastSearchQuery = searchQuery;
     _lastStartDate = startDate;
     _lastEndDate = endDate;
+    _lastCategoryId = categoryId;
 
     // Removed state = const AsyncValue.loading(); to prevent UI unmounting during search
     state = await AsyncValue.guard(
@@ -34,6 +37,7 @@ class InventoryNotifier extends AsyncNotifier<List<InventoryItem>> {
         searchQuery: searchQuery,
         startDate: startDate,
         endDate: endDate,
+        categoryId: categoryId,
         skip: _currentSkip,
         limit: _limit,
       ),
@@ -52,6 +56,7 @@ class InventoryNotifier extends AsyncNotifier<List<InventoryItem>> {
       searchQuery: _lastSearchQuery,
       startDate: _lastStartDate,
       endDate: _lastEndDate,
+      categoryId: _lastCategoryId,
       skip: _currentSkip,
       limit: _limit,
     );
@@ -68,6 +73,7 @@ class InventoryNotifier extends AsyncNotifier<List<InventoryItem>> {
     String? searchQuery,
     String? startDate,
     String? endDate,
+    String? categoryId,
     int skip = 0,
     int limit = 100,
   }) async {
@@ -89,6 +95,7 @@ class InventoryNotifier extends AsyncNotifier<List<InventoryItem>> {
       searchQuery: searchQuery,
       startDate: startDate,
       endDate: endDate,
+      categoryId: categoryId,
       skip: skip,
       limit: limit,
     );

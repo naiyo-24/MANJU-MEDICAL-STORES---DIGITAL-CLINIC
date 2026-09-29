@@ -295,6 +295,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                         paymentMethod: bill.paymentMode,
                         shopSettings: shopSettings,
                         format: bill.format,
+                        billingDate: bill.createdAt,
                       );
                     },
                     allowSharing: true,

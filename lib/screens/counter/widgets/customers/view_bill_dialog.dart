@@ -63,6 +63,7 @@ void showViewBillDialog(BuildContext context, SavedBill bill, Map<String, dynami
                       paymentMethod: bill.paymentMode,
                       shopSettings: shopSettings,
                       format: bill.format,
+                      billingDate: bill.createdAt,
                     );
                   },
                   allowSharing: true,

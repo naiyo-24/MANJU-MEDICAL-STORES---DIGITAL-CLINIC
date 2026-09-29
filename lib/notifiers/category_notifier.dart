@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:dio/dio.dart';
 import '../services/category_service.dart';
 
 class CategoryNotifier extends AsyncNotifier<List<Category>> {
@@ -11,7 +12,8 @@ class CategoryNotifier extends AsyncNotifier<List<Category>> {
   Future<List<Category>> _fetchCategories() async {
     try {
       return await CategoryService.getCategories();
-    } catch (e) {
+    } catch (e, st) {
+      print('CategoryNotifier Error: $e\n$st');
       return [];
     }
   }

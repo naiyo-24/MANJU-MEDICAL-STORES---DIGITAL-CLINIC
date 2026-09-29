@@ -89,27 +89,33 @@ class _CategoryDropdownState extends ConsumerState<CategoryDropdown> {
       ),
       error: (error, stack) => const Text('Error loading categories'),
       data: (categories) {
+        final isValidValue = widget.selectedCategoryId == null || categories.any((c) => c.id == widget.selectedCategoryId);
+        final safeValue = isValidValue ? widget.selectedCategoryId : null;
 
-    return DropdownButtonFormField<String>(
-      isExpanded: true,
-      value: widget.selectedCategoryId,
-      decoration: InputDecoration(
-        labelText: 'Category',
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      ),
-      items: [
-        ...categories.map((cat) {
-          final displayText = cat.description != null && cat.description!.isNotEmpty
-              ? '${cat.name} (${cat.description})'
-              : cat.name;
-          return DropdownMenuItem(
-            value: cat.id,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Flexible(child: Text(displayText, overflow: TextOverflow.ellipsis)),
-                IconButton(
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            return DropdownButtonFormField<String>(
+              isExpanded: true,
+              value: safeValue,
+              decoration: InputDecoration(
+                labelText: 'Category',
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              ),
+              items: [
+                ...categories.map((cat) {
+                  final displayText = cat.description != null && cat.description!.isNotEmpty
+                      ? '${cat.name} (${cat.description})'
+                      : cat.name;
+                  return DropdownMenuItem(
+                    value: cat.id,
+                    child: SizedBox(
+                      width: constraints.maxWidth - 32, // account for inner padding
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(child: Text(displayText, overflow: TextOverflow.ellipsis)),
+                          IconButton(
                   icon: const Icon(Icons.delete_outline, color: Colors.red, size: 20),
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),
@@ -154,16 +160,20 @@ class _CategoryDropdownState extends ConsumerState<CategoryDropdown> {
                 ),
               ],
             ),
-          );
-        }),
+          ),
+        );
+      }),
         DropdownMenuItem(
           value: 'add_new',
-          child: Row(
-            children: const [
-              Icon(Icons.add, color: Color(0xFF22C55E)),
-              SizedBox(width: 8),
-              Text('Add New Category', style: TextStyle(color: Color(0xFF22C55E), fontWeight: FontWeight.bold)),
-            ],
+          child: SizedBox(
+            width: constraints.maxWidth - 32,
+            child: Row(
+              children: const [
+                Icon(Icons.add, color: Color(0xFF22C55E)),
+                SizedBox(width: 8),
+                Expanded(child: Text('Add New Category', overflow: TextOverflow.ellipsis, style: TextStyle(color: Color(0xFF22C55E), fontWeight: FontWeight.bold))),
+              ],
+            ),
           ),
         ),
       ],
@@ -186,7 +196,9 @@ class _CategoryDropdownState extends ConsumerState<CategoryDropdown> {
         }
       },
     );
-    },
-  );
+          },
+        );
+      },
+    );
   }
 }

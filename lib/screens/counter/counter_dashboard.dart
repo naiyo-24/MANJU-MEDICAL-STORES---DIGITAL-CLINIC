@@ -1,21 +1,25 @@
 import 'package:flutter/material.dart';
 import '../../utils/responsive.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:async';
+import '../../services/auth_service.dart';
+import '../../providers/counter_providers.dart';
 
-class CounterDashboard extends StatefulWidget {
+class CounterDashboard extends ConsumerStatefulWidget {
   final StatefulNavigationShell navigationShell;
   const CounterDashboard({super.key, required this.navigationShell});
 
   @override
-  State<CounterDashboard> createState() => _CounterDashboardState();
+  ConsumerState<CounterDashboard> createState() => _CounterDashboardState();
 }
 
-class _CounterDashboardState extends State<CounterDashboard> {
+class _CounterDashboardState extends ConsumerState<CounterDashboard> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   DateTime _currentTime = DateTime.now();
   Timer? _timer;
   bool _isSidebarExpanded = true;
+  Timer? _syncTimer;
 
   @override
   void initState() {
@@ -27,11 +31,21 @@ class _CounterDashboardState extends State<CounterDashboard> {
         });
       }
     });
+
+    // Real-time synchronization polling every 30 seconds
+    _syncTimer = Timer.periodic(const Duration(seconds: 30), (timer) {
+      if (mounted) {
+        ref.invalidate(inventoryProvider);
+        ref.invalidate(rackProvider);
+        ref.invalidate(categoryProvider);
+      }
+    });
   }
 
   @override
   void dispose() {
     _timer?.cancel();
+    _syncTimer?.cancel();
     super.dispose();
   }
 
@@ -170,7 +184,7 @@ class _CounterDashboardState extends State<CounterDashboard> {
 
   Widget _buildHeader(bool isDesktop) {
     return Container(
-      height: 70,
+      height: 85,
       padding: const EdgeInsets.symmetric(horizontal: 24),
       decoration: const BoxDecoration(
         color: Colors.white,
@@ -194,7 +208,7 @@ class _CounterDashboardState extends State<CounterDashboard> {
           // Logo & Brand
           Row(
             children: [
-              Image.asset('assets/LOGO.png', height: 40, cacheHeight: 120),
+              Image.asset('assets/LOGO.png', height: 75, fit: BoxFit.contain, cacheHeight: 225),
             ],
           ),
 
@@ -289,9 +303,16 @@ class _CounterDashboardState extends State<CounterDashboard> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    onSelected: (value) {
+                    onSelected: (value) async {
                       if (value == 'logout') {
-                        context.go('/dashboard');
+                        ref.invalidate(categoryProvider);
+                        ref.invalidate(rackProvider);
+                        ref.invalidate(inventoryProvider);
+                        ref.invalidate(billingInventoryProvider);
+                        await AuthService.logout();
+                        if (context.mounted) {
+                          context.go('/dashboard');
+                        }
                       }
                     },
                     itemBuilder: (context) => [
@@ -470,9 +491,16 @@ class _CounterDashboardState extends State<CounterDashboard> {
                   Tooltip(
                     message: _isSidebarExpanded ? '' : 'Logout',
                     child: InkWell(
-                      onTap: () {
-                        // Go back to the module selection screen
-                        context.go('/dashboard');
+                      onTap: () async {
+                        ref.invalidate(categoryProvider);
+                        ref.invalidate(rackProvider);
+                        ref.invalidate(inventoryProvider);
+                        ref.invalidate(billingInventoryProvider);
+                        await AuthService.logout();
+                        if (context.mounted) {
+                          // Go back to the module selection screen
+                          context.go('/dashboard');
+                        }
                       },
                       borderRadius: BorderRadius.circular(12),
                       child: Container(

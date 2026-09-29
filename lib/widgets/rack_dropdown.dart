@@ -89,27 +89,33 @@ class _RackDropdownState extends ConsumerState<RackDropdown> {
       ),
       error: (error, stack) => const Text('Error loading racks'),
       data: (racks) {
+        final isValidValue = widget.selectedRackId == null || racks.any((r) => r.id == widget.selectedRackId);
+        final safeValue = isValidValue ? widget.selectedRackId : null;
 
-    return DropdownButtonFormField<String>(
-      isExpanded: true,
-      value: widget.selectedRackId,
-      decoration: InputDecoration(
-        labelText: 'Rack / Location',
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      ),
-      items: [
-        ...racks.map((rack) {
-          final displayText = rack.details != null && rack.details!.isNotEmpty
-              ? '${rack.rackNumber} (${rack.details})'
-              : rack.rackNumber;
-          return DropdownMenuItem(
-            value: rack.id,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Flexible(child: Text(displayText, overflow: TextOverflow.ellipsis)),
-                IconButton(
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            return DropdownButtonFormField<String>(
+              isExpanded: true,
+              value: safeValue,
+              decoration: InputDecoration(
+                labelText: 'Rack / Location',
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              ),
+              items: [
+                ...racks.map((rack) {
+                  final displayText = rack.details != null && rack.details!.isNotEmpty
+                      ? '${rack.rackNumber} (${rack.details})'
+                      : rack.rackNumber;
+                  return DropdownMenuItem(
+                    value: rack.id,
+                    child: SizedBox(
+                      width: constraints.maxWidth - 32,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(child: Text(displayText, overflow: TextOverflow.ellipsis)),
+                          IconButton(
                   icon: const Icon(Icons.delete_outline, color: Colors.red, size: 20),
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),
@@ -154,16 +160,20 @@ class _RackDropdownState extends ConsumerState<RackDropdown> {
                 ),
               ],
             ),
-          );
-        }),
+          ),
+        );
+      }),
         DropdownMenuItem(
           value: 'add_new',
-          child: Row(
-            children: const [
-              Icon(Icons.add, color: Color(0xFF22C55E)),
-              SizedBox(width: 8),
-              Text('Add New Rack', style: TextStyle(color: Color(0xFF22C55E), fontWeight: FontWeight.bold)),
-            ],
+          child: SizedBox(
+            width: constraints.maxWidth - 32,
+            child: Row(
+              children: const [
+                Icon(Icons.add, color: Color(0xFF22C55E)),
+                SizedBox(width: 8),
+                Expanded(child: Text('Add New Rack', overflow: TextOverflow.ellipsis, style: TextStyle(color: Color(0xFF22C55E), fontWeight: FontWeight.bold))),
+              ],
+            ),
           ),
         ),
       ],
@@ -186,7 +196,9 @@ class _RackDropdownState extends ConsumerState<RackDropdown> {
         }
       },
     );
-    },
-  );
+          },
+        );
+      },
+    );
   }
 }

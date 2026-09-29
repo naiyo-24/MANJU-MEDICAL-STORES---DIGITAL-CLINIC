@@ -206,7 +206,7 @@ class _LabDashboardState extends State<LabDashboard> {
 
   Widget _buildHeader(bool isDesktop) {
     return Container(
-      height: 70,
+      height: 85,
       padding: const EdgeInsets.symmetric(horizontal: 24),
       decoration: const BoxDecoration(
         color: Colors.white,
@@ -230,7 +230,7 @@ class _LabDashboardState extends State<LabDashboard> {
           // Logo & Brand
           Row(
             children: [
-              Image.asset('assets/LOGO.png', height: 40, cacheHeight: 120),
+              Image.asset('assets/LOGO.png', height: 75, fit: BoxFit.contain, cacheHeight: 225),
             ],
           ),
 

@@ -134,6 +134,7 @@ class InventoryService {
     String? searchQuery,
     String? startDate,
     String? endDate,
+    String? categoryId,
     int skip = 0,
     int limit = 100,
   }) async {
@@ -147,6 +148,7 @@ class InventoryService {
           if (startDate != null && startDate.isNotEmpty)
             'start_date': startDate,
           if (endDate != null && endDate.isNotEmpty) 'end_date': endDate,
+          if (categoryId != null && categoryId.isNotEmpty) 'category_id': categoryId,
           'skip': skip,
           'limit': limit,
         },

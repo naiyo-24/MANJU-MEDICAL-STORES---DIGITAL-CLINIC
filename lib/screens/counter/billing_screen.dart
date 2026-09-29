@@ -33,15 +33,6 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
 
   // Modifiable Data for Current Bill
 
-  final List<String> _categories = [
-    'All',
-    'Tablets',
-    'Capsules',
-    'Syrups',
-    'Injections',
-    'Ointments',
-    'Others',
-  ];
   int _selectedCategoryIndex = 0;
 
   final TextEditingController _discountController = TextEditingController();
@@ -195,6 +186,7 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       name: _customerNameController.text,
       phone: _customerPhoneController.text,
+      location: _customerLocationController.text,
     );
 
     try {
@@ -203,6 +195,11 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
         setState(() {
           _savedCustomerId = savedCustomer.id;
         });
+        
+        // Update both local and global customer lists
+        ref.invalidate(customerProvider);
+        _fetchCustomers();
+        
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Customer saved to database successfully!'),
@@ -211,11 +208,28 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error saving customer: $e'),
-            backgroundColor: Colors.red,
-          ),
+        final errorMessage = e.toString().replaceAll('Exception: ', '');
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Row(
+                children: [
+                  Icon(Icons.error_outline, color: Colors.red),
+                  SizedBox(width: 8),
+                  Text('Error Saving Customer', style: TextStyle(color: Colors.red)),
+                ],
+              ),
+              content: Text(errorMessage),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('OK', style: TextStyle(color: Color(0xFF166534))),
+                ),
+              ],
+            );
+          },
         );
       }
     }
@@ -1600,15 +1614,11 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
       error: (err, stack) => <Map<String, dynamic>>[],
     );
 
-    List<Map<String, dynamic>> computedFilteredMedicines = allMedicines;
+    final categoryAsync = ref.watch(categoryProvider);
+    final backendCategories = categoryAsync.value ?? [];
+    final dynamicCategories = ['All', ...backendCategories.map((c) => c.name)];
 
-    int currentCatIndex = ref.watch(billingProvider).selectedCategoryIndex;
-    if (currentCatIndex != 0) {
-      String category = _categories[currentCatIndex];
-      computedFilteredMedicines = computedFilteredMedicines
-          .where((m) => m['category'] == category)
-          .toList();
-    }
+    List<Map<String, dynamic>> computedFilteredMedicines = allMedicines;
 
     // Removed local search filtering since we will fetch from backend
     return Container(
@@ -1706,13 +1716,23 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                       isDesktopWidth: isDesktopWidth,
                       hasEnoughHeight: hasEnoughHeight,
                       filteredMedicines: computedFilteredMedicines,
-                      categories: _categories,
+                      categories: dynamicCategories,
                       selectedCategoryIndex: ref
                           .watch(billingProvider)
                           .selectedCategoryIndex,
                       onAddToCart: _addToCart,
                       onCategorySelected: (index) {
                         ref.read(billingProvider.notifier).updateCategory(index);
+                        
+                        String? categoryId;
+                        if (index != 0 && index <= backendCategories.length) {
+                          categoryId = backendCategories[index - 1].id;
+                        }
+                        
+                        ref.read(billingInventoryProvider.notifier).loadInventory(
+                          searchQuery: _medicineSearchController.text,
+                          categoryId: categoryId,
+                        );
                       },
                       hasMore: ref.read(billingInventoryProvider.notifier).hasMore,
                       onLoadMore: () {
@@ -1720,12 +1740,9 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                       },
                       searchController: _medicineSearchController,
                       onSearch: (q) {
-                        if (_searchDebounce?.isActive ?? false) _searchDebounce!.cancel();
-                        _searchDebounce = Timer(const Duration(milliseconds: 500), () {
-                          ref
-                              .read(billingInventoryProvider.notifier)
-                              .loadInventory(searchQuery: q);
-                        });
+                        ref
+                            .read(billingInventoryProvider.notifier)
+                            .loadInventory(searchQuery: q);
                       },
                     ),
                     loading: () => const Center(

@@ -15,9 +15,9 @@ class Category {
 
   factory Category.fromJson(Map<String, dynamic> json) {
     return Category(
-      id: json['id'],
-      name: json['name'],
-      description: json['description'],
+      id: json['id'].toString(),
+      name: json['name'].toString(),
+      description: json['description']?.toString(),
     );
   }
 }
@@ -26,14 +26,23 @@ class CategoryService {
   static Future<List<Category>> getCategories() async {
     try {
       final shopId = await InventoryService.getShopId();
-      final response = await ApiClient().dio.get('/api/admin/categories/shop/$shopId');
+      final response = await ApiClient().dio.get('/api/admin/categories/$shopId');
       
       if (response.statusCode == 200) {
-        final List<dynamic> data = response.data;
-        return data.map((json) => Category.fromJson(json)).toList();
+        dynamic data = response.data;
+        if (data is Map) {
+          data = data['categories'] ?? data['items'] ?? data['data'] ?? data.values.first;
+        }
+        if (data is List) {
+          return data.map((json) => Category.fromJson(json)).toList();
+        }
+        return [];
       }
       throw Exception('Failed to load categories');
     } catch (e) {
+      if (e is DioException) {
+        throw Exception('DioError ${e.response?.statusCode} on ${e.requestOptions.path}: $e');
+      }
       throw Exception('Error loading categories: $e');
     }
   }

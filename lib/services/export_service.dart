@@ -65,8 +65,9 @@ class ExportService {
 
   static Future<void> exportToPDF(
     List<Map<String, dynamic>> data,
-    String filename,
-  ) async {
+    String filename, [
+    String shopName = 'Shop Directory Report',
+  ]) async {
     final pdf = pw.Document();
 
     if (data.isNotEmpty) {
@@ -83,7 +84,7 @@ class ExportService {
 
       pdf.addPage(
         pw.MultiPage(
-          pageFormat: PdfPageFormat.a4.landscape,
+          pageFormat: PdfPageFormat.a4.portrait,
           margin: const pw.EdgeInsets.all(32),
           header: (pw.Context context) {
             return pw.Column(
@@ -94,12 +95,14 @@ class ExportService {
                   children: [
                     pw.Image(logoImage, width: 40, height: 40),
                     pw.SizedBox(width: 12),
-                    pw.Text(
-                      'SirfBill Bill Karo, Befikar Raho',
-                      style: pw.TextStyle(
-                        fontSize: 24,
-                        fontWeight: pw.FontWeight.bold,
-                        color: PdfColors.green700,
+                    pw.Expanded(
+                      child: pw.Text(
+                        shopName,
+                        style: pw.TextStyle(
+                          fontSize: 22,
+                          fontWeight: pw.FontWeight.bold,
+                          color: PdfColors.green700,
+                        ),
                       ),
                     ),
                   ],
