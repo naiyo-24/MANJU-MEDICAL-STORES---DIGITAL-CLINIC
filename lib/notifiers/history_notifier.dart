@@ -24,8 +24,14 @@ class HistoryNotifier extends AsyncNotifier<HistoryState> {
 
     final transactions = historyList.map((item) {
       String dateStr = item['date'].toString();
-      if (!dateStr.endsWith('Z')) dateStr += 'Z';
-      final dt = (DateTime.tryParse(dateStr) ?? DateTime.now()).toLocal();
+      // Remove Z if we know the backend returns local time, or just let DateTime parse it
+      // Replace space with T to ensure standard ISO8601 parsing
+      dateStr = dateStr.replaceAll(' ', 'T');
+      if (dateStr.endsWith('Z')) {
+        dateStr = dateStr.substring(0, dateStr.length - 1);
+      }
+      final dt = (DateTime.tryParse(dateStr) ?? DateTime.now());
+      
       final rawItemsList =
           (item['items_detail'] as List?)
               ?.map((i) => Map<String, dynamic>.from(i))
@@ -60,6 +66,15 @@ class HistoryNotifier extends AsyncNotifier<HistoryState> {
           ? calculatedSubtotal - grandTotalVal
           : 0.0;
 
+      // Normalize types and payment modes
+      String rawType = item['type'] ?? 'Sale';
+      if (rawType == 'POS Sale') rawType = 'Sale';
+      
+      String rawPayment = item['payment_mode'] ?? 'Cash';
+      if (rawPayment.toUpperCase() == 'CASH') rawPayment = 'Cash';
+      if (rawPayment.toUpperCase() == 'CARD') rawPayment = 'Card';
+      if (rawPayment.toUpperCase() == 'UPI') rawPayment = 'UPI';
+
       return {
         'date': DateFormat('dd MMM yyyy').format(dt),
         'time': DateFormat('hh:mm a').format(dt),
@@ -69,10 +84,10 @@ class HistoryNotifier extends AsyncNotifier<HistoryState> {
             ? 'Walk-in'
             : item['customer_name'],
         'customerPhone': item['customer_phone'] ?? '',
-        'type': item['type'] ?? 'Sale',
+        'type': rawType,
         'items': item['items'] ?? 0,
         'amount': grandTotalVal,
-        'paymentMode': item['payment_mode'] ?? 'Cash',
+        'paymentMode': rawPayment,
         'status': item['status'] ?? 'Completed',
         'originalBill': SavedBill(
           id: item['id'].toString(),

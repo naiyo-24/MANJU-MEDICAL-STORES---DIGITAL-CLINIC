@@ -23,6 +23,7 @@ class BillingRightPanel extends ConsumerWidget {
   final VoidCallback onGenerateBill;
   final Widget customerSearchField;
   final bool isGeneratingBill;
+  final Function(int) onToggleLoose;
 
   const BillingRightPanel({
     super.key,
@@ -44,7 +45,11 @@ class BillingRightPanel extends ConsumerWidget {
     required this.onGenerateBill,
     required this.customerSearchField,
     required this.isGeneratingBill,
+    required this.onUpdateItemDiscount,
+    required this.onToggleLoose,
   });
+
+  final Function(int, double) onUpdateItemDiscount;
 
   Widget _buildCompactField(
     String label,
@@ -209,6 +214,17 @@ class BillingRightPanel extends ConsumerWidget {
                             Expanded(
                               flex: 2,
                               child: Text(
+                                'Disc (%)',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF475569),
+                                  fontSize: 10,
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              flex: 2,
+                              child: Text(
                                 'Price (₹)',
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
@@ -300,7 +316,7 @@ class BillingRightPanel extends ConsumerWidget {
                                               CrossAxisAlignment.start,
                                           children: [
                                             Text(
-                                              item['name'],
+                                              item['name'].toString().split(' - Item')[0],
                                               style: const TextStyle(
                                                 fontWeight: FontWeight.bold,
                                                 color: Color(0xFF1E293B),
@@ -314,6 +330,29 @@ class BillingRightPanel extends ConsumerWidget {
                                                 fontSize: 9,
                                               ),
                                             ),
+                                            if (item['pack_size'] != null && (item['pack_size'] as num).toInt() > 1)
+                                              Row(
+                                                children: [
+                                                  SizedBox(
+                                                    width: 14,
+                                                    height: 14,
+                                                    child: Checkbox(
+                                                      value: item['is_loose'] ?? false,
+                                                      onChanged: (_) => onToggleLoose(index),
+                                                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                                    ),
+                                                  ),
+                                                  const SizedBox(width: 4),
+                                                  const Text(
+                                                    'Loose Piece',
+                                                    style: TextStyle(
+                                                      fontSize: 8,
+                                                      color: Color(0xFF1E293B),
+                                                      fontWeight: FontWeight.w600,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
                                           ],
                                         ),
                                       ),
@@ -376,8 +415,33 @@ class BillingRightPanel extends ConsumerWidget {
                                       ),
                                       Expanded(
                                         flex: 2,
+                                        child: Align(
+                                          alignment: Alignment.centerLeft,
+                                          child: SizedBox(
+                                            height: 24,
+                                            width: 40,
+                                            child: TextFormField(
+                                              initialValue: (item['discount'] as num?)?.toString() ?? '0',
+                                              keyboardType: TextInputType.number,
+                                              style: const TextStyle(fontSize: 10),
+                                              decoration: const InputDecoration(
+                                                contentPadding: EdgeInsets.symmetric(horizontal: 4, vertical: 0),
+                                                border: OutlineInputBorder(),
+                                              ),
+                                              onChanged: (val) {
+                                                final disc = double.tryParse(val) ?? 0.0;
+                                                onUpdateItemDiscount(index, disc);
+                                              },
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      Expanded(
+                                        flex: 2,
                                         child: Text(
-                                          item['price'].toStringAsFixed(2),
+                                          ((item['is_loose'] == true) 
+                                              ? (item['price'] / (item['pack_size'] ?? 1)) 
+                                              : item['price']).toStringAsFixed(2),
                                           style: const TextStyle(
                                             color: Color(0xFF1E293B),
                                             fontSize: 11,
@@ -690,7 +754,7 @@ class BillingRightPanel extends ConsumerWidget {
                       style: TextStyle(color: Color(0xFF64748B), fontSize: 12),
                     ),
                     Text(
-                      '$billingState.currentBill.length',
+                      '${billingState.currentBill.length}',
                       style: const TextStyle(
                         color: Color(0xFF1E293B),
                         fontWeight: FontWeight.bold,

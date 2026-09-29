@@ -256,6 +256,12 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
     final stockCtrl = TextEditingController(
       text: item.stockQuantity.toString(),
     );
+    final packSizeCtrl = TextEditingController(
+      text: item.packSize?.toString() ?? '1',
+    );
+    final looseStockCtrl = TextEditingController(
+      text: item.looseStock.toString(),
+    );
     final lowStockCtrl = TextEditingController(
       text: item.lowStockThreshold?.toString() ?? '10',
     );
@@ -373,7 +379,25 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                     child: TextField(
                       controller: stockCtrl,
                       decoration: const InputDecoration(
-                        labelText: 'Stock Quantity',
+                        labelText: 'Stock (Packs)',
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: TextField(
+                      controller: looseStockCtrl,
+                      decoration: const InputDecoration(
+                        labelText: 'Loose Pieces',
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: TextField(
+                      controller: packSizeCtrl,
+                      decoration: const InputDecoration(
+                        labelText: 'Pieces per Pack',
                       ),
                     ),
                   ),
@@ -490,6 +514,8 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                           'manufacturer': mfgCtrl.text,
                           'batch_number': batchCtrl.text,
                           'stock_quantity': int.tryParse(stockCtrl.text) ?? 0,
+                          'loose_stock': int.tryParse(looseStockCtrl.text) ?? 0,
+                          'pack_size': int.tryParse(packSizeCtrl.text) ?? 1,
                           'low_stock_threshold':
                               int.tryParse(lowStockCtrl.text) ?? 10,
                           'buying_price':

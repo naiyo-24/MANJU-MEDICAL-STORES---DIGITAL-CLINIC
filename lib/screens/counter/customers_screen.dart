@@ -206,7 +206,7 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                               : 250,
                           child: CustomerStatCard(
                             title: 'Active Customers',
-                            value: '${allCustomers.length}',
+                            value: '${allCustomers.where((c) => c['status'] == 'Active').length}',
                             icon: Icons.check_circle_outline,
                             bgColor: AppColors.infoLight,
                             iconColor: AppColors.info,
@@ -219,7 +219,14 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                               : 250,
                           child: CustomerStatCard(
                             title: 'New This Month',
-                            value: '0',
+                            value: '${allCustomers.where((c) {
+                              if (c['raw_created_at'] == null) return false;
+                              try {
+                                final dt = DateTime.parse(c['raw_created_at']).toLocal();
+                                final now = DateTime.now();
+                                return dt.month == now.month && dt.year == now.year;
+                              } catch(e) { return false; }
+                            }).length}',
                             icon: Icons.person_add_alt_1,
                             bgColor: AppColors.warningLight,
                             iconColor: AppColors.warning,
@@ -232,7 +239,7 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                               : 250,
                           child: CustomerStatCard(
                             title: 'Loyal Customers',
-                            value: '0',
+                            value: '${allCustomers.where((c) => (c['bills'] ?? 0) >= 10).length}',
                             icon: Icons.star,
                             bgColor: AppColors.secondaryLight,
                             iconColor: AppColors.secondary,
@@ -550,7 +557,7 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                                               ),
                                             ),
                                             const SizedBox(
-                                              width: 80,
+                                              width: 120,
                                               child: Text(
                                                 'Action',
                                                 style: TextStyle(
@@ -774,7 +781,7 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
               ),
             ),
             SizedBox(
-              width: 80,
+              width: 120,
               child: Row(
                 children: [
                   OutlinedButton(
@@ -811,6 +818,14 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                       ],
                     ),
                   ),
+                  const SizedBox(width: 4),
+                  IconButton(
+                    onPressed: () => _deleteCustomer(customer['full_id']),
+                    icon: const Icon(Icons.delete_outline, size: 16, color: Colors.red),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    tooltip: 'Delete Customer',
+                  ),
                 ],
               ),
             ),
@@ -818,6 +833,52 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _deleteCustomer(String customerId) async {
+    final bool? confirm = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Delete Customer'),
+          content: const Text('Are you sure you want to delete this customer? This action cannot be undone.'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('Delete', style: TextStyle(color: Colors.red)),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirm == true) {
+      try {
+        await CustomerService.deleteCustomer(customerId);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Customer deleted successfully')),
+          );
+          if (_selectedCustomer?['full_id'] == customerId) {
+            setState(() {
+              _selectedCustomer = null;
+            });
+          }
+          ref.read(customerProvider.notifier).loadCustomers();
+        }
+      } catch (e) {
+        if (mounted) {
+          final errorMessage = e.toString().replaceAll('Exception: ', '');
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(errorMessage), backgroundColor: Colors.red),
+          );
+        }
+      }
+    }
   }
 
   Widget _buildStatusChip(String status) {

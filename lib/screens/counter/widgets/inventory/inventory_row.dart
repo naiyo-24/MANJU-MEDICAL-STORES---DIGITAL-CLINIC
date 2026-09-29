@@ -126,9 +126,11 @@ class InventoryRowWidget extends StatelessWidget {
           Expanded(
             flex: 1,
             child: Text(
-              medicine.stockQuantity.toString(),
+              medicine.looseStock > 0 
+                  ? '${medicine.stockQuantity} Pk, ${medicine.looseStock} Pc'
+                  : medicine.stockQuantity.toString(),
               style: TextStyle(
-                color: medicine.stockQuantity <= 0
+                color: medicine.stockQuantity <= 0 && medicine.looseStock <= 0
                     ? const Color(0xFFDC2626) // Red
                     : (medicine.stockQuantity <=
                               (medicine.lowStockThreshold ?? 10)

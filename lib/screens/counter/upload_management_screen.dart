@@ -23,6 +23,7 @@ class _UploadManagementScreenState
   final _manufacturerCtrl = TextEditingController();
   final _batchCtrl = TextEditingController();
   final _stockCtrl = TextEditingController();
+  final _packSizeCtrl = TextEditingController(text: '1');
   final _priceCtrl = TextEditingController(); // MRP/Selling Price
   final _buyingPriceCtrl = TextEditingController(); // Buying Price
   final _hsnCtrl = TextEditingController();
@@ -620,10 +621,18 @@ class _UploadManagementScreenState
                             const SizedBox(width: 24),
                             Expanded(
                               child: _buildTextField(
-                                'Initial Stock',
+                                'Initial Stock (Packs/Pieces)',
                                 '0',
                                 isRequired: true,
                                 controller: _stockCtrl,
+                              ),
+                            ),
+                            const SizedBox(width: 24),
+                            Expanded(
+                              child: _buildTextField(
+                                'Pieces per Pack',
+                                '1 (Default)',
+                                controller: _packSizeCtrl,
                               ),
                             ),
                             const SizedBox(width: 24),
@@ -882,6 +891,7 @@ class _UploadManagementScreenState
                             : '2026-12-31',
                         'gst': double.tryParse(_gstCtrl.text) ?? 0.0,
                         'discount': double.tryParse(_discountCtrl.text) ?? 0.0,
+                        'pack_size': int.tryParse(_packSizeCtrl.text) ?? 1,
                         'rack_id': _selectedRackId,
                         'category_id': _selectedCategoryId,
                         'distributor': _distributorCtrl.text.isNotEmpty ? _distributorCtrl.text : null,

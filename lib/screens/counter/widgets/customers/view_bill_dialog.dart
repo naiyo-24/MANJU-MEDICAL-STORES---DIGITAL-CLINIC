@@ -66,8 +66,9 @@ void showViewBillDialog(BuildContext context, SavedBill bill, Map<String, dynami
                       billingDate: bill.createdAt,
                     );
                   },
-                  allowSharing: true,
+                  allowSharing: false,
                   allowPrinting: true,
+                  canDebug: false,
                   canChangeOrientation: false,
                   canChangePageFormat: false,
                   initialPageFormat: bill.format == 'Thermal'

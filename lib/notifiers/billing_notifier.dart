@@ -125,10 +125,60 @@ class BillingNotifier extends Notifier<BillingState> {
     if (newQty < 1) return;
     final updatedBill = List<Map<String, dynamic>>.from(state.currentBill);
     double price = (updatedBill[index]['price'] as num).toDouble();
+    double discount = (updatedBill[index]['discount'] as num?)?.toDouble() ?? 0.0;
+    bool isLoose = updatedBill[index]['is_loose'] ?? false;
+    int packSize = updatedBill[index]['pack_size'] ?? 1;
+
+    double effectivePrice = isLoose ? (price / packSize) : price;
+    double itemTotal = newQty * effectivePrice;
+    double itemTotalAfterDiscount = itemTotal - (itemTotal * (discount / 100));
+    
     updatedBill[index] = {
       ...updatedBill[index],
       'qty': newQty,
-      'total': newQty * price,
+      'total': itemTotalAfterDiscount,
+    };
+    state = state.copyWith(currentBill: updatedBill);
+  }
+
+  void toggleItemLoose(int index) {
+    final updatedBill = List<Map<String, dynamic>>.from(state.currentBill);
+    bool currentLoose = updatedBill[index]['is_loose'] ?? false;
+    bool newLoose = !currentLoose;
+    
+    double price = (updatedBill[index]['price'] as num).toDouble();
+    double discount = (updatedBill[index]['discount'] as num?)?.toDouble() ?? 0.0;
+    int packSize = updatedBill[index]['pack_size'] ?? 1;
+    int qty = (updatedBill[index]['qty'] as num).toInt();
+
+    double effectivePrice = newLoose ? (price / packSize) : price;
+    double itemTotal = qty * effectivePrice;
+    double itemTotalAfterDiscount = itemTotal - (itemTotal * (discount / 100));
+
+    updatedBill[index] = {
+      ...updatedBill[index],
+      'is_loose': newLoose,
+      'total': itemTotalAfterDiscount,
+    };
+    state = state.copyWith(currentBill: updatedBill);
+  }
+
+  void updateItemDiscount(int index, double discount) {
+    final updatedBill = List<Map<String, dynamic>>.from(state.currentBill);
+    double price = (updatedBill[index]['price'] as num).toDouble();
+    int qty = (updatedBill[index]['qty'] as num).toInt();
+    
+    bool isLoose = updatedBill[index]['is_loose'] ?? false;
+    int packSize = updatedBill[index]['pack_size'] ?? 1;
+
+    double effectivePrice = isLoose ? (price / packSize) : price;
+    double itemTotal = qty * effectivePrice;
+    double itemTotalAfterDiscount = itemTotal - (itemTotal * (discount / 100));
+    
+    updatedBill[index] = {
+      ...updatedBill[index],
+      'discount': discount,
+      'total': itemTotalAfterDiscount,
     };
     state = state.copyWith(currentBill: updatedBill);
   }

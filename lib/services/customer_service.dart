@@ -64,4 +64,21 @@ class CustomerService {
       throw Exception('Failed to fetch customers');
     }
   }
+
+  static Future<void> deleteCustomer(String customerId) async {
+    try {
+      final response = await ApiClient().dio.delete('/api/users/$customerId');
+      if (response.statusCode != 200 && response.statusCode != 204) {
+        throw Exception('Failed to delete customer');
+      }
+    } on DioException catch (e) {
+      if (e.response != null && e.response?.data != null) {
+        final data = e.response?.data;
+        if (data is Map && data.containsKey('detail')) {
+          throw Exception(data['detail']);
+        }
+      }
+      throw Exception('Failed to delete customer: ${e.message}');
+    }
+  }
 }

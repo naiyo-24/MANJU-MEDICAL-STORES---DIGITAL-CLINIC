@@ -23,6 +23,7 @@ class BillingService {
               (item) => {
                 'inventory_item_id': item['inventory_item_id'],
                 'quantity': item['qty'],
+                'is_loose': item['is_loose'] ?? false,
               },
             )
             .toList(),
@@ -70,7 +71,10 @@ class BillingService {
 
       final response = await ApiClient().dio.get(
         '/api/admin/pos/history',
-        queryParameters: {'shop_id': shopId},
+        queryParameters: {
+          'shop_id': shopId,
+          'limit': 1000,
+        },
       );
 
       if (response.statusCode == 200) {

@@ -48,8 +48,11 @@ class CustomerNotifier extends AsyncNotifier<List<Map<String, dynamic>>> {
           for (var h in custHistory) {
             totalPurchases += (h['amount'] as num?)?.toDouble() ?? 0.0;
             String dateStr = h['date'].toString();
-            if (!dateStr.endsWith('Z')) dateStr += 'Z';
-            final dt = DateTime.tryParse(dateStr)?.toLocal();
+            dateStr = dateStr.replaceAll(' ', 'T');
+            if (dateStr.endsWith('Z')) {
+              dateStr = dateStr.substring(0, dateStr.length - 1);
+            }
+            final dt = DateTime.tryParse(dateStr);
             if (dt != null) {
               if (lastPurchaseDate == null || dt.isAfter(lastPurchaseDate)) {
                 lastPurchaseDate = dt;
@@ -74,6 +77,7 @@ class CustomerNotifier extends AsyncNotifier<List<Map<String, dynamic>>> {
             'memberSince': c.createdAt != null
                 ? DateFormat('MMM yyyy').format(DateTime.parse(c.createdAt!))
                 : 'Unknown',
+            'raw_created_at': c.createdAt,
             'history': custHistory,
           };
         })

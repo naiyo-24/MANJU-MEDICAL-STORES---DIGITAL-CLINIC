@@ -10,6 +10,7 @@ class InventoryItem {
   final String manufacturer;
   final String batchNumber;
   final int stockQuantity;
+  final int looseStock;
   final double unitPrice;
   final double buyingPrice;
   final String? hsnCode;
@@ -18,6 +19,7 @@ class InventoryItem {
   final String? imageUrl;
   final double? gst;
   final double? discount;
+  final int? packSize;
   final String? rackId;
   final String? categoryId;
   final String? distributor;
@@ -31,6 +33,7 @@ class InventoryItem {
     required this.manufacturer,
     required this.batchNumber,
     required this.stockQuantity,
+    this.looseStock = 0,
     required this.unitPrice,
     required this.buyingPrice,
     this.hsnCode,
@@ -39,6 +42,7 @@ class InventoryItem {
     this.imageUrl,
     this.gst,
     this.discount,
+    this.packSize,
     this.rackId,
     this.categoryId,
     this.distributor,
@@ -54,6 +58,7 @@ class InventoryItem {
       manufacturer: json['manufacturer'] ?? '',
       batchNumber: json['batch_number'] ?? '',
       stockQuantity: json['stock_quantity'] ?? 0,
+      looseStock: json['loose_stock'] ?? 0,
       unitPrice: (json['unit_price'] ?? 0).toDouble(),
       buyingPrice: (json['buying_price'] ?? 0).toDouble(),
       hsnCode: json['hsn_code'],
@@ -64,6 +69,7 @@ class InventoryItem {
       imageUrl: json['image_url'],
       gst: json['gst'] != null ? (json['gst'] as num).toDouble() : 0.0,
       discount: json['discount'] != null ? (json['discount'] as num).toDouble() : 0.0,
+      packSize: json['pack_size'] != null ? int.tryParse(json['pack_size'].toString()) ?? 1 : 1,
       rackId: json['rack_id'],
       categoryId: json['category_id'],
       distributor: json['distributor'],
@@ -80,12 +86,14 @@ class InventoryItem {
       'manufacturer': manufacturer,
       'batch_number': batchNumber,
       'stock_quantity': stockQuantity,
+      'loose_stock': looseStock,
       'unit_price': unitPrice,
       'buying_price': buyingPrice,
       'hsn_code': hsnCode,
       'expiry_date': expiryDate,
       'gst': gst,
       'discount': discount,
+      'pack_size': packSize,
       'rack_id': rackId,
       'category_id': categoryId,
       'distributor': distributor,

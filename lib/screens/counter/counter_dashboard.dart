@@ -34,10 +34,16 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
 
     // Real-time synchronization polling every 30 seconds
     _syncTimer = Timer.periodic(const Duration(seconds: 30), (timer) {
-      if (mounted) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+      try {
         ref.invalidate(inventoryProvider);
         ref.invalidate(rackProvider);
         ref.invalidate(categoryProvider);
+      } catch (_) {
+        // Ignore errors if context is deactivated during hot restarts
       }
     });
   }

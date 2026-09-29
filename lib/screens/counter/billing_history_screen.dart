@@ -185,7 +185,7 @@ class _BillingHistoryScreenState extends State<BillingHistoryScreen> {
                                   children: [
                                     Expanded(
                                       child: Text(
-                                        '${item['name']} (x${item['qty']})',
+                                        '${item['name'].toString().split(' - Item')[0]} (x${item['qty']})',
                                         style: const TextStyle(
                                           color: Color(0xFF475569),
                                           fontSize: 13,

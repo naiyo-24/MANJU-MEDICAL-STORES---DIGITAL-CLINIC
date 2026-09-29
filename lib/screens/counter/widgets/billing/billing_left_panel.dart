@@ -392,7 +392,7 @@ class BillingLeftPanel extends ConsumerWidget {
                                     Expanded(
                                       flex: 3,
                                       child: Text(
-                                        item['name'] ?? '',
+                                        (item['name'] ?? '').toString().split(' - Item')[0],
                                         style: const TextStyle(
                                           fontWeight: FontWeight.bold,
                                           color: Color(0xFF1E293B),

@@ -101,6 +101,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
       _selectedType = 'All';
       _selectedPaymentMode = 'All';
       _searchQuery = '';
+      _currentPage = 1;
     });
   }
 
@@ -298,8 +299,9 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                         billingDate: bill.createdAt,
                       );
                     },
-                    allowSharing: true,
+                    allowSharing: false,
                     allowPrinting: true,
+                    canDebug: false,
                     canChangeOrientation: false,
                     canChangePageFormat: false,
                     initialPageFormat: bill.format == 'Thermal'
@@ -433,11 +435,15 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
           if (picked != null) {
             setState(() {
               _activeDateRange = title;
+              _currentPage = 1;
               // Can use picked.start and picked.end to filter the data here if real backend was hooked up
             });
           }
         } else {
-          setState(() => _activeDateRange = title);
+          setState(() {
+            _activeDateRange = title;
+            _currentPage = 1;
+          });
         }
       },
       child: Container(
@@ -627,6 +633,13 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
       error: (error, stack) => Center(child: Text('Error: $error')),
       data: (historyState) {
         final filtered = _filteredTransactions(historyState.transactions);
+        final int itemsPerPage = 10;
+        final int totalRecords = filtered.length;
+        final int totalPages = (totalRecords / itemsPerPage).ceil() == 0 ? 1 : (totalRecords / itemsPerPage).ceil();
+        
+        final int startIdx = (_currentPage - 1) * itemsPerPage;
+        final int endIdx = (startIdx + itemsPerPage > totalRecords) ? totalRecords : startIdx + itemsPerPage;
+        final pagedTransactions = filtered.isNotEmpty ? filtered.sublist(startIdx, endIdx) : <Map<String, dynamic>>[];
 
         return Container(
           color: const Color(0xFFF8FAFC),
@@ -1079,7 +1092,10 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                                   'Purchase',
                                 ],
                                 _selectedType,
-                                (v) => setState(() => _selectedType = v!),
+                                (v) => setState(() {
+                                  _selectedType = v!;
+                                  _currentPage = 1;
+                                }),
                               ),
                               const SizedBox(width: 16),
                               _buildDropdownFilter(
@@ -1087,7 +1103,10 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                                 ['All', 'Cash', 'UPI', 'Card', 'Bank Transfer'],
                                 _selectedPaymentMode,
                                 (v) =>
-                                    setState(() => _selectedPaymentMode = v!),
+                                    setState(() {
+                                      _selectedPaymentMode = v!;
+                                      _currentPage = 1;
+                                    }),
                               ),
                               const SizedBox(width: 16),
                               SizedBox(
@@ -1341,14 +1360,14 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                                     )
                                   : Expanded(
                                       child: ListView.separated(
-                                        itemCount: filtered.length,
+                                        itemCount: pagedTransactions.length,
                                         separatorBuilder: (context, index) =>
                                             const Divider(
                                               height: 1,
                                               color: Color(0xFFF1F5F9),
                                             ),
                                         itemBuilder: (context, index) {
-                                          final tx = filtered[index];
+                                          final tx = pagedTransactions[index];
                                           final isNegative = tx['amount'] < 0;
                                           final amountStr = tx['amount'] == 0
                                               ? '-'
@@ -1364,7 +1383,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                                                 SizedBox(
                                                   width: 30,
                                                   child: Text(
-                                                    '${index + 1}',
+                                                    '${startIdx + index + 1}',
                                                     style: const TextStyle(
                                                       color: Color(0xFF1E293B),
                                                       fontWeight:
@@ -1696,7 +1715,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                                       MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text(
-                                      'Showing 1 to ${filtered.length} of ${historyState.transactions.length} records',
+                                      'Showing ${totalRecords == 0 ? 0 : startIdx + 1} to $endIdx of $totalRecords records',
                                       style: const TextStyle(
                                         color: Color(0xFF64748B),
                                         fontSize: 12,
@@ -1704,8 +1723,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                                     ),
                                     CustomPagination(
                                       currentPage: _currentPage,
-                                      totalPages:
-                                          1, // Only 1 page for now since it's local
+                                      totalPages: totalPages,
                                       onPageChanged: (page) {
                                         setState(() {
                                           _currentPage = page;

@@ -64,7 +64,7 @@ class ApiClient {
       PrettyDioLogger(
         requestHeader: true,
         requestBody: true,
-        responseBody: true,
+        responseBody: false, // Set to false to avoid printing huge binary arrays
         responseHeader: false,
         error: true,
         compact: true,

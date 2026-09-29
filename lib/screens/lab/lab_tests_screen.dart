@@ -2095,7 +2095,7 @@ class _LabTestsScreenState extends ConsumerState<LabTestsScreen> {
                                                 canChangeOrientation: false,
                                                 canChangePageFormat: false,
                                                 canDebug: false,
-                                                allowSharing: true,
+                                                allowSharing: false,
                                                 allowPrinting: true,
                                               ),
                                             ),

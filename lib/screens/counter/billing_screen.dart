@@ -3,6 +3,7 @@ import 'package:pdf/pdf.dart';
 import 'package:printing/printing.dart';
 import 'package:file_saver/file_saver.dart';
 import 'dart:async';
+import 'dart:typed_data';
 import '../../services/customer_service.dart';
 import '../../services/billing_service.dart';
 import '../../services/doctor_service.dart';
@@ -60,6 +61,7 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
   Timer? _searchDebounce;
   // Format is now handled by billingProvider
   String? _savedCustomerId;
+  Map<String, dynamic>? _shopSettings;
 
   bool _isGeneratingBill = false;
 
@@ -69,6 +71,7 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
     _startClock();
     _fetchDoctors();
     _fetchCustomers();
+    _fetchShopSettings();
     _discountController.addListener(() {
       final val = double.tryParse(_discountController.text) ?? 0.0;
       final isPerc = ref.read(billingProvider).isDiscountPercentage;
@@ -84,6 +87,29 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
         _currentTime = DateTime.now();
       });
     });
+  }
+
+  Future<void> _fetchShopSettings() async {
+    try {
+      _shopSettings = await ShopSettingsService.getSettings();
+      // Pre-warm the PDF logo, QR code, and fonts cache to speed up the first bill generation
+      PdfGenerator.preloadFonts();
+      
+      if (_shopSettings?['logo_url'] != null) {
+        String url = _shopSettings!['logo_url'];
+        if (PdfGenerator.getCachedLogoUrl() != url) {
+           PdfGenerator.preloadLogo(url);
+        }
+      }
+      if (_shopSettings?['qr_url'] != null) {
+        String url = _shopSettings!['qr_url'];
+        if (PdfGenerator.getCachedQrUrl() != url) {
+           PdfGenerator.preloadQr(url);
+        }
+      }
+    } catch (e) {
+      debugPrint('Error fetching shop settings: $e');
+    }
   }
 
   @override
@@ -147,9 +173,9 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
       customerPhone: _customerPhoneController.text,
       customerAge: '',
 
-      doctorName: _selectedDoctorId == 'new'
+      doctorName: ref.read(billingProvider).selectedDoctorId == 'new'
           ? _newDoctorController.text
-          : _selectedDoctorName,
+          : ref.read(billingProvider).selectedDoctorName,
       format: ref.read(billingProvider).selectedFormat,
       items: List.from(_currentBill),
       discountValue: ref.read(billingProvider).discountValue,
@@ -425,17 +451,8 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
       return;
     }
 
-    Map<String, dynamic>? shopSettings;
-    try {
-      shopSettings = await ShopSettingsService.getSettings();
-    } catch (e) {
-      debugPrint('Error fetching shop settings: $e');
-    }
-
-    if (!mounted) return;
-
     String baseInvoice =
-        shopSettings?['shop_name']
+        _shopSettings?['shop_name']
             ?.toString()
             .replaceAll(' ', '')
             .toUpperCase() ??
@@ -444,6 +461,30 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
     final String invoiceNo =
         '$baseInvoice${DateTime.now().millisecondsSinceEpoch.toString().substring(5)}';
 
+    // We wrap this in a small delay so that the FutureBuilder inside the dialog
+    // has a chance to render the loading spinner FIRST before the heavy synchronous
+    // PDF generation blocks the main thread.
+    final futurePdfBytes = Future.delayed(const Duration(milliseconds: 50), () => PdfGenerator.generateBill(
+      items: _currentBill,
+      subtotal: _subtotal,
+      discount: _discountAmount,
+      tax: _gstAmount,
+      grandTotal: _grandTotal,
+      invoiceNumber: invoiceNo,
+      customerName: _customerNameController.text.isNotEmpty
+          ? _customerNameController.text
+          : 'Walk-in Customer',
+      customerPhone: _customerPhoneController.text,
+      customerLocation: _customerLocationController.text,
+      shopSettings: _shopSettings,
+      doctorName: ref.read(billingProvider).selectedDoctorId == 'new'
+          ? _newDoctorController.text
+          : ref.read(billingProvider).selectedDoctorName,
+      paymentMethod: ref.read(billingProvider).paymentMethod,
+      gstNumber: ref.read(billingProvider).gstNumber,
+      format: ref.read(billingProvider).selectedFormat,
+    ));
+
     showDialog(
       context: context,
       builder: (context) {
@@ -451,79 +492,92 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
           insetPadding: const EdgeInsets.all(32),
           child: Container(
             width: 800,
-            height:
-                MediaQuery.of(context).size.height *
-                0.8, // Added height constraint to fix layout freeze
+            height: MediaQuery.of(context).size.height * 0.8,
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Bill Preview (${ref.read(billingProvider).selectedFormat})',
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF1E293B),
-                        ),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.close),
-                        onPressed: () => Navigator.pop(context),
-                      ),
-                    ],
-                  ),
-                ),
-                const Divider(height: 1),
-                Expanded(
-                  child: PdfPreview(
-                    build: (format) => PdfGenerator.generateBill(
-                      items: _currentBill,
-                      subtotal: _subtotal,
-                      discount: _discountAmount,
-                      tax: _gstAmount,
-                      grandTotal: _grandTotal,
-                      invoiceNumber: invoiceNo,
-                      customerName: _customerNameController.text.isNotEmpty
-                          ? _customerNameController.text
-                          : 'Walk-in Customer',
-                      customerPhone: _customerPhoneController.text,
-                      customerLocation: _customerLocationController.text,
-                      shopSettings: shopSettings,
-
-                      doctorName: _selectedDoctorId == 'new'
-                          ? _newDoctorController.text
-                          : _selectedDoctorName,
-                      paymentMethod: ref.read(billingProvider).paymentMethod,
-                      gstNumber: ref.read(billingProvider).gstNumber,
-                      format: ref.read(billingProvider).selectedFormat,
+            child: FutureBuilder<Uint8List>(
+              future: futurePdfBytes,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        CircularProgressIndicator(),
+                        SizedBox(height: 16),
+                        Text('Generating preview...'),
+                      ],
                     ),
-                    allowPrinting: true,
-                    allowSharing: true,
-                    canChangeOrientation: false,
-                    canChangePageFormat: false,
-                    pdfFileName: 'Bill_$invoiceNo.pdf',
-                    initialPageFormat:
-                        ref.read(billingProvider).selectedFormat == 'Thermal'
-                        ? const PdfPageFormat(
-                            80 * PdfPageFormat.mm,
-                            300 * PdfPageFormat.mm,
-                          )
-                        : ref.read(billingProvider).selectedFormat == 'A5'
-                        ? PdfPageFormat.a5.landscape
-                        : PdfPageFormat.a4,
-                  ),
-                ),
-              ],
+                  );
+                }
+                
+                if (snapshot.hasError) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.error, color: Colors.red, size: 48),
+                        const SizedBox(height: 16),
+                        Text('Error: ${snapshot.error}'),
+                        const SizedBox(height: 16),
+                        ElevatedButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: const Text('Close'),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+
+                if (!snapshot.hasData) {
+                  return const SizedBox();
+                }
+
+                return Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Bill Preview (${ref.read(billingProvider).selectedFormat})',
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF1E293B),
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.close),
+                            onPressed: () => Navigator.pop(context),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Divider(height: 1),
+                    Expanded(
+                      child: PdfPreview(
+                        key: UniqueKey(), // Force fresh render to fix Flutter Web iframe bug
+                        build: (format) => snapshot.data!,
+                        allowPrinting: true,
+                        allowSharing: false,
+                        canDebug: false,
+                        canChangeOrientation: false,
+                        canChangePageFormat: false,
+                        pdfFileName: 'Bill_$invoiceNo.pdf',
+                        initialPageFormat: ref.read(billingProvider).selectedFormat == 'Thermal'
+                            ? const PdfPageFormat(80 * PdfPageFormat.mm, 300 * PdfPageFormat.mm)
+                            : ref.read(billingProvider).selectedFormat == 'A5'
+                                ? PdfPageFormat.a5.landscape
+                                : PdfPageFormat.a4,
+                      ),
+                    ),
+                  ],
+                );
+              },
             ),
           ),
         );
@@ -597,16 +651,8 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
         }
       }
 
-      // Get shop settings for invoice number generation
-      Map<String, dynamic>? shopSettings;
-      try {
-        shopSettings = await ShopSettingsService.getSettings();
-      } catch (e) {
-        debugPrint('Error fetching shop settings: $e');
-      }
-
       String baseInvoice =
-          shopSettings?['shop_name']
+          _shopSettings?['shop_name']
               ?.toString()
               .replaceAll(' ', '')
               .toUpperCase() ??
@@ -657,10 +703,10 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
             : 'Walk-in Customer',
         customerPhone: _customerPhoneController.text,
         customerLocation: _customerLocationController.text,
-        shopSettings: shopSettings,
-        doctorName: _selectedDoctorId == 'new'
+        shopSettings: _shopSettings,
+        doctorName: ref.read(billingProvider).selectedDoctorId == 'new'
             ? _newDoctorController.text
-            : _selectedDoctorName,
+            : ref.read(billingProvider).selectedDoctorName,
         paymentMethod: ref.read(billingProvider).paymentMethod,
         gstNumber: ref.read(billingProvider).gstNumber,
         format: ref.read(billingProvider).selectedFormat,
@@ -695,9 +741,9 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
           customerPhone: _customerPhoneController.text,
           customerLocation: _customerLocationController.text,
           customerGstin: ref.read(billingProvider).gstNumber,
-          doctorName: _selectedDoctorId == 'new'
+          doctorName: ref.read(billingProvider).selectedDoctorId == 'new'
               ? _newDoctorController.text
-              : _selectedDoctorName,
+              : ref.read(billingProvider).selectedDoctorName,
           paymentMode: ref.read(billingProvider).paymentMethod,
           subtotal: _subtotal,
           discount: _discountAmount,
@@ -712,22 +758,29 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
       // Clear after successful checkout
       _clearCart();
 
-      // Dismiss the loading dialog BEFORE printing to prevent it from getting stuck behind the print dialog
+      // Dismiss the loading dialog
       if (dialogContext != null && dialogContext!.mounted) {
-        Navigator.pop(dialogContext!);
+        final ctx = dialogContext!;
         dialogContext = null;
+        Navigator.pop(ctx);
       }
+      
       if (mounted) {
         setState(() {
           _isGeneratingBill = false;
         });
       }
 
-      // Do NOT await this, so execution doesn't block if the print preview stays open
-      Printing.layoutPdf(
-        onLayout: (PdfPageFormat format) async => pdfBytes,
-        name: 'Bill_$invoiceNo.pdf',
-      );
+      // Wait a tiny bit to allow the pop animation to finish, preventing !_debugLocked crash
+      await Future.delayed(const Duration(milliseconds: 200));
+
+      // Show the native print dialog for the user to print the final bill immediately!
+      if (mounted) {
+        await Printing.layoutPdf(
+          onLayout: (PdfPageFormat format) async => pdfBytes,
+          name: 'Bill_$invoiceNo.pdf',
+        );
+      }
 
       return; // Exit here since we already cleaned up
     } catch (e) {
@@ -742,7 +795,13 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
     } finally {
       // Fallback cleanup in case of errors
       if (dialogContext != null && dialogContext!.mounted) {
-        Navigator.pop(dialogContext!);
+        final ctx = dialogContext!;
+        dialogContext = null;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (ctx.mounted) {
+            Navigator.pop(ctx);
+          }
+        });
       }
       if (mounted) {
         setState(() {
@@ -999,7 +1058,7 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
     if (existingIndex >= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('${item['name']} is already in the cart!'),
+          content: Text('${item['name'].toString().split(' - Item')[0]} is already in the cart!'),
           backgroundColor: Colors.orange,
           duration: const Duration(seconds: 2),
         ),
@@ -1015,7 +1074,7 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
               style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red),
             ),
             content: Text(
-              '${item['name']} is currently out of stock and cannot be added to the bill.',
+              '${item['name'].toString().split(' - Item')[0]} is currently out of stock and cannot be added to the bill.',
             ),
             actions: [
               TextButton(
@@ -1028,25 +1087,39 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
         return;
       }
 
+      double mrp = (item['mrp'] as num?)?.toDouble() ?? 0.0;
+      double discount = (item['discount'] as num?)?.toDouble() ?? 0.0;
+      double totalAfterDiscount = mrp - (mrp * (discount / 100));
+
       ref.read(billingProvider.notifier).addItem({
         'inventory_item_id': item['inventory_item_id'],
         'name': item['name'],
         'brand': item['brand'],
         'qty': 1,
-        'price': item['mrp'],
-        'mrp': item['mrp'],
-        'total': item['mrp'],
-        'batch': item['batch'] ?? '-',
-        'expiry': item['expiry'] ?? '-',
-        'hsn': item['hsn'] ?? '-',
+        'price': mrp,
+        'mrp': mrp,
+        'total': totalAfterDiscount,
+        'batch': (item['batch_number'] != null && item['batch_number'].toString().isNotEmpty) 
+            ? item['batch_number'] 
+            : (item['batch'] ?? '-'),
+        'expiry': (item['expiry_date'] != null && item['expiry_date'].toString().isNotEmpty) 
+            ? item['expiry_date'] 
+            : (item['expiry'] ?? '-'),
+        'hsn': (item['hsn_code'] != null && item['hsn_code'].toString().isNotEmpty) 
+            ? item['hsn_code'] 
+            : (item['hsn'] ?? '-'),
+        'discount': item['discount'] ?? 0.0,
         'cgst': item['cgst'] ?? 0,
         'sgst': item['sgst'] ?? 0,
         'stock': stock,
+        'pack_size': item['pack_size'] ?? 1,
+        'loose_stock': item['loose_stock'] ?? 0,
+        'is_loose': false,
         'id': item['inventory_item_id'],
       });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Added ${item['name']} to cart'),
+          content: Text('Added ${item['name'].toString().split(' - Item')[0]} to cart'),
           duration: const Duration(seconds: 1),
         ),
       );
@@ -1601,12 +1674,15 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
               'mrp': item.unitPrice,
               'stock': item.stockQuantity,
               'batch_number': item.batchNumber,
-              'hsn_code': item.hsnCode ?? '-',
-              'expiry_date': item.expiryDate,
+              'hsn_code': (item.hsnCode != null && item.hsnCode!.isNotEmpty) ? item.hsnCode : '-',
+              'expiry_date': item.expiryDate.isNotEmpty ? item.expiryDate : '-',
               'cgst': (item.gst ?? 0.0) / 2,
               'sgst': (item.gst ?? 0.0) / 2,
+              'discount': item.discount ?? 0.0,
               'category_id': item.categoryId,
               'rack_id': item.rackId,
+              'pack_size': item.packSize ?? 1,
+              'loose_stock': item.looseStock,
             },
           )
           .toList(),
@@ -1684,9 +1760,27 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                   children: [
                     IconButton(
                       onPressed: () {
-                        ref.read(billingInventoryProvider.notifier).loadInventory();
+                        final selectedIndex = ref.read(billingProvider).selectedCategoryIndex;
+                        String? categoryId;
+                        if (selectedIndex != 0 && selectedIndex <= backendCategories.length) {
+                          categoryId = backendCategories[selectedIndex - 1].id;
+                        }
+                        
+                        ref.read(billingInventoryProvider.notifier).loadInventory(
+                          searchQuery: _medicineSearchController.text.isNotEmpty
+                              ? _medicineSearchController.text
+                              : null,
+                          categoryId: categoryId,
+                        );
                         _fetchDoctors();
                         _fetchCustomers();
+                        
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Refreshed inventory and data.'),
+                            duration: Duration(seconds: 1),
+                          ),
+                        );
                       },
                       icon: const Icon(
                         Icons.refresh,
@@ -1778,6 +1872,12 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                     onDecreaseQty: _decreaseQty,
                     onIncreaseQty: _increaseQty,
                     onRemoveItem: _removeItem,
+                    onUpdateItemDiscount: (index, disc) {
+                      ref.read(billingProvider.notifier).updateItemDiscount(index, disc);
+                    },
+                    onToggleLoose: (index) {
+                      ref.read(billingProvider.notifier).toggleItemLoose(index);
+                    },
                     onSaveCustomerToDb: _saveCustomerToDb,
                     onSaveDraft: _saveDraft,
                     onShowDraftsDialog: _showDraftsDialog,
