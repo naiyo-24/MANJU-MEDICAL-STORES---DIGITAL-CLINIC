@@ -23,6 +23,7 @@ class InventoryItem {
   final String? rackId;
   final String? categoryId;
   final String? distributor;
+  final String? distributorId;
   final String? createdAt;
   final String? updatedAt;
 
@@ -46,6 +47,7 @@ class InventoryItem {
     this.rackId,
     this.categoryId,
     this.distributor,
+    this.distributorId,
     this.createdAt,
     this.updatedAt,
   });
@@ -73,6 +75,7 @@ class InventoryItem {
       rackId: json['rack_id'],
       categoryId: json['category_id'],
       distributor: json['distributor'],
+      distributorId: json['distributor_id'],
       createdAt: json['created_at'],
       updatedAt: json['updated_at'],
     );
@@ -96,7 +99,7 @@ class InventoryItem {
       'pack_size': packSize,
       'rack_id': rackId,
       'category_id': categoryId,
-      'distributor': distributor,
+      'distributor_id': distributorId,
       'created_at': createdAt,
       'updated_at': updatedAt,
     };
@@ -215,7 +218,7 @@ class InventoryService {
     }
   }
 
-  static Future<void> addMedicine(Map<String, dynamic> itemData) async {
+  static Future<Map<String, dynamic>> addMedicine(Map<String, dynamic> itemData) async {
     try {
       itemData['shop_id'] = await getShopId();
       final response = await ApiClient().dio.post(
@@ -223,7 +226,9 @@ class InventoryService {
         data: itemData,
       );
 
-      if (response.statusCode != 200 && response.statusCode != 201) {
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return response.data['data'] as Map<String, dynamic>;
+      } else {
         throw Exception('Failed to add medicine: ${response.data}');
       }
     } catch (e) {

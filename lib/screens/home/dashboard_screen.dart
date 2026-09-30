@@ -184,10 +184,12 @@ class DashboardScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
-      body: Stack(
-        children: [
+    return PopScope(
+      canPop: false,
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF8FAFC),
+        body: Stack(
+          children: [
           // Full Screen Background Image
           Positioned.fill(
             child: Image.asset(
@@ -521,6 +523,7 @@ class DashboardScreen extends StatelessWidget {
             ),
           ),
         ],
+      ),
       ),
     );
   }

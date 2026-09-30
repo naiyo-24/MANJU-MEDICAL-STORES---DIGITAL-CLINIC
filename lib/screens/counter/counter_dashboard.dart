@@ -3,8 +3,10 @@ import '../../utils/responsive.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:async';
+import 'package:flutter/services.dart';
 import '../../services/auth_service.dart';
 import '../../providers/counter_providers.dart';
+import '../../providers/distributor_provider.dart';
 
 class CounterDashboard extends ConsumerStatefulWidget {
   final StatefulNavigationShell navigationShell;
@@ -42,17 +44,61 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
         ref.invalidate(inventoryProvider);
         ref.invalidate(rackProvider);
         ref.invalidate(categoryProvider);
+        ref.invalidate(distributorsProvider);
       } catch (_) {
         // Ignore errors if context is deactivated during hot restarts
       }
     });
+
+    HardwareKeyboard.instance.addHandler(_handleKeyEvent);
   }
 
   @override
   void dispose() {
     _timer?.cancel();
     _syncTimer?.cancel();
+    HardwareKeyboard.instance.removeHandler(_handleKeyEvent);
     super.dispose();
+  }
+
+  bool _handleKeyEvent(KeyEvent event) {
+    if (event is KeyDownEvent) {
+      if (event.logicalKey == LogicalKeyboardKey.f1) {
+        _switchTab(0);
+        return true;
+      } else if (event.logicalKey == LogicalKeyboardKey.f2) {
+        _switchTab(1);
+        return true;
+      } else if (event.logicalKey == LogicalKeyboardKey.f3) {
+        _switchTab(2);
+        return true;
+      } else if (event.logicalKey == LogicalKeyboardKey.f4) {
+        _switchTab(3);
+        return true;
+      } else if (event.logicalKey == LogicalKeyboardKey.f5) {
+        _switchTab(4);
+        return true;
+      } else if (event.logicalKey == LogicalKeyboardKey.f6) {
+        _switchTab(5);
+        return true;
+      } else if (event.logicalKey == LogicalKeyboardKey.f7) {
+        _switchTab(6);
+        return true;
+      } else if (event.logicalKey == LogicalKeyboardKey.f8) {
+        _switchTab(7);
+        return true;
+      }
+    }
+    return false;
+  }
+
+  void _switchTab(int index) {
+    if (widget.navigationShell.currentIndex != index) {
+      widget.navigationShell.goBranch(
+        index,
+        initialLocation: index == widget.navigationShell.currentIndex,
+      );
+    }
   }
 
   String _formatDate(DateTime date) {
@@ -77,6 +123,7 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
     required int index,
     required IconData icon,
     required String label,
+    String? shortcut,
   }) {
     final isSelected = widget.navigationShell.currentIndex == index;
     
@@ -112,14 +159,28 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
               const SizedBox(width: 16),
               SizedBox(
                 width: 140, // Fixed width instead of Expanded
-                child: Text(
-                  label,
-                  style: TextStyle(
-                    color: isSelected ? const Color(0xFF166534) : const Color(0xFF64748B),
-                    fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                    fontSize: 14,
-                  ),
-                  overflow: TextOverflow.ellipsis,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      label,
+                      style: TextStyle(
+                        color: isSelected ? const Color(0xFF166534) : const Color(0xFF64748B),
+                        fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                        fontSize: 14,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    if (shortcut != null)
+                      Text(
+                        shortcut,
+                        style: TextStyle(
+                          color: isSelected ? const Color(0xFF166534).withValues(alpha: 0.7) : const Color(0xFF94A3B8),
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                  ],
                 ),
               ),
             ],
@@ -161,10 +222,12 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
   @override
   Widget build(BuildContext context) {
     bool isDesktop = Responsive.isDesktop(context);
-    return Scaffold(
-      key: _scaffoldKey,
-      backgroundColor: Colors.white,
-      drawer: isDesktop ? null : Drawer(child: _buildSidebar()),
+    return PopScope(
+      canPop: false,
+      child: Scaffold(
+        key: _scaffoldKey,
+        backgroundColor: Colors.white,
+        drawer: isDesktop ? null : Drawer(child: _buildSidebar()),
       body: Column(
         children: [
           _buildHeader(isDesktop),
@@ -185,6 +248,25 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
           ),
         ],
       ),
+      ),
+    );
+  }
+
+  Widget _buildShortcutChip(String key, String label) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+          decoration: BoxDecoration(
+            color: const Color(0xFFE2E8F0),
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: Text(key, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+        ),
+        const SizedBox(width: 4),
+        Text(label, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF64748B))),
+      ],
     );
   }
 
@@ -198,25 +280,61 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
       ),
       child: Row(
         children: [
-          IconButton(
-            icon: const Icon(Icons.menu),
-            onPressed: () {
-              if (isDesktop) {
-                setState(() {
-                  _isSidebarExpanded = !_isSidebarExpanded;
-                });
-              } else {
-                _scaffoldKey.currentState?.openDrawer();
-              }
-            },
+          Expanded(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.menu),
+                  onPressed: () {
+                    if (isDesktop) {
+                      setState(() {
+                        _isSidebarExpanded = !_isSidebarExpanded;
+                      });
+                    } else {
+                      _scaffoldKey.currentState?.openDrawer();
+                    }
+                  },
+                ),
+                SizedBox(width: isDesktop ? 16 : 8),
+                Flexible(
+                  child: Image.asset(
+                    'assets/LOGO.png', 
+                    height: isDesktop ? 75 : 45, 
+                    fit: BoxFit.contain, 
+                    cacheHeight: 225
+                  ),
+                ),
+              ],
+            ),
           ),
-          const SizedBox(width: 16),
-          // Logo & Brand
-          Row(
-            children: [
-              Image.asset('assets/LOGO.png', height: 75, fit: BoxFit.contain, cacheHeight: 225),
-            ],
-          ),
+
+          if (isDesktop)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF1F5F9),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: const Color(0xFFE2E8F0)),
+              ),
+              child: Wrap(
+                spacing: 12,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  const Icon(Icons.keyboard, size: 16, color: Color(0xFF64748B)),
+                  _buildShortcutChip('F1', 'Billing'),
+                  _buildShortcutChip('F2', 'Inventory'),
+                  _buildShortcutChip('F3', 'Shops'),
+                  _buildShortcutChip('F4', 'Customers'),
+                  _buildShortcutChip('F5', 'Accounts'),
+                  _buildShortcutChip('F6', 'History'),
+                  _buildShortcutChip('F7', 'Settings'),
+                  _buildShortcutChip('F8', 'Distributors'),
+                ],
+              ),
+            ),
+          
+          if (!isDesktop) const Spacer(),
 
           Expanded(
             child: SingleChildScrollView(
@@ -453,36 +571,49 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
                     index: 0,
                     icon: Icons.receipt_long,
                     label: 'Billing',
+                    shortcut: 'F1',
                   ),
                   _buildSidebarItem(
                     index: 1,
                     icon: Icons.inventory_2,
                     label: 'Inventory',
+                    shortcut: 'F2',
                   ),
                   _buildSidebarItem(
                     index: 2,
                     icon: Icons.storefront,
                     label: 'Shops',
+                    shortcut: 'F3',
                   ),
                   _buildSidebarItem(
                     index: 3,
                     icon: Icons.people,
                     label: 'Customers',
+                    shortcut: 'F4',
                   ),
                   _buildSidebarItem(
                     index: 4,
                     icon: Icons.account_balance_wallet,
                     label: 'Accounts',
+                    shortcut: 'F5',
                   ),
                   _buildSidebarItem(
                     index: 5,
                     icon: Icons.history,
                     label: 'History',
+                    shortcut: 'F6',
                   ),
                   _buildSidebarItem(
                     index: 6,
                     icon: Icons.settings,
                     label: 'Settings',
+                    shortcut: 'F7',
+                  ),
+                  _buildSidebarItem(
+                    index: 7,
+                    icon: Icons.local_shipping,
+                    label: 'Distributors',
+                    shortcut: 'F8',
                   ),
 
                   const SizedBox(height: 16),

@@ -11,6 +11,7 @@ import '../../widgets/custom_date_range_picker.dart';
 import 'package:intl/intl.dart';
 import '../../widgets/rack_dropdown.dart';
 import '../../widgets/category_dropdown.dart';
+import '../../widgets/distributor_dropdown.dart';
 
 class InventoryScreen extends ConsumerStatefulWidget {
   const InventoryScreen({super.key});
@@ -271,11 +272,11 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
     final priceCtrl = TextEditingController(text: item.unitPrice.toString());
     final gstCtrl = TextEditingController(text: item.gst?.toString() ?? '0');
     final discountCtrl = TextEditingController(text: item.discount?.toString() ?? '0');
-    final distributorCtrl = TextEditingController(text: item.distributor ?? '');
     final hsnCtrl = TextEditingController(text: item.hsnCode ?? '');
     final expiryCtrl = TextEditingController(text: item.expiryDate ?? '');
     String? selectedRackId = item.rackId;
     String? selectedCategoryId = item.categoryId;
+    String? selectedDistributorId = item.distributorId;
 
     showDialog(
       context: context,
@@ -487,11 +488,13 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
               Row(
                 children: [
                   Expanded(
-                    child: TextField(
-                      controller: distributorCtrl,
-                      decoration: const InputDecoration(
-                        labelText: 'Distributor / Retailer',
-                      ),
+                    child: DistributorDropdown(
+                      selectedDistributorId: selectedDistributorId,
+                      onChanged: (value) {
+                        setState(() {
+                          selectedDistributorId = value;
+                        });
+                      },
                     ),
                   ),
                 ],
@@ -525,7 +528,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                           'discount': double.tryParse(discountCtrl.text) ?? 0.0,
                           'rack_id': selectedRackId,
                           'category_id': selectedCategoryId,
-                          'distributor': distributorCtrl.text,
+                          'distributor_id': selectedDistributorId,
                           'hsn_code': hsnCtrl.text,
                           'expiry_date': expiryCtrl.text,
                         });

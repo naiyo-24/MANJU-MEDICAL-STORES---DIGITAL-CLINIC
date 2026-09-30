@@ -6,6 +6,7 @@ import '../../providers/counter_providers.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import '../../widgets/rack_dropdown.dart';
 import '../../widgets/category_dropdown.dart';
+import '../../widgets/distributor_dropdown.dart';
 
 class UploadManagementScreen extends ConsumerStatefulWidget {
   const UploadManagementScreen({super.key});
@@ -30,7 +31,7 @@ class _UploadManagementScreenState
   final _expiryCtrl = TextEditingController();
   final _gstCtrl = TextEditingController(text: '0');
   final _discountCtrl = TextEditingController(text: '0');
-  final _distributorCtrl = TextEditingController();
+  String? _selectedDistributorId;
   String? _selectedRackId;
   String? _selectedCategoryId;
   PlatformFile? _selectedImage;
@@ -564,7 +565,16 @@ class _UploadManagementScreenState
                               ),
                             ),
                             const SizedBox(width: 24),
-                            const Spacer(),
+                            Expanded(
+                              child: DistributorDropdown(
+                                selectedDistributorId: _selectedDistributorId,
+                                onChanged: (value) {
+                                  setState(() {
+                                    _selectedDistributorId = value;
+                                  });
+                                },
+                              ),
+                            ),
                           ],
                         ),
                         // const SizedBox(height: 24),
@@ -668,10 +678,13 @@ class _UploadManagementScreenState
                             ),
                             const SizedBox(width: 24),
                             Expanded(
-                              child: _buildTextField(
-                                'Distributor / Retailer',
-                                'e.g. Apollo Distributors',
-                                controller: _distributorCtrl,
+                              child: DistributorDropdown(
+                                selectedDistributorId: _selectedDistributorId,
+                                onChanged: (value) {
+                                  setState(() {
+                                    _selectedDistributorId = value;
+                                  });
+                                },
                               ),
                             ),
                           ],
@@ -894,7 +907,7 @@ class _UploadManagementScreenState
                         'pack_size': int.tryParse(_packSizeCtrl.text) ?? 1,
                         'rack_id': _selectedRackId,
                         'category_id': _selectedCategoryId,
-                        'distributor': _distributorCtrl.text.isNotEmpty ? _distributorCtrl.text : null,
+                        'distributor_id': _selectedDistributorId,
                         'image_url': uploadedImageUrl,
                       });
                       if (context.mounted) {

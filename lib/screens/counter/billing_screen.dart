@@ -1048,7 +1048,7 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
     _fetchCustomers();
   }
 
-  void _addToCart(Map<String, dynamic> item) {
+  void _addToCart(Map<String, dynamic> item) async {
     final stock = item['stock'] ?? 0;
 
     final existingIndex = _currentBill.indexWhere(
@@ -1091,6 +1091,32 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
       double discount = (item['discount'] as num?)?.toDouble() ?? 0.0;
       double totalAfterDiscount = mrp - (mrp * (discount / 100));
 
+      int packSize = (item['pack_size'] as num?)?.toInt() ?? 1;
+      bool isLoose = false;
+
+      if (packSize > 1) {
+        final result = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Select Quantity Type', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+            content: Text('Do you want to add ${item['name'].toString().split(' - Item')[0]} as a Full Strip or Loose Pieces?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('Loose Pieces', style: TextStyle(color: Color(0xFF166534))),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context, false),
+                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF166534)),
+                child: const Text('Full Strip', style: TextStyle(color: Colors.white)),
+              ),
+            ],
+          ),
+        );
+        if (result == null) return;
+        isLoose = result;
+      }
+
       ref.read(billingProvider.notifier).addItem({
         'inventory_item_id': item['inventory_item_id'],
         'name': item['name'],
@@ -1114,7 +1140,7 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
         'stock': stock,
         'pack_size': item['pack_size'] ?? 1,
         'loose_stock': item['loose_stock'] ?? 0,
-        'is_loose': false,
+        'is_loose': isLoose,
         'id': item['inventory_item_id'],
       });
       ScaffoldMessenger.of(context).showSnackBar(
@@ -1664,7 +1690,8 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
   Widget build(BuildContext context) {
     final inventoryState = ref.watch(billingInventoryProvider);
     final allMedicines = inventoryState.when(
-      data: (items) => items
+      data: (items) {
+        final mapped = items
           .map(
             (item) => {
               'inventory_item_id': item.id,
@@ -1685,7 +1712,22 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
               'loose_stock': item.looseStock,
             },
           )
-          .toList(),
+          .toList();
+
+        // Sort by Expiry Date (Ascending) - FIFO principle
+        mapped.sort((a, b) {
+          final expA = a['expiry_date'] as String;
+          final expB = b['expiry_date'] as String;
+          
+          if (expA == '-' && expB == '-') return 0;
+          if (expA == '-') return 1; // Put missing dates at the bottom
+          if (expB == '-') return -1;
+          
+          return expA.compareTo(expB); // YYYY-MM-DD naturally sorts correctly
+        });
+
+        return mapped;
+      },
       loading: () => <Map<String, dynamic>>[],
       error: (err, stack) => <Map<String, dynamic>>[],
     );

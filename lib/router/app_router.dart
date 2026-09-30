@@ -14,6 +14,9 @@ import '../screens/counter/history_screen.dart';
 import '../screens/counter/accounts_screen.dart';
 import '../screens/counter/upload_management_screen.dart';
 import '../screens/counter/bill_customization_screen.dart';
+import '../screens/counter/distributors_screen.dart';
+import '../screens/counter/distributor_detail_screen.dart';
+import '../screens/counter/add_purchase_bill_screen.dart';
 
 import '../screens/lab/lab_dashboard.dart';
 import '../screens/lab/lab_dashboard_home.dart';
@@ -38,6 +41,8 @@ import '../screens/crm/crm_send_to_lab_screen.dart';
 import '../screens/crm/crm_orders_screen.dart';
 import '../screens/crm/crm_placeholder_screens.dart';
 
+import 'package:shared_preferences/shared_preferences.dart';
+
 final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>(
   debugLabel: 'root',
 );
@@ -45,6 +50,26 @@ final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>(
 final goRouter = GoRouter(
   navigatorKey: _rootNavigatorKey,
   initialLocation: '/splash',
+  redirect: (BuildContext context, GoRouterState state) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('access_token');
+    final isLoggedIn = token != null && token.isNotEmpty;
+    
+    final isLoginRoute = state.matchedLocation == '/role_login' || state.matchedLocation == '/splash' || state.matchedLocation == '/dashboard';
+    final isDashboard = state.matchedLocation == '/dashboard';
+
+    // If not logged in and not on login/dashboard/splash, redirect to dashboard
+    if (!isLoggedIn && !isLoginRoute) {
+      return '/dashboard';
+    }
+
+    // If logged in and trying to access login/dashboard/splash, redirect to app
+    if (isLoggedIn && isLoginRoute) {
+      return '/counter/billing'; 
+    }
+
+    return null;
+  },
   routes: [
     GoRoute(path: '/splash', builder: (context, state) => const SplashScreen()),
     GoRoute(
@@ -134,6 +159,24 @@ final goRouter = GoRouter(
             GoRoute(
               path: '/counter/settings',
               builder: (context, state) => const BillCustomizationScreen(),
+            ),
+          ],
+        ),
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: '/counter/distributors',
+              builder: (context, state) => const DistributorsScreen(),
+              routes: [
+                GoRoute(
+                  path: 'details',
+                  builder: (context, state) => DistributorDetailScreen(distributor: state.extra as Map<String, dynamic>),
+                ),
+                GoRoute(
+                  path: 'purchase',
+                  builder: (context, state) => AddPurchaseBillScreen(distributor: state.extra as Map<String, dynamic>),
+                ),
+              ],
             ),
           ],
         ),

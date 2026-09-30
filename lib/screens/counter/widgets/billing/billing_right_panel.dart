@@ -330,29 +330,34 @@ class BillingRightPanel extends ConsumerWidget {
                                                 fontSize: 9,
                                               ),
                                             ),
-                                            if (item['pack_size'] != null && (item['pack_size'] as num).toInt() > 1)
-                                              Row(
-                                                children: [
-                                                  SizedBox(
-                                                    width: 14,
-                                                    height: 14,
-                                                    child: Checkbox(
-                                                      value: item['is_loose'] ?? false,
-                                                      onChanged: (_) => onToggleLoose(index),
-                                                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                              if (item['pack_size'] != null && (item['pack_size'] as num).toInt() > 1)
+                                                Padding(
+                                                  padding: const EdgeInsets.only(top: 4.0),
+                                                  child: InkWell(
+                                                    onTap: () => onToggleLoose(index),
+                                                    child: Row(
+                                                      mainAxisSize: MainAxisSize.min,
+                                                      children: [
+                                                        Icon(
+                                                          item['is_loose'] == true
+                                                              ? Icons.check_box
+                                                              : Icons.check_box_outline_blank,
+                                                          size: 14,
+                                                          color: const Color(0xFF166534),
+                                                        ),
+                                                        const SizedBox(width: 4),
+                                                        const Text(
+                                                          'Loose',
+                                                          style: TextStyle(
+                                                            fontSize: 9,
+                                                            color: Color(0xFF1E293B),
+                                                            fontWeight: FontWeight.w600,
+                                                          ),
+                                                        ),
+                                                      ],
                                                     ),
                                                   ),
-                                                  const SizedBox(width: 4),
-                                                  const Text(
-                                                    'Loose Piece',
-                                                    style: TextStyle(
-                                                      fontSize: 8,
-                                                      color: Color(0xFF1E293B),
-                                                      fontWeight: FontWeight.w600,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
+                                                ),
                                           ],
                                         ),
                                       ),
