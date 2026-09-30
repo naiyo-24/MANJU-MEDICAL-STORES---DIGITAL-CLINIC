@@ -573,7 +573,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
 
   Widget _buildConditionalWrapper(bool isShort, Widget child) {
     return isShort
-        ? SizedBox(height: 500, child: child)
+        ? SizedBox(height: 800, child: child)
         : Expanded(child: child);
   }
 
@@ -587,7 +587,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
       color: const Color(0xFFF8FAFC),
       child: LayoutBuilder(
         builder: (context, screenConstraints) {
-          bool isScreenShort = screenConstraints.maxHeight < 500;
+          bool isScreenShort = screenConstraints.maxHeight < 850 || screenConstraints.maxWidth < 1000;
           Widget content = Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [

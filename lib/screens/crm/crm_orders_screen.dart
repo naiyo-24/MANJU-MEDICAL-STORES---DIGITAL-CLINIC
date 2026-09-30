@@ -73,14 +73,14 @@ class _CrmOrdersScreenState extends ConsumerState<CrmOrdersScreen> {
                                   children: [
                                     SizedBox(
                                       height: 500,
-                                      child: _buildDataGrid(),
+                                      child: _buildDataGrid()
                                     ),
                                     const SizedBox(height: 24),
-                                    _buildRightPane(),
+                                    SizedBox(height: 600, child: _buildRightPane()),
                                   ],
                                 ),
                               );
-                      },
+                        },
                     ),
                   ),
                 ],

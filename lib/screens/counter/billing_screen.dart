@@ -1845,7 +1845,7 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                   bool isDesktopWidth = constraints.maxWidth > 1100;
                   bool hasEnoughHeight =
                       constraints.maxHeight >
-                      400; // Lowered to ensure internal scrolling on standard laptops
+                      850; // Use the tested safe threshold
 
                   Widget leftSide = inventoryState.when(
                     data: (items) => BillingLeftPanel(

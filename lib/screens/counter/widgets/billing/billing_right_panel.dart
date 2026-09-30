@@ -115,6 +115,10 @@ class BillingRightPanel extends ConsumerWidget {
         border: Border.all(color: const Color(0xFFE2E8F0)),
       ),
       child: ListView(
+        shrinkWrap: !hasEnoughHeight,
+        physics: hasEnoughHeight
+            ? const AlwaysScrollableScrollPhysics()
+            : const NeverScrollableScrollPhysics(),
         children: [
           // Header
           Padding(
