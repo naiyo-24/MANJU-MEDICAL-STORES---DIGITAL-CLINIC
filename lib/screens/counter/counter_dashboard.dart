@@ -112,7 +112,7 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
     required bool isExpanded,
   }) {
     final isSelected = widget.navigationShell.currentIndex == index;
-    final isDark = ref.watch(themeProvider) == ThemeMode.dark;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     
     final itemBgSelected = isDark ? const Color(0xFF166534).withValues(alpha: 0.2) : const Color(0xFFE8F5E9);
     final itemBorderSelected = isDark ? const Color(0xFF22C55E).withValues(alpha: 0.5) : const Color(0xFF22C55E).withValues(alpha: 0.3);
@@ -218,7 +218,7 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
   @override
   Widget build(BuildContext context) {
     bool isDesktop = Responsive.isDesktop(context);
-    final isDark = ref.watch(themeProvider) == ThemeMode.dark;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final scaffoldBg = isDark ? const Color(0xFF0F172A) : Colors.white;
     
     return PopScope(
@@ -252,7 +252,7 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
   }
 
   Widget _buildShortcutChip(String key, String label) {
-    final isDark = ref.watch(themeProvider) == ThemeMode.dark;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -271,7 +271,7 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
   }
 
   Widget _buildHeader(bool isDesktop) {
-    final isDark = ref.watch(themeProvider) == ThemeMode.dark;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final headerBg = isDark ? const Color(0xFF1E293B) : Colors.white;
     final borderColor = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
     final iconColor = isDark ? Colors.white : const Color(0xFF1E293B);
@@ -520,7 +520,7 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
   Widget _buildSidebar(bool isDesktop) {
     // On mobile (Drawer), always force the sidebar to be fully expanded
     final bool isExpanded = isDesktop ? _isSidebarExpanded : true;
-    final isDark = ref.watch(themeProvider) == ThemeMode.dark;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final sidebarBg = isDark ? const Color(0xFF1E293B) : const Color(0xFFF8FAFC);
     final borderColor = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
     final textColor = isDark ? Colors.white : const Color(0xFF1E293B);
