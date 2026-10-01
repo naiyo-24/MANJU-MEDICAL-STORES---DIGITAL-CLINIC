@@ -1,25 +1,34 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../providers/theme_provider.dart';
 
-class DashboardScreen extends StatelessWidget {
+class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
 
   Widget _buildDashboardCard({
     required BuildContext context,
-    required String number,
     required String title,
     required String description,
     required IconData icon,
     required Color primaryColor,
     required String nextRoute,
+    required bool isDark,
   }) {
+    final cardColor = isDark ? const Color(0xFF1E293B) : Colors.white;
+    final textColor = isDark ? Colors.white : const Color(0xFF1E293B);
+    final descColor = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
+
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cardColor,
         borderRadius: BorderRadius.circular(24),
+        border: isDark 
+            ? Border.all(color: primaryColor.withValues(alpha: 0.4), width: 1.5) 
+            : Border.all(color: Colors.transparent),
         boxShadow: [
           BoxShadow(
-            color: primaryColor.withValues(alpha: 0.08),
+            color: primaryColor.withValues(alpha: isDark ? 0.2 : 0.08),
             blurRadius: 24,
             offset: const Offset(0, 12),
           ),
@@ -42,8 +51,9 @@ class DashboardScreen extends StatelessWidget {
                     width: 400,
                     padding: const EdgeInsets.all(32),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: isDark ? const Color(0xFF1E293B) : Colors.white,
                       borderRadius: BorderRadius.circular(24),
+                      border: isDark ? Border.all(color: primaryColor.withValues(alpha: 0.4), width: 1.5) : null,
                       boxShadow: [
                         BoxShadow(
                           color: primaryColor.withValues(alpha: 0.2),
@@ -55,7 +65,6 @@ class DashboardScreen extends StatelessWidget {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        // Icon with soft background matching the module color
                         Container(
                           padding: const EdgeInsets.all(24),
                           decoration: BoxDecoration(
@@ -69,31 +78,28 @@ class DashboardScreen extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 24),
-                        // Title
                         Text(
                           'Coming Soon',
                           style: TextStyle(
                             fontSize: 28,
                             fontWeight: FontWeight.w900,
-                            color: const Color(0xFF1E293B),
+                            color: textColor,
                             letterSpacing: -0.5,
                           ),
                           textAlign: TextAlign.center,
                         ),
                         const SizedBox(height: 12),
-                        // Description
                         Text(
                           'The $title module is currently under development. We are crafting a seamless experience and will launch this soon!',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 15,
-                            color: Color(0xFF64748B),
+                            color: descColor,
                             height: 1.6,
                             fontWeight: FontWeight.w500,
                           ),
                           textAlign: TextAlign.center,
                         ),
                         const SizedBox(height: 32),
-                        // Premium Button
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton(
@@ -122,74 +128,53 @@ class DashboardScreen extends StatelessWidget {
                   ),
                 ),
               );
-              return;
+            } else {
+              context.push(
+                '/role_login',
+                extra: {
+                  'roleName': title,
+                  'themeColor': primaryColor,
+                  'nextRoute': nextRoute,
+                },
+              );
             }
-            context.push(
-              '/role_login',
-              extra: {
-                'roleName': title,
-                'themeColor': primaryColor,
-                'nextRoute': nextRoute,
-              },
-            );
           },
           borderRadius: BorderRadius.circular(24),
           child: Stack(
             children: [
-              // Background faded shape
-              Positioned(
-                right: -20,
-                bottom: -20,
-                child: Icon(
-                  icon,
-                  size: 150,
-                  color: primaryColor.withValues(alpha: 0.05),
-                ),
-              ),
               Padding(
                 padding: const EdgeInsets.all(32.0),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: primaryColor.withValues(alpha: 0.1),
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(icon, size: 40, color: primaryColor),
-                        ),
-                        Text(
-                          number,
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: primaryColor.withValues(alpha: 0.5),
-                          ),
-                        ),
-                      ],
+                    Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: primaryColor.withValues(alpha: 0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(icon, size: 48, color: primaryColor),
                     ),
-                    const SizedBox(height: 32),
+                    const SizedBox(height: 24),
                     Text(
                       title,
-                      style: const TextStyle(
-                        fontSize: 28,
+                      style: TextStyle(
+                        fontSize: 24,
                         fontWeight: FontWeight.w900,
-                        color: Color(0xFF1E293B),
+                        color: textColor,
                       ),
+                      textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 12),
                     Text(
                       description,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14,
                         height: 1.5,
-                        color: Color(0xFF64748B),
+                        color: descColor,
                         fontWeight: FontWeight.w500,
                       ),
+                      textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 24),
                     Container(
@@ -238,387 +223,206 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildFeatureBadge(
-    IconData icon,
-    Color color,
-    String title,
-    String subtitle,
-  ) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.1),
-            shape: BoxShape.circle,
-          ),
-          child: Icon(icon, color: color, size: 20),
-        ),
-        const SizedBox(width: 12),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 14,
-                color: Color(0xFF334155),
-              ),
-            ),
-            Text(
-              subtitle,
-              style: const TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final themeMode = ref.watch(themeProvider);
+    final isDark = themeMode == ThemeMode.dark;
+    
     return PopScope(
       canPop: false,
       child: Scaffold(
-        backgroundColor: const Color(0xFFF8FAFC),
-        body: Stack(
-          children: [
-          // Full Screen Background Image
-          Positioned.fill(
-            child: Image.asset(
-              'assets/back.png',
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) =>
-                  Container(color: const Color(0xFFF8FAFC)),
-            ),
-          ),
-          // Very light overlay to ensure text remains readable without washing out the image
-          Positioned.fill(
-            child: Container(color: Colors.white.withValues(alpha: 0.1)),
-          ),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        body: SafeArea(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final isWeb = constraints.maxWidth > 800;
+              return Column(
+                children: [
+                  // Top App Bar Area (Toggle button right)
+                  Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: isWeb ? 48.0 : 24.0,
+                      vertical: 24,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                         IconButton(
+                           onPressed: () {
+                             ref.read(themeProvider.notifier).toggleTheme();
+                           },
+                           icon: Icon(
+                             isDark ? Icons.light_mode : Icons.dark_mode,
+                             color: isDark ? Colors.white : const Color(0xFF1E293B),
+                             size: 28,
+                           ),
+                         ),
+                      ],
+                    ),
+                  ),
 
-          SafeArea(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final isWeb = constraints.maxWidth > 800;
+                  Expanded(
+                    child: SingleChildScrollView(
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: isWeb ? 64.0 : 24.0,
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            SizedBox(height: isWeb ? 20 : 10),
+                            // Centered Logo
+                            Image.asset(
+                              isDark ? 'assets/LOGO_DM.png' : 'assets/LOGO.png',
+                              height: 120,
+                              fit: BoxFit.contain,
+                              errorBuilder: (context, error, stackTrace) =>
+                                  const Icon(
+                                    Icons.local_hospital,
+                                    color: Color(0xFF166534),
+                                    size: 60,
+                                  ),
+                            ),
+                            const SizedBox(height: 48),
 
-                return Column(
-                  children: [
-                    // Top App Bar Area
-                    Padding(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: isWeb ? 48.0 : 24.0,
-                        vertical: 24,
+                            // Cards
+                            isWeb
+                                ? IntrinsicHeight(
+                                    child: Center(
+                                      child: Row(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.stretch,
+                                        children: [
+                                          Expanded(
+                                            child: _buildDashboardCard(
+                                              context: context,
+                                              title: 'Counter',
+                                              description:
+                                                  'Manage sales, billing, inventory and pharmacy counter operations.',
+                                              icon:
+                                                  Icons.point_of_sale_rounded,
+                                              primaryColor: const Color(0xFF22C55E), // Green
+                                              nextRoute: '/counter/billing',
+                                              isDark: isDark,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 32),
+                                          Expanded(
+                                            child: _buildDashboardCard(
+                                              context: context,
+                                              title: 'Lab Test',
+                                              description:
+                                                  'Manage lab test bookings, reports and patient records.',
+                                              icon: Icons.science_rounded,
+                                              primaryColor: const Color(0xFF3B82F6), // Blue
+                                              nextRoute: '/lab/dashboard',
+                                              isDark: isDark,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 32),
+                                          Expanded(
+                                            child: _buildDashboardCard(
+                                              context: context,
+                                              title: 'CRM',
+                                              description:
+                                                  'Manage patients, follow-ups and customer relationships.',
+                                              icon: Icons.people_alt_rounded,
+                                              primaryColor: const Color(0xFFF97316), // Orange
+                                              nextRoute: '/crm/dashboard',
+                                              isDark: isDark,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  )
+                                : Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.stretch,
+                                    children: [
+                                      _buildDashboardCard(
+                                        context: context,
+                                        title: 'Counter',
+                                        description:
+                                            'Manage sales, billing, inventory.',
+                                        icon: Icons.point_of_sale_rounded,
+                                        primaryColor: const Color(0xFF22C55E), // Green
+                                        nextRoute: '/counter/billing',
+                                        isDark: isDark,
+                                      ),
+                                      const SizedBox(height: 16),
+                                      _buildDashboardCard(
+                                        context: context,
+                                        title: 'Lab Test',
+                                        description:
+                                            'Manage lab test bookings, reports.',
+                                        icon: Icons.science_rounded,
+                                        primaryColor: const Color(0xFF3B82F6), // Blue
+                                        nextRoute: '/lab/dashboard',
+                                        isDark: isDark,
+                                      ),
+                                      const SizedBox(height: 16),
+                                      _buildDashboardCard(
+                                        context: context,
+                                        title: 'CRM',
+                                        description:
+                                            'Manage patients, follow-ups.',
+                                        icon: Icons.people_alt_rounded,
+                                        primaryColor: const Color(0xFFF97316), // Orange
+                                        nextRoute: '/crm/dashboard',
+                                        isDark: isDark,
+                                      ),
+                                    ],
+                                  ),
+                            SizedBox(height: isWeb ? 40 : 20),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  // Footer
+                  if (isWeb)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 48,
+                        vertical: 16,
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
+                          Text(
+                            '© 2026 SirfBill Bill Karo, Befikar Raho. All rights reserved.',
+                            style: TextStyle(
+                              color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                              fontSize: 12,
+                            ),
+                          ),
                           Row(
                             children: [
-                              Image.asset(
-                                'assets/LOGO.png',
-                                height: 95,
-                                cacheHeight: 285,
-                                fit: BoxFit.contain,
-                                errorBuilder: (context, error, stackTrace) =>
-                                    const Icon(
-                                      Icons.local_hospital,
-                                      color: Color(0xFF166534),
-                                      size: 40,
-                                    ),
-                              ),
-                            ],
-                          ),
-                          if (isWeb)
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 8,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(30),
-                                boxShadow: const [
-                                  BoxShadow(
-                                    color: Colors.black12,
-                                    blurRadius: 10,
-                                    offset: Offset(0, 4),
-                                  ),
-                                ],
-                              ),
-                              child: const Row(
-                                children: [
-                                  CircleAvatar(
-                                    radius: 16,
-                                    backgroundColor: Color(0xFFF1F5F9),
-                                    child: Icon(
-                                      Icons.person,
-                                      color: Color(0xFF475569),
-                                      size: 18,
-                                    ),
-                                  ),
-                                  SizedBox(width: 12),
-                                  Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'Welcome Back,',
-                                        style: TextStyle(
-                                          fontSize: 10,
-                                          color: Color(0xFF94A3B8),
-                                        ),
-                                      ),
-                                      Text(
-                                        'Admin',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          color: Color(0xFF334155),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  SizedBox(width: 12),
-                                  Icon(
-                                    Icons.keyboard_arrow_down,
-                                    color: Color(0xFF94A3B8),
-                                  ),
-                                ],
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-
-                    Expanded(
-                      child: SingleChildScrollView(
-                        child: Padding(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: isWeb ? 64.0 : 24.0,
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              SizedBox(height: isWeb ? 40 : 20),
-                              // Header Text
-                              const Text(
-                                'WELCOME BACK!',
+                              Text(
+                                'Together for a Healthier Tomorrow',
                                 style: TextStyle(
-                                  color: Color(0xFF64748B),
-                                  fontWeight: FontWeight.bold,
-                                  letterSpacing: 2,
+                                  color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                                   fontSize: 12,
                                 ),
                               ),
-                              const SizedBox(height: 8),
-                              RichText(
-                                text: const TextSpan(
-                                  style: TextStyle(
-                                    fontSize: 48,
-                                    fontWeight: FontWeight.w900,
-                                    color: Color(0xFF1E293B),
-                                    letterSpacing: -1,
-                                  ),
-                                  children: [
-                                    TextSpan(text: 'Select a '),
-                                    TextSpan(
-                                      text: 'Module',
-                                      style: TextStyle(
-                                        color: Color(0xFF166534),
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                              const SizedBox(width: 8),
+                              const Icon(
+                                Icons.eco,
+                                size: 14,
+                                color: Color(0xFF22C55E),
                               ),
-                              const SizedBox(height: 16),
-                              const Text(
-                                'Choose a module to continue and manage your services',
-                                style: TextStyle(
-                                  color: Color(0xFF64748B),
-                                  fontSize: 16,
-                                ),
-                              ),
-                              SizedBox(height: isWeb ? 64 : 32),
-
-                              // Cards
-                              isWeb
-                                  ? IntrinsicHeight(
-                                      child: Center(
-                                        child: Row(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.stretch,
-                                          children: [
-                                            Expanded(
-                                              child: _buildDashboardCard(
-                                                context: context,
-                                                number: '01',
-                                                title: 'Counter',
-                                                description:
-                                                    'Manage sales, billing, inventory and pharmacy counter operations.',
-                                                icon:
-                                                    Icons.point_of_sale_rounded,
-                                                primaryColor: const Color(
-                                                  0xFF22C55E,
-                                                ),
-                                                nextRoute: '/counter/billing',
-                                              ),
-                                            ),
-                                            const SizedBox(width: 32),
-                                            Expanded(
-                                              child: _buildDashboardCard(
-                                                context: context,
-                                                number: '02',
-                                                title: 'Lab Test',
-                                                description:
-                                                    'Manage lab test bookings, reports and patient records.',
-                                                icon: Icons.science_rounded,
-                                                primaryColor: const Color(
-                                                  0xFFF97316,
-                                                ),
-                                                nextRoute: '/lab/dashboard',
-                                              ),
-                                            ),
-                                            const SizedBox(width: 32),
-                                            Expanded(
-                                              child: _buildDashboardCard(
-                                                context: context,
-                                                number: '03',
-                                                title: 'CRM',
-                                                description:
-                                                    'Manage patients, follow-ups and customer relationships.',
-                                                icon: Icons.people_alt_rounded,
-                                                primaryColor: const Color(
-                                                  0xFF8B5CF6,
-                                                ),
-                                                nextRoute: '/crm/dashboard',
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    )
-                                  : Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.stretch,
-                                      children: [
-                                        _buildDashboardCard(
-                                          context: context,
-                                          number: '01',
-                                          title: 'Counter',
-                                          description:
-                                              'Manage sales, billing, inventory.',
-                                          icon: Icons.point_of_sale_rounded,
-                                          primaryColor: const Color(0xFF22C55E),
-                                          nextRoute: '/counter/billing',
-                                        ),
-                                        const SizedBox(height: 16),
-                                        _buildDashboardCard(
-                                          context: context,
-                                          number: '02',
-                                          title: 'Lab Test',
-                                          description:
-                                              'Manage lab test bookings, reports.',
-                                          icon: Icons.science_rounded,
-                                          primaryColor: const Color(0xFFF97316),
-                                          nextRoute: '/lab/dashboard',
-                                        ),
-                                        const SizedBox(height: 16),
-                                        _buildDashboardCard(
-                                          context: context,
-                                          number: '03',
-                                          title: 'CRM',
-                                          description:
-                                              'Manage patients, follow-ups.',
-                                          icon: Icons.people_alt_rounded,
-                                          primaryColor: const Color(0xFF8B5CF6),
-                                          nextRoute: '/crm/dashboard',
-                                        ),
-                                      ],
-                                    ),
-                              SizedBox(height: isWeb ? 40 : 20),
                             ],
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    // Bottom Features Bar
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 24.0, left: 24.0, right: 24.0),
-                      child: Wrap(
-                        alignment: WrapAlignment.center,
-                        spacing: 48,
-                        runSpacing: 24,
-                        children: [
-                          _buildFeatureBadge(
-                            Icons.security,
-                            const Color(0xFF166534),
-                            'Secure & Reliable',
-                            'Your data is safe with us',
-                          ),
-                          _buildFeatureBadge(
-                            Icons.bolt,
-                            const Color(0xFFF59E0B),
-                            'Fast & Efficient',
-                            'Save time, do more',
-                          ),
-                          _buildFeatureBadge(
-                            Icons.favorite,
-                            const Color(0xFFEF4444),
-                            'Better Healthcare',
-                            'For a healthier community',
                           ),
                         ],
                       ),
                     ),
-
-
-                    // Footer
-                    if (isWeb)
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 48,
-                          vertical: 16,
-                        ),
-                        child: const Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              '© 2026 SirfBill Bill Karo, Befikar Raho. All rights reserved.',
-                              style: TextStyle(
-                                color: Color(0xFF94A3B8),
-                                fontSize: 12,
-                              ),
-                            ),
-                            Row(
-                              children: [
-                                Text(
-                                  'Together for a Healthier Tomorrow',
-                                  style: TextStyle(
-                                    color: Color(0xFF94A3B8),
-                                    fontSize: 12,
-                                  ),
-                                ),
-                                SizedBox(width: 8),
-                                Icon(
-                                  Icons.eco,
-                                  size: 14,
-                                  color: Color(0xFF22C55E),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                  ],
-                );
-              },
-            ),
+                ],
+              );
+            },
           ),
-        ],
-      ),
+        ),
       ),
     );
   }
