@@ -68,7 +68,7 @@ class InventoryItem {
       lowStockThreshold: json['low_stock_threshold'] != null
           ? int.tryParse(json['low_stock_threshold'].toString())
           : null,
-      imageUrl: json['image_url'],
+      imageUrl: (json['image_url'] == 'NULL' || json['image_url'] == 'null') ? null : json['image_url'],
       gst: json['gst'] != null ? (json['gst'] as num).toDouble() : 0.0,
       discount: json['discount'] != null ? (json['discount'] as num).toDouble() : 0.0,
       packSize: json['pack_size'] != null ? int.tryParse(json['pack_size'].toString()) ?? 1 : 1,
@@ -146,6 +146,7 @@ class InventoryService {
     String? startDate,
     String? endDate,
     String? categoryId,
+    String? distributorId,
     int skip = 0,
     int limit = 100,
   }) async {
@@ -160,6 +161,7 @@ class InventoryService {
             'start_date': startDate,
           if (endDate != null && endDate.isNotEmpty) 'end_date': endDate,
           if (categoryId != null && categoryId.isNotEmpty) 'category_id': categoryId,
+          if (distributorId != null && distributorId.isNotEmpty) 'distributor_id': distributorId,
           'skip': skip,
           'limit': limit,
         },

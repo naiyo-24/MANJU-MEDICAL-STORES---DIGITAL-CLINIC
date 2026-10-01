@@ -50,6 +50,7 @@ dependencies:
   flutter_dotenv: ^6.0.1
   pretty_dio_logger: ^1.4.0
   path_provider: ^2.1.6
+  url_launcher: ^6.3.2
 
 dev_dependencies:
   flutter_test:

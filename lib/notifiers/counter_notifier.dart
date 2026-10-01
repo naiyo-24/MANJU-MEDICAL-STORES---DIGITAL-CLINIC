@@ -37,6 +37,29 @@ class ShopNotifier extends AsyncNotifier<List<Map<String, dynamic>>> {
     await loadShops();
   }
 
+  Future<void> updateShop({
+    required String id,
+    required String name,
+    required String code,
+    required String address,
+    required String city,
+    required String contactNumber,
+    required String status,
+    required bool isPrimary,
+  }) async {
+    await ShopService.updateShop(
+      id: id,
+      name: name,
+      code: code,
+      address: address,
+      city: city,
+      contactNumber: contactNumber,
+      status: status,
+      isPrimary: isPrimary,
+    );
+    await loadShops();
+  }
+
   Future<void> deleteShop(String id) async {
     await ShopService.deleteShop(id);
     await loadShops();

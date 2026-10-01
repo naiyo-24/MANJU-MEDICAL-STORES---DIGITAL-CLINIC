@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../providers/counter_providers.dart';
 import '../../services/purchase_service.dart';
 import '../../services/inventory_service.dart';
@@ -17,9 +19,58 @@ class _AddPurchaseBillScreenState extends ConsumerState<AddPurchaseBillScreen> {
   final PurchaseService _purchaseService = PurchaseService();
   final List<Map<String, dynamic>> _items = [];
   final _searchCtrl = TextEditingController();
+  final _invoiceCtrl = TextEditingController();
   String _paymentStatus = 'UNPAID';
+  double _amountPaid = 0.0;
+  double _globalDiscount = 0.0;
+
   bool _isLoading = false;
   bool _filterByDistributor = false;
+  Timer? _refreshTimer;
+  Timer? _searchDebounce;
+
+  double get _subtotal {
+    double total = 0;
+    for (var item in _items) {
+      total += (item['buying_price'] as double) * (item['quantity'] as int);
+    }
+    return total;
+  }
+  
+  double get _totalGst {
+    double total = 0;
+    for (var item in _items) {
+      double bp = (item['buying_price'] as double);
+      double qty = (item['quantity'] as int).toDouble();
+      double gstPercent = (item['gst'] as double?) ?? 0.0;
+      double itemTotal = bp * qty;
+      total += itemTotal * (gstPercent / 100);
+    }
+    return total;
+  }
+  
+  double get _grandTotal {
+    return _subtotal + _totalGst - _globalDiscount;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    // Auto-generate an internal invoice number (e.g., INV-PUR-169876543)
+    // The user can still edit or clear this if the supplier provided a specific invoice number.
+    _invoiceCtrl.text = 'INV-PUR-${DateTime.now().millisecondsSinceEpoch.toString().substring(4)}';
+    
+
+  }
+
+  @override
+  void dispose() {
+    _refreshTimer?.cancel();
+    _searchDebounce?.cancel();
+    _searchCtrl.dispose();
+    _invoiceCtrl.dispose();
+    super.dispose();
+  }
 
   void _addItem(Map<String, dynamic> product) {
     setState(() {
@@ -52,17 +103,19 @@ class _AddPurchaseBillScreenState extends ConsumerState<AddPurchaseBillScreen> {
       final shopId = await InventoryService.getShopId();
       
       // Calculate total amount
-      double totalAmount = 0;
-      for (var item in _items) {
-        totalAmount += (item['buying_price'] as double) * (item['quantity'] as int);
-      }
+      double totalAmount = _grandTotal;
 
       final billData = {
         'shop_id': shopId,
         'distributor_id': widget.distributor['id'],
+        'invoice_no': _invoiceCtrl.text.isNotEmpty ? _invoiceCtrl.text : null,
         'payment_status': _paymentStatus,
         'bill_date': DateTime.now().toIso8601String().split('T')[0],
         'total_amount': totalAmount,
+        'subtotal': _subtotal,
+        'total_discount': _globalDiscount,
+        'total_gst': _totalGst,
+        'amount_paid': _paymentStatus == 'UNPAID' ? 0.0 : (_paymentStatus == 'PAID' ? totalAmount : _amountPaid),
         'items': _items.map((i) => {
           'inventory_item_id': i['inventory_item_id'],
           'quantity': i['quantity'],
@@ -77,14 +130,43 @@ class _AddPurchaseBillScreenState extends ConsumerState<AddPurchaseBillScreen> {
         }).toList(),
       };
 
-      await _purchaseService.createPurchaseBill(billData);
+      final response = await _purchaseService.createPurchaseBill(billData);
+      final billId = response['id'];
       
-      ref.invalidate(inventoryProvider); // Refresh stock
+      ref.invalidate(inventoryProvider); // Refresh main stock
+      ref.invalidate(purchaseInventoryProvider); // Refresh purchase stock
       ref.invalidate(purchaseBillsProvider); // Refresh dashboard KPIs
+      ref.invalidate(accountsProvider); // Refresh accounts
+      ref.invalidate(historyProvider); // Refresh transactions history
       
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Purchase Bill created & stock updated!'), backgroundColor: Colors.green));
-        Navigator.pop(context);
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (ctx) => AlertDialog(
+            title: const Text('Purchase Success'),
+            content: const Text('Purchase bill created and stock updated successfully!'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(ctx);
+                  Navigator.pop(context);
+                },
+                child: const Text('Done'),
+              ),
+              ElevatedButton.icon(
+                icon: const Icon(Icons.print),
+                label: const Text('Generate Bill (PDF)'),
+                onPressed: () async {
+                  final url = Uri.parse('http://192.168.0.159:8000/api/admin/purchases/$billId/pdf');
+                  if (await canLaunchUrl(url)) {
+                    await launchUrl(url, mode: LaunchMode.externalApplication);
+                  }
+                },
+              ),
+            ],
+          ),
+        );
       }
     } catch (e) {
       if (mounted) {
@@ -119,57 +201,133 @@ class _AddPurchaseBillScreenState extends ConsumerState<AddPurchaseBillScreen> {
     showDialog(
       context: context,
       builder: (context) => StatefulBuilder(
-        builder: (context, setDialogState) => AlertDialog(
-          title: const Text('Add New Medicine to Inventory'),
-          content: SingleChildScrollView(
-            child: SizedBox(
-              width: 600,
-              child: Wrap(
-                spacing: 16,
-                runSpacing: 16,
-                children: [
-                  SizedBox(width: 280, child: TextField(controller: nameCtrl, decoration: const InputDecoration(labelText: 'Medicine Name *', border: OutlineInputBorder()))),
-                  SizedBox(width: 280, child: TextField(controller: mfgCtrl, decoration: const InputDecoration(labelText: 'Manufacturer', border: OutlineInputBorder()))),
-                  SizedBox(width: 280, child: TextField(controller: bpCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Buying Price (₹) *', border: OutlineInputBorder()))),
-                  SizedBox(width: 280, child: TextField(controller: spCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Selling Price (MRP ₹) *', border: OutlineInputBorder()))),
-                  SizedBox(width: 180, child: TextField(controller: stockCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Initial Stock (Packs) *', border: OutlineInputBorder()))),
-                  SizedBox(width: 180, child: TextField(controller: packSizeCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Pieces per Pack', border: OutlineInputBorder()))),
-                  SizedBox(width: 180, child: TextField(controller: gstCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'GST (%)', border: OutlineInputBorder()))),
-                  SizedBox(width: 180, child: TextField(controller: discountCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Discount (%)', border: OutlineInputBorder()))),
-                  SizedBox(width: 180, child: TextField(controller: batchCtrl, decoration: const InputDecoration(labelText: 'Batch Number', border: OutlineInputBorder()))),
-                  SizedBox(width: 180, child: TextField(controller: expiryCtrl, decoration: const InputDecoration(labelText: 'Expiry Date (yyyy-mm-dd)', border: OutlineInputBorder()))),
-                  SizedBox(width: 280, child: TextField(controller: hsnCtrl, decoration: const InputDecoration(labelText: 'HSN Code', border: OutlineInputBorder()))),
-                  SizedBox(width: 280, child: TextField(controller: skuCtrl, decoration: const InputDecoration(labelText: 'Barcode / SKU', border: OutlineInputBorder()))),
-                  
-                  SizedBox(
-                    width: 280,
-                    child: DropdownButtonFormField<String>(
-                      decoration: const InputDecoration(labelText: 'Category', border: OutlineInputBorder()),
-                      value: selectedCategoryId,
-                      items: cList.map((c) => DropdownMenuItem(value: c.id, child: Text(c.name))).toList(),
-                      onChanged: (v) => setDialogState(() => selectedCategoryId = v),
-                    ),
-                  ),
-                  SizedBox(
-                    width: 280,
-                    child: DropdownButtonFormField<String>(
-                      decoration: const InputDecoration(labelText: 'Rack / Location', border: OutlineInputBorder()),
-                      value: selectedRackId,
-                      items: rList.map((r) => DropdownMenuItem(value: r.id, child: Text(r.rackNumber))).toList(),
-                      onChanged: (v) => setDialogState(() => selectedRackId = v),
-                    ),
-                  ),
-                ],
+        builder: (context, setDialogState) {
+          final inputDec = (String label) => InputDecoration(
+            labelText: label,
+            filled: true,
+            fillColor: Colors.grey.shade50,
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade200)),
+            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF166534), width: 1.5)),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          );
+          
+          return Dialog(
+            backgroundColor: Colors.transparent,
+            insetPadding: const EdgeInsets.all(24),
+            child: Container(
+              width: 850,
+              constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.9),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 20, offset: Offset(0, 10))],
               ),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: isSaving ? null : () async {
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Header
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 20),
+                    decoration: const BoxDecoration(
+                      color: Color(0xFF166534),
+                      borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Row(
+                          children: [
+                            Icon(Icons.medication_liquid, color: Colors.white, size: 28),
+                            SizedBox(width: 12),
+                            Text('Add New Medicine', style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
+                          ],
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.close, color: Colors.white),
+                          onPressed: () => Navigator.pop(context),
+                        )
+                      ],
+                    ),
+                  ),
+                  
+                  // Body
+                  Flexible(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.all(32),
+                      child: Wrap(
+                        spacing: 24,
+                        runSpacing: 24,
+                        children: [
+                          SizedBox(width: 370, child: TextField(controller: nameCtrl, decoration: inputDec('Medicine Name *'))),
+                          SizedBox(width: 370, child: TextField(controller: mfgCtrl, decoration: inputDec('Manufacturer'))),
+                          SizedBox(width: 370, child: TextField(controller: bpCtrl, keyboardType: TextInputType.number, decoration: inputDec('Buying Price (₹) *'))),
+                          SizedBox(width: 370, child: TextField(controller: spCtrl, keyboardType: TextInputType.number, decoration: inputDec('Selling Price (MRP ₹) *'))),
+                          SizedBox(width: 173, child: TextField(controller: stockCtrl, keyboardType: TextInputType.number, decoration: inputDec('Initial Stock *'))),
+                          SizedBox(width: 173, child: TextField(controller: packSizeCtrl, keyboardType: TextInputType.number, decoration: inputDec('Pieces/Pack'))),
+                          SizedBox(width: 173, child: TextField(controller: gstCtrl, keyboardType: TextInputType.number, decoration: inputDec('GST (%)'))),
+                          SizedBox(width: 173, child: TextField(controller: discountCtrl, keyboardType: TextInputType.number, decoration: inputDec('Discount (%)'))),
+                          SizedBox(width: 173, child: TextField(controller: batchCtrl, decoration: inputDec('Batch Number'))),
+                          SizedBox(width: 173, child: TextField(controller: expiryCtrl, decoration: inputDec('Expiry (yyyy-mm-dd)'))),
+                          SizedBox(width: 370, child: TextField(controller: hsnCtrl, decoration: inputDec('HSN Code'))),
+                          SizedBox(width: 370, child: TextField(controller: skuCtrl, decoration: inputDec('Barcode / SKU'))),
+                          
+                          SizedBox(
+                            width: 370,
+                            child: DropdownButtonFormField<String>(
+                              decoration: inputDec('Category'),
+                              value: selectedCategoryId,
+                              items: cList.map((c) => DropdownMenuItem(value: c.id, child: Text(c.name))).toList(),
+                              onChanged: (v) => setDialogState(() => selectedCategoryId = v),
+                            ),
+                          ),
+                          SizedBox(
+                            width: 370,
+                            child: DropdownButtonFormField<String>(
+                              decoration: inputDec('Rack / Location'),
+                              value: selectedRackId,
+                              items: rList.map((r) => DropdownMenuItem(value: r.id, child: Text(r.rackNumber))).toList(),
+                              onChanged: (v) => setDialogState(() => selectedRackId = v),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  
+                  // Footer
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade50,
+                      borderRadius: const BorderRadius.vertical(bottom: Radius.circular(24)),
+                      border: Border(top: BorderSide(color: Colors.grey.shade200)),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                            foregroundColor: Colors.grey.shade700,
+                          ),
+                          child: const Text('Cancel', style: TextStyle(fontSize: 16)),
+                        ),
+                        const SizedBox(width: 16),
+                        ElevatedButton.icon(
+                          icon: isSaving 
+                              ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                              : const Icon(Icons.check_circle_outline),
+                          label: Text(isSaving ? 'Saving...' : 'Save Medicine', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF166534),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            elevation: 0,
+                          ),
+                          onPressed: isSaving ? null : () async {
                 if (nameCtrl.text.isEmpty || bpCtrl.text.isEmpty || spCtrl.text.isEmpty) {
                   ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please fill required fields *'), backgroundColor: Colors.red));
                   return;
@@ -212,7 +370,8 @@ class _AddPurchaseBillScreenState extends ConsumerState<AddPurchaseBillScreen> {
                       });
                     });
                     
-                    ref.invalidate(inventoryProvider); // Refresh inventory search list
+                    ref.invalidate(inventoryProvider); // Refresh global stock
+                    ref.invalidate(purchaseInventoryProvider); // Refresh local search list
                     Navigator.pop(context);
                     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Medicine created & added to bill!'), backgroundColor: Colors.green));
                   }
@@ -222,10 +381,15 @@ class _AddPurchaseBillScreenState extends ConsumerState<AddPurchaseBillScreen> {
                   if (context.mounted) setDialogState(() => isSaving = false);
                 }
               },
-              child: isSaving ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)) : const Text('Save Medicine'),
             ),
           ],
         )
+      ),
+    ],
+  ),
+),
+          );
+        },
       ),
     );
   }
@@ -233,7 +397,7 @@ class _AddPurchaseBillScreenState extends ConsumerState<AddPurchaseBillScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final inventory = ref.watch(inventoryProvider);
+    final inventory = ref.watch(purchaseInventoryProvider);
     final racks = ref.watch(rackProvider);
     final categories = ref.watch(categoryProvider);
 
@@ -245,6 +409,34 @@ class _AddPurchaseBillScreenState extends ConsumerState<AddPurchaseBillScreen> {
         foregroundColor: Colors.black,
         elevation: 1,
         actions: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8),
+            child: ElevatedButton.icon(
+              onPressed: _showAddMedicineDialog,
+              icon: const Icon(Icons.add, size: 18),
+              label: const Text('Add New Medicine'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF166534),
+                foregroundColor: Colors.white,
+                elevation: 0,
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
+            child: SizedBox(
+              width: 200,
+              child: TextField(
+                controller: _invoiceCtrl,
+                decoration: const InputDecoration(
+                  hintText: 'Auto Generated',
+                  labelText: 'Invoice Number',
+                  border: OutlineInputBorder(),
+                  contentPadding: EdgeInsets.symmetric(horizontal: 12),
+                ),
+              ),
+            ),
+          ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
             child: ElevatedButton(
@@ -268,29 +460,49 @@ class _AddPurchaseBillScreenState extends ConsumerState<AddPurchaseBillScreen> {
                 padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
-                  TextField(
-                    controller: _searchCtrl,
-                    decoration: const InputDecoration(
-                      hintText: 'Search Medicine',
-                      prefixIcon: Icon(Icons.search),
-                      border: OutlineInputBorder(),
-                    ),
-                    onChanged: (val) {
-                      setState(() {});
-                    },
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _searchCtrl,
+                          decoration: const InputDecoration(
+                            hintText: 'Search Medicine',
+                            prefixIcon: Icon(Icons.search),
+                            border: OutlineInputBorder(),
+                          ),
+                          onChanged: (val) {
+                            if (_searchDebounce?.isActive ?? false) _searchDebounce!.cancel();
+                            _searchDebounce = Timer(const Duration(milliseconds: 500), () {
+                              ref.read(purchaseInventoryProvider.notifier).loadInventory(
+                                searchQuery: val,
+                                distributorId: _filterByDistributor ? widget.distributor['id'] : null,
+                              );
+                            });
+                            setState(() {}); // Still update local state for fast UI feedback
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      IconButton(
+                        onPressed: () {
+                          ref.read(purchaseInventoryProvider.notifier).loadInventory(
+                            searchQuery: _searchCtrl.text.isNotEmpty ? _searchCtrl.text : null,
+                            distributorId: _filterByDistributor ? widget.distributor['id'] : null,
+                          );
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Medicine list refreshed!'), duration: Duration(seconds: 1)),
+                          );
+                        },
+                        icon: const Icon(Icons.refresh),
+                        tooltip: 'Refresh Medicines',
+                        style: IconButton.styleFrom(
+                          backgroundColor: Colors.green.shade50,
+                          foregroundColor: const Color(0xFF166534),
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 12),
-                  ElevatedButton.icon(
-                    onPressed: _showAddMedicineDialog,
-                    icon: const Icon(Icons.add, size: 18),
-                    label: const Text('Add New Medicine'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF0284C7),
-                      foregroundColor: Colors.white,
-                      minimumSize: const Size.fromHeight(40),
-                      elevation: 0,
-                    ),
-                  ),
+
                   const SizedBox(height: 12),
                   SwitchListTile(
                     title: const Text('Show only items from this distributor', style: TextStyle(fontSize: 14)),
@@ -299,6 +511,10 @@ class _AddPurchaseBillScreenState extends ConsumerState<AddPurchaseBillScreen> {
                     contentPadding: EdgeInsets.zero,
                     onChanged: (val) {
                       setState(() => _filterByDistributor = val);
+                      ref.read(purchaseInventoryProvider.notifier).loadInventory(
+                        searchQuery: _searchCtrl.text.isNotEmpty ? _searchCtrl.text : null,
+                        distributorId: val ? widget.distributor['id'] : null,
+                      );
                     },
                   ),
                   const SizedBox(height: 12),
@@ -349,6 +565,20 @@ class _AddPurchaseBillScreenState extends ConsumerState<AddPurchaseBillScreen> {
                       },
                       loading: () => const Center(child: CircularProgressIndicator()),
                       error: (err, stack) => Text('Error: $err'),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton(
+                      onPressed: () {
+                        ref.read(purchaseInventoryProvider.notifier).loadMore();
+                      },
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: const Color(0xFF166534),
+                        side: const BorderSide(color: Color(0xFF166534)),
+                      ),
+                      child: const Text('Load More Medicines'),
                     ),
                   ),
                 ],
@@ -550,10 +780,48 @@ class _AddPurchaseBillScreenState extends ConsumerState<AddPurchaseBillScreen> {
                       ),
                     ),
                   ),
+                  const Divider(),
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(color: Colors.grey.shade50, borderRadius: BorderRadius.circular(8)),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+                          const Text('Subtotal: ', style: TextStyle(fontSize: 14)),
+                          SizedBox(width: 100, child: Text('₹${_subtotal.toStringAsFixed(2)}', textAlign: TextAlign.right)),
+                        ]),
+                        const SizedBox(height: 4),
+                        Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+                          const Text('Total GST: ', style: TextStyle(fontSize: 14)),
+                          SizedBox(width: 100, child: Text('+ ₹${_totalGst.toStringAsFixed(2)}', textAlign: TextAlign.right)),
+                        ]),
+                        const SizedBox(height: 4),
+                        Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+                          const Text('Discount: ', style: TextStyle(fontSize: 14)),
+                          SizedBox(
+                            width: 100, 
+                            child: TextField(
+                              textAlign: TextAlign.right,
+                              decoration: const InputDecoration(isDense: true, prefixText: '₹'),
+                              keyboardType: TextInputType.number,
+                              onChanged: (v) => setState(() => _globalDiscount = double.tryParse(v) ?? 0.0),
+                            ),
+                          ),
+                        ]),
+                        const Divider(),
+                        Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+                          const Text('Grand Total: ', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                          SizedBox(width: 100, child: Text('₹${_grandTotal.toStringAsFixed(2)}', textAlign: TextAlign.right, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold))),
+                        ]),
+                      ],
+                    ),
+                  ),
                   const SizedBox(height: 16),
                   Row(
                     children: [
                       const Text('Payment Status: ', style: TextStyle(fontWeight: FontWeight.bold)),
+                      const SizedBox(width: 8),
                       DropdownButton<String>(
                         value: _paymentStatus,
                         items: const [
@@ -564,9 +832,23 @@ class _AddPurchaseBillScreenState extends ConsumerState<AddPurchaseBillScreen> {
                         onChanged: (v) {
                           setState(() {
                             _paymentStatus = v!;
+                            if (_paymentStatus == 'PAID') _amountPaid = _grandTotal;
                           });
                         },
                       ),
+                      if (_paymentStatus == 'PARTIAL') ...[
+                        const SizedBox(width: 16),
+                        const Text('Amount Paid: ', style: TextStyle(fontWeight: FontWeight.bold)),
+                        const SizedBox(width: 8),
+                        SizedBox(
+                          width: 100,
+                          child: TextField(
+                            decoration: const InputDecoration(isDense: true, prefixText: '₹'),
+                            keyboardType: TextInputType.number,
+                            onChanged: (v) => setState(() => _amountPaid = double.tryParse(v) ?? 0.0),
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ],

@@ -100,6 +100,42 @@ class ShopService {
     }
   }
 
+  static Future<Shop> updateShop({
+    required String id,
+    required String name,
+    required String code,
+    required String address,
+    required String city,
+    required String contactNumber,
+    required String status,
+    required bool isPrimary,
+  }) async {
+    try {
+      final response = await ApiClient().dio.put(
+        '/api/admin/shop/$id',
+        data: {
+          'name': name,
+          'code': code,
+          'address': address,
+          'city': city,
+          'contact_number': contactNumber,
+          'status': status,
+          'is_primary': isPrimary,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        return Shop.fromJson(response.data);
+      } else {
+        throw Exception('Failed to update shop');
+      }
+    } on DioException catch (e) {
+      throw Exception(e.response?.data['detail'] ?? 'Failed to update shop');
+    } catch (e) {
+      throw Exception('Error updating shop: $e');
+    }
+  }
+
   static Future<void> deleteShop(String id) async {
     try {
       final response = await ApiClient().dio.delete('/api/admin/shop/$id');

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../providers/distributor_provider.dart';
+import '../../providers/counter_providers.dart';
 import 'add_purchase_bill_screen.dart';
 import 'package:go_router/go_router.dart';
 
@@ -175,8 +177,219 @@ class DistributorDetailScreen extends ConsumerWidget {
               loading: () => const Center(child: Padding(padding: EdgeInsets.all(40.0), child: CircularProgressIndicator())),
               error: (err, stack) => Center(child: Text('Error loading analytics: $err', style: const TextStyle(color: Colors.red))),
             ),
+            
+            const SizedBox(height: 32),
+            const Text(
+              'Previous Purchase Bills',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+            ),
+            const SizedBox(height: 16),
+            Consumer(
+              builder: (context, ref, child) {
+                final billsAsync = ref.watch(purchaseBillsProvider);
+                
+                return billsAsync.when(
+                  data: (bills) {
+                    final distBills = bills.where((b) => b['distributor_id'] == distributor['id']).toList();
+                    // Sort descending by date
+                    distBills.sort((a, b) {
+                      final da = DateTime.tryParse(a['bill_date'] ?? '') ?? DateTime(2000);
+                      final db = DateTime.tryParse(b['bill_date'] ?? '') ?? DateTime(2000);
+                      return db.compareTo(da);
+                    });
+
+                    if (distBills.isEmpty) {
+                      return const Card(
+                        color: Colors.white,
+                        elevation: 0,
+                        child: Padding(
+                          padding: EdgeInsets.all(32.0),
+                          child: Center(
+                            child: Text('No previous bills found for this distributor.', style: TextStyle(color: Color(0xFF64748B))),
+                          ),
+                        ),
+                      );
+                    }
+
+                    return ListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: distBills.length,
+                      itemBuilder: (context, index) {
+                        final bill = distBills[index];
+                        final dateStr = bill['bill_date'] != null 
+                            ? bill['bill_date'].toString().split('T')[0] 
+                            : 'Unknown Date';
+                        
+                        return Card(
+                          color: Colors.white,
+                          elevation: 0,
+                          margin: const EdgeInsets.only(bottom: 8),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: const BorderSide(color: Color(0xFFE2E8F0))),
+                          child: ListTile(
+                            leading: const CircleAvatar(
+                              backgroundColor: Color(0xFFEFF6FF),
+                              child: Icon(Icons.receipt_long, color: Color(0xFF3B82F6)),
+                            ),
+                            title: Text('Invoice: ${bill['invoice_no'] ?? 'N/A'}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                            subtitle: Text('Date: $dateStr • Items: ${bill['items']?.length ?? 0}'),
+                            trailing: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Text('₹${bill['total_amount'] ?? 0.0}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                                Text(
+                                  bill['payment_status'] ?? 'UNPAID',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: bill['payment_status'] == 'PAID' ? Colors.green : Colors.orange,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            onTap: () {
+                              _showBillDetails(context, ref, bill);
+                            },
+                          ),
+                        );
+                      },
+                    );
+                  },
+                  loading: () => const Center(child: Padding(padding: EdgeInsets.all(20.0), child: CircularProgressIndicator())),
+                  error: (err, stack) => Center(child: Text('Error loading bills: $err', style: const TextStyle(color: Colors.red))),
+                );
+              },
+            ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _showBillDetails(BuildContext context, WidgetRef ref, Map<String, dynamic> bill) {
+    final items = (bill['items'] as List<dynamic>?) ?? [];
+    final inventoryList = ref.read(inventoryProvider).value ?? [];
+    
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text('Invoice: ${bill['invoice_no'] ?? 'N/A'}'),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              decoration: BoxDecoration(
+                color: bill['payment_status'] == 'PAID' ? Colors.green.shade50 : Colors.orange.shade50,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                bill['payment_status'] ?? 'UNPAID',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: bill['payment_status'] == 'PAID' ? Colors.green : Colors.orange,
+                ),
+              ),
+            ),
+          ],
+        ),
+        content: SizedBox(
+          width: 800,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Date: ${bill['bill_date']?.toString().split('T')[0] ?? 'N/A'}', style: const TextStyle(color: Color(0xFF64748B))),
+              const SizedBox(height: 24),
+              const Text('Items Purchased', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              const SizedBox(height: 8),
+              Flexible(
+                child: Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: ListView.separated(
+                    shrinkWrap: true,
+                    itemCount: items.length,
+                    separatorBuilder: (context, index) => const Divider(height: 1),
+                    itemBuilder: (context, index) {
+                      final item = items[index];
+                      final invItem = inventoryList.where((i) => i.id == item['inventory_item_id']).firstOrNull;
+                      final itemName = invItem != null ? invItem.name : 'Unknown Item (${item['inventory_item_id']})';
+                      
+                      return ListTile(
+                        title: Text(itemName),
+                        subtitle: Text('Qty: ${item['quantity']} • Batch: ${item['batch_number'] ?? 'N/A'} • Exp: ${item['expiry_date'] ?? 'N/A'}'),
+                        trailing: Text('₹${item['unit_price'] ?? 0.0}', style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF166534))),
+                      );
+                    },
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  const Text('Total Amount:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  const SizedBox(width: 16),
+                  Text('₹${bill['total_amount'] ?? 0.0}', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF3B82F6))),
+                ],
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
+          ElevatedButton.icon(
+            icon: const Icon(Icons.print),
+            label: const Text('Generate PDF'),
+            onPressed: () async {
+              final billId = bill['id'];
+              if (billId != null) {
+                final url = Uri.parse('http://192.168.0.159:8000/api/admin/purchases/$billId/pdf');
+                if (await canLaunchUrl(url)) {
+                  await launchUrl(url, mode: LaunchMode.externalApplication);
+                }
+              }
+            },
+          ),
+          if (bill['payment_status'] != 'PAID')
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF166534)),
+              onPressed: () async {
+                try {
+                  // Call service to pay bill
+                  final svc = ref.read(purchaseServiceProvider);
+                  await svc.markBillAsPaid(bill['id']);
+                  
+                  // Refresh the UI
+                  ref.invalidate(purchaseBillsProvider);
+                  ref.invalidate(accountsProvider);
+                  ref.invalidate(historyProvider);
+                  
+                  if (context.mounted) {
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Bill marked as PAID!'), backgroundColor: Colors.green),
+                    );
+                  }
+                } catch (e) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+                    );
+                  }
+                }
+              },
+              child: const Text('Mark as Paid', style: TextStyle(color: Colors.white)),
+            ),
+        ],
       ),
     );
   }

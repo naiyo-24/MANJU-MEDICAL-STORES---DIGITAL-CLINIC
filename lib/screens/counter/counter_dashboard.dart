@@ -34,21 +34,6 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
       }
     });
 
-    // Real-time synchronization polling every 30 seconds
-    _syncTimer = Timer.periodic(const Duration(seconds: 30), (timer) {
-      if (!mounted) {
-        timer.cancel();
-        return;
-      }
-      try {
-        ref.invalidate(inventoryProvider);
-        ref.invalidate(rackProvider);
-        ref.invalidate(categoryProvider);
-        ref.invalidate(distributorsProvider);
-      } catch (_) {
-        // Ignore errors if context is deactivated during hot restarts
-      }
-    });
 
     HardwareKeyboard.instance.addHandler(_handleKeyEvent);
   }
@@ -56,7 +41,6 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
   @override
   void dispose() {
     _timer?.cancel();
-    _syncTimer?.cancel();
     HardwareKeyboard.instance.removeHandler(_handleKeyEvent);
     super.dispose();
   }

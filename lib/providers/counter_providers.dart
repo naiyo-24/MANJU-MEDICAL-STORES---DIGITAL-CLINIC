@@ -46,6 +46,13 @@ final billingInventoryProvider =
       return BillingInventoryNotifier();
     });
 
+class PurchaseInventoryNotifier extends InventoryNotifier {}
+
+final purchaseInventoryProvider =
+    AsyncNotifierProvider<PurchaseInventoryNotifier, List<InventoryItem>>(() {
+      return PurchaseInventoryNotifier();
+    });
+
 final doctorProvider = AsyncNotifierProvider<DoctorNotifier, List<Doctor>>(() {
   return DoctorNotifier();
 });
