@@ -29,6 +29,101 @@ class DashboardScreen extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           onTap: () {
+            if (title == 'Lab Test' || title == 'CRM') {
+              showDialog(
+                context: context,
+                builder: (context) => Dialog(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                  elevation: 0,
+                  backgroundColor: Colors.transparent,
+                  child: Container(
+                    width: 400,
+                    padding: const EdgeInsets.all(32),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(24),
+                      boxShadow: [
+                        BoxShadow(
+                          color: primaryColor.withValues(alpha: 0.2),
+                          blurRadius: 40,
+                          offset: const Offset(0, 20),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Icon with soft background matching the module color
+                        Container(
+                          padding: const EdgeInsets.all(24),
+                          decoration: BoxDecoration(
+                            color: primaryColor.withValues(alpha: 0.1),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.rocket_launch_rounded,
+                            size: 48,
+                            color: primaryColor,
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        // Title
+                        Text(
+                          'Coming Soon',
+                          style: TextStyle(
+                            fontSize: 28,
+                            fontWeight: FontWeight.w900,
+                            color: const Color(0xFF1E293B),
+                            letterSpacing: -0.5,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 12),
+                        // Description
+                        Text(
+                          'The $title module is currently under development. We are crafting a seamless experience and will launch this soon!',
+                          style: const TextStyle(
+                            fontSize: 15,
+                            color: Color(0xFF64748B),
+                            height: 1.6,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 32),
+                        // Premium Button
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: () => Navigator.pop(context),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: primaryColor,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 20),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              elevation: 0,
+                            ),
+                            child: const Text(
+                              'Got it',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+              return;
+            }
             context.push(
               '/role_login',
               extra: {

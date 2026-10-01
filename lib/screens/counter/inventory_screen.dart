@@ -49,12 +49,15 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
         onTap: () => _onSort(title),
         child: Row(
           children: [
-            Text(
-              title,
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF475569),
-                fontSize: 12,
+            Expanded(
+              child: Text(
+                title,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF475569),
+                  fontSize: 12,
+                ),
+                overflow: TextOverflow.ellipsis,
               ),
             ),
             const SizedBox(width: 4),

@@ -108,13 +108,14 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
     required IconData icon,
     required String label,
     String? shortcut,
+    required bool isExpanded,
   }) {
     final isSelected = widget.navigationShell.currentIndex == index;
     
     Widget content = Container(
-      width: _isSidebarExpanded ? 228 : 48, // Fix width to prevent flex overflow during animation
+      width: isExpanded ? 228 : 48, // Fix width to prevent flex overflow during animation
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      padding: EdgeInsets.symmetric(horizontal: _isSidebarExpanded ? 16 : 0, vertical: 12),
+      padding: EdgeInsets.symmetric(horizontal: isExpanded ? 16 : 0, vertical: 12),
       decoration: BoxDecoration(
         color: isSelected ? const Color(0xFFE8F5E9) : Colors.transparent,
         borderRadius: BorderRadius.circular(12),
@@ -127,7 +128,7 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
       ),
       child: AnimatedCrossFade(
         duration: const Duration(milliseconds: 200),
-        crossFadeState: _isSidebarExpanded ? CrossFadeState.showFirst : CrossFadeState.showSecond,
+        crossFadeState: isExpanded ? CrossFadeState.showFirst : CrossFadeState.showSecond,
         alignment: Alignment.centerLeft,
         firstChild: SingleChildScrollView(
           scrollDirection: Axis.horizontal,
@@ -180,7 +181,7 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
       ),
     );
 
-    if (!_isSidebarExpanded) {
+    if (!isExpanded) {
       content = Tooltip(message: label, child: content);
     }
 
@@ -211,7 +212,7 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
       child: Scaffold(
         key: _scaffoldKey,
         backgroundColor: Colors.white,
-        drawer: isDesktop ? null : Drawer(child: _buildSidebar()),
+        drawer: isDesktop ? null : Drawer(child: _buildSidebar(isDesktop)),
       body: Column(
         children: [
           _buildHeader(isDesktop),
@@ -219,7 +220,7 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
           Expanded(
             child: Row(
               children: [
-                if (isDesktop) _buildSidebar(),
+                if (isDesktop) _buildSidebar(isDesktop),
                 // Screen Content
                 Expanded(
                   child: Container(
@@ -413,13 +414,13 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
                     ),
                     onSelected: (value) async {
                       if (value == 'logout') {
-                        ref.invalidate(categoryProvider);
-                        ref.invalidate(rackProvider);
-                        ref.invalidate(inventoryProvider);
-                        ref.invalidate(billingInventoryProvider);
                         await AuthService.logout();
                         if (context.mounted) {
                           context.go('/dashboard');
+                          ref.invalidate(categoryProvider);
+                          ref.invalidate(rackProvider);
+                          ref.invalidate(inventoryProvider);
+                          ref.invalidate(billingInventoryProvider);
                         }
                       }
                     },
@@ -496,23 +497,26 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
     );
   }
 
-  Widget _buildSidebar() {
+  Widget _buildSidebar(bool isDesktop) {
+    // On mobile (Drawer), always force the sidebar to be fully expanded
+    final bool isExpanded = isDesktop ? _isSidebarExpanded : true;
+
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
-      width: _isSidebarExpanded ? 260 : 80,
+      width: isExpanded ? 260 : 80,
       decoration: const BoxDecoration(
         color: Color(0xFFF8FAFC),
         border: Border(right: BorderSide(color: Color(0xFFE2E8F0), width: 1)),
       ),
       child: ClipRect(
         child: Column(
-          crossAxisAlignment: _isSidebarExpanded ? CrossAxisAlignment.start : CrossAxisAlignment.center,
+          crossAxisAlignment: isExpanded ? CrossAxisAlignment.start : CrossAxisAlignment.center,
           children: [
             Padding(
-              padding: EdgeInsets.all(_isSidebarExpanded ? 24.0 : 16.0),
+              padding: EdgeInsets.all(isExpanded ? 24.0 : 16.0),
               child: AnimatedCrossFade(
                 duration: const Duration(milliseconds: 200),
-                crossFadeState: _isSidebarExpanded ? CrossFadeState.showFirst : CrossFadeState.showSecond,
+                crossFadeState: isExpanded ? CrossFadeState.showFirst : CrossFadeState.showSecond,
                 alignment: Alignment.centerLeft,
                 firstChild: const SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
@@ -556,48 +560,56 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
                     icon: Icons.receipt_long,
                     label: 'Billing',
                     shortcut: 'F1',
+                    isExpanded: isExpanded,
                   ),
                   _buildSidebarItem(
                     index: 1,
                     icon: Icons.inventory_2,
                     label: 'Inventory',
                     shortcut: 'F2',
+                    isExpanded: isExpanded,
                   ),
                   _buildSidebarItem(
                     index: 2,
                     icon: Icons.storefront,
                     label: 'Shops',
                     shortcut: 'F3',
+                    isExpanded: isExpanded,
                   ),
                   _buildSidebarItem(
                     index: 3,
                     icon: Icons.people,
                     label: 'Customers',
                     shortcut: 'F4',
+                    isExpanded: isExpanded,
                   ),
                   _buildSidebarItem(
                     index: 4,
                     icon: Icons.account_balance_wallet,
                     label: 'Accounts',
                     shortcut: 'F5',
+                    isExpanded: isExpanded,
                   ),
                   _buildSidebarItem(
                     index: 5,
                     icon: Icons.history,
                     label: 'History',
                     shortcut: 'F6',
+                    isExpanded: isExpanded,
                   ),
                   _buildSidebarItem(
                     index: 6,
                     icon: Icons.settings,
                     label: 'Settings',
                     shortcut: 'F7',
+                    isExpanded: isExpanded,
                   ),
                   _buildSidebarItem(
                     index: 7,
                     icon: Icons.local_shipping,
                     label: 'Distributors',
                     shortcut: 'F8',
+                    isExpanded: isExpanded,
                   ),
 
                   const SizedBox(height: 16),
@@ -610,17 +622,18 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
                   const SizedBox(height: 8),
 
                   Tooltip(
-                    message: _isSidebarExpanded ? '' : 'Logout',
+                    message: isExpanded ? '' : 'Logout',
                     child: InkWell(
                       onTap: () async {
-                        ref.invalidate(categoryProvider);
-                        ref.invalidate(rackProvider);
-                        ref.invalidate(inventoryProvider);
-                        ref.invalidate(billingInventoryProvider);
                         await AuthService.logout();
                         if (context.mounted) {
-                          // Go back to the module selection screen
+                          // Go back to the module selection screen FIRST
                           context.go('/dashboard');
+                          // Then invalidate providers so they don't refetch with a missing token
+                          ref.invalidate(categoryProvider);
+                          ref.invalidate(rackProvider);
+                          ref.invalidate(inventoryProvider);
+                          ref.invalidate(billingInventoryProvider);
                         }
                       },
                       borderRadius: BorderRadius.circular(12),
@@ -630,12 +643,12 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
                           vertical: 4,
                         ),
                         padding: EdgeInsets.symmetric(
-                          horizontal: _isSidebarExpanded ? 16 : 0,
+                          horizontal: isExpanded ? 16 : 0,
                           vertical: 12,
                         ),
                         child: AnimatedCrossFade(
                           duration: const Duration(milliseconds: 200),
-                          crossFadeState: _isSidebarExpanded ? CrossFadeState.showFirst : CrossFadeState.showSecond,
+                          crossFadeState: isExpanded ? CrossFadeState.showFirst : CrossFadeState.showSecond,
                           alignment: Alignment.centerLeft,
                           firstChild: const SingleChildScrollView(
                             scrollDirection: Axis.horizontal,
@@ -671,7 +684,7 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
           // Bottom Sidebar Card
           AnimatedCrossFade(
             duration: const Duration(milliseconds: 200),
-            crossFadeState: _isSidebarExpanded ? CrossFadeState.showFirst : CrossFadeState.showSecond,
+            crossFadeState: isExpanded ? CrossFadeState.showFirst : CrossFadeState.showSecond,
             alignment: Alignment.bottomCenter,
             firstChild: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -734,10 +747,10 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
           ),
             
           Padding(
-            padding: EdgeInsets.all(_isSidebarExpanded ? 24.0 : 16.0),
+            padding: EdgeInsets.all(isExpanded ? 24.0 : 16.0),
             child: Center(
               child: Text(
-                _isSidebarExpanded ? 'Version 1.0.0' : 'v1',
+                isExpanded ? 'Version 1.0.0' : 'v1',
                 style: const TextStyle(fontSize: 10, color: Color(0xFF94A3B8)),
               ),
             ),

@@ -6,12 +6,16 @@ class DistributorService {
   final ApiClient _apiClient = ApiClient();
 
   // Get all distributors
-  Future<List<dynamic>> getDistributors() async {
+  Future<List<dynamic>> getDistributors({String? search}) async {
     try {
       final shopId = await InventoryService.getShopId();
+      final queryParams = <String, dynamic>{'shop_id': shopId};
+      if (search != null && search.isNotEmpty) {
+        queryParams['search'] = search;
+      }
       final response = await _apiClient.dio.get(
         '/api/admin/distributors/',
-        queryParameters: {'shop_id': shopId},
+        queryParameters: queryParams,
       );
       if (response.statusCode == 200) {
         return response.data as List<dynamic>;

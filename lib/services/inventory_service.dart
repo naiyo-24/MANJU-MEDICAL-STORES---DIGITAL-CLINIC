@@ -118,6 +118,11 @@ class InventoryService {
 
     if (_cachedShopId != null) return _cachedShopId!;
 
+    final token = prefs.getString('access_token');
+    if (token == null || token.isEmpty) {
+      throw Exception('Not authenticated. Please log in.');
+    }
+
     final response = await ApiClient().dio.get('/api/admin/shops');
 
     if (response.statusCode == 200) {
@@ -138,6 +143,12 @@ class InventoryService {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('selected_shop_id', shopId);
     _cachedShopId = shopId;
+  }
+
+  static Future<void> clearShopId() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('selected_shop_id');
+    _cachedShopId = null;
   }
 
   static Future<List<InventoryItem>> fetchInventory({

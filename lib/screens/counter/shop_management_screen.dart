@@ -830,12 +830,12 @@ class _ShopManagementScreenState extends ConsumerState<ShopManagementScreen> {
                                                   color: const Color(0xFF3B82F6),
                                                   tooltip: 'Edit Shop',
                                                 ),
-                                                IconButton(
-                                                  onPressed: () => _showDeleteDialog(context, shop),
-                                                  icon: const Icon(Icons.delete_outline, size: 18),
-                                                  color: Colors.red,
-                                                  tooltip: 'Delete Shop',
-                                                ),
+                                                // IconButton(
+                                                //   onPressed: () => _showDeleteDialog(context, shop),
+                                                //   icon: const Icon(Icons.delete_outline, size: 18),
+                                                //   color: Colors.red,
+                                                //   tooltip: 'Delete Shop',
+                                                // ),
                                               ],
                                             ),
                                           ),

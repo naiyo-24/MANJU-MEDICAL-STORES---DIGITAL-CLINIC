@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../config/api_client.dart';
+import 'inventory_service.dart';
 
 class AuthService {
   static const String _tokenKey = 'access_token';
@@ -56,7 +57,7 @@ class AuthService {
     await prefs.remove(_tokenKey);
     await prefs.remove(_userIdKey);
     await prefs.remove(_roleKey);
-    await prefs.remove('selected_shop_id');
+    await InventoryService.clearShopId();
   }
 
   static Future<String?> getToken() async {

@@ -129,6 +129,8 @@ class InventoryRowWidget extends StatelessWidget {
               medicine.looseStock > 0 
                   ? '${medicine.stockQuantity} Pk, ${medicine.looseStock} Pc'
                   : medicine.stockQuantity.toString(),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 color: medicine.stockQuantity <= 0 && medicine.looseStock <= 0
                     ? const Color(0xFFDC2626) // Red
@@ -147,6 +149,8 @@ class InventoryRowWidget extends StatelessWidget {
             flex: 1,
             child: Text(
               rackName,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: const TextStyle(color: Color(0xFF64748B), fontSize: 12),
             ),
           ),
@@ -154,6 +158,8 @@ class InventoryRowWidget extends StatelessWidget {
             flex: 1,
             child: Text(
               '₹${medicine.buyingPrice?.toStringAsFixed(2) ?? '0.00'}',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: const TextStyle(
                 color: Color(0xFF64748B),
                 fontSize: 12,
@@ -164,6 +170,8 @@ class InventoryRowWidget extends StatelessWidget {
             flex: 1,
             child: Text(
               '₹${medicine.unitPrice.toStringAsFixed(2)}',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: const TextStyle(
                 color: Color(0xFF1E293B),
                 fontSize: 12,
@@ -184,6 +192,8 @@ class InventoryRowWidget extends StatelessWidget {
             flex: 1,
             child: Text(
               medicine.distributor ?? '-',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: const TextStyle(color: Color(0xFF64748B), fontSize: 12),
             ),
           ),

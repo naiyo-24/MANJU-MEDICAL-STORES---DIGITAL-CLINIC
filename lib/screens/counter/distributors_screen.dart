@@ -9,11 +9,18 @@ import 'distributor_detail_screen.dart';
 import 'add_purchase_bill_screen.dart';
 import 'package:go_router/go_router.dart';
 
-class DistributorsScreen extends ConsumerWidget {
+class DistributorsScreen extends ConsumerStatefulWidget {
   const DistributorsScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<DistributorsScreen> createState() => _DistributorsScreenState();
+}
+
+class _DistributorsScreenState extends ConsumerState<DistributorsScreen> {
+  String _searchQuery = '';
+
+  @override
+  Widget build(BuildContext context) {
     final distributorsAsync = ref.watch(distributorsProvider);
 
     return Scaffold(
@@ -53,6 +60,33 @@ class DistributorsScreen extends ConsumerWidget {
                 ),
               ],
             ),
+            const SizedBox(height: 16),
+            TextField(
+              onChanged: (value) {
+                setState(() {
+                  _searchQuery = value.toLowerCase();
+                });
+              },
+              decoration: InputDecoration(
+                hintText: 'Search distributors...',
+                prefixIcon: const Icon(Icons.search, color: Color(0xFF64748B)),
+                filled: true,
+                fillColor: Colors.white,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: const BorderSide(color: Color(0xFF166534)),
+                ),
+                contentPadding: const EdgeInsets.symmetric(vertical: 0),
+              ),
+            ),
             const SizedBox(height: 24),
             Expanded(
               child: distributorsAsync.when(
@@ -65,13 +99,21 @@ class DistributorsScreen extends ConsumerWidget {
                       ),
                     );
                   }
+                  final filteredDistributors = _searchQuery.isEmpty 
+                      ? distributors 
+                      : distributors.where((d) => 
+                          (d['name']?.toString().toLowerCase() ?? '').contains(_searchQuery) ||
+                          (d['email']?.toString().toLowerCase() ?? '').contains(_searchQuery) ||
+                          (d['phone']?.toString().toLowerCase() ?? '').contains(_searchQuery)
+                        ).toList();
+
                   return SingleChildScrollView(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         DistributorKpiCards(distributors: distributors),
                         DistributorCharts(distributors: distributors),
-                        DistributorListView(distributors: distributors),
+                        DistributorListView(distributors: filteredDistributors),
                       ],
                     ),
                   );
