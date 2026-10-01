@@ -79,6 +79,10 @@ class _RoleLoginScreenState extends State<RoleLoginScreen> {
   }
 
   Widget _buildFeatureItem(IconData icon, String title, String subtitle) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? Colors.white : const Color(0xFF1E293B);
+    final subtitleColor = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 24.0),
       child: Row(
@@ -97,16 +101,16 @@ class _RoleLoginScreenState extends State<RoleLoginScreen> {
             children: [
               Text(
                 title,
-                style: const TextStyle(
+                style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 14,
-                  color: Color(0xFF1E293B),
+                  color: textColor,
                 ),
               ),
               const SizedBox(height: 2),
               Text(
                 subtitle,
-                style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                style: TextStyle(fontSize: 12, color: subtitleColor),
               ),
             ],
           ),
@@ -119,9 +123,13 @@ class _RoleLoginScreenState extends State<RoleLoginScreen> {
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
     final isWeb = size.width > 900;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    final scaffoldBg = isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC);
+    final shaderColor = isDark ? const Color(0xFF0F172A) : Colors.white;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: scaffoldBg,
       body: Stack(
         children: [
           // Background Image (Blurred)
@@ -131,7 +139,7 @@ class _RoleLoginScreenState extends State<RoleLoginScreen> {
                 return LinearGradient(
                   begin: Alignment.centerLeft,
                   end: Alignment.centerRight,
-                  colors: [Colors.white, Colors.white.withValues(alpha: 0.2)],
+                  colors: [shaderColor, shaderColor.withValues(alpha: 0.2)],
                   stops: const [0.4, 1.0],
                 ).createShader(rect);
               },
@@ -140,7 +148,7 @@ class _RoleLoginScreenState extends State<RoleLoginScreen> {
                 'assets/back.png',
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) =>
-                    Container(color: const Color(0xFFE2E8F0)),
+                    Container(color: isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0)),
               ),
             ),
           ),
@@ -152,8 +160,8 @@ class _RoleLoginScreenState extends State<RoleLoginScreen> {
                   begin: Alignment.centerLeft,
                   end: Alignment.centerRight,
                   colors: [
-                    const Color(0xFFF8FAFC).withValues(alpha: 0.95),
-                    const Color(0xFFF8FAFC).withValues(alpha: 0.6),
+                    scaffoldBg.withValues(alpha: 0.95),
+                    scaffoldBg.withValues(alpha: 0.6),
                   ],
                 ),
               ),
@@ -244,6 +252,9 @@ class _RoleLoginScreenState extends State<RoleLoginScreen> {
   }
 
   Widget _buildWebLayout() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final subtitleColor = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
+
     return Center(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 1200),
@@ -260,14 +271,14 @@ class _RoleLoginScreenState extends State<RoleLoginScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Image.asset(
-                      'assets/LOGO.png',
+                      isDark ? 'assets/LOGO_DM.png' : 'assets/LOGO.png',
                       height: 80,
                       cacheHeight: 250,
                     ),
                     const SizedBox(height: 48),
-                    const Text(
+                    Text(
                       'Welcome to',
-                      style: TextStyle(fontSize: 24, color: Color(0xFF64748B)),
+                      style: TextStyle(fontSize: 24, color: subtitleColor),
                     ),
                     Text(
                       '${widget.roleName} Module',
@@ -284,9 +295,9 @@ class _RoleLoginScreenState extends State<RoleLoginScreen> {
                           : widget.roleName == 'Lab Test'
                           ? 'Manage your lab test bookings, reports\nand patient records effortlessly.'
                           : 'Manage patients, follow-ups and\ncustomer relationships efficiently.',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 16,
-                        color: Color(0xFF64748B),
+                        color: subtitleColor,
                         height: 1.5,
                       ),
                     ),
@@ -377,10 +388,17 @@ class _RoleLoginScreenState extends State<RoleLoginScreen> {
   }
 
   Widget _buildLoginCard() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardColor = isDark ? const Color(0xFF1E293B) : Colors.white;
+    final textColor = isDark ? Colors.white : const Color(0xFF1E293B);
+    final subtitleColor = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
+    final inputFillColor = isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC);
+    final borderColor = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
+
     return Container(
       padding: const EdgeInsets.all(40),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cardColor,
         borderRadius: BorderRadius.circular(24),
         boxShadow: const [
           BoxShadow(
@@ -411,33 +429,35 @@ class _RoleLoginScreenState extends State<RoleLoginScreen> {
             Text(
               'Access ${widget.roleName} Module',
               textAlign: TextAlign.center,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.w900,
-                color: Color(0xFF1E293B),
+                color: textColor,
               ),
             ),
             const SizedBox(height: 8),
-            const Text(
+            Text(
               'Sign in to continue',
-              style: TextStyle(color: Color(0xFF64748B), fontSize: 14),
+              style: TextStyle(color: subtitleColor, fontSize: 14),
             ),
             const SizedBox(height: 32),
             TextFormField(
               controller: _userIdController,
               textInputAction: TextInputAction.next,
+              style: TextStyle(color: textColor),
               decoration: InputDecoration(
                 hintText: 'User ID',
+                hintStyle: TextStyle(color: subtitleColor),
                 prefixIcon: const Icon(Icons.person, color: Color(0xFF94A3B8)),
                 filled: true,
-                fillColor: const Color(0xFFF8FAFC),
+                fillColor: inputFillColor,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                  borderSide: BorderSide(color: borderColor),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                  borderSide: BorderSide(color: borderColor),
                 ),
               ),
               validator: (v) => v!.isEmpty ? 'Enter User ID' : null,
@@ -447,9 +467,11 @@ class _RoleLoginScreenState extends State<RoleLoginScreen> {
               controller: _passwordController,
               obscureText: _obscurePassword,
               textInputAction: TextInputAction.done,
+              style: TextStyle(color: textColor),
               onFieldSubmitted: (_) => _login(),
               decoration: InputDecoration(
                 hintText: 'Password',
+                hintStyle: TextStyle(color: subtitleColor),
                 prefixIcon: const Icon(Icons.lock, color: Color(0xFF94A3B8)),
                 suffixIcon: IconButton(
                   icon: Icon(
@@ -463,14 +485,14 @@ class _RoleLoginScreenState extends State<RoleLoginScreen> {
                   },
                 ),
                 filled: true,
-                fillColor: const Color(0xFFF8FAFC),
+                fillColor: inputFillColor,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                  borderSide: BorderSide(color: borderColor),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                  borderSide: BorderSide(color: borderColor),
                 ),
               ),
               validator: (v) => v!.isEmpty ? 'Enter password' : null,
