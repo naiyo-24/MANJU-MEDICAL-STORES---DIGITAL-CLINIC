@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import '../../services/auth_service.dart';
 import '../../providers/counter_providers.dart';
 import '../../providers/distributor_provider.dart';
+import '../../providers/theme_provider.dart';
 
 class CounterDashboard extends ConsumerStatefulWidget {
   final StatefulNavigationShell navigationShell;
@@ -111,17 +112,27 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
     required bool isExpanded,
   }) {
     final isSelected = widget.navigationShell.currentIndex == index;
+    final isDark = ref.watch(themeProvider) == ThemeMode.dark;
+    
+    final itemBgSelected = isDark ? const Color(0xFF166534).withValues(alpha: 0.2) : const Color(0xFFE8F5E9);
+    final itemBorderSelected = isDark ? const Color(0xFF22C55E).withValues(alpha: 0.5) : const Color(0xFF22C55E).withValues(alpha: 0.3);
+    final iconColorSelected = isDark ? const Color(0xFF4ADE80) : const Color(0xFF166534);
+    final iconColorUnselected = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
+    final textColorSelected = isDark ? const Color(0xFF4ADE80) : const Color(0xFF166534);
+    final textColorUnselected = isDark ? const Color(0xFFCBD5E1) : const Color(0xFF64748B);
+    final shortcutColor = isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8);
+    final shortcutColorSelected = isDark ? const Color(0xFF4ADE80).withValues(alpha: 0.7) : const Color(0xFF166534).withValues(alpha: 0.7);
     
     Widget content = Container(
       width: isExpanded ? 228 : 48, // Fix width to prevent flex overflow during animation
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       padding: EdgeInsets.symmetric(horizontal: isExpanded ? 16 : 0, vertical: 12),
       decoration: BoxDecoration(
-        color: isSelected ? const Color(0xFFE8F5E9) : Colors.transparent,
+        color: isSelected ? itemBgSelected : Colors.transparent,
         borderRadius: BorderRadius.circular(12),
         border: isSelected
             ? Border.all(
-                color: const Color(0xFF22C55E).withValues(alpha: 0.3),
+                color: itemBorderSelected,
                 width: 1,
               )
             : null,
@@ -138,7 +149,7 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
             children: [
               Icon(
                 icon,
-                color: isSelected ? const Color(0xFF166534) : const Color(0xFF64748B),
+                color: isSelected ? iconColorSelected : iconColorUnselected,
                 size: 20,
               ),
               const SizedBox(width: 16),
@@ -150,7 +161,7 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
                     Text(
                       label,
                       style: TextStyle(
-                        color: isSelected ? const Color(0xFF166534) : const Color(0xFF64748B),
+                        color: isSelected ? textColorSelected : textColorUnselected,
                         fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
                         fontSize: 14,
                       ),
@@ -160,7 +171,7 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
                       Text(
                         shortcut,
                         style: TextStyle(
-                          color: isSelected ? const Color(0xFF166534).withValues(alpha: 0.7) : const Color(0xFF94A3B8),
+                          color: isSelected ? shortcutColorSelected : shortcutColor,
                           fontSize: 10,
                           fontWeight: FontWeight.bold,
                         ),
@@ -174,7 +185,7 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
         secondChild: Center(
           child: Icon(
             icon,
-            color: isSelected ? const Color(0xFF166534) : const Color(0xFF64748B),
+            color: isSelected ? iconColorSelected : iconColorUnselected,
             size: 20,
           ),
         ),
@@ -207,11 +218,14 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
   @override
   Widget build(BuildContext context) {
     bool isDesktop = Responsive.isDesktop(context);
+    final isDark = ref.watch(themeProvider) == ThemeMode.dark;
+    final scaffoldBg = isDark ? const Color(0xFF0F172A) : Colors.white;
+    
     return PopScope(
       canPop: false,
       child: Scaffold(
         key: _scaffoldKey,
-        backgroundColor: Colors.white,
+        backgroundColor: scaffoldBg,
         drawer: isDesktop ? null : Drawer(child: _buildSidebar(isDesktop)),
       body: Column(
         children: [
@@ -224,7 +238,7 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
                 // Screen Content
                 Expanded(
                   child: Container(
-                    color: Colors.white,
+                    color: scaffoldBg,
                     child: widget.navigationShell,
                   ),
                 ),
@@ -238,30 +252,36 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
   }
 
   Widget _buildShortcutChip(String key, String label) {
+    final isDark = ref.watch(themeProvider) == ThemeMode.dark;
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
           decoration: BoxDecoration(
-            color: const Color(0xFFE2E8F0),
+            color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
             borderRadius: BorderRadius.circular(4),
           ),
-          child: Text(key, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+          child: Text(key, style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: isDark ? Colors.white : const Color(0xFF1E293B))),
         ),
         const SizedBox(width: 4),
-        Text(label, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF64748B))),
+        Text(label, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B))),
       ],
     );
   }
 
   Widget _buildHeader(bool isDesktop) {
+    final isDark = ref.watch(themeProvider) == ThemeMode.dark;
+    final headerBg = isDark ? const Color(0xFF1E293B) : Colors.white;
+    final borderColor = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
+    final iconColor = isDark ? Colors.white : const Color(0xFF1E293B);
+
     return Container(
       height: 85,
       padding: const EdgeInsets.symmetric(horizontal: 24),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(bottom: BorderSide(color: Color(0xFFE2E8F0), width: 1)),
+      decoration: BoxDecoration(
+        color: headerBg,
+        border: Border(bottom: BorderSide(color: borderColor, width: 1)),
       ),
       child: Row(
         children: [
@@ -270,7 +290,7 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 IconButton(
-                  icon: const Icon(Icons.menu),
+                  icon: Icon(Icons.menu, color: iconColor),
                   onPressed: () {
                     if (isDesktop) {
                       setState(() {
@@ -284,7 +304,7 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
                 SizedBox(width: isDesktop ? 16 : 8),
                 Flexible(
                   child: Image.asset(
-                    'assets/LOGO.png', 
+                    isDark ? 'assets/LOGO_DM.png' : 'assets/LOGO.png', 
                     height: isDesktop ? 75 : 45, 
                     fit: BoxFit.contain, 
                     cacheHeight: 225
@@ -298,15 +318,15 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
-                color: const Color(0xFFF1F5F9),
+                color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
+                border: Border.all(color: borderColor),
               ),
               child: Wrap(
                 spacing: 12,
                 crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
-                  const Icon(Icons.keyboard, size: 16, color: Color(0xFF64748B)),
+                  Icon(Icons.keyboard, size: 16, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                   _buildShortcutChip('F1', 'Billing'),
                   _buildShortcutChip('F2', 'Inventory'),
                   _buildShortcutChip('F3', 'Shops'),
@@ -364,7 +384,7 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
                         vertical: 8,
                       ),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF1F8F5),
+                        color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F8F5),
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
                           color: const Color(0xFF22C55E).withValues(alpha: 0.3),
@@ -385,16 +405,16 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
                             children: [
                               Text(
                                 _formatDate(_currentTime),
-                                style: const TextStyle(
-                                  color: Color(0xFF166534),
+                                style: TextStyle(
+                                  color: isDark ? const Color(0xFF4ADE80) : const Color(0xFF166534),
                                   fontSize: 12,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
                               Text(
                                 _formatTime(_currentTime),
-                                style: const TextStyle(
-                                  color: Color(0xFF64748B),
+                                style: TextStyle(
+                                  color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                                   fontSize: 12,
                                 ),
                               ),
@@ -442,22 +462,22 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
-                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                        border: Border.all(color: borderColor),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Row(
                         children: [
-                          const CircleAvatar(
+                          CircleAvatar(
                             radius: 12,
-                            backgroundColor: Color(0xFFF1F5F9),
+                            backgroundColor: isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9),
                             child: Icon(
                               Icons.person,
                               size: 16,
-                              color: Color(0xFF64748B),
+                              color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                             ),
                           ),
                           const SizedBox(width: 8),
-                          const Column(
+                          Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -466,22 +486,22 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 12,
-                                  color: Color(0xFF1E293B),
+                                  color: isDark ? Colors.white : const Color(0xFF1E293B),
                                 ),
                               ),
                               Text(
                                 'Counter',
                                 style: TextStyle(
                                   fontSize: 10,
-                                  color: Color(0xFF64748B),
+                                  color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                                 ),
                               ),
                             ],
                           ),
                           const SizedBox(width: 8),
-                          const Icon(
+                          Icon(
                             Icons.keyboard_arrow_down,
-                            color: Color(0xFF64748B),
+                            color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                             size: 16,
                           ),
                         ],
@@ -500,13 +520,18 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
   Widget _buildSidebar(bool isDesktop) {
     // On mobile (Drawer), always force the sidebar to be fully expanded
     final bool isExpanded = isDesktop ? _isSidebarExpanded : true;
+    final isDark = ref.watch(themeProvider) == ThemeMode.dark;
+    final sidebarBg = isDark ? const Color(0xFF1E293B) : const Color(0xFFF8FAFC);
+    final borderColor = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
+    final textColor = isDark ? Colors.white : const Color(0xFF1E293B);
+    final subtitleColor = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
       width: isExpanded ? 260 : 80,
-      decoration: const BoxDecoration(
-        color: Color(0xFFF8FAFC),
-        border: Border(right: BorderSide(color: Color(0xFFE2E8F0), width: 1)),
+      decoration: BoxDecoration(
+        color: sidebarBg,
+        border: Border(right: BorderSide(color: borderColor, width: 1)),
       ),
       child: ClipRect(
         child: Column(
@@ -518,9 +543,9 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
                 duration: const Duration(milliseconds: 200),
                 crossFadeState: isExpanded ? CrossFadeState.showFirst : CrossFadeState.showSecond,
                 alignment: Alignment.centerLeft,
-                firstChild: const SingleChildScrollView(
+                firstChild: SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
-                  physics: NeverScrollableScrollPhysics(),
+                  physics: const NeverScrollableScrollPhysics(),
                   child: SizedBox(
                     width: 212,
                     child: Column(
@@ -531,13 +556,13 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
-                            color: Color(0xFF1E293B),
+                            color: textColor,
                           ),
                           overflow: TextOverflow.ellipsis,
                         ),
                         Text(
                           'Manage your pharmacy operations',
-                          style: TextStyle(fontSize: 10, color: Color(0xFF64748B)),
+                          style: TextStyle(fontSize: 10, color: subtitleColor),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ],
@@ -613,8 +638,8 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
                   ),
 
                   const SizedBox(height: 16),
-                  const Divider(
-                    color: Color(0xFFE2E8F0),
+                  Divider(
+                    color: borderColor,
                     thickness: 1,
                     indent: 16,
                     endIndent: 16,
@@ -695,20 +720,20 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
                   padding: const EdgeInsets.all(16),
                   width: 228,
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: isDark ? const Color(0xFF0F172A) : Colors.white,
                     borderRadius: BorderRadius.circular(16),
-                    boxShadow: const [
+                    boxShadow: [
                       BoxShadow(
-                        color: Colors.black12,
+                        color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.12),
                         blurRadius: 10,
-                        offset: Offset(0, 4),
+                        offset: const Offset(0, 4),
                       ),
                     ],
                   ),
-                  child: const Row(
+                  child: Row(
                     children: [
-                      Icon(Icons.eco, color: Color(0xFF22C55E)),
-                      SizedBox(width: 12),
+                      const Icon(Icons.eco, color: Color(0xFF22C55E)),
+                      const SizedBox(width: 12),
                       SizedBox(
                         width: 120,
                         child: Column(
@@ -719,6 +744,7 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 12,
+                                color: textColor,
                               ),
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -726,7 +752,7 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
                               'Brighter Tomorrow',
                               style: TextStyle(
                                 fontSize: 10,
-                                color: Color(0xFF64748B),
+                                color: subtitleColor,
                               ),
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -751,7 +777,7 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
             child: Center(
               child: Text(
                 isExpanded ? 'Version 1.0.0' : 'v1',
-                style: const TextStyle(fontSize: 10, color: Color(0xFF94A3B8)),
+                style: TextStyle(fontSize: 10, color: subtitleColor),
               ),
             ),
           ),
