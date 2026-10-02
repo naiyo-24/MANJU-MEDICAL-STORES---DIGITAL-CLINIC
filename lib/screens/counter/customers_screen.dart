@@ -43,6 +43,7 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
     final customerAsync = ref.watch(customerProvider);
 
     return customerAsync.when(
+      skipLoadingOnReload: true,
       loading: () => Center(child: CircularProgressIndicator()),
       error: (err, stack) => Center(child: Text('Error: $err')),
       data: (allCustomers) {

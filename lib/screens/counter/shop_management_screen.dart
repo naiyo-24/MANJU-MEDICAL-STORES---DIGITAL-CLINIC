@@ -509,6 +509,7 @@ class _ShopManagementScreenState extends ConsumerState<ShopManagementScreen> {
     return Scaffold(
       
       body: shopsAsync.when(
+        skipLoadingOnReload: true,
         data: (shops) {
           final filteredShops = _getFilteredShops(shops);
           final cities = _getDynamicCities(shops);
