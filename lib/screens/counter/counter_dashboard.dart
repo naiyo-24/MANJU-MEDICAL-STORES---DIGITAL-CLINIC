@@ -19,29 +19,18 @@ class CounterDashboard extends ConsumerStatefulWidget {
 
 class _CounterDashboardState extends ConsumerState<CounterDashboard> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  DateTime _currentTime = DateTime.now();
-  Timer? _timer;
   bool _isSidebarExpanded = true;
   Timer? _syncTimer;
 
   @override
   void initState() {
     super.initState();
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (mounted) {
-        setState(() {
-          _currentTime = DateTime.now();
-        });
-      }
-    });
-
 
     HardwareKeyboard.instance.addHandler(_handleKeyEvent);
   }
 
   @override
   void dispose() {
-    _timer?.cancel();
     HardwareKeyboard.instance.removeHandler(_handleKeyEvent);
     super.dispose();
   }
@@ -84,24 +73,6 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
         initialLocation: index == widget.navigationShell.currentIndex,
       );
     }
-  }
-
-  String _formatDate(DateTime date) {
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    String dayName = days[date.weekday - 1];
-    String monthName = months[date.month - 1];
-    return '$dayName, ${date.day} $monthName ${date.year}';
-  }
-
-  String _formatTime(DateTime date) {
-    int hour = date.hour;
-    String period = hour >= 12 ? 'PM' : 'AM';
-    hour = hour % 12;
-    if (hour == 0) hour = 12;
-    String minute = date.minute.toString().padLeft(2, '0');
-    String second = date.second.toString().padLeft(2, '0');
-    return '$hour:$minute:$second $period';
   }
 
   Widget _buildSidebarItem({
@@ -285,11 +256,11 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
       ),
       child: Row(
         children: [
-          Expanded(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                IconButton(
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              IconButton(
                   icon: Icon(Icons.menu, color: iconColor),
                   onPressed: () {
                     if (isDesktop) {
@@ -302,128 +273,61 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
                   },
                 ),
                 SizedBox(width: isDesktop ? 16 : 8),
-                Flexible(
-                  child: Image.asset(
-                    isDark ? 'assets/LOGO_DM.png' : 'assets/LOGO.png', 
-                    height: isDesktop ? 75 : 45, 
-                    fit: BoxFit.contain, 
-                    cacheHeight: 225
-                  ),
-                ),
-              ],
-            ),
+              Image.asset(
+                isDark ? 'assets/LOGO_DM.png' : 'assets/LOGO.png', 
+                height: isDesktop ? 75 : 45, 
+                fit: BoxFit.contain, 
+                cacheHeight: 225
+              ),
+            ],
           ),
 
           if (isDesktop)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: borderColor),
-              ),
-              child: Wrap(
-                spacing: 12,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                children: [
-                  Icon(Icons.keyboard, size: 16, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
-                  _buildShortcutChip('F1', 'Billing'),
-                  _buildShortcutChip('F2', 'Inventory'),
-                  _buildShortcutChip('F3', 'Shops'),
-                  _buildShortcutChip('F4', 'Customers'),
-                  _buildShortcutChip('F5', 'Accounts'),
-                  _buildShortcutChip('F6', 'History'),
-                  _buildShortcutChip('F7', 'Settings'),
-                  _buildShortcutChip('F8', 'Distributors'),
-                ],
+            Expanded(
+              flex: 2,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                margin: const EdgeInsets.symmetric(horizontal: 16),
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: borderColor),
+                ),
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      Icon(Icons.keyboard, size: 16, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
+                      const SizedBox(width: 12),
+                      _buildShortcutChip('F1', 'Billing'),
+                      const SizedBox(width: 12),
+                      _buildShortcutChip('F2', 'Inventory'),
+                      const SizedBox(width: 12),
+                      _buildShortcutChip('F3', 'Shops'),
+                      const SizedBox(width: 12),
+                      _buildShortcutChip('F4', 'Customers'),
+                      const SizedBox(width: 12),
+                      _buildShortcutChip('F5', 'Accounts'),
+                      const SizedBox(width: 12),
+                      _buildShortcutChip('F6', 'History'),
+                      const SizedBox(width: 12),
+                      _buildShortcutChip('F7', 'Settings'),
+                      const SizedBox(width: 12),
+                      _buildShortcutChip('F8', 'Distributors'),
+                    ],
+                  ),
+                ),
               ),
             ),
           
           if (!isDesktop) const Spacer(),
 
-          Expanded(
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              reverse: true, // Allow scrolling to the left if space is tight, keeping right alignment
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  // Date & Time Pill
-                  InkWell(
-                    onTap: () async {
-                      await showDatePicker(
-                        context: context,
-                        initialDate: _currentTime,
-                        firstDate: DateTime(2000),
-                        lastDate: DateTime(2100),
-                        builder: (context, child) {
-                          return Theme(
-                            data: ThemeData.light().copyWith(
-                              colorScheme: const ColorScheme.light(
-                                primary: Color(0xFF166534), // Header background color
-                                onPrimary: Colors.white, // Header text color
-                                onSurface: Color(0xFF1E293B), // Body text color
-                                surface: Colors.white, // Dialog background color
-                              ),
-                              dialogBackgroundColor: Colors.white,
-                              textButtonTheme: TextButtonThemeData(
-                                style: TextButton.styleFrom(
-                                  foregroundColor: const Color(0xFF166534), // Button text color
-                                ),
-                              ),
-                            ),
-                            child: child!,
-                          );
-                        },
-                      );
-                    },
-                    borderRadius: BorderRadius.circular(8),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
-                      ),
-                      decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F8F5),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: const Color(0xFF22C55E).withValues(alpha: 0.3),
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(
-                            Icons.calendar_today,
-                            color: Color(0xFF166534),
-                            size: 16,
-                          ),
-                          const SizedBox(width: 8),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                _formatDate(_currentTime),
-                                style: TextStyle(
-                                  color: isDark ? const Color(0xFF4ADE80) : const Color(0xFF166534),
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              Text(
-                                _formatTime(_currentTime),
-                                style: TextStyle(
-                                  color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              // Date & Time Pill
+                  const _LiveClockWidget(),
                   const SizedBox(width: 16),
 
                   // Profile Pill
@@ -510,8 +414,6 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
                   ),
                 ],
               ),
-            ),
-          ),
         ],
       ),
     );
@@ -569,8 +471,8 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
                     ),
                   ),
                 ),
-                secondChild: const Center(
-                  child: Icon(Icons.local_pharmacy, color: Color(0xFF166534), size: 28),
+                secondChild: Center(
+                  child: Icon(Icons.local_pharmacy, color: isDark ? const Color(0xFF4ADE80) : const Color(0xFF166534), size: 28),
                 ),
               ),
             ),
@@ -783,6 +685,136 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
           ),
         ],
       ),
+      ),
+    );
+  }
+}
+
+class _LiveClockWidget extends StatefulWidget {
+  const _LiveClockWidget();
+
+  @override
+  State<_LiveClockWidget> createState() => _LiveClockWidgetState();
+}
+
+class _LiveClockWidgetState extends State<_LiveClockWidget> {
+  late DateTime _currentTime;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentTime = DateTime.now();
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (mounted) {
+        setState(() {
+          _currentTime = DateTime.now();
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  String _formatDate(DateTime date) {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    String dayName = days[date.weekday - 1];
+    String monthName = months[date.month - 1];
+    return '$dayName, ${date.day} $monthName ${date.year}';
+  }
+
+  String _formatTime(DateTime date) {
+    int hour = date.hour;
+    String period = hour >= 12 ? 'PM' : 'AM';
+    hour = hour % 12;
+    if (hour == 0) hour = 12;
+    String minute = date.minute.toString().padLeft(2, '0');
+    String second = date.second.toString().padLeft(2, '0');
+    return '$hour:$minute:$second $period';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return InkWell(
+      onTap: () async {
+        await showDatePicker(
+          context: context,
+          initialDate: _currentTime,
+          firstDate: DateTime(2000),
+          lastDate: DateTime(2100),
+          builder: (context, child) {
+            return Theme(
+              data: ThemeData.light().copyWith(
+                colorScheme: const ColorScheme.light(
+                  primary: Color(0xFF166534), // Header background color
+                  onPrimary: Colors.white, // Header text color
+                  onSurface: Color(0xFF1E293B), // Body text color
+                  surface: Colors.white, // Dialog background color
+                ),
+                dialogBackgroundColor: Colors.white,
+                textButtonTheme: TextButtonThemeData(
+                  style: TextButton.styleFrom(
+                    foregroundColor: const Color(0xFF166534), // Button text color
+                  ),
+                ),
+              ),
+              child: child!,
+            );
+          },
+        );
+      },
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        width: 155, // FIXED WIDTH to prevent layout jitter every second
+        padding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 8,
+        ),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F8F5),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: const Color(0xFF22C55E).withValues(alpha: 0.3),
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.calendar_today,
+              color: Color(0xFF166534),
+              size: 16,
+            ),
+            const SizedBox(width: 8),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  _formatDate(_currentTime),
+                  style: TextStyle(
+                    color: isDark ? const Color(0xFF4ADE80) : const Color(0xFF166534),
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  _formatTime(_currentTime),
+                  style: TextStyle(
+                    color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

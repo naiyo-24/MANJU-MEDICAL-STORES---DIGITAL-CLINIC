@@ -27,32 +27,33 @@ class BillingSummaryWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return       // Bill Summary
       Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Bill Summary',
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 14,
-                color: Color(0xFF1E293B),
+                color: isDark ? Colors.white : const Color(0xFF1E293B),
               ),
             ),
             const SizedBox(height: 12),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
+                Text(
                   'Total Items',
-                  style: TextStyle(color: Color(0xFF64748B), fontSize: 12),
+                  style: TextStyle(color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF64748B), fontSize: 12),
                 ),
                 Text(
                   '${billingState.currentBill.length}',
-                  style: const TextStyle(
-                    color: Color(0xFF1E293B),
+                  style: TextStyle(
+                    color: isDark ? Colors.white : const Color(0xFF1E293B),
                     fontWeight: FontWeight.bold,
                     fontSize: 12,
                   ),
@@ -63,14 +64,14 @@ class BillingSummaryWidget extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
+                Text(
                   'Subtotal',
-                  style: TextStyle(color: Color(0xFF64748B), fontSize: 12),
+                  style: TextStyle(color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF64748B), fontSize: 12),
                 ),
                 Text(
                   '₹ ${billingState.subtotal.toStringAsFixed(2)}',
-                  style: const TextStyle(
-                    color: Color(0xFF1E293B),
+                  style: TextStyle(
+                    color: isDark ? Colors.white : const Color(0xFF1E293B),
                     fontWeight: FontWeight.bold,
                     fontSize: 12,
                   ),
@@ -80,12 +81,12 @@ class BillingSummaryWidget extends StatelessWidget {
             const SizedBox(height: 8),
             Row(
               children: [
-                const SizedBox(
+                SizedBox(
                   width: 80,
                   child: Text(
                     'Discount',
                     style: TextStyle(
-                      color: Color(0xFF64748B),
+                      color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF64748B),
                       fontSize: 12,
                     ),
                   ),
@@ -100,7 +101,7 @@ class BillingSummaryWidget extends StatelessWidget {
                   child: TextField(
                     controller: discountController,
                     keyboardType: TextInputType.number,
-                    style: const TextStyle(fontSize: 12),
+                    style: TextStyle(fontSize: 12, color: isDark ? Colors.white : const Color(0xFF1E293B)),
                     decoration: const InputDecoration(
                       border: InputBorder.none,
                       isDense: true,
@@ -116,7 +117,7 @@ class BillingSummaryWidget extends StatelessWidget {
                 Container(
                   height: 32,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF1F5F9),
+                    color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Row(
@@ -183,7 +184,7 @@ class BillingSummaryWidget extends StatelessWidget {
                 const Spacer(),
                 Text(
                   '- ₹ ${billingState.discountAmount.toStringAsFixed(2)}',
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: Colors.red,
                     fontWeight: FontWeight.bold,
                     fontSize: 12,
@@ -211,10 +212,10 @@ class BillingSummaryWidget extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 4),
-                    const Text(
+                    Text(
                       'Total Tax (GST)',
                       style: TextStyle(
-                        color: Color(0xFF64748B),
+                        color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF64748B),
                         fontSize: 12,
                       ),
                     ),
@@ -222,8 +223,8 @@ class BillingSummaryWidget extends StatelessWidget {
                 ),
                 Text(
                   '+ ₹ ${billingState.gstAmount.toStringAsFixed(2)}',
-                  style: const TextStyle(
-                    color: Color(0xFF1E293B),
+                  style: TextStyle(
+                    color: isDark ? Colors.white : const Color(0xFF1E293B),
                     fontWeight: FontWeight.bold,
                     fontSize: 12,
                   ),
@@ -234,12 +235,12 @@ class BillingSummaryWidget extends StatelessWidget {
               const SizedBox(height: 8),
               Row(
                 children: [
-                  const SizedBox(
+                  SizedBox(
                     width: 80,
                     child: Text(
                       'GST No.',
                       style: TextStyle(
-                        color: Color(0xFF64748B),
+                        color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF64748B),
                         fontSize: 12,
                       ),
                     ),
@@ -254,7 +255,7 @@ class BillingSummaryWidget extends StatelessWidget {
                       child: TextFormField(
                         initialValue: billingState.gstNumber,
                         onChanged: (val) => notifier.updateGstNumber(val),
-                        style: const TextStyle(fontSize: 12),
+                        style: TextStyle(fontSize: 12, color: isDark ? Colors.white : const Color(0xFF1E293B)),
                         decoration: const InputDecoration(
                           border: InputBorder.none,
                           isDense: true,
@@ -277,24 +278,24 @@ class BillingSummaryWidget extends StatelessWidget {
                 vertical: 12,
               ),
               decoration: BoxDecoration(
-                color: const Color(0xFFE8F5E9),
+                color: isDark ? const Color(0xFF064E3B) : const Color(0xFFE8F5E9),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
+                  Text(
                     'Grand Total',
                     style: TextStyle(
-                      color: Color(0xFF166534),
+                      color: isDark ? Colors.white : const Color(0xFF166534),
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
                     ),
                   ),
                   Text(
                     '₹ ${billingState.grandTotal.toStringAsFixed(2)}',
-                    style: const TextStyle(
-                      color: Color(0xFF166534),
+                    style: TextStyle(
+                      color: isDark ? Colors.white : const Color(0xFF166534),
                       fontWeight: FontWeight.w900,
                       fontSize: 16,
                     ),
@@ -318,7 +319,7 @@ class BillingSummaryWidget extends StatelessWidget {
                   child: Container(
                     height: 36,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF1F5F9),
+                      color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Row(
@@ -376,7 +377,7 @@ class BillingSummaryWidget extends StatelessWidget {
                   child: Container(
                     height: 36,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF1F5F9),
+                      color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Row(
@@ -435,15 +436,15 @@ class BillingSummaryWidget extends StatelessWidget {
                 Expanded(
                   child: OutlinedButton.icon(
                     onPressed: onShowDraftsDialog,
-                    icon: const Icon(
+                    icon: Icon(
                       Icons.folder_open,
-                      color: Color(0xFF1E293B),
+                      color: isDark ? Colors.white : const Color(0xFF1E293B),
                       size: 16,
                     ),
-                    label: const Text(
+                    label: Text(
                       'Drafts',
                       style: TextStyle(
-                        color: Color(0xFF1E293B),
+                        color: isDark ? Colors.white : const Color(0xFF1E293B),
                         fontWeight: FontWeight.bold,
                         fontSize: 12,
                       ),
@@ -458,15 +459,15 @@ class BillingSummaryWidget extends StatelessWidget {
                 Expanded(
                   child: OutlinedButton.icon(
                     onPressed: onSaveDraft,
-                    icon: const Icon(
+                    icon: Icon(
                       Icons.save,
-                      color: Color(0xFF1E293B),
+                      color: isDark ? Colors.white : const Color(0xFF1E293B),
                       size: 16,
                     ),
-                    label: const Text(
+                    label: Text(
                       'Save Draft',
                       style: TextStyle(
-                        color: Color(0xFF1E293B),
+                        color: isDark ? Colors.white : const Color(0xFF1E293B),
                         fontWeight: FontWeight.bold,
                         fontSize: 12,
                       ),
@@ -517,7 +518,7 @@ class BillingSummaryWidget extends StatelessWidget {
                         : const Icon(Icons.print, size: 16),
                     label: Text(
                       isGeneratingBill ? 'Generating...' : 'Generate Bill',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 12,
                       ),

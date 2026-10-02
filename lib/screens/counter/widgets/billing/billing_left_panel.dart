@@ -73,6 +73,7 @@ class BillingLeftPanel extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final racksAsync = ref.watch(rackProvider);
     final racks = racksAsync.value ?? [];
     
@@ -81,7 +82,7 @@ class BillingLeftPanel extends ConsumerWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: const Color(0xFFE2E8F0)),
       ),
@@ -97,6 +98,7 @@ class BillingLeftPanel extends ConsumerWidget {
                     height: 40,
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     decoration: BoxDecoration(
+                      color: isDark ? const Color(0xFF0F172A) : Colors.transparent,
                       border: Border.all(color: const Color(0xFFE2E8F0)),
                       borderRadius: BorderRadius.circular(8),
                     ),
@@ -143,17 +145,17 @@ class BillingLeftPanel extends ConsumerWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
+                Text(
                   'Available Medicines',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
-                    color: Color(0xFF1E293B),
+                    color: isDark ? Colors.white : const Color(0xFF1E293B),
                   ),
                 ),
                 InkWell(
                   onTap: () => context.go('/counter/inventory'),
-                  child: const Text(
+                  child: Text(
                     'View Stock',
                     style: TextStyle(
                       color: Color(0xFF22C55E),
@@ -197,12 +199,12 @@ class BillingLeftPanel extends ConsumerWidget {
                       children: [
                         // Medicines Table Header
                         Container(
-                          color: const Color(0xFFF8FAFC),
+                          color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
                           padding: const EdgeInsets.symmetric(
                             horizontal: 16,
                             vertical: 12,
                           ),
-                          child: const Row(
+                          child: Row(
                             children: [
                               Expanded(
                                 flex: 3,
@@ -210,7 +212,7 @@ class BillingLeftPanel extends ConsumerWidget {
                                   'Medicine Name',
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
-                                    color: Color(0xFF475569),
+                                    color: isDark ? Colors.white : const Color(0xFF475569),
                                     fontSize: 12,
                                   ),
                                 ),
@@ -221,7 +223,7 @@ class BillingLeftPanel extends ConsumerWidget {
                                   'Brand',
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
-                                    color: Color(0xFF475569),
+                                    color: isDark ? Colors.white : const Color(0xFF475569),
                                     fontSize: 12,
                                   ),
                                 ),
@@ -232,7 +234,7 @@ class BillingLeftPanel extends ConsumerWidget {
                                   'SKU / Barcode',
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
-                                    color: Color(0xFF475569),
+                                    color: isDark ? Colors.white : const Color(0xFF475569),
                                     fontSize: 12,
                                   ),
                                 ),
@@ -243,7 +245,7 @@ class BillingLeftPanel extends ConsumerWidget {
                                   'Batch No',
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
-                                    color: Color(0xFF475569),
+                                    color: isDark ? Colors.white : const Color(0xFF475569),
                                     fontSize: 12,
                                   ),
                                 ),
@@ -254,7 +256,7 @@ class BillingLeftPanel extends ConsumerWidget {
                                   'Expiry',
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
-                                    color: Color(0xFF475569),
+                                    color: isDark ? Colors.white : const Color(0xFF475569),
                                     fontSize: 12,
                                   ),
                                 ),
@@ -265,7 +267,7 @@ class BillingLeftPanel extends ConsumerWidget {
                                   'HSN',
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
-                                    color: Color(0xFF475569),
+                                    color: isDark ? Colors.white : const Color(0xFF475569),
                                     fontSize: 12,
                                   ),
                                 ),
@@ -276,7 +278,7 @@ class BillingLeftPanel extends ConsumerWidget {
                                   'Category',
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
-                                    color: Color(0xFF475569),
+                                    color: isDark ? Colors.white : const Color(0xFF475569),
                                     fontSize: 12,
                                   ),
                                 ),
@@ -287,7 +289,7 @@ class BillingLeftPanel extends ConsumerWidget {
                                   'Rack',
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
-                                    color: Color(0xFF475569),
+                                    color: isDark ? Colors.white : const Color(0xFF475569),
                                     fontSize: 12,
                                   ),
                                 ),
@@ -298,7 +300,7 @@ class BillingLeftPanel extends ConsumerWidget {
                                   'MRP (₹)',
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
-                                    color: Color(0xFF475569),
+                                    color: isDark ? Colors.white : const Color(0xFF475569),
                                     fontSize: 12,
                                   ),
                                 ),
@@ -309,7 +311,7 @@ class BillingLeftPanel extends ConsumerWidget {
                                   'GST (%)',
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
-                                    color: Color(0xFF475569),
+                                    color: isDark ? Colors.white : const Color(0xFF475569),
                                     fontSize: 12,
                                   ),
                                 ),
@@ -320,7 +322,7 @@ class BillingLeftPanel extends ConsumerWidget {
                                   'Stock',
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
-                                    color: Color(0xFF475569),
+                                    color: isDark ? Colors.white : const Color(0xFF475569),
                                     fontSize: 12,
                                   ),
                                 ),
@@ -331,7 +333,7 @@ class BillingLeftPanel extends ConsumerWidget {
                                   'Action',
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
-                                    color: Color(0xFF475569),
+                                    color: isDark ? Colors.white : const Color(0xFF475569),
                                     fontSize: 12,
                                   ),
                                 ),
@@ -361,7 +363,7 @@ class BillingLeftPanel extends ConsumerWidget {
                                     child: Center(
                                       child: OutlinedButton(
                                         onPressed: onLoadMore,
-                                        child: const Text('Load More'),
+                                        child: Text('Load More', style: TextStyle(color: isDark ? Colors.white : const Color(0xFF1E293B))),
                                       ),
                                     ),
                                   );
@@ -393,9 +395,9 @@ class BillingLeftPanel extends ConsumerWidget {
                                       flex: 3,
                                       child: Text(
                                         (item['name'] ?? '').toString().split(' - Item')[0],
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           fontWeight: FontWeight.bold,
-                                          color: Color(0xFF1E293B),
+                                          color: isDark ? Colors.white : const Color(0xFF1E293B),
                                           fontSize: 12,
                                         ),
                                       ),
@@ -404,8 +406,8 @@ class BillingLeftPanel extends ConsumerWidget {
                                       flex: 2,
                                       child: Text(
                                         item['brand'] ?? item['manufacturer'] ?? '',
-                                        style: const TextStyle(
-                                          color: Color(0xFF1E293B),
+                                        style: TextStyle(
+                                          color: isDark ? Colors.white : const Color(0xFF1E293B),
                                           fontSize: 12,
                                         ),
                                       ),
@@ -414,8 +416,8 @@ class BillingLeftPanel extends ConsumerWidget {
                                       flex: 2,
                                       child: Text(
                                         item['pack'] ?? item['sku'] ?? '',
-                                        style: const TextStyle(
-                                          color: Color(0xFF64748B),
+                                        style: TextStyle(
+                                          color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF64748B),
                                           fontSize: 12,
                                         ),
                                       ),
@@ -424,8 +426,8 @@ class BillingLeftPanel extends ConsumerWidget {
                                       flex: 2,
                                       child: Text(
                                         item['batch_number'] ?? '',
-                                        style: const TextStyle(
-                                          color: Color(0xFF64748B),
+                                        style: TextStyle(
+                                          color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF64748B),
                                           fontSize: 12,
                                         ),
                                       ),
@@ -434,8 +436,8 @@ class BillingLeftPanel extends ConsumerWidget {
                                       flex: 2,
                                       child: Text(
                                         item['expiry_date'] ?? '',
-                                        style: const TextStyle(
-                                          color: Color(0xFF64748B),
+                                        style: TextStyle(
+                                          color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF64748B),
                                           fontSize: 12,
                                         ),
                                       ),
@@ -444,8 +446,8 @@ class BillingLeftPanel extends ConsumerWidget {
                                       flex: 1,
                                       child: Text(
                                         item['hsn_code'] ?? '-',
-                                        style: const TextStyle(
-                                          color: Color(0xFF64748B),
+                                        style: TextStyle(
+                                          color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF64748B),
                                           fontSize: 12,
                                         ),
                                       ),
@@ -454,8 +456,8 @@ class BillingLeftPanel extends ConsumerWidget {
                                       flex: 2,
                                       child: Text(
                                         categoryName,
-                                        style: const TextStyle(
-                                          color: Color(0xFF64748B),
+                                        style: TextStyle(
+                                          color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF64748B),
                                           fontSize: 12,
                                         ),
                                       ),
@@ -464,8 +466,8 @@ class BillingLeftPanel extends ConsumerWidget {
                                       flex: 2,
                                       child: Text(
                                         rackName,
-                                        style: const TextStyle(
-                                          color: Color(0xFF64748B),
+                                        style: TextStyle(
+                                          color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF64748B),
                                           fontSize: 12,
                                         ),
                                       ),
@@ -474,8 +476,8 @@ class BillingLeftPanel extends ConsumerWidget {
                                       flex: 2,
                                       child: Text(
                                         (item['mrp'] ?? 0).toStringAsFixed(2),
-                                        style: const TextStyle(
-                                          color: Color(0xFF1E293B),
+                                        style: TextStyle(
+                                          color: isDark ? Colors.white : const Color(0xFF1E293B),
                                           fontSize: 12,
                                         ),
                                       ),
@@ -489,8 +491,8 @@ class BillingLeftPanel extends ConsumerWidget {
                                                 0
                                             ? '${((item['cgst'] as num? ?? 0) + (item['sgst'] as num? ?? 0)).toStringAsFixed(1)}%'
                                             : '-',
-                                        style: const TextStyle(
-                                          color: Color(0xFF64748B),
+                                        style: TextStyle(
+                                          color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF64748B),
                                           fontSize: 12,
                                         ),
                                       ),
@@ -499,8 +501,8 @@ class BillingLeftPanel extends ConsumerWidget {
                                       flex: 1,
                                       child: Text(
                                         item['stock'].toString(),
-                                        style: const TextStyle(
-                                          color: Color(0xFF1E293B),
+                                        style: TextStyle(
+                                          color: isDark ? Colors.white : const Color(0xFF1E293B),
                                           fontSize: 12,
                                         ),
                                       ),

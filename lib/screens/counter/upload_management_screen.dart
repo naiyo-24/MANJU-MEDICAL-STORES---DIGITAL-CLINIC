@@ -109,6 +109,7 @@ class _UploadManagementScreenState
   }
 
   Widget _buildSectionHeader(IconData icon, String title, String subtitle) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.only(bottom: 24.0, top: 8.0),
       child: Row(
@@ -116,7 +117,7 @@ class _UploadManagementScreenState
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: const Color(0xFFE8F5E9),
+              color: isDark ? const Color(0xFF334155) : const Color(0xFFE8F5E9),
               shape: BoxShape.circle,
             ),
             child: Icon(icon, color: const Color(0xFF22C55E), size: 20),
@@ -127,15 +128,15 @@ class _UploadManagementScreenState
             children: [
               Text(
                 title,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF1E293B),
+                  color: isDark ? Colors.white : const Color(0xFF1E293B),
                 ),
               ),
               Text(
                 subtitle,
-                style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                style: TextStyle(fontSize: 12, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
               ),
             ],
           ),
@@ -152,6 +153,7 @@ class _UploadManagementScreenState
     TextEditingController? controller,
     VoidCallback? onTap,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -159,10 +161,10 @@ class _UploadManagementScreenState
           children: [
             Text(
               label,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF1E293B),
+                color: isDark ? Colors.white : const Color(0xFF1E293B),
               ),
             ),
             if (isRequired)
@@ -190,7 +192,7 @@ class _UploadManagementScreenState
                 fontSize: 12,
               ),
               suffixIcon: suffixIcon != null
-                  ? Icon(suffixIcon, color: const Color(0xFF64748B), size: 18)
+                  ? Icon(suffixIcon, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B), size: 18)
                   : null,
               contentPadding: const EdgeInsets.symmetric(
                 horizontal: 16,
@@ -198,11 +200,11 @@ class _UploadManagementScreenState
               ),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
-                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                borderSide: BorderSide(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
-                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                borderSide: BorderSide(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
@@ -217,6 +219,7 @@ class _UploadManagementScreenState
 
   // ignore: unused_element
   Widget _buildDropdown(String label, String hint, {bool isRequired = false}) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -224,10 +227,10 @@ class _UploadManagementScreenState
           children: [
             Text(
               label,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF1E293B),
+                color: isDark ? Colors.white : const Color(0xFF1E293B),
               ),
             ),
             if (isRequired)
@@ -246,7 +249,7 @@ class _UploadManagementScreenState
           height: 40,
           padding: const EdgeInsets.symmetric(horizontal: 16),
           decoration: BoxDecoration(
-            border: Border.all(color: const Color(0xFFE2E8F0)),
+            border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Row(
@@ -254,11 +257,11 @@ class _UploadManagementScreenState
             children: [
               Text(
                 hint,
-                style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 12),
+                style: TextStyle(color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF94A3B8), fontSize: 12),
               ),
-              const Icon(
+              Icon(
                 Icons.keyboard_arrow_down,
-                color: Color(0xFF64748B),
+                color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                 size: 18,
               ),
             ],
@@ -270,16 +273,17 @@ class _UploadManagementScreenState
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
-      color: const Color(0xFFF8FAFC),
+      color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
       child: Column(
         children: [
           // Header
           Container(
             padding: const EdgeInsets.all(24),
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              border: Border(bottom: BorderSide(color: Color(0xFFE2E8F0))),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF1E293B) : Colors.white,
+              border: Border(bottom: BorderSide(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0))),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -288,18 +292,18 @@ class _UploadManagementScreenState
                   children: [
                     InkWell(
                       onTap: () => Navigator.pop(context),
-                      child: const Row(
+                      child: Row(
                         children: [
                           Icon(
                             Icons.arrow_back,
-                            color: Color(0xFF1E293B),
+                            color: isDark ? Colors.white : const Color(0xFF1E293B),
                             size: 18,
                           ),
-                          SizedBox(width: 8),
+                          const SizedBox(width: 8),
                           Text(
                             'Back',
                             style: TextStyle(
-                              color: Color(0xFF1E293B),
+                              color: isDark ? Colors.white : const Color(0xFF1E293B),
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -320,7 +324,7 @@ class _UploadManagementScreenState
                       ),
                     ),
                     const SizedBox(width: 16),
-                    const Column(
+                    Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
@@ -328,14 +332,14 @@ class _UploadManagementScreenState
                           style: TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.w900,
-                            color: Color(0xFF1E293B),
+                            color: isDark ? Colors.white : const Color(0xFF1E293B),
                           ),
                         ),
                         Text(
                           'Add a new medicine to your inventory (Master DB)',
                           style: TextStyle(
                             fontSize: 12,
-                            color: Color(0xFF64748B),
+                            color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                           ),
                         ),
                       ],
@@ -364,7 +368,7 @@ class _UploadManagementScreenState
                                 ref.invalidate(categoryProvider);
                                 ref.invalidate(rackProvider);
                               },
-                              icon: const Icon(Icons.refresh, color: Color(0xFF1E293B)),
+                              icon: Icon(Icons.refresh, color: isDark ? Colors.white : const Color(0xFF1E293B)),
                             ),
                           ),
                         ],
@@ -414,9 +418,9 @@ class _UploadManagementScreenState
                   Container(
                     padding: const EdgeInsets.all(32),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: isDark ? const Color(0xFF1E293B) : Colors.white,
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                      border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -462,12 +466,12 @@ class _UploadManagementScreenState
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Text(
+                                  Text(
                                     'Medicine Image',
                                     style: TextStyle(
                                       fontSize: 12,
                                       fontWeight: FontWeight.bold,
-                                      color: Color(0xFF1E293B),
+                                      color: isDark ? Colors.white : const Color(0xFF1E293B),
                                     ),
                                   ),
                                   const SizedBox(height: 8),
@@ -477,10 +481,10 @@ class _UploadManagementScreenState
                                       height: 100,
                                       width: double.infinity,
                                       decoration: BoxDecoration(
-                                        color: const Color(0xFFF8FAFC),
+                                        color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF8FAFC),
                                         borderRadius: BorderRadius.circular(8),
                                         border: Border.all(
-                                          color: const Color(0xFFE2E8F0),
+                                          color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
                                         ),
                                       ),
                                       child: _selectedImage != null
@@ -597,9 +601,9 @@ class _UploadManagementScreenState
                   Container(
                     padding: const EdgeInsets.all(32),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: isDark ? const Color(0xFF1E293B) : Colors.white,
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                      border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -746,9 +750,9 @@ class _UploadManagementScreenState
                   Container(
                     padding: const EdgeInsets.all(32),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: isDark ? const Color(0xFF1E293B) : Colors.white,
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                      border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -809,9 +813,9 @@ class _UploadManagementScreenState
           // Bottom Action Bar
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              border: Border(top: BorderSide(color: Color(0xFFE2E8F0))),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF1E293B) : Colors.white,
+              border: Border(top: BorderSide(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0))),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.end,
@@ -823,15 +827,15 @@ class _UploadManagementScreenState
                       horizontal: 32,
                       vertical: 16,
                     ),
-                    side: const BorderSide(color: Color(0xFFE2E8F0)),
+                    side: BorderSide(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  child: const Text(
+                  child: Text(
                     'Cancel',
                     style: TextStyle(
-                      color: Color(0xFF1E293B),
+                      color: isDark ? Colors.white : const Color(0xFF1E293B),
                       fontWeight: FontWeight.bold,
                     ),
                   ),

@@ -31,7 +31,8 @@ class BillingCustomerSection extends StatelessWidget {
 
 Widget _buildCompactField(
   String label,
-  TextEditingController controller, {
+  TextEditingController controller,
+  bool isDark, {
   bool isNumber = false,
   String? hint,
   Function(String)? onChanged,
@@ -41,10 +42,10 @@ Widget _buildCompactField(
     children: [
       Text(
         label,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 10,
           fontWeight: FontWeight.bold,
-          color: Color(0xFF1E293B),
+          color: isDark ? Colors.white : const Color(0xFF1E293B),
         ),
       ),
       const SizedBox(height: 4),
@@ -54,7 +55,7 @@ Widget _buildCompactField(
           controller: controller,
           keyboardType: isNumber ? TextInputType.number : TextInputType.text,
           onChanged: onChanged,
-          style: const TextStyle(fontSize: 12),
+          style: TextStyle(fontSize: 12, color: isDark ? Colors.white : const Color(0xFF1E293B)),
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: const TextStyle(
@@ -66,7 +67,7 @@ Widget _buildCompactField(
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(6),
-              borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+              borderSide: BorderSide(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
             ),
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 10,
@@ -81,6 +82,7 @@ Widget _buildCompactField(
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return       // Customer Details
       Container(
         margin: const EdgeInsets.symmetric(horizontal: 16),
@@ -97,9 +99,9 @@ Widget _buildCompactField(
                 horizontal: 16,
                 vertical: 8,
               ),
-              decoration: const BoxDecoration(
-                color: Color(0xFFE8F5E9),
-                borderRadius: BorderRadius.vertical(
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF064E3B) : const Color(0xFFE8F5E9),
+                borderRadius: const BorderRadius.vertical(
                   top: Radius.circular(8),
                 ),
               ),
@@ -107,26 +109,26 @@ Widget _buildCompactField(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Row(
-                    children: const [
+                    children: [
                       Icon(
                         Icons.person,
-                        color: Color(0xFF166534),
+                        color: isDark ? Colors.white : const Color(0xFF166534),
                         size: 16,
                       ),
-                      SizedBox(width: 8),
+                      const SizedBox(width: 8),
                       Text(
                         'Customer Details (Optional)',
                         style: TextStyle(
-                          color: Color(0xFF166534),
+                          color: isDark ? Colors.white : const Color(0xFF166534),
                           fontWeight: FontWeight.bold,
                           fontSize: 12,
                         ),
                       ),
                     ],
                   ),
-                  const Icon(
+                  Icon(
                     Icons.keyboard_arrow_up,
-                    color: Color(0xFF166534),
+                    color: isDark ? Colors.white : const Color(0xFF166534),
                     size: 16,
                   ),
                 ],
@@ -144,6 +146,7 @@ Widget _buildCompactField(
                         child: _buildCompactField(
                           'Name',
                           customerNameController,
+                          isDark,
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -151,6 +154,7 @@ Widget _buildCompactField(
                         child: _buildCompactField(
                           'Phone',
                           customerPhoneController,
+                          isDark,
                           isNumber: true,
                         ),
                       ),
@@ -160,6 +164,7 @@ Widget _buildCompactField(
                   _buildCompactField(
                     'Location / Address',
                     customerLocationController,
+                    isDark,
                   ),
                   const SizedBox(height: 8),
                   Column(
@@ -191,9 +196,9 @@ Widget _buildCompactField(
                               Icons.keyboard_arrow_down,
                               size: 14,
                             ),
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 10,
-                              color: Color(0xFF1E293B),
+                              color: isDark ? Colors.white : const Color(0xFF1E293B),
                             ),
                             onChanged: (String? newValue) {
                               if (newValue != null) {
@@ -249,9 +254,9 @@ Widget _buildCompactField(
                           ),
                           child: TextField(
                             controller: newDoctorController,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 10,
-                              color: Color(0xFF1E293B),
+                              color: isDark ? Colors.white : const Color(0xFF1E293B),
                             ),
                             decoration: const InputDecoration(
                               hintText: 'Enter doctor name',
@@ -294,7 +299,7 @@ Widget _buildCompactField(
                           vertical: 8,
                         ),
                         minimumSize: Size.zero,
-                        backgroundColor: const Color(0xFFDCFCE7),
+                        backgroundColor: isDark ? const Color(0xFF064E3B) : const Color(0xFFDCFCE7),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(4),
                         ),

@@ -43,6 +43,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
   }
 
   Widget _buildSortableHeader(String title, int flex) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Expanded(
       flex: flex,
       child: InkWell(
@@ -52,9 +53,9 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
             Expanded(
               child: Text(
                 title,
-                style: const TextStyle(
+                style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF475569),
+                  color: isDark ? Colors.white : const Color(0xFF475569),
                   fontSize: 12,
                 ),
                 overflow: TextOverflow.ellipsis,
@@ -68,7 +69,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                 color: const Color(0xFF22C55E),
               )
             else
-              const Icon(Icons.unfold_more, size: 14, color: Colors.black26),
+              Icon(Icons.unfold_more, size: 14, color: isDark ? const Color(0xFF64748B) : Colors.black26),
           ],
         ),
       ),
@@ -269,8 +270,9 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
     final shopsAsync = ref.watch(shopProvider);
     final selectedShopId = ref.watch(selectedShopIdProvider);
     final racks = ref.watch(rackProvider).value ?? [];
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
-      color: const Color(0xFFF8FAFC),
+      color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
       child: LayoutBuilder(
         builder: (context, screenConstraints) {
           bool isScreenShort = screenConstraints.maxHeight < 850 || screenConstraints.maxWidth < 1000;
@@ -280,7 +282,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
               // Top Header
               Container(
                 padding: const EdgeInsets.all(32.0),
-                color: Colors.white,
+                color: isDark ? const Color(0xFF1E293B) : Colors.white,
                 child: Wrap(
                   alignment: WrapAlignment.spaceBetween,
                   crossAxisAlignment: WrapCrossAlignment.center,
@@ -291,11 +293,11 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         RichText(
-                          text: const TextSpan(
+                          text: TextSpan(
                             style: TextStyle(
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFF1E293B),
+                              color: isDark ? Colors.white : const Color(0xFF1E293B),
                             ),
                             children: [
                               TextSpan(text: 'Medicine '),
@@ -307,10 +309,10 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                           ),
                         ),
                         const SizedBox(height: 4),
-                        const Text(
+                        Text(
                           'Manage your medicine stock, expiry, and availability in one place.',
                           style: TextStyle(
-                            color: Color(0xFF64748B),
+                            color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                             fontSize: 12,
                           ),
                         ),
@@ -329,7 +331,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                                 height: 44,
                                 padding: const EdgeInsets.symmetric(horizontal: 12),
                                 decoration: BoxDecoration(
-                                  color: Colors.white,
+                                  color: isDark ? const Color(0xFF1E293B) : Colors.white,
                                   borderRadius: BorderRadius.circular(8),
                                   border: Border.all(color: const Color(0xFFE2E8F0)),
                                 ),
@@ -342,8 +344,8 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                                       }
                                       return shops.isNotEmpty ? shops.first['id'].toString() : null;
                                     })(),
-                                    icon: const Icon(Icons.store, size: 16, color: Color(0xFF64748B)),
-                                    style: const TextStyle(fontSize: 14, color: Color(0xFF1E293B)),
+                                    icon: Icon(Icons.store, size: 16, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
+                                    style: TextStyle(fontSize: 14, color: isDark ? Colors.white : const Color(0xFF1E293B)),
                                     onChanged: (String? newShopId) async {
                                       if (newShopId != null && newShopId != selectedShopId) {
                                         ref.read(selectedShopIdProvider.notifier).updateShopId(newShopId);
@@ -379,15 +381,15 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                           height: 44,
                           padding: const EdgeInsets.symmetric(horizontal: 16),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFF1F5F9),
+                            color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
                             borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: const Color(0xFFE2E8F0)),
+                            border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                           ),
                           child: Row(
                             children: [
-                              const Icon(
+                              Icon(
                                 Icons.search,
-                                color: Color(0xFF64748B),
+                                color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                                 size: 18,
                               ),
                               const SizedBox(width: 8),
@@ -417,21 +419,21 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                           height: 44,
                           padding: const EdgeInsets.symmetric(horizontal: 12),
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: isDark ? const Color(0xFF1E293B) : Colors.white,
                             borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: const Color(0xFFE2E8F0)),
+                            border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
                           ),
                           child: DropdownButtonHideUnderline(
                             child: DropdownButton<String>(
                               value: _selectedDateFilter,
-                              icon: const Icon(
+                              icon: Icon(
                                 Icons.calendar_today,
                                 size: 16,
-                                color: Color(0xFF64748B),
+                                color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                               ),
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 14,
-                                color: Color(0xFF1E293B),
+                                color: isDark ? Colors.white : const Color(0xFF1E293B),
                               ),
                               onChanged: (value) {
                                 if (value != null) _onDateFilterChanged(value);
@@ -473,25 +475,25 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                             height: 44,
                             padding: const EdgeInsets.symmetric(horizontal: 16),
                             decoration: BoxDecoration(
-                              color: Colors.white,
+                              color: isDark ? const Color(0xFF1E293B) : Colors.white,
                               borderRadius: BorderRadius.circular(8),
                               border: Border.all(
-                                color: const Color(0xFFE2E8F0),
+                                color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
                               ),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Icon(
+                                Icon(
                                   Icons.sort,
-                                  color: Color(0xFF64748B),
+                                  color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                                   size: 18,
                                 ),
                                 const SizedBox(width: 8),
                                 Text(
                                   'Sort By',
-                                  style: const TextStyle(
-                                    color: Color(0xFF1E293B),
+                                  style: TextStyle(
+                                    color: isDark ? Colors.white : const Color(0xFF1E293B),
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
@@ -548,25 +550,25 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                             height: 44,
                             padding: const EdgeInsets.symmetric(horizontal: 16),
                             decoration: BoxDecoration(
-                              color: Colors.white,
+                              color: isDark ? const Color(0xFF1E293B) : Colors.white,
                               borderRadius: BorderRadius.circular(8),
                               border: Border.all(
-                                color: const Color(0xFFE2E8F0),
+                                color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
                               ),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
-                              children: const [
+                              children: [
                                 Icon(
                                   Icons.download,
-                                  color: Color(0xFF64748B),
+                                  color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                                   size: 18,
                                 ),
-                                SizedBox(width: 8),
+                                const SizedBox(width: 8),
                                 Text(
                                   'Export',
                                   style: TextStyle(
-                                    color: Color(0xFF1E293B),
+                                    color: isDark ? Colors.white : const Color(0xFF1E293B),
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
@@ -590,9 +592,9 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                         ),
                         IconButton(
                           onPressed: () => _fetchData(),
-                          icon: const Icon(
+                          icon: Icon(
                             Icons.refresh,
-                            color: Color(0xFF64748B),
+                            color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                           ),
                           tooltip: 'Refresh',
                         ),
@@ -641,10 +643,10 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                           ),
                           child: Container(
                             decoration: BoxDecoration(
-                              color: Colors.white,
+                              color: isDark ? const Color(0xFF1E293B) : Colors.white,
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(
-                                color: const Color(0xFFE2E8F0),
+                                color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
                               ),
                               boxShadow: const [
                                 BoxShadow(
@@ -664,7 +666,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                                     children: [
                                       // Table Header
                                       Container(
-                                        color: const Color(0xFFF1F5F9),
+                                        color: isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9),
                                         padding: const EdgeInsets.symmetric(
                                           horizontal: 24,
                                           vertical: 16,
@@ -762,11 +764,9 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                                               itemCount: sortedItems.length + 1,
                                               separatorBuilder:
                                                   (context, index) =>
-                                                      const Divider(
+                                                      Divider(
                                                         height: 1,
-                                                        color: Color(
-                                                          0xFFE2E8F0,
-                                                        ),
+                                                        color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
                                                       ),
                                               itemBuilder: (context, index) {
                                                 if (index == sortedItems.length) {
@@ -783,6 +783,10 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                                                           ),
                                                       child: Center(
                                                         child: OutlinedButton(
+                                                          style: OutlinedButton.styleFrom(
+                                                            side: BorderSide(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+                                                            foregroundColor: isDark ? Colors.white : const Color(0xFF1E293B),
+                                                          ),
                                                           onPressed: () => ref
                                                               .read(
                                                                 inventoryProvider

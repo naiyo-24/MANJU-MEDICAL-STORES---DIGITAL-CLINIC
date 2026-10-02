@@ -28,9 +28,11 @@ class InventoryRowWidget extends StatelessWidget {
               ? 'Low Stock'
               : (medicine.stockQuantity <= 50 ? 'Medium Stock' : 'OK'));
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return InkWell(
       onTap: onTap,
-      hoverColor: const Color(0xFFF1F5F9),
+      hoverColor: isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
         child: Row(
@@ -43,7 +45,7 @@ class InventoryRowWidget extends StatelessWidget {
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF1F5F9),
+                    color: isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9),
                     borderRadius: BorderRadius.circular(8),
                     image: (medicine.imageUrl != null && medicine.imageUrl!.isNotEmpty)
                         ? DecorationImage(
@@ -69,9 +71,9 @@ class InventoryRowWidget extends StatelessWidget {
                     children: [
                       Text(
                         medicine.name,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF1E293B),
+                          color: isDark ? Colors.white : const Color(0xFF1E293B),
                           fontSize: 14,
                         ),
                         maxLines: 1,
@@ -82,8 +84,8 @@ class InventoryRowWidget extends StatelessWidget {
                         medicine.manufacturer.isNotEmpty
                             ? medicine.manufacturer
                             : 'Unknown',
-                        style: const TextStyle(
-                          color: Color(0xFF64748B),
+                        style: TextStyle(
+                          color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                           fontSize: 10,
                         ),
                         maxLines: 1,
@@ -107,16 +109,16 @@ class InventoryRowWidget extends StatelessWidget {
                           'MMM dd, yyyy',
                         ).format(DateTime.parse(medicine.createdAt!).toLocal())
                       : 'N/A',
-                  style: const TextStyle(
-                    color: Color(0xFF1E293B),
+                  style: TextStyle(
+                    color: isDark ? Colors.white : const Color(0xFF1E293B),
                     fontSize: 12,
                   ),
                 ),
                 if (medicine.updatedAt != null)
                   Text(
                     'Updated: ${DateFormat('MMM dd, yyyy').format(DateTime.parse(medicine.updatedAt!).toLocal())}',
-                    style: const TextStyle(
-                      color: Color(0xFF64748B),
+                    style: TextStyle(
+                      color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                       fontSize: 10,
                     ),
                   ),
@@ -151,17 +153,17 @@ class InventoryRowWidget extends StatelessWidget {
               rackName,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(color: Color(0xFF64748B), fontSize: 12),
+              style: TextStyle(color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B), fontSize: 12),
             ),
           ),
           Expanded(
             flex: 1,
             child: Text(
-              '₹${medicine.buyingPrice?.toStringAsFixed(2) ?? '0.00'}',
+              '₹${medicine.buyingPrice.toStringAsFixed(2)}',
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                color: Color(0xFF64748B),
+              style: TextStyle(
+                color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                 fontSize: 12,
               ),
             ),
@@ -172,8 +174,8 @@ class InventoryRowWidget extends StatelessWidget {
               '₹${medicine.unitPrice.toStringAsFixed(2)}',
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                color: Color(0xFF1E293B),
+              style: TextStyle(
+                color: isDark ? Colors.white : const Color(0xFF1E293B),
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
               ),
@@ -185,7 +187,7 @@ class InventoryRowWidget extends StatelessWidget {
               medicine.gst != null && medicine.gst! > 0
                   ? '${medicine.gst!.toStringAsFixed(1)}%'
                   : '-',
-              style: const TextStyle(color: Color(0xFF64748B), fontSize: 12),
+              style: TextStyle(color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B), fontSize: 12),
             ),
           ),
           Expanded(
@@ -194,14 +196,14 @@ class InventoryRowWidget extends StatelessWidget {
               medicine.distributor ?? '-',
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(color: Color(0xFF64748B), fontSize: 12),
+              style: TextStyle(color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B), fontSize: 12),
             ),
           ),
           Expanded(
             flex: 1,
             child: Text(
               medicine.expiryDate,
-              style: const TextStyle(color: Color(0xFF64748B), fontSize: 12),
+              style: TextStyle(color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B), fontSize: 12),
             ),
           ),
           Expanded(

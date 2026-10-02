@@ -17,6 +17,7 @@ class CustomerSearchField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -32,7 +33,7 @@ class CustomerSearchField extends StatelessWidget {
         Container(
           height: 36,
           decoration: BoxDecoration(
-            color: const Color(0xFFF8FAFC),
+            color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
             border: Border.all(color: const Color(0xFFE2E8F0)),
             borderRadius: BorderRadius.circular(6),
           ),
@@ -73,7 +74,7 @@ class CustomerSearchField extends StatelessWidget {
               return TextField(
                 controller: textEditingController,
                 focusNode: focusNode,
-                style: const TextStyle(fontSize: 12),
+                style: TextStyle(fontSize: 12, color: isDark ? Colors.white : const Color(0xFF1E293B)),
                 decoration: const InputDecoration(
                   border: InputBorder.none,
                   contentPadding: EdgeInsets.symmetric(
@@ -99,6 +100,7 @@ class CustomerSearchField extends StatelessWidget {
                 alignment: Alignment.topLeft,
                 child: Material(
                   elevation: 4,
+                  color: isDark ? const Color(0xFF1E293B) : Colors.white,
                   borderRadius: BorderRadius.circular(8),
                   child: ConstrainedBox(
                     constraints: const BoxConstraints(
@@ -138,9 +140,10 @@ class CustomerSearchField extends StatelessWidget {
                               children: [
                                 Text(
                                   option.name,
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.bold,
+                                    color: isDark ? Colors.white : const Color(0xFF1E293B),
                                   ),
                                 ),
                                 Text(

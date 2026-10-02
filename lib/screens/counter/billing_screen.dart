@@ -57,9 +57,7 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
   List<Doctor> _doctorsList = [];
   String? _selectedDoctorId;
   String _selectedDoctorName = 'Walk-in';
-
-  DateTime _currentTime = DateTime.now();
-  Timer? _timer;
+  
   Timer? _searchDebounce;
   // Format is now handled by billingProvider
   String? _savedCustomerId;
@@ -70,7 +68,6 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
   @override
   void initState() {
     super.initState();
-    _startClock();
     _fetchDoctors();
     _fetchCustomers();
     _fetchShopSettings();
@@ -80,14 +77,6 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
       if (ref.read(billingProvider).discountValue != val) {
         ref.read(billingProvider.notifier).updateDiscount(val, isPerc);
       }
-    });
-  }
-
-  void _startClock() {
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      setState(() {
-        _currentTime = DateTime.now();
-      });
     });
   }
 
@@ -126,7 +115,6 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
     _medicineSearchController.dispose();
 
     _newDoctorController.dispose();
-    _timer?.cancel();
     _searchDebounce?.cancel();
     super.dispose();
   }
@@ -990,6 +978,7 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final inventoryState = ref.watch(billingInventoryProvider);
     final allMedicines = inventoryState.when(
       data: (items) {
@@ -1042,16 +1031,16 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
 
     // Removed local search filtering since we will fetch from backend
     return Container(
-      color: const Color(0xFFF8FAFC),
+      color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // Top Header
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              border: Border(bottom: BorderSide(color: Color(0xFFE2E8F0))),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF1E293B) : Colors.white,
+              border: const Border(bottom: BorderSide(color: Color(0xFFE2E8F0))),
             ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1077,12 +1066,12 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
+                            Text(
                               'New Bill',
                               style: TextStyle(
                                 fontSize: 24,
                                 fontWeight: FontWeight.w900,
-                                color: Color(0xFF1E293B),
+                                color: isDark ? Colors.white : const Color(0xFF1E293B),
                               ),
                             ),
                             const Text(
