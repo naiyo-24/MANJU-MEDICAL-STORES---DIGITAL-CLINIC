@@ -92,9 +92,7 @@ class _CategoryDropdownState extends ConsumerState<CategoryDropdown> {
         final isValidValue = widget.selectedCategoryId == null || categories.any((c) => c.id == widget.selectedCategoryId);
         final safeValue = isValidValue ? widget.selectedCategoryId : null;
 
-        return LayoutBuilder(
-          builder: (context, constraints) {
-            return DropdownButtonFormField<String>(
+        return DropdownButtonFormField<String>(
               isExpanded: true,
               value: safeValue,
               decoration: InputDecoration(
@@ -109,9 +107,7 @@ class _CategoryDropdownState extends ConsumerState<CategoryDropdown> {
                       : cat.name;
                   return DropdownMenuItem(
                     value: cat.id,
-                    child: SizedBox(
-                      width: constraints.maxWidth - 32, // account for inner padding
-                      child: Row(
+                    child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Expanded(child: Text(displayText, overflow: TextOverflow.ellipsis)),
@@ -160,13 +156,10 @@ class _CategoryDropdownState extends ConsumerState<CategoryDropdown> {
                 ),
               ],
             ),
-          ),
-        );
-      }),
-        DropdownMenuItem(
-          value: 'add_new',
-          child: SizedBox(
-            width: constraints.maxWidth - 32,
+          );
+        }),
+          DropdownMenuItem(
+            value: 'add_new',
             child: Row(
               children: const [
                 Icon(Icons.add, color: Color(0xFF22C55E)),
@@ -175,7 +168,6 @@ class _CategoryDropdownState extends ConsumerState<CategoryDropdown> {
               ],
             ),
           ),
-        ),
       ],
       selectedItemBuilder: (BuildContext context) {
         return [
@@ -195,10 +187,8 @@ class _CategoryDropdownState extends ConsumerState<CategoryDropdown> {
           widget.onChanged(value);
         }
       },
-    );
-          },
-        );
-      },
-    );
+    ); // close DropdownButtonFormField
+      }, // close data:
+    ); // close categoryAsync.when
   }
 }

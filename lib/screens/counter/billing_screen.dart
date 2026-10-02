@@ -949,6 +949,11 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
         isLoose = result;
       }
 
+      if (isLoose && packSize > 1) {
+        double effectivePrice = mrp / packSize;
+        totalAfterDiscount = effectivePrice - (effectivePrice * (discount / 100));
+      }
+
       ref.read(billingProvider.notifier).addItem({
         'inventory_item_id': item['inventory_item_id'],
         'name': item['name'],
@@ -1152,7 +1157,7 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                   Widget leftSide = inventoryState.when(
                     data: (items) => BillingLeftPanel(
                       isDesktopWidth: isDesktopWidth,
-                      hasEnoughHeight: hasEnoughHeight,
+                      hasEnoughHeight: isDesktopWidth ? hasEnoughHeight : true,
                       filteredMedicines: computedFilteredMedicines,
                       categories: dynamicCategories,
                       selectedCategoryIndex: ref
@@ -1262,7 +1267,10 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          leftSide,
+                          SizedBox(
+                            height: 500, // Fixed height so it doesn't shrink and overflow when keyboard opens
+                            child: leftSide,
+                          ),
                           const SizedBox(height: 24),
                           rightSide,
                         ],
