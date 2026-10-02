@@ -36,9 +36,11 @@ class _CrmDashboardState extends State<CrmDashboard> {
       key: _scaffoldKey,
       backgroundColor: const Color(0xFFF8FAFC),
       drawer: isDesktop ? null : Drawer(child: _buildSidebar()),
-      body: Column(
-        children: [
-          _buildHeader(isDesktop), // Global Top App Bar
+      body: SafeArea(
+        bottom: false,
+        child: Column(
+          children: [
+            _buildHeader(isDesktop), // Global Top App Bar
           Expanded(
             child: Row(
               children: [
@@ -54,6 +56,7 @@ class _CrmDashboardState extends State<CrmDashboard> {
           ),
         ],
       ),
+      ),
     );
   }
 
@@ -65,8 +68,11 @@ class _CrmDashboardState extends State<CrmDashboard> {
         color: Colors.white,
         border: Border(right: BorderSide(color: Color(0xFFE2E8F0))),
       ),
-      child: Column(
-        children: [
+      child: SafeArea(
+        top: !Responsive.isDesktop(context),
+        bottom: !Responsive.isDesktop(context),
+        child: Column(
+          children: [
           Expanded(
             child: ListView(
               padding: const EdgeInsets.symmetric(vertical: 16),
@@ -150,6 +156,7 @@ class _CrmDashboardState extends State<CrmDashboard> {
           const SizedBox(height: 24),
         ],
       ),
+      ),
     );
   }
 
@@ -220,66 +227,70 @@ class _CrmDashboardState extends State<CrmDashboard> {
   Widget _buildHeader(bool isDesktop) {
     return Container(
       height: 85,
-      padding: const EdgeInsets.symmetric(horizontal: 24),
+      padding: EdgeInsets.symmetric(horizontal: isDesktop ? 24 : 12),
       decoration: const BoxDecoration(
         color: Colors.white,
         border: Border(bottom: BorderSide(color: Color(0xFFE2E8F0), width: 1)),
       ),
       child: Row(
         children: [
-          IconButton(
-            icon: const Icon(Icons.menu),
-            onPressed: () {
-              if (isDesktop) {
-                setState(() {
-                  _isSidebarExpanded = !_isSidebarExpanded;
-                });
-              } else {
-                _scaffoldKey.currentState?.openDrawer();
-              }
-            },
-          ),
-          const SizedBox(width: 16),
-          // Logo & Brand
           Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Image.asset('assets/LOGO.png', height: 75, fit: BoxFit.contain, cacheHeight: 225),
+              IconButton(
+                icon: const Icon(Icons.menu),
+                onPressed: () {
+                  if (isDesktop) {
+                    setState(() {
+                      _isSidebarExpanded = !_isSidebarExpanded;
+                    });
+                  } else {
+                    _scaffoldKey.currentState?.openDrawer();
+                  }
+                },
+              ),
+              SizedBox(width: isDesktop ? 16 : 8),
+              Image.asset(Theme.of(context).brightness == Brightness.dark ? 'assets/LOGO_DM.png' : 'assets/LOGO.png', height: isDesktop ? 75 : 45, fit: BoxFit.contain, cacheHeight: 225),
             ],
           ),
-          const Spacer(),
-          // Search Bar
-          Container(
-            width: 400,
-            height: 40,
-            decoration: BoxDecoration(
-              color: const Color(0xFFF1F5F9),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-              children: [
-                const Icon(Icons.search, color: Color(0xFF94A3B8), size: 20),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: TextField(
-                    decoration: const InputDecoration(
-                      hintText: 'Search patients, appointments, doctors...',
-                      hintStyle: TextStyle(
-                        color: Color(0xFF94A3B8),
-                        fontSize: 14,
+          
+          if (isDesktop) ...[
+            const Spacer(),
+            // Search Bar
+            Container(
+              width: 400,
+              height: 40,
+              decoration: BoxDecoration(
+                color: const Color(0xFFF1F5F9),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                children: [
+                  const Icon(Icons.search, color: Color(0xFF94A3B8), size: 20),
+                  const SizedBox(width: 8),
+                  const Expanded(
+                    child: TextField(
+                      decoration: InputDecoration(
+                        hintText: 'Search patients, appointments, doctors...',
+                        hintStyle: TextStyle(
+                          color: Color(0xFF94A3B8),
+                          fontSize: 14,
+                        ),
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.only(
+                          bottom: 12,
+                        ), // Align center
                       ),
-                      border: InputBorder.none,
-                      contentPadding: EdgeInsets.only(
-                        bottom: 12,
-                      ), // Align center
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
+          ],
+          
           const Spacer(),
-          // Right Actions
+          
           Row(
             children: [
               // User Profile Outline Button
@@ -328,34 +339,37 @@ class _CrmDashboardState extends State<CrmDashboard> {
                           color: Color(0xFF64748B),
                         ),
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 6),
                       Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        children: const [
+                        children: [
                           Text(
                             'CRM Admin',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
-                              fontSize: 12,
-                              color: Color(0xFF1E293B),
+                              fontSize: isDesktop ? 12 : 10,
+                              color: const Color(0xFF1E293B),
                             ),
                           ),
-                          Text(
-                            'CRM',
-                            style: TextStyle(
-                              fontSize: 10,
-                              color: Color(0xFF64748B),
+                          if (isDesktop)
+                            const Text(
+                              'CRM',
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: Color(0xFF64748B),
+                              ),
                             ),
-                          ),
                         ],
                       ),
-                      const SizedBox(width: 8),
-                      const Icon(
-                        Icons.keyboard_arrow_down,
-                        size: 16,
-                        color: Color(0xFF64748B),
-                      ),
+                      if (isDesktop) ...[
+                        const SizedBox(width: 6),
+                        const Icon(
+                          Icons.keyboard_arrow_down,
+                          size: 16,
+                          color: Color(0xFF64748B),
+                        ),
+                      ],
                     ],
                   ),
                 ),

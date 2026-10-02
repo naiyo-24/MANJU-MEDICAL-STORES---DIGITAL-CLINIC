@@ -48,7 +48,7 @@ class ApiClient {
           // ignore: avoid_print
           print('Message: ${e.message}');
 
-          if (e.response?.statusCode == 401) {
+          if (e.response?.statusCode == 401 && !e.requestOptions.path.contains('auth')) {
             // ignore: avoid_print
             print(
               'Unauthorized: Token expired or invalid. Logging out and redirecting.',

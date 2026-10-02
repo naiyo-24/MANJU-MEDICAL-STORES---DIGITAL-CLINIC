@@ -92,10 +92,14 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
             padding: const EdgeInsets.all(24.0),
             children: [
               // Header
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              Wrap(
+                alignment: WrapAlignment.spaceBetween,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                runSpacing: 16,
+                spacing: 16,
                 children: [
-                  Expanded(
+                  Container(
+                    constraints: const BoxConstraints(maxWidth: 400),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -138,7 +142,6 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                       ],
                     ),
                   ),
-                  const SizedBox(width: 16),
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -183,71 +186,72 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
               LayoutBuilder(
                 builder: (context, constraints) {
                   bool isDesktop = constraints.maxWidth > 800;
-                  return SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: [
-                        SizedBox(
-                          width: isDesktop
-                              ? (constraints.maxWidth - 48) / 4
-                              : 250,
-                          child: CustomerStatCard(
-                            title: 'Total Customers',
-                            value: '${allCustomers.length}',
-                            icon: Icons.people,
-                            bgColor: AppColors.primaryLight,
-                            iconColor: AppColors.primaryDark,
-                          ),
+                  return Wrap(
+                    spacing: 16,
+                    runSpacing: 16,
+                    children: [
+                      SizedBox(
+                        width: isDesktop
+                            ? (constraints.maxWidth - 48) / 4
+                            : (constraints.maxWidth - 20) / 2,
+                        child: CustomerStatCard(
+                          title: 'Total Customers',
+                          value: '${allCustomers.length}',
+                          icon: Icons.people,
+                          bgColor: AppColors.primaryLight,
+                          iconColor: AppColors.primaryDark,
                         ),
-                        const SizedBox(width: 16),
-                        SizedBox(
-                          width: isDesktop
-                              ? (constraints.maxWidth - 48) / 4
-                              : 250,
-                          child: CustomerStatCard(
-                            title: 'Active Customers',
-                            value: '${allCustomers.where((c) => c['status'] == 'Active').length}',
-                            icon: Icons.check_circle_outline,
-                            bgColor: AppColors.infoLight,
-                            iconColor: AppColors.info,
-                          ),
+                      ),
+                      SizedBox(
+                        width: isDesktop
+                            ? (constraints.maxWidth - 48) / 4
+                            : (constraints.maxWidth - 20) / 2,
+                        child: CustomerStatCard(
+                          title: 'Active Customers',
+                          value:
+                              '${allCustomers.where((c) => c['status'] == 'Active').length}',
+                          icon: Icons.check_circle_outline,
+                          bgColor: AppColors.infoLight,
+                          iconColor: AppColors.info,
                         ),
-                        const SizedBox(width: 16),
-                        SizedBox(
-                          width: isDesktop
-                              ? (constraints.maxWidth - 48) / 4
-                              : 250,
-                          child: CustomerStatCard(
-                            title: 'New This Month',
-                            value: '${allCustomers.where((c) {
-                              if (c['raw_created_at'] == null) return false;
-                              try {
-                                final dt = DateTime.parse(c['raw_created_at']).toLocal();
-                                final now = DateTime.now();
-                                return dt.month == now.month && dt.year == now.year;
-                              } catch(e) { return false; }
-                            }).length}',
-                            icon: Icons.person_add_alt_1,
-                            bgColor: AppColors.warningLight,
-                            iconColor: AppColors.warning,
-                          ),
+                      ),
+                      SizedBox(
+                        width: isDesktop
+                            ? (constraints.maxWidth - 48) / 4
+                            : (constraints.maxWidth - 20) / 2,
+                        child: CustomerStatCard(
+                          title: 'New This Month',
+                          value:
+                              '${allCustomers.where((c) {
+                                if (c['raw_created_at'] == null) return false;
+                                try {
+                                  final dt = DateTime.parse(c['raw_created_at']).toLocal();
+                                  final now = DateTime.now();
+                                  return dt.month == now.month && dt.year == now.year;
+                                } catch (e) {
+                                  return false;
+                                }
+                              }).length}',
+                          icon: Icons.person_add_alt_1,
+                          bgColor: AppColors.warningLight,
+                          iconColor: AppColors.warning,
                         ),
-                        const SizedBox(width: 16),
-                        SizedBox(
-                          width: isDesktop
-                              ? (constraints.maxWidth - 48) / 4
-                              : 250,
-                          child: CustomerStatCard(
-                            title: 'Loyal Customers',
-                            value: '${allCustomers.where((c) => (c['bills'] ?? 0) >= 10).length}',
-                            icon: Icons.star,
-                            bgColor: AppColors.secondaryLight,
-                            iconColor: AppColors.secondary,
-                            subtitle: '(10+ purchases)',
-                          ),
+                      ),
+                      SizedBox(
+                        width: isDesktop
+                            ? (constraints.maxWidth - 48) / 4
+                            : (constraints.maxWidth - 20) / 2,
+                        child: CustomerStatCard(
+                          title: 'Loyal Customers',
+                          value:
+                              '${allCustomers.where((c) => (c['bills'] ?? 0) >= 10).length}',
+                          icon: Icons.star,
+                          bgColor: AppColors.secondaryLight,
+                          iconColor: AppColors.secondary,
+                          subtitle: '(10+ purchases)',
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   );
                 },
               ),
@@ -276,169 +280,169 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                           // Filter Bar
                           LayoutBuilder(
                             builder: (context, constraints) {
-                              return SingleChildScrollView(
-                                scrollDirection: Axis.horizontal,
-                                child: Container(
-                                  width: constraints.maxWidth > 800
-                                      ? constraints.maxWidth
-                                      : 800,
-                                  padding: const EdgeInsets.all(16.0),
-                                  child: Row(
-                                    children: [
-                                      Expanded(
-                                        flex: 2,
-                                        child: TextField(
-                                          controller: _searchCtrl,
-                                          onChanged: (val) => setState(() {
-                                            _searchQuery = val;
-                                            _currentPage = 1;
-                                          }),
-                                          decoration: InputDecoration(
-                                            hintText:
-                                                'Search by name, phone, customer ID...',
-                                            prefixIcon: const Icon(
-                                              Icons.search,
-                                              size: 20,
-                                            ),
-                                            border: OutlineInputBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(8),
-                                              borderSide: const BorderSide(
-                                                color: AppColors.border,
-                                              ),
-                                            ),
-                                            contentPadding:
-                                                const EdgeInsets.symmetric(
-                                                  vertical: 0,
-                                                  horizontal: 16,
-                                                ),
+                              bool isDesktop = constraints.maxWidth > 800;
+                              return Container(
+                                padding: const EdgeInsets.all(16.0),
+                                child: Wrap(
+                                  spacing: 12,
+                                  runSpacing: 12,
+                                  children: [
+                                    SizedBox(
+                                      width: isDesktop
+                                          ? (constraints.maxWidth * 0.4)
+                                          : constraints.maxWidth,
+                                      child: TextField(
+                                        controller: _searchCtrl,
+                                        onChanged: (val) => setState(() {
+                                          _searchQuery = val;
+                                          _currentPage = 1;
+                                        }),
+                                        decoration: InputDecoration(
+                                          hintText:
+                                              'Search by name, phone, customer ID...',
+                                          prefixIcon: const Icon(
+                                            Icons.search,
+                                            size: 20,
                                           ),
-                                        ),
-                                      ),
-                                      const SizedBox(width: 12),
-                                      Expanded(
-                                        flex: 1,
-                                        child: DropdownButtonFormField<String>(
-                                          decoration: InputDecoration(
-                                            border: OutlineInputBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(8),
-                                              borderSide: const BorderSide(
-                                                color: AppColors.border,
-                                              ),
-                                            ),
-                                            contentPadding:
-                                                const EdgeInsets.symmetric(
-                                                  vertical: 0,
-                                                  horizontal: 12,
-                                                ),
-                                          ),
-                                          initialValue: _selectedStatus,
-                                          items:
-                                              [
-                                                    'All Status',
-                                                    ...allCustomers
-                                                        .map(
-                                                          (e) => e['status']
-                                                              .toString(),
-                                                        )
-                                                        .toSet(),
-                                                  ]
-                                                  .map(
-                                                    (s) => DropdownMenuItem(
-                                                      value: s,
-                                                      child: Text(
-                                                        s,
-                                                        style: const TextStyle(
-                                                          fontSize: 14,
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  )
-                                                  .toList(),
-                                          onChanged: (val) => setState(() {
-                                            _selectedStatus = val!;
-                                            _currentPage = 1;
-                                          }),
-                                        ),
-                                      ),
-                                      const SizedBox(width: 12),
-                                      Expanded(
-                                        flex: 1,
-                                        child: DropdownButtonFormField<String>(
-                                          decoration: InputDecoration(
-                                            border: OutlineInputBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(8),
-                                              borderSide: const BorderSide(
-                                                color: AppColors.border,
-                                              ),
-                                            ),
-                                            contentPadding:
-                                                const EdgeInsets.symmetric(
-                                                  vertical: 0,
-                                                  horizontal: 12,
-                                                ),
-                                          ),
-                                          initialValue: _selectedCity,
-                                          items:
-                                              [
-                                                    'All Cities',
-                                                    ...allCustomers
-                                                        .map(
-                                                          (e) => e['city']
-                                                              .toString(),
-                                                        )
-                                                        .toSet(),
-                                                  ]
-                                                  .map(
-                                                    (s) => DropdownMenuItem(
-                                                      value: s,
-                                                      child: Text(
-                                                        s,
-                                                        style: const TextStyle(
-                                                          fontSize: 14,
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  )
-                                                  .toList(),
-                                          onChanged: (val) => setState(() {
-                                            _selectedCity = val!;
-                                            _currentPage = 1;
-                                          }),
-                                        ),
-                                      ),
-                                      const SizedBox(width: 12),
-                                      OutlinedButton.icon(
-                                        onPressed: () {
-                                          setState(() {
-                                            _searchCtrl.clear();
-                                            _searchQuery = '';
-                                            _selectedStatus = 'All Status';
-                                            _selectedCity = 'All Cities';
-                                            _currentPage = 1;
-                                          });
-                                        },
-                                        icon: const Icon(
-                                          Icons.refresh,
-                                          size: 18,
-                                        ),
-                                        label: const Text('Reset'),
-                                        style: OutlinedButton.styleFrom(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 16,
-                                            vertical: 16,
-                                          ),
-                                          shape: RoundedRectangleBorder(
+                                          border: OutlineInputBorder(
                                             borderRadius: BorderRadius.circular(
                                               8,
                                             ),
+                                            borderSide: const BorderSide(
+                                              color: AppColors.border,
+                                            ),
+                                          ),
+                                          contentPadding:
+                                              const EdgeInsets.symmetric(
+                                                vertical: 0,
+                                                horizontal: 16,
+                                              ),
+                                        ),
+                                      ),
+                                    ),
+                                    SizedBox(
+                                      width: isDesktop
+                                          ? (constraints.maxWidth * 0.25 - 12)
+                                          : (constraints.maxWidth - 20) / 2,
+                                      child: DropdownButtonFormField<String>(
+                                        decoration: InputDecoration(
+                                          border: OutlineInputBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              8,
+                                            ),
+                                            borderSide: const BorderSide(
+                                              color: AppColors.border,
+                                            ),
+                                          ),
+                                          contentPadding:
+                                              const EdgeInsets.symmetric(
+                                                vertical: 0,
+                                                horizontal: 12,
+                                              ),
+                                        ),
+                                        initialValue: _selectedStatus,
+                                        items:
+                                            [
+                                                  'All Status',
+                                                  ...allCustomers
+                                                      .map(
+                                                        (e) => e['status']
+                                                            .toString(),
+                                                      )
+                                                      .toSet(),
+                                                ]
+                                                .map(
+                                                  (s) => DropdownMenuItem(
+                                                    value: s,
+                                                    child: Text(
+                                                      s,
+                                                      style: const TextStyle(
+                                                        fontSize: 14,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                )
+                                                .toList(),
+                                        onChanged: (val) => setState(() {
+                                          _selectedStatus = val!;
+                                          _currentPage = 1;
+                                        }),
+                                      ),
+                                    ),
+                                    SizedBox(
+                                      width: isDesktop
+                                          ? (constraints.maxWidth * 0.25 - 12)
+                                          : (constraints.maxWidth - 20) / 2,
+                                      child: DropdownButtonFormField<String>(
+                                        decoration: InputDecoration(
+                                          border: OutlineInputBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              8,
+                                            ),
+                                            borderSide: const BorderSide(
+                                              color: AppColors.border,
+                                            ),
+                                          ),
+                                          contentPadding:
+                                              const EdgeInsets.symmetric(
+                                                vertical: 0,
+                                                horizontal: 12,
+                                              ),
+                                        ),
+                                        initialValue: _selectedCity,
+                                        items:
+                                            [
+                                                  'All Cities',
+                                                  ...allCustomers
+                                                      .map(
+                                                        (e) => e['city']
+                                                            .toString(),
+                                                      )
+                                                      .toSet(),
+                                                ]
+                                                .map(
+                                                  (s) => DropdownMenuItem(
+                                                    value: s,
+                                                    child: Text(
+                                                      s,
+                                                      style: const TextStyle(
+                                                        fontSize: 14,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                )
+                                                .toList(),
+                                        onChanged: (val) => setState(() {
+                                          _selectedCity = val!;
+                                          _currentPage = 1;
+                                        }),
+                                      ),
+                                    ),
+                                    OutlinedButton.icon(
+                                      onPressed: () {
+                                        setState(() {
+                                          _searchCtrl.clear();
+                                          _searchQuery = '';
+                                          _selectedStatus = 'All Status';
+                                          _selectedCity = 'All Cities';
+                                          _currentPage = 1;
+                                        });
+                                      },
+                                      icon: const Icon(Icons.refresh, size: 18),
+                                      label: const Text('Reset'),
+                                      style: OutlinedButton.styleFrom(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 16,
+                                          vertical: 16,
+                                        ),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            8,
                                           ),
                                         ),
                                       ),
-                                    ],
-                                  ),
+                                    ),
+                                  ],
                                 ),
                               );
                             },
@@ -821,7 +825,11 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                   const SizedBox(width: 4),
                   IconButton(
                     onPressed: () => _deleteCustomer(customer['full_id']),
-                    icon: const Icon(Icons.delete_outline, size: 16, color: Colors.red),
+                    icon: const Icon(
+                      Icons.delete_outline,
+                      size: 16,
+                      color: Colors.red,
+                    ),
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
                     tooltip: 'Delete Customer',
@@ -841,7 +849,9 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Delete Customer'),
-          content: const Text('Are you sure you want to delete this customer? This action cannot be undone.'),
+          content: const Text(
+            'Are you sure you want to delete this customer? This action cannot be undone.',
+          ),
           actions: <Widget>[
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
@@ -1322,7 +1332,11 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                                       items: itemsList,
                                       createdAt: dt,
                                     );
-                                    showViewBillDialog(context, bill, ref.read(settingsProvider).value ?? {});
+                                    showViewBillDialog(
+                                      context,
+                                      bill,
+                                      ref.read(settingsProvider).value ?? {},
+                                    );
                                   },
                                   child: Padding(
                                     padding: const EdgeInsets.symmetric(

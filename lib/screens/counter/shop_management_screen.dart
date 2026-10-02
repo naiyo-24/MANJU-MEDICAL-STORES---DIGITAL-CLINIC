@@ -1,4 +1,9 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import '../../services/shop_service.dart';
+import '../../services/export_service.dart';
+import 'widgets/shop/shop_summary_cards.dart';
+import 'widgets/shop/shop_table.dart';
 
 class ShopManagementScreen extends StatefulWidget {
   const ShopManagementScreen({super.key});
@@ -8,112 +13,417 @@ class ShopManagementScreen extends StatefulWidget {
 }
 
 class _ShopManagementScreenState extends State<ShopManagementScreen> {
+  List<Shop> _shops = [];
+  bool _isLoading = true;
+  String _searchQuery = '';
+  String _selectedStatus = 'All Status';
+  String _selectedCity = 'All Cities';
+  bool _sortAscending = true;
+  Timer? _pollingTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadShops();
+    // Poll for realtime updates every 3 seconds silently
+    _pollingTimer = Timer.periodic(const Duration(seconds: 3), (_) {
+      _loadShops(silent: true);
+    });
+  }
+
+  Future<void> _loadShops({bool silent = false}) async {
+    try {
+      final shops = await ShopService.getShops();
+      if (mounted) {
+        setState(() {
+          _shops = shops;
+          if (!silent) _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted && !silent) {
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error loading shops: $e')),
+        );
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _pollingTimer?.cancel();
+    super.dispose();
+  }
+
+  void _showExportOptions() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+      builder: (context) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.picture_as_pdf, color: Colors.red),
+                title: const Text('Export as PDF'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _exportData('pdf');
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.table_view, color: Colors.green),
+                title: const Text('Export as Excel'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _exportData('excel');
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.insert_drive_file, color: Colors.blue),
+                title: const Text('Export as CSV'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _exportData('csv');
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _exportData(String format) async {
+    final exportData = _shops.map((s) => {
+      'Name': s.name,
+      'Code': s.code,
+      'Address': s.location,
+      'City': s.city,
+      'Contact': s.contact,
+      'Status': s.status,
+      'Primary': s.isPrimary ? 'Yes' : 'No',
+    }).toList();
+
+    final timestamp = DateTime.now().millisecondsSinceEpoch;
+    final filename = 'shops_$timestamp';
+
+    try {
+      if (format == 'pdf') {
+        await ExportService.exportToPDF(exportData, filename);
+      } else if (format == 'excel') {
+        await ExportService.exportToExcel(exportData, filename);
+      } else if (format == 'csv') {
+        await ExportService.exportToCSV(exportData, filename);
+      }
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Export successful!')));
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Export failed: $e')));
+      }
+    }
+  }
+
+  void _showEditShopDialog(Shop shop) {
+    final nameCtrl = TextEditingController(text: shop.name);
+    final codeCtrl = TextEditingController(text: shop.code);
+    final locationCtrl = TextEditingController(text: shop.location);
+    final cityCtrl = TextEditingController(text: shop.city);
+    final contactCtrl = TextEditingController(text: shop.contact);
+    String status = shop.status;
+    bool isPrimary = shop.isPrimary;
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: const Text('Edit Shop'),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextField(controller: nameCtrl, decoration: const InputDecoration(labelText: 'Shop Name')),
+                    const SizedBox(height: 12),
+                    TextField(controller: codeCtrl, decoration: const InputDecoration(labelText: 'Shop Code')),
+                    const SizedBox(height: 12),
+                    TextField(controller: locationCtrl, decoration: const InputDecoration(labelText: 'Address')),
+                    const SizedBox(height: 12),
+                    TextField(controller: cityCtrl, decoration: const InputDecoration(labelText: 'City')),
+                    const SizedBox(height: 12),
+                    TextField(controller: contactCtrl, decoration: const InputDecoration(labelText: 'Contact Number')),
+                    const SizedBox(height: 12),
+                    DropdownButtonFormField<String>(
+                      value: status.toLowerCase() == 'active' ? 'Active' : 'Inactive',
+                      items: const [
+                        DropdownMenuItem(value: 'Active', child: Text('Active')),
+                        DropdownMenuItem(value: 'Inactive', child: Text('Inactive')),
+                      ],
+                      onChanged: (v) => setDialogState(() => status = v!),
+                      decoration: const InputDecoration(labelText: 'Status'),
+                    ),
+                    const SizedBox(height: 12),
+                    SwitchListTile(
+                      title: const Text('Is Primary Shop?'),
+                      value: isPrimary,
+                      onChanged: (v) => setDialogState(() => isPrimary = v),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancel'),
+                ),
+                ElevatedButton(
+                  onPressed: () async {
+                    try {
+                      await ShopService.updateShop(
+                        id: shop.id,
+                        name: nameCtrl.text,
+                        code: codeCtrl.text,
+                        address: locationCtrl.text,
+                        city: cityCtrl.text,
+                        contactNumber: contactCtrl.text,
+                        status: status,
+                        isPrimary: isPrimary,
+                      );
+                      if (context.mounted) {
+                        Navigator.pop(context);
+                        _loadShops();
+                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Shop updated successfully')));
+                      }
+                    } catch (e) {
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error updating shop: $e')));
+                    }
+                  },
+                  child: const Text('Save'),
+                ),
+              ],
+            );
+          }
+        );
+      }
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final filteredShops = _shops.where((s) {
+      final matchesSearch = s.name.toLowerCase().contains(_searchQuery.toLowerCase()) || 
+                            s.code.toLowerCase().contains(_searchQuery.toLowerCase());
+      final matchesStatus = _selectedStatus == 'All Status' || s.status.toLowerCase() == _selectedStatus.toLowerCase();
+      final matchesCity = _selectedCity == 'All Cities' || s.city.toLowerCase() == _selectedCity.toLowerCase();
+      return matchesSearch && matchesStatus && matchesCity;
+    }).toList();
+
+    filteredShops.sort((a, b) => _sortAscending ? a.name.compareTo(b.name) : b.name.compareTo(a.name));
+    
+    final activeCount = _shops.where((s) => s.status.toLowerCase() == 'active').length;
+    final inactiveCount = _shops.length - activeCount;
+
+    final allCities = ['All Cities', ..._shops.map((s) => s.city).toSet().toList()];
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Container(
-            width: 650,
-            padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 64),
-            decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1E293B) : Colors.white,
-              borderRadius: BorderRadius.circular(24),
-              boxShadow: [
-                BoxShadow(
-                  color: isDark
-                      ? Colors.black.withValues(alpha: 0.2)
-                      : Colors.black.withValues(alpha: 0.04),
-                  blurRadius: 24,
-                  offset: const Offset(0, 12),
-                ),
-              ],
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header Row
+            Wrap(
+              crossAxisAlignment: WrapCrossAlignment.center,
+              alignment: WrapAlignment.spaceBetween,
+              spacing: 16,
+              runSpacing: 16,
               children: [
-                Container(
-                  padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF0F172A) : Colors.white,
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.green.withValues(alpha: 0.2),
-                        blurRadius: 50,
-                        spreadRadius: 15,
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(color: const Color(0xFF22C55E), borderRadius: BorderRadius.circular(12)),
+                      child: const Icon(Icons.storefront, color: Colors.white, size: 28),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Shops',
+                            style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: isDark ? Colors.white : const Color(0xFF1E293B)),
+                          ),
+                          Text(
+                            'Manage your branch shops and their settings',
+                            style: TextStyle(fontSize: 14, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                  child: const Icon(
-                    Icons.hub,
-                    size: 64,
-                    color: Color(0xFF22C55E),
-                  ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 40),
-                Text(
-                  'Multi-Branch Management',
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.w800,
-                    color: isDark ? Colors.white : const Color(0xFF1E293B),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Text(
-                  'We are designing a powerful new way for you to manage multiple\npharmacy branches from a single unified dashboard.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569),
-                    height: 1.5,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Soon, you will be able to designate a Main Branch, link Primary Branches, and\nsynchronize inventory, billing, and patient records seamlessly across all your locations.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
-                    height: 1.5,
-                  ),
-                ),
-                const SizedBox(height: 48),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                  decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.architecture,
-                        size: 18,
-                        color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                Wrap(
+                  spacing: 16,
+                  runSpacing: 16,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    OutlinedButton.icon(
+                      icon: const Icon(Icons.download, size: 18),
+                      label: const Text('Export'),
+                      onPressed: _showExportOptions,
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                       ),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Feature currently on the drawing board',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.refresh, color: Color(0xFF64748B)),
+                      onPressed: () {
+                        setState(() => _isLoading = true);
+                        _loadShops();
+                      },
+                    ),
+                    if (_shops.isEmpty)
+                      ElevatedButton.icon(
+                        icon: const Icon(Icons.add, size: 18),
+                        label: const Text('Add New Shop'),
+                        onPressed: () {},
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF22C55E),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          elevation: 0,
                         ),
                       ),
-                    ],
-                  ),
+                  ],
                 ),
               ],
             ),
-          ),
+            const SizedBox(height: 32),
+            
+            // Summary Cards Component
+            ShopSummaryCards(
+              totalShops: _shops.length,
+              activeShops: activeCount,
+              inactiveShops: inactiveCount,
+              totalLocations: _shops.map((s) => s.city).toSet().length,
+            ),
+            const SizedBox(height: 32),
+
+            // Main Content Area
+            Container(
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: const Color(0xFFE2E8F0)),
+              ),
+              child: Column(
+                children: [
+                  // Toolbar
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Wrap(
+                      spacing: 16,
+                      runSpacing: 16,
+                      children: [
+                        SizedBox(
+                          width: 300,
+                          child: TextField(
+                            onChanged: (val) => setState(() => _searchQuery = val),
+                            decoration: InputDecoration(
+                              hintText: 'Search shop by name, code, location...',
+                              prefixIcon: const Icon(Icons.search, color: Color(0xFF94A3B8), size: 18),
+                              filled: true,
+                              fillColor: isDark ? const Color(0xFF0F172A) : Colors.white,
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+                              enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                            ),
+                          ),
+                        ),
+                        Container(
+                          width: 150,
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+                          decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE2E8F0)), borderRadius: BorderRadius.circular(8)),
+                          child: DropdownButtonHideUnderline(
+                            child: DropdownButton<String>(
+                              value: _selectedStatus,
+                              isExpanded: true,
+                              icon: const Icon(Icons.keyboard_arrow_down, size: 16, color: Color(0xFF94A3B8)),
+                              items: ['All Status', 'Active', 'Inactive'].map((String value) {
+                                return DropdownMenuItem<String>(
+                                  value: value,
+                                  child: Text(value, style: const TextStyle(color: Color(0xFF475569), fontSize: 14)),
+                                );
+                              }).toList(),
+                              onChanged: (newValue) {
+                                if (newValue != null) setState(() => _selectedStatus = newValue);
+                              },
+                            ),
+                          ),
+                        ),
+                        Container(
+                          width: 150,
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+                          decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE2E8F0)), borderRadius: BorderRadius.circular(8)),
+                          child: DropdownButtonHideUnderline(
+                            child: DropdownButton<String>(
+                              value: _selectedCity,
+                              isExpanded: true,
+                              icon: const Icon(Icons.keyboard_arrow_down, size: 16, color: Color(0xFF94A3B8)),
+                              items: allCities.map((String value) {
+                                return DropdownMenuItem<String>(
+                                  value: value,
+                                  child: Text(value, style: const TextStyle(color: Color(0xFF475569), fontSize: 14)),
+                                );
+                              }).toList(),
+                              onChanged: (newValue) {
+                                if (newValue != null) setState(() => _selectedCity = newValue);
+                              },
+                            ),
+                          ),
+                        ),
+                        InkWell(
+                          onTap: () => setState(() => _sortAscending = !_sortAscending),
+                          borderRadius: BorderRadius.circular(8),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                            decoration: BoxDecoration(color: const Color(0xFFF8FAFC), borderRadius: BorderRadius.circular(8), border: Border.all(color: const Color(0xFFE2E8F0))),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min, 
+                              children: [
+                                Icon(_sortAscending ? Icons.arrow_upward : Icons.arrow_downward, size: 16, color: const Color(0xFF475569)), 
+                                const SizedBox(width: 8), 
+                                const Text('Sort By: NAME', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF1E293B)))
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  
+                  // Table Component
+                  ShopTable(
+                    shops: filteredShops,
+                    isLoading: _isLoading,
+                    onEdit: _showEditShopDialog,
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
