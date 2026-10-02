@@ -225,7 +225,7 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
       canPop: false,
       child: Scaffold(
         key: _scaffoldKey,
-        backgroundColor: Colors.white,
+        backgroundColor: scaffoldBg,
         drawer: isDesktop ? null : Drawer(child: _buildSidebar(isDesktop)),
       body: Column(
         children: [
@@ -290,7 +290,7 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 IconButton(
-                  icon: const Icon(Icons.menu),
+                  icon: Icon(Icons.menu, color: iconColor),
                   onPressed: () {
                     if (isDesktop) {
                       setState(() {
@@ -304,7 +304,7 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
                 SizedBox(width: isDesktop ? 16 : 8),
                 Flexible(
                   child: Image.asset(
-                    'assets/LOGO.png', 
+                    isDark ? 'assets/LOGO_DM.png' : 'assets/LOGO.png', 
                     height: isDesktop ? 75 : 45, 
                     fit: BoxFit.contain, 
                     cacheHeight: 225
@@ -318,15 +318,15 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
-                color: const Color(0xFFF1F5F9),
+                color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
+                border: Border.all(color: borderColor),
               ),
               child: Wrap(
                 spacing: 12,
                 crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
-                  const Icon(Icons.keyboard, size: 16, color: Color(0xFF64748B)),
+                  Icon(Icons.keyboard, size: 16, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                   _buildShortcutChip('F1', 'Billing'),
                   _buildShortcutChip('F2', 'Inventory'),
                   _buildShortcutChip('F3', 'Shops'),
@@ -384,7 +384,7 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
                         vertical: 8,
                       ),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF1F8F5),
+                        color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F8F5),
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
                           color: const Color(0xFF22C55E).withValues(alpha: 0.3),
@@ -405,16 +405,16 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
                             children: [
                               Text(
                                 _formatDate(_currentTime),
-                                style: const TextStyle(
-                                  color: Color(0xFF166534),
+                                style: TextStyle(
+                                  color: isDark ? const Color(0xFF4ADE80) : const Color(0xFF166534),
                                   fontSize: 12,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
                               Text(
                                 _formatTime(_currentTime),
-                                style: const TextStyle(
-                                  color: Color(0xFF64748B),
+                                style: TextStyle(
+                                  color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                                   fontSize: 12,
                                 ),
                               ),
@@ -462,22 +462,22 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
-                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                        border: Border.all(color: borderColor),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Row(
                         children: [
-                          const CircleAvatar(
+                          CircleAvatar(
                             radius: 12,
-                            backgroundColor: Color(0xFFF1F5F9),
+                            backgroundColor: isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9),
                             child: Icon(
                               Icons.person,
                               size: 16,
-                              color: Color(0xFF64748B),
+                              color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                             ),
                           ),
                           const SizedBox(width: 8),
-                          const Column(
+                          Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -486,22 +486,22 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 12,
-                                  color: Color(0xFF1E293B),
+                                  color: isDark ? Colors.white : const Color(0xFF1E293B),
                                 ),
                               ),
                               Text(
                                 'Counter',
                                 style: TextStyle(
                                   fontSize: 10,
-                                  color: Color(0xFF64748B),
+                                  color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                                 ),
                               ),
                             ],
                           ),
                           const SizedBox(width: 8),
-                          const Icon(
+                          Icon(
                             Icons.keyboard_arrow_down,
-                            color: Color(0xFF64748B),
+                            color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                             size: 16,
                           ),
                         ],
@@ -534,10 +534,7 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
         border: Border(right: BorderSide(color: borderColor, width: 1)),
       ),
       child: ClipRect(
-        child: SafeArea(
-          top: !isDesktop, // Only apply safe area for mobile drawer
-          bottom: !isDesktop,
-          child: Column(
+        child: Column(
           crossAxisAlignment: isExpanded ? CrossAxisAlignment.start : CrossAxisAlignment.center,
           children: [
             Padding(
@@ -641,73 +638,74 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
                   ),
 
                   const SizedBox(height: 16),
-                  const Divider(
-                    color: Color(0xFFE2E8F0),
+                  Divider(
+                    color: borderColor,
                     thickness: 1,
                     indent: 16,
                     endIndent: 16,
                   ),
                   const SizedBox(height: 8),
 
-          Tooltip(
-            message: isExpanded ? '' : 'Logout',
-            child: InkWell(
-              onTap: () async {
-                await AuthService.logout();
-                if (context.mounted) {
-                  // Go back to the module selection screen FIRST
-                  context.go('/dashboard');
-                  // Then invalidate providers so they don't refetch with a missing token
-                  ref.invalidate(categoryProvider);
-                  ref.invalidate(rackProvider);
-                  ref.invalidate(inventoryProvider);
-                  ref.invalidate(billingInventoryProvider);
-                }
-              },
-              borderRadius: BorderRadius.circular(12),
-              child: Container(
-                margin: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 4,
-                ),
-                padding: EdgeInsets.symmetric(
-                  horizontal: isExpanded ? 16 : 0,
-                  vertical: 12,
-                ),
-                child: AnimatedCrossFade(
-                  duration: const Duration(milliseconds: 200),
-                  crossFadeState: isExpanded ? CrossFadeState.showFirst : CrossFadeState.showSecond,
-                  alignment: Alignment.centerLeft,
-                  firstChild: const SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    physics: NeverScrollableScrollPhysics(),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        Icon(Icons.logout, color: Colors.red, size: 20),
-                        SizedBox(width: 12),
-                        Text(
-                          'Logout',
-                          style: TextStyle(
-                            color: Colors.red,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
+                  Tooltip(
+                    message: isExpanded ? '' : 'Logout',
+                    child: InkWell(
+                      onTap: () async {
+                        await AuthService.logout();
+                        if (context.mounted) {
+                          // Go back to the module selection screen FIRST
+                          context.go('/dashboard');
+                          // Then invalidate providers so they don't refetch with a missing token
+                          ref.invalidate(categoryProvider);
+                          ref.invalidate(rackProvider);
+                          ref.invalidate(inventoryProvider);
+                          ref.invalidate(billingInventoryProvider);
+                        }
+                      },
+                      borderRadius: BorderRadius.circular(12),
+                      child: Container(
+                        margin: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 4,
+                        ),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: isExpanded ? 16 : 0,
+                          vertical: 12,
+                        ),
+                        child: AnimatedCrossFade(
+                          duration: const Duration(milliseconds: 200),
+                          crossFadeState: isExpanded ? CrossFadeState.showFirst : CrossFadeState.showSecond,
+                          alignment: Alignment.centerLeft,
+                          firstChild: const SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            physics: NeverScrollableScrollPhysics(),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              children: [
+                                Icon(Icons.logout, color: Colors.red, size: 20),
+                                SizedBox(width: 12),
+                                Text(
+                                  'Logout',
+                                  style: TextStyle(
+                                    color: Colors.red,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          secondChild: const Center(
+                            child: Icon(Icons.logout, color: Colors.red, size: 20),
                           ),
                         ),
-                      ],
+                      ),
                     ),
                   ),
-                  secondChild: const Center(
-                    child: Icon(Icons.logout, color: Colors.red, size: 20),
-                  ),
-                ),
+                ],
               ),
             ),
           ),
-                  ],
-                ),
-              ),
-            ),
+
           // Bottom Sidebar Card
           AnimatedCrossFade(
             duration: const Duration(milliseconds: 200),
@@ -784,7 +782,6 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
             ),
           ),
         ],
-      ),
       ),
       ),
     );

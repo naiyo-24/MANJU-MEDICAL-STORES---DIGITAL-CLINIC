@@ -1152,7 +1152,7 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                   Widget leftSide = inventoryState.when(
                     data: (items) => BillingLeftPanel(
                       isDesktopWidth: isDesktopWidth,
-                      hasEnoughHeight: isDesktopWidth ? hasEnoughHeight : true,
+                      hasEnoughHeight: hasEnoughHeight,
                       filteredMedicines: computedFilteredMedicines,
                       categories: dynamicCategories,
                       selectedCategoryIndex: ref
@@ -1262,10 +1262,7 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          SizedBox(
-                            height: 500, // Fixed height so it doesn't shrink and overflow when keyboard opens
-                            child: leftSide,
-                          ),
+                          leftSide,
                           const SizedBox(height: 24),
                           rightSide,
                         ],

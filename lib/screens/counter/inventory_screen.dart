@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:linked_scroll_controller/linked_scroll_controller.dart';
 import 'widgets/inventory/inventory_dialogs.dart';
 import '../../providers/counter_providers.dart';
 import 'package:go_router/go_router.dart';
@@ -24,10 +23,6 @@ class InventoryScreen extends ConsumerStatefulWidget {
 
 class _InventoryScreenState extends ConsumerState<InventoryScreen> {
   final TextEditingController _searchController = TextEditingController();
-  
-  late LinkedScrollControllerGroup _controllers;
-  late ScrollController _headController;
-  late ScrollController _bodyController;
 
   String _selectedDateFilter = 'All Time';
   DateTime? _startDate;
@@ -83,9 +78,6 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
   @override
   void initState() {
     super.initState();
-    _controllers = LinkedScrollControllerGroup();
-    _headController = _controllers.addAndGet();
-    _bodyController = _controllers.addAndGet();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _fetchData();
     });
@@ -172,30 +164,17 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
         'SKU': m.sku,
         'Batch': m.batchNumber,
         'Stock': m.stockQuantity,
-        'Loose Stock': m.looseStock,
-        'Pack Size': m.packSize ?? 'N/A',
-        'Buying Price (₹)': m.buyingPrice,
-        'Unit Price (₹)': m.unitPrice,
-        'GST (%)': m.gst ?? 0,
-        'Discount (%)': m.discount ?? 0,
-        'Manufacturer': m.manufacturer,
+        'Price (₹)': m.unitPrice,
         'Expiry': m.expiryDate,
         'Rack': rackName,
         'Category': categoryName,
-        'Distributor': m.distributor ?? 'N/A',
-        'HSN Code': m.hsnCode ?? 'N/A',
       };
     }).toList() ?? [];
 
-    final settings = ref.read(settingsProvider).value ?? {};
-    final shopDetails = {
-      'name': settings['shop_name'] ?? 'MANJU MEDICAL STORES',
-      'location': settings['address'],
-      'contact': settings['phone'],
-      'email': settings['email'],
-      'gstin': settings['gst_number'],
-      'logo_url': settings['logo_url'],
-    };
+    final selectedShopId = ref.read(selectedShopIdProvider);
+    final shops = ref.read(shopProvider).value ?? [];
+    final shop = shops.firstWhere((s) => s['id'].toString() == selectedShopId, orElse: () => {'name': 'MANJU MEDICAL STORES'});
+    final shopName = shop['name'] as String;
 
     final filename =
         'inventory_export_${DateFormat('yyyyMMdd').format(DateTime.now())}';
@@ -205,7 +184,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
       } else if (format == 'Excel') {
         await ExportService.exportToExcel(data, filename);
       } else if (format == 'PDF') {
-        await ExportService.exportToPDF(data, filename, shopDetails);
+        await ExportService.exportToPDF(data, filename, shopName);
       }
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -285,20 +264,11 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
   }
 
   @override
-  void dispose() {
-    _searchController.dispose();
-    _headController.dispose();
-    _bodyController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     final inventoryAsync = ref.watch(inventoryProvider);
     final shopsAsync = ref.watch(shopProvider);
     final selectedShopId = ref.watch(selectedShopIdProvider);
     final racks = ref.watch(rackProvider).value ?? [];
-    final categories = ref.watch(categoryProvider).value ?? [];
     return Container(
       color: const Color(0xFFF8FAFC),
       child: LayoutBuilder(
@@ -626,26 +596,24 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                           ),
                           tooltip: 'Refresh',
                         ),
-                        SizedBox(
-                          height: 44,
-                          child: ElevatedButton.icon(
-                            onPressed: () =>
-                                context.go('/counter/inventory/upload'),
-                            icon: const Icon(Icons.add, size: 16),
-                            label: const Text(
-                              'Add New Medicine',
-                              style: TextStyle(fontWeight: FontWeight.bold),
+                        ElevatedButton.icon(
+                          onPressed: () =>
+                              context.go('/counter/inventory/upload'),
+                          icon: const Icon(Icons.add, size: 16),
+                          label: const Text(
+                            'Add New Medicine',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF22C55E),
+                            foregroundColor: Colors.white,
+                            elevation: 0,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 24,
+                              vertical: 18,
                             ),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF22C55E),
-                              foregroundColor: Colors.white,
-                              elevation: 0,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 24,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
                             ),
                           ),
                         ),
@@ -660,200 +628,221 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                 isScreenShort,
                 Padding(
                   padding: const EdgeInsets.all(32.0),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: const Color(0xFFE2E8F0),
-                      ),
-                      boxShadow: const [
-                        BoxShadow(
-                          color: Colors.black12,
-                          blurRadius: 4,
-                          offset: Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(16),
-                      child: inventoryAsync.when(
-                        loading: () => const Center(
-                          child: CircularProgressIndicator(
-                            color: Color(0xFF22C55E),
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      return SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(
+                            minWidth: 1000,
+                            maxWidth: constraints.maxWidth > 1000
+                                ? constraints.maxWidth
+                                : 1000,
                           ),
-                        ),
-                        error: (err, stack) => Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                err.toString(),
-                                style: const TextStyle(
-                                  color: Colors.red,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: const Color(0xFFE2E8F0),
+                              ),
+                              boxShadow: const [
+                                BoxShadow(
+                                  color: Colors.black12,
+                                  blurRadius: 4,
+                                  offset: Offset(0, 2),
                                 ),
-                              ),
-                              const SizedBox(height: 16),
-                              ElevatedButton(
-                                onPressed: () => ref.read(inventoryProvider.notifier).loadInventory(),
-                                child: const Text('Retry'),
-                              ),
-                            ],
-                          ),
-                        ),
-                        data: (medicines) {
-                          if (medicines.isEmpty) {
-                            return const Center(
-                              child: Text(
-                                'No shop found or inventory is empty.',
-                              ),
-                            );
-                          }
-
-                          final sortedItems = List<InventoryItem>.from(medicines);
-                          sortedItems.sort((a, b) {
-                            int cmp = 0;
-                            switch (_sortColumn) {
-                              case 'Medicine Name':
-                                cmp = a.name.toLowerCase().compareTo(b.name.toLowerCase());
-                                break;
-                              case 'Added/Updated':
-                                final aDate = a.createdAt ?? '';
-                                final bDate = b.createdAt ?? '';
-                                cmp = aDate.compareTo(bDate);
-                                break;
-                              case 'Stock':
-                                cmp = a.stockQuantity.compareTo(b.stockQuantity);
-                                break;
-                              case 'Price (₹)':
-                                cmp = a.unitPrice.compareTo(b.unitPrice);
-                                break;
-                              case 'GST (%)':
-                                cmp = (a.gst ?? 0).compareTo(b.gst ?? 0);
-                                break;
-                              case 'Expiry Date':
-                                cmp = a.expiryDate.compareTo(b.expiryDate);
-                                break;
-                              case 'Status':
-                                final aLow = a.lowStockThreshold ?? 10;
-                                final bLow = b.lowStockThreshold ?? 10;
-                                final aStatus = a.stockQuantity == 0 ? 0 : (a.stockQuantity <= aLow ? 1 : 2);
-                                final bStatus = b.stockQuantity == 0 ? 0 : (b.stockQuantity <= bLow ? 1 : 2);
-                                cmp = aStatus.compareTo(bStatus);
-                                break;
-                            }
-                            return _sortAscending ? cmp : -cmp;
-                          });
-
-                          return Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // FIXED LEFT COLUMN
-                              SizedBox(
-                                width: 280,
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                                  children: [
-                                    Container(
-                                      color: const Color(0xFFF1F5F9),
-                                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                                      child: _buildSortableHeader('Medicine Name', 1),
-                                    ),
-                                    Expanded(
-                                      child: ListView.separated(
-                                        controller: _headController,
-                                        itemCount: sortedItems.length + 1,
-                                        separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFE2E8F0)),
-                                        itemBuilder: (context, index) {
-                                          if (index == sortedItems.length) {
-                                            return const SizedBox(height: 80); // match right side height
-                                          }
-                                          final medicine = sortedItems[index];
-                                          return InventoryRowLeftWidget(
-                                            medicine: medicine,
-                                            onTap: () => _showEditMedicineDialog(medicine),
-                                          );
-                                        },
+                              ],
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(16),
+                              child: LayoutBuilder(
+                                builder: (context, tableConstraints) {
+                                  Widget tableColumn = Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.stretch,
+                                    children: [
+                                      // Table Header
+                                      Container(
+                                        color: const Color(0xFFF1F5F9),
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 24,
+                                          vertical: 16,
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            _buildSortableHeader('Medicine Name', 3),
+                                            _buildSortableHeader('Added/Updated', 1),
+                                            _buildSortableHeader('Stock', 1),
+                                            _buildSortableHeader('Rack', 1),
+                                            _buildSortableHeader('Buying Price', 1),
+                                            _buildSortableHeader('Price (₹)', 1),
+                                            _buildSortableHeader('GST (%)', 1),
+                                            _buildSortableHeader('Distributor', 1),
+                                            _buildSortableHeader('Expiry Date', 1),
+                                            _buildSortableHeader('Status', 1),
+                                            SizedBox(
+                                              width: 40,
+                                            ), // For action button
+                                          ],
+                                        ),
                                       ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              
-                              // SCROLLABLE RIGHT COLUMNS
-                              Expanded(
-                                child: SingleChildScrollView(
-                                  scrollDirection: Axis.horizontal,
-                                  child: SizedBox(
-                                    width: 1040,
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                                      children: [
-                                        Container(
-                                          color: const Color(0xFFF1F5F9),
-                                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                                          child: Row(
-                                            children: [
-                                              SizedBox(width: 120, child: _buildSortableHeader('Category', 1)),
-                                              SizedBox(width: 120, child: _buildSortableHeader('Added/Updated', 1)),
-                                              SizedBox(width: 100, child: _buildSortableHeader('Stock', 1)),
-                                              SizedBox(width: 80, child: _buildSortableHeader('Rack', 1)),
-                                              SizedBox(width: 100, child: _buildSortableHeader('Buying Price', 1)),
-                                              SizedBox(width: 100, child: _buildSortableHeader('Price (₹)', 1)),
-                                              SizedBox(width: 80, child: _buildSortableHeader('GST (%)', 1)),
-                                              SizedBox(width: 120, child: _buildSortableHeader('Distributor', 1)),
-                                              SizedBox(width: 100, child: _buildSortableHeader('Expiry Date', 1)),
-                                              SizedBox(width: 120, child: _buildSortableHeader('Status', 1)),
-                                              const SizedBox(width: 40),
-                                            ],
+
+                                      // Table Body
+                                      Expanded(
+                                        child: inventoryAsync.when(
+                                          loading: () => const Center(
+                                            child: CircularProgressIndicator(
+                                              color: Color(0xFF22C55E),
+                                            ),
                                           ),
-                                        ),
-                                        Expanded(
-                                          child: ListView.separated(
-                                            controller: _bodyController,
-                                            itemCount: sortedItems.length + 1,
-                                            separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFE2E8F0)),
-                                            itemBuilder: (context, index) {
-                                              if (index == sortedItems.length) {
-                                                if (ref.read(inventoryProvider.notifier).hasMore) {
-                                                  return Padding(
-                                                    padding: const EdgeInsets.all(16.0),
-                                                    child: Center(
-                                                      child: OutlinedButton(
-                                                        onPressed: () => ref.read(inventoryProvider.notifier).loadMore(),
-                                                        child: const Text('Load More'),
-                                                      ),
-                                                    ),
-                                                  );
-                                                }
-                                                return const SizedBox(height: 80);
-                                              }
-
-                                              final medicine = sortedItems[index];
-                                              final rackName = racks.firstWhere((r) => r.id == medicine.rackId, orElse: () => Rack(id: '', rackNumber: '-')).rackNumber;
-                                              final categoryName = categories.firstWhere((c) => c.id == medicine.categoryId, orElse: () => Category(id: '', name: 'N/A')).name;
-
-                                              return InventoryRowRightWidget(
-                                                medicine: medicine,
-                                                rackName: rackName,
-                                                categoryName: categoryName,
-                                                onTap: () => _showEditMedicineDialog(medicine),
-                                                onEdit: () => _showEditMedicineDialog(medicine),
-                                                onDelete: () => _confirmDeleteMedicine(medicine.id),
+                                          error: (err, stack) => Center(
+                                            child: Column(
+                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              children: [
+                                                Text(
+                                                  err.toString(),
+                                                  style: const TextStyle(
+                                                    color: Colors.red,
+                                                  ),
+                                                ),
+                                                const SizedBox(height: 16),
+                                                ElevatedButton(
+                                                  onPressed: () => ref.read(inventoryProvider.notifier).loadInventory(),
+                                                  child: const Text('Retry'),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          data: (medicines) {
+                                            if (medicines.isEmpty) {
+                                              return const Center(
+                                                child: Text(
+                                                  'No shop found or inventory is empty.',
+                                                ),
                                               );
-                                            },
-                                          ),
+                                            }
+
+                                            final sortedItems = List<InventoryItem>.from(medicines);
+                                            sortedItems.sort((a, b) {
+                                              int cmp = 0;
+                                              switch (_sortColumn) {
+                                                case 'Medicine Name':
+                                                  cmp = a.name.toLowerCase().compareTo(b.name.toLowerCase());
+                                                  break;
+                                                case 'Added/Updated':
+                                                  final aDate = a.createdAt ?? '';
+                                                  final bDate = b.createdAt ?? '';
+                                                  cmp = aDate.compareTo(bDate);
+                                                  break;
+                                                case 'Stock':
+                                                  cmp = a.stockQuantity.compareTo(b.stockQuantity);
+                                                  break;
+                                                case 'Price (₹)':
+                                                  cmp = a.unitPrice.compareTo(b.unitPrice);
+                                                  break;
+                                                case 'GST (%)':
+                                                  cmp = (a.gst ?? 0).compareTo(b.gst ?? 0);
+                                                  break;
+                                                case 'Expiry Date':
+                                                  cmp = a.expiryDate.compareTo(b.expiryDate);
+                                                  break;
+                                                case 'Status':
+                                                  final aLow = a.lowStockThreshold ?? 10;
+                                                  final bLow = b.lowStockThreshold ?? 10;
+                                                  final aStatus = a.stockQuantity == 0 ? 0 : (a.stockQuantity <= aLow ? 1 : 2);
+                                                  final bStatus = b.stockQuantity == 0 ? 0 : (b.stockQuantity <= bLow ? 1 : 2);
+                                                  cmp = aStatus.compareTo(bStatus);
+                                                  break;
+                                              }
+                                              return _sortAscending ? cmp : -cmp;
+                                            });
+
+                                            return ListView.separated(
+                                              itemCount: sortedItems.length + 1,
+                                              separatorBuilder:
+                                                  (context, index) =>
+                                                      const Divider(
+                                                        height: 1,
+                                                        color: Color(
+                                                          0xFFE2E8F0,
+                                                        ),
+                                                      ),
+                                              itemBuilder: (context, index) {
+                                                if (index == sortedItems.length) {
+                                                  if (ref
+                                                      .read(
+                                                        inventoryProvider
+                                                            .notifier,
+                                                      )
+                                                      .hasMore) {
+                                                    return Padding(
+                                                      padding:
+                                                          const EdgeInsets.all(
+                                                            16.0,
+                                                          ),
+                                                      child: Center(
+                                                        child: OutlinedButton(
+                                                          onPressed: () => ref
+                                                              .read(
+                                                                inventoryProvider
+                                                                    .notifier,
+                                                              )
+                                                              .loadMore(),
+                                                          child: const Text(
+                                                            'Load More',
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    );
+                                                  }
+                                                  return const SizedBox.shrink();
+                                                }
+
+                                                final medicine = sortedItems[index];
+                                                final rackName = racks.firstWhere(
+                                                  (r) => r.id == medicine.rackId,
+                                                  orElse: () => Rack(id: '', rackNumber: '-'),
+                                                ).rackNumber;
+                                                
+                                                // Simple status logic based on stock
+                                                return InventoryRowWidget(
+                                                  medicine: medicine,
+                                                  rackName: rackName,
+                                                  onTap: () => _showEditMedicineDialog(medicine),
+                                                  onEdit: () =>
+                                                      _showEditMedicineDialog(
+                                                        medicine,
+                                                      ),
+                                                  onDelete: () =>
+                                                      _confirmDeleteMedicine(
+                                                        medicine.id,
+                                                      ),
+                                                );
+                                              },
+                                            );
+                                          },
                                         ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
+                                      ),
+                                    ],
+                                  );
+
+                                  if (tableConstraints.maxHeight < 150) {
+                                    return SingleChildScrollView(
+                                      child: SizedBox(
+                                        height: 400,
+                                        child: tableColumn,
+                                      ),
+                                    );
+                                  }
+                                  return tableColumn;
+                                },
                               ),
-                            ],
-                          );
-                        },
-                      ),
-                    ),
+                            ),
+                          ),
+                        ),
+                      );
+                    },
                   ),
                 ),
               ),

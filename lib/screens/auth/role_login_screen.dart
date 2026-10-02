@@ -172,13 +172,9 @@ class _RoleLoginScreenState extends State<RoleLoginScreen> {
             children: [
               // Custom Top Bar
               Container(
+                height: 50,
                 color: widget.themeColor,
-                padding: EdgeInsets.only(
-                  top: MediaQuery.of(context).padding.top + 4,
-                  bottom: 8,
-                  left: 24,
-                  right: 24,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -384,16 +380,7 @@ class _RoleLoginScreenState extends State<RoleLoginScreen> {
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
           child: Column(
-            children: [
-              const SizedBox(height: 16),
-              Image.asset(
-                'assets/LOGO.png',
-                height: 60,
-                fit: BoxFit.contain,
-              ),
-              const SizedBox(height: 32),
-              _buildLoginCard()
-            ],
+            children: [const SizedBox(height: 32), _buildLoginCard()],
           ),
         ),
       ),

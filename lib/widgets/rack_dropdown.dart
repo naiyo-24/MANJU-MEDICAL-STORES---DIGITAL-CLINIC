@@ -92,7 +92,9 @@ class _RackDropdownState extends ConsumerState<RackDropdown> {
         final isValidValue = widget.selectedRackId == null || racks.any((r) => r.id == widget.selectedRackId);
         final safeValue = isValidValue ? widget.selectedRackId : null;
 
-        return DropdownButtonFormField<String>(
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            return DropdownButtonFormField<String>(
               isExpanded: true,
               value: safeValue,
               decoration: InputDecoration(
@@ -107,7 +109,9 @@ class _RackDropdownState extends ConsumerState<RackDropdown> {
                       : rack.rackNumber;
                   return DropdownMenuItem(
                     value: rack.id,
-                    child: Row(
+                    child: SizedBox(
+                      width: constraints.maxWidth - 32,
+                      child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Expanded(child: Text(displayText, overflow: TextOverflow.ellipsis)),
@@ -156,10 +160,13 @@ class _RackDropdownState extends ConsumerState<RackDropdown> {
                 ),
               ],
             ),
-          );
-        }),
-          DropdownMenuItem(
-            value: 'add_new',
+          ),
+        );
+      }),
+        DropdownMenuItem(
+          value: 'add_new',
+          child: SizedBox(
+            width: constraints.maxWidth - 32,
             child: Row(
               children: const [
                 Icon(Icons.add, color: Color(0xFF22C55E)),
@@ -168,6 +175,7 @@ class _RackDropdownState extends ConsumerState<RackDropdown> {
               ],
             ),
           ),
+        ),
       ],
       selectedItemBuilder: (BuildContext context) {
         return [
@@ -187,8 +195,10 @@ class _RackDropdownState extends ConsumerState<RackDropdown> {
           widget.onChanged(value);
         }
       },
-    ); // close DropdownButtonFormField
-      }, // close data
-    ); // close when
+    );
+          },
+        );
+      },
+    );
   }
 }

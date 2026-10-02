@@ -1,24 +1,11 @@
 import 'dart:convert';
-import 'package:dio/dio.dart';
 import 'package:flutter/services.dart';
 import 'package:file_saver/file_saver.dart';
 import 'package:excel/excel.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'dart:io';
-import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:path_provider/path_provider.dart';
-import 'package:share_plus/share_plus.dart';
 
 class ExportService {
-  static Future<void> _exportOrShare(String filename, Uint8List bytes, String ext, MimeType mimeType) async {
-    await FileSaver.instance.saveAs(
-      name: filename,
-      bytes: bytes,
-      fileExtension: ext,
-      mimeType: mimeType,
-    );
-  }
   static Future<void> exportToCSV(
     List<Map<String, dynamic>> data,
     String filename,
@@ -36,7 +23,12 @@ class ExportService {
     }
 
     final bytes = Uint8List.fromList(utf8.encode(csv));
-    await _exportOrShare(filename, bytes, 'csv', MimeType.csv);
+    await FileSaver.instance.saveFile(
+      name: filename,
+      bytes: bytes,
+      fileExtension: 'csv',
+      mimeType: MimeType.csv,
+    );
   }
 
   static Future<void> exportToExcel(
@@ -62,14 +54,19 @@ class ExportService {
 
     final bytes = excel.encode();
     if (bytes != null) {
-      await _exportOrShare(filename, Uint8List.fromList(bytes), 'xlsx', MimeType.microsoftExcel);
+      await FileSaver.instance.saveFile(
+        name: filename,
+        bytes: Uint8List.fromList(bytes),
+        fileExtension: 'xlsx',
+        mimeType: MimeType.microsoftExcel,
+      );
     }
   }
 
   static Future<void> exportToPDF(
     List<Map<String, dynamic>> data,
     String filename, [
-    Map<String, dynamic>? shopDetails,
+    String shopName = 'Shop Directory Report',
   ]) async {
     final pdf = pw.Document();
 
@@ -82,26 +79,12 @@ class ExportService {
       }
 
       // Load the logo image
-      pw.ImageProvider logoImage;
-      if (shopDetails?['logo_url'] != null && shopDetails!['logo_url'].toString().isNotEmpty) {
-        try {
-          final response = await Dio().get(
-            shopDetails['logo_url'],
-            options: Options(responseType: ResponseType.bytes),
-          );
-          logoImage = pw.MemoryImage(Uint8List.fromList(response.data));
-        } catch (e) {
-          final logoBytes = await rootBundle.load('assets/LOGO.png');
-          logoImage = pw.MemoryImage(logoBytes.buffer.asUint8List());
-        }
-      } else {
-        final logoBytes = await rootBundle.load('assets/LOGO.png');
-        logoImage = pw.MemoryImage(logoBytes.buffer.asUint8List());
-      }
+      final logoBytes = await rootBundle.load('assets/LOGO.png');
+      final logoImage = pw.MemoryImage(logoBytes.buffer.asUint8List());
 
       pdf.addPage(
         pw.MultiPage(
-          pageFormat: PdfPageFormat.a4.landscape,
+          pageFormat: PdfPageFormat.a4.portrait,
           margin: const pw.EdgeInsets.all(32),
           header: (pw.Context context) {
             return pw.Column(
@@ -110,49 +93,24 @@ class ExportService {
                 pw.Row(
                   crossAxisAlignment: pw.CrossAxisAlignment.center,
                   children: [
-                    pw.Image(logoImage, width: 60, height: 60),
-                    pw.SizedBox(width: 16),
+                    pw.Image(logoImage, width: 40, height: 40),
+                    pw.SizedBox(width: 12),
                     pw.Expanded(
-                      child: pw.Column(
-                        crossAxisAlignment: pw.CrossAxisAlignment.start,
-                        children: [
-                          pw.Text(
-                            shopDetails?['name']?.toString() ?? 'Shop Directory Report',
-                            style: pw.TextStyle(
-                              fontSize: 22,
-                              fontWeight: pw.FontWeight.bold,
-                              color: PdfColors.green700,
-                            ),
-                          ),
-                          if (shopDetails?['location'] != null || shopDetails?['city'] != null)
-                            pw.Text(
-                              [shopDetails?['location'], shopDetails?['city']].where((e) => e != null && e.toString().isNotEmpty).join(', '),
-                              style: pw.TextStyle(fontSize: 12, color: PdfColors.grey700),
-                            ),
-                          if (shopDetails?['contact'] != null)
-                            pw.Text(
-                              'Phone: ${shopDetails?['contact']}',
-                              style: pw.TextStyle(fontSize: 12, color: PdfColors.grey700),
-                            ),
-                          if (shopDetails?['email'] != null)
-                            pw.Text(
-                              'Email: ${shopDetails?['email']}',
-                              style: pw.TextStyle(fontSize: 12, color: PdfColors.grey700),
-                            ),
-                          if (shopDetails?['gstin'] != null)
-                            pw.Text(
-                              'GSTIN: ${shopDetails?['gstin']}',
-                              style: pw.TextStyle(fontSize: 12, color: PdfColors.grey700),
-                            ),
-                        ],
+                      child: pw.Text(
+                        shopName,
+                        style: pw.TextStyle(
+                          fontSize: 22,
+                          fontWeight: pw.FontWeight.bold,
+                          color: PdfColors.green700,
+                        ),
                       ),
                     ),
                   ],
                 ),
-                pw.SizedBox(height: 12),
+                pw.SizedBox(height: 8),
                 pw.Text(
-                  'Inventory Export',
-                  style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold, color: PdfColors.grey800),
+                  'Shop Directory Report',
+                  style: pw.TextStyle(fontSize: 14, color: PdfColors.grey700),
                 ),
                 pw.SizedBox(height: 20),
               ],
@@ -201,6 +159,11 @@ class ExportService {
     }
 
     final bytes = await pdf.save();
-    await _exportOrShare(filename, bytes, 'pdf', MimeType.pdf);
+    await FileSaver.instance.saveFile(
+      name: filename,
+      bytes: bytes,
+      fileExtension: 'pdf',
+      mimeType: MimeType.pdf,
+    );
   }
 }
