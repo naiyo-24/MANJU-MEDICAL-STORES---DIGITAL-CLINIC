@@ -855,7 +855,7 @@ class _ShopManagementScreenState extends ConsumerState<ShopManagementScreen> {
                 Center(
                   child: Container(
                     width: 650,
-                    padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 64),
+                    padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 32),
                     decoration: BoxDecoration(
                       color: Theme.of(context).cardColor,
                       borderRadius: BorderRadius.circular(24),
@@ -871,7 +871,7 @@ class _ShopManagementScreenState extends ConsumerState<ShopManagementScreen> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Container(
-                          padding: const EdgeInsets.all(24),
+                          padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
                             color: Theme.of(context).cardColor,
                             shape: BoxShape.circle,
@@ -883,42 +883,42 @@ class _ShopManagementScreenState extends ConsumerState<ShopManagementScreen> {
                               ),
                             ],
                           ),
-                          child: Icon(
+                          child: const Icon(
                             Icons.hub,
-                            size: 64,
+                            size: 48,
                             color: Color(0xFF22C55E),
-                          ),
-                        ),
-                        const SizedBox(height: 40),
-                        Text(
-                          'Multi-Branch Management',
-                          style: TextStyle(
-                            fontSize: 28,
-                            fontWeight: FontWeight.w800,
-                            color: Theme.of(context).colorScheme.onSurface,
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                        Text(
-                          'We are designing a powerful new way for you to manage multiple\npharmacy branches from a single unified dashboard.',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.8),
-                            height: 1.5,
                           ),
                         ),
                         const SizedBox(height: 16),
                         Text(
+                          'Multi-Branch Management',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(context).colorScheme.onSurface,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'We are designing a powerful new way for you to manage multiple\npharmacy branches from a single unified dashboard.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.8),
+                            height: 1.5,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
                           'Soon, you will be able to designate a Main Branch, link Primary Branches, and\nsynchronize inventory, billing, and patient records seamlessly across all your locations.',
                           textAlign: TextAlign.center,
                           style: TextStyle(
-                            fontSize: 14,
+                            fontSize: 11,
                             color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
                             height: 1.5,
                           ),
                         ),
-                        const SizedBox(height: 48),
+                        const SizedBox(height: 24),
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                           decoration: BoxDecoration(
