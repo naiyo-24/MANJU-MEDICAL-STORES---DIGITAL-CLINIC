@@ -4,6 +4,7 @@ import '../../../../themes/app_colors.dart';
 import '../../../../services/customer_service.dart';
 
 Widget buildModernTextField(
+  BuildContext context,
   TextEditingController controller,
   String hint,
   IconData icon, {
@@ -12,13 +13,13 @@ Widget buildModernTextField(
   return TextFormField(
     controller: controller,
     keyboardType: isNumber ? TextInputType.number : TextInputType.text,
-    style: const TextStyle(fontSize: 14, color: AppColors.textPrimary),
+    style: TextStyle(fontSize: 14, color: Theme.of(context).colorScheme.onSurface),
     decoration: InputDecoration(
       hintText: hint,
-      hintStyle: const TextStyle(color: AppColors.textHint, fontSize: 14),
-      prefixIcon: Icon(icon, color: AppColors.textHint, size: 20),
+      hintStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4), fontSize: 14),
+      prefixIcon: Icon(icon, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4), size: 20),
       filled: true,
-      fillColor: AppColors.background,
+      fillColor: Theme.of(context).colorScheme.surface,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
@@ -26,7 +27,7 @@ Widget buildModernTextField(
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+        borderSide: BorderSide(color: AppColors.primary, width: 1.5),
       ),
     ),
   );
@@ -47,7 +48,7 @@ void showAddCustomerDialog(BuildContext context, VoidCallback onCustomerAdded) {
       child: Container(
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
@@ -70,31 +71,33 @@ void showAddCustomerDialog(BuildContext context, VoidCallback onCustomerAdded) {
                     color: AppColors.primaryLight,
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.person_add_alt_1,
                     color: AppColors.primaryDark,
                     size: 24,
                   ),
                 ),
                 const SizedBox(width: 16),
-                const Text(
+                Text(
                   'Add New Customer',
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 24),
             buildModernTextField(
+              context,
               nameCtrl,
               'Customer Name',
               Icons.person_outline,
             ),
             const SizedBox(height: 16),
             buildModernTextField(
+              context,
               phoneCtrl,
               'Phone Number',
               Icons.phone_outlined,
@@ -102,12 +105,14 @@ void showAddCustomerDialog(BuildContext context, VoidCallback onCustomerAdded) {
             ),
             const SizedBox(height: 16),
             buildModernTextField(
+              context,
               emailCtrl,
               'Email Address',
               Icons.email_outlined,
             ),
             const SizedBox(height: 16),
             buildModernTextField(
+              context,
               locationCtrl,
               'Location/City',
               Icons.location_on_outlined,
@@ -124,10 +129,10 @@ void showAddCustomerDialog(BuildContext context, VoidCallback onCustomerAdded) {
                       vertical: 12,
                     ),
                   ),
-                  child: const Text(
+                  child: Text(
                     'Cancel',
                     style: TextStyle(
-                      color: AppColors.textSecondary,
+                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -172,7 +177,7 @@ void showAddCustomerDialog(BuildContext context, VoidCallback onCustomerAdded) {
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
-                  child: const Text(
+                  child: Text(
                     'Save Customer',
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
@@ -211,7 +216,7 @@ void showEditCustomerDialog(
         child: Container(
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: Theme.of(context).cardColor,
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
@@ -234,31 +239,33 @@ void showEditCustomerDialog(
                       color: AppColors.infoLight,
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.edit_outlined,
                       color: AppColors.info,
                       size: 24,
                     ),
                   ),
                   const SizedBox(width: 16),
-                  const Text(
+                  Text(
                     'Edit Customer',
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 24),
               buildModernTextField(
+                context,
                 nameCtrl,
                 'Customer Name',
                 Icons.person_outline,
               ),
               const SizedBox(height: 16),
               buildModernTextField(
+                context,
                 phoneCtrl,
                 'Phone Number',
                 Icons.phone_outlined,
@@ -266,12 +273,14 @@ void showEditCustomerDialog(
               ),
               const SizedBox(height: 16),
               buildModernTextField(
+                context,
                 emailCtrl,
                 'Email Address',
                 Icons.email_outlined,
               ),
               const SizedBox(height: 16),
               buildModernTextField(
+                context,
                 locationCtrl,
                 'Location/City',
                 Icons.location_on_outlined,
@@ -280,11 +289,11 @@ void showEditCustomerDialog(
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
+                  Text(
                     'Active Status',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                   Switch(
@@ -310,10 +319,10 @@ void showEditCustomerDialog(
                         vertical: 12,
                       ),
                     ),
-                    child: const Text(
+                    child: Text(
                       'Cancel',
                       style: TextStyle(
-                        color: AppColors.textSecondary,
+                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -368,7 +377,7 @@ void showEditCustomerDialog(
                         borderRadius: BorderRadius.circular(10),
                       ),
                     ),
-                    child: const Text(
+                    child: Text(
                       'Save Changes',
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),

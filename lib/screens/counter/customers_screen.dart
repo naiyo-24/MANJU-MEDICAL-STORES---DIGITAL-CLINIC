@@ -7,7 +7,6 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../widgets/custom_pagination.dart';
 import '../../services/customer_service.dart';
-import '../../services/billing_history_service.dart';
 
 import 'widgets/customers/customer_stat_card.dart';
 import 'widgets/customers/view_bill_dialog.dart';
@@ -44,7 +43,7 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
     final customerAsync = ref.watch(customerProvider);
 
     return customerAsync.when(
-      loading: () => const Center(child: CircularProgressIndicator()),
+      loading: () => Center(child: CircularProgressIndicator()),
       error: (err, stack) => Center(child: Text('Error: $err')),
       data: (allCustomers) {
         if (_selectedCustomer != null) {
@@ -87,9 +86,9 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
             : <Map<String, dynamic>>[];
 
         return Container(
-          color: AppColors.background, // Light gray background
+          color: Theme.of(context).colorScheme.surface, // Light gray background
           child: ListView(
-            padding: const EdgeInsets.all(24.0),
+            padding: EdgeInsets.all(24.0),
             children: [
               // Header
               Row(
@@ -100,31 +99,31 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Container(
-                          padding: const EdgeInsets.all(12),
+                          padding: EdgeInsets.all(12),
                           decoration: BoxDecoration(
                             color: AppColors.primaryDark, // Dark Green
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          child: const Icon(
+                          child: Icon(
                             Icons.people,
-                            color: Colors.white,
+                            color: Theme.of(context).cardColor,
                             size: 24,
                           ),
                         ),
-                        const SizedBox(width: 16),
+                        SizedBox(width: 16),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text(
+                              Text(
                                 'Customers',
                                 style: TextStyle(
                                   fontSize: 24,
                                   fontWeight: FontWeight.bold,
-                                  color: AppColors.textPrimary,
+                                  color: Theme.of(context).colorScheme.onSurface,
                                 ),
                               ),
-                              const SizedBox(height: 4),
+                              SizedBox(height: 4),
                               Text(
                                 'Manage your customers, view purchase history and build better relationships',
                                 style: TextStyle(
@@ -138,20 +137,20 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                       ],
                     ),
                   ),
-                  const SizedBox(width: 16),
+                  SizedBox(width: 16),
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       IconButton(
                         onPressed: () =>
                             ref.read(customerProvider.notifier).loadCustomers(),
-                        icon: const Icon(
+                        icon: Icon(
                           Icons.refresh,
-                          color: AppColors.textSecondary,
+                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
                         ),
                         tooltip: 'Refresh',
                       ),
-                      const SizedBox(width: 8),
+                      SizedBox(width: 8),
                       ElevatedButton.icon(
                         onPressed: () => showAddCustomerDialog(
                           context,
@@ -159,12 +158,12 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                               .read(customerProvider.notifier)
                               .loadCustomers(),
                         ),
-                        icon: const Icon(Icons.add, size: 18),
-                        label: const Text('Add Customer'),
+                        icon: Icon(Icons.add, size: 18),
+                        label: Text('Add Customer'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primaryDark,
                           foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(
+                          padding: EdgeInsets.symmetric(
                             horizontal: 20,
                             vertical: 16,
                           ),
@@ -177,7 +176,7 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 24),
+              SizedBox(height: 24),
 
               // Summary Cards
               LayoutBuilder(
@@ -199,7 +198,7 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                             iconColor: AppColors.primaryDark,
                           ),
                         ),
-                        const SizedBox(width: 16),
+                        SizedBox(width: 16),
                         SizedBox(
                           width: isDesktop
                               ? (constraints.maxWidth - 48) / 4
@@ -212,7 +211,7 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                             iconColor: AppColors.info,
                           ),
                         ),
-                        const SizedBox(width: 16),
+                        SizedBox(width: 16),
                         SizedBox(
                           width: isDesktop
                               ? (constraints.maxWidth - 48) / 4
@@ -232,7 +231,7 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                             iconColor: AppColors.warning,
                           ),
                         ),
-                        const SizedBox(width: 16),
+                        SizedBox(width: 16),
                         SizedBox(
                           width: isDesktop
                               ? (constraints.maxWidth - 48) / 4
@@ -251,7 +250,7 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                   );
                 },
               ),
-              const SizedBox(height: 24),
+              SizedBox(height: 24),
 
               // Main Content
               Row(
@@ -261,7 +260,7 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                   Expanded(
                     child: Container(
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: Theme.of(context).cardColor,
                         borderRadius: BorderRadius.circular(12),
                         boxShadow: [
                           BoxShadow(
@@ -282,7 +281,7 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                                   width: constraints.maxWidth > 800
                                       ? constraints.maxWidth
                                       : 800,
-                                  padding: const EdgeInsets.all(16.0),
+                                  padding: EdgeInsets.all(16.0),
                                   child: Row(
                                     children: [
                                       Expanded(
@@ -296,26 +295,26 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                                           decoration: InputDecoration(
                                             hintText:
                                                 'Search by name, phone, customer ID...',
-                                            prefixIcon: const Icon(
+                                            prefixIcon: Icon(
                                               Icons.search,
                                               size: 20,
                                             ),
                                             border: OutlineInputBorder(
                                               borderRadius:
                                                   BorderRadius.circular(8),
-                                              borderSide: const BorderSide(
-                                                color: AppColors.border,
+                                              borderSide: BorderSide(
+                                                color: Theme.of(context).dividerColor,
                                               ),
                                             ),
                                             contentPadding:
-                                                const EdgeInsets.symmetric(
+                                                EdgeInsets.symmetric(
                                                   vertical: 0,
                                                   horizontal: 16,
                                                 ),
                                           ),
                                         ),
                                       ),
-                                      const SizedBox(width: 12),
+                                      SizedBox(width: 12),
                                       Expanded(
                                         flex: 1,
                                         child: DropdownButtonFormField<String>(
@@ -323,12 +322,12 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                                             border: OutlineInputBorder(
                                               borderRadius:
                                                   BorderRadius.circular(8),
-                                              borderSide: const BorderSide(
-                                                color: AppColors.border,
+                                              borderSide: BorderSide(
+                                                color: Theme.of(context).dividerColor,
                                               ),
                                             ),
                                             contentPadding:
-                                                const EdgeInsets.symmetric(
+                                                EdgeInsets.symmetric(
                                                   vertical: 0,
                                                   horizontal: 12,
                                                 ),
@@ -349,7 +348,7 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                                                       value: s,
                                                       child: Text(
                                                         s,
-                                                        style: const TextStyle(
+                                                        style: TextStyle(
                                                           fontSize: 14,
                                                         ),
                                                       ),
@@ -362,7 +361,7 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                                           }),
                                         ),
                                       ),
-                                      const SizedBox(width: 12),
+                                      SizedBox(width: 12),
                                       Expanded(
                                         flex: 1,
                                         child: DropdownButtonFormField<String>(
@@ -370,12 +369,12 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                                             border: OutlineInputBorder(
                                               borderRadius:
                                                   BorderRadius.circular(8),
-                                              borderSide: const BorderSide(
-                                                color: AppColors.border,
+                                              borderSide: BorderSide(
+                                                color: Theme.of(context).dividerColor,
                                               ),
                                             ),
                                             contentPadding:
-                                                const EdgeInsets.symmetric(
+                                                EdgeInsets.symmetric(
                                                   vertical: 0,
                                                   horizontal: 12,
                                                 ),
@@ -396,7 +395,7 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                                                       value: s,
                                                       child: Text(
                                                         s,
-                                                        style: const TextStyle(
+                                                        style: TextStyle(
                                                           fontSize: 14,
                                                         ),
                                                       ),
@@ -409,7 +408,7 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                                           }),
                                         ),
                                       ),
-                                      const SizedBox(width: 12),
+                                      SizedBox(width: 12),
                                       OutlinedButton.icon(
                                         onPressed: () {
                                           setState(() {
@@ -420,13 +419,13 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                                             _currentPage = 1;
                                           });
                                         },
-                                        icon: const Icon(
+                                        icon: Icon(
                                           Icons.refresh,
                                           size: 18,
                                         ),
-                                        label: const Text('Reset'),
+                                        label: Text('Reset'),
                                         style: OutlinedButton.styleFrom(
-                                          padding: const EdgeInsets.symmetric(
+                                          padding: EdgeInsets.symmetric(
                                             horizontal: 16,
                                             vertical: 16,
                                           ),
@@ -459,20 +458,20 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                                     children: [
                                       // Table Header
                                       Container(
-                                        padding: const EdgeInsets.symmetric(
+                                        padding: EdgeInsets.symmetric(
                                           horizontal: 16,
                                           vertical: 12,
                                         ),
-                                        decoration: const BoxDecoration(
+                                        decoration: BoxDecoration(
                                           border: Border(
                                             bottom: BorderSide(
-                                              color: AppColors.divider,
+                                              color: Theme.of(context).dividerColor,
                                             ),
                                           ),
                                         ),
                                         child: Row(
                                           children: [
-                                            const SizedBox(
+                                            SizedBox(
                                               width: 40,
                                               child: Text(
                                                 '#',
@@ -480,83 +479,83 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                                                   fontWeight: FontWeight.bold,
                                                   fontSize: 12,
                                                   color:
-                                                      AppColors.textSecondary,
+                                                      Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
                                                 ),
                                               ),
                                             ),
                                             Expanded(
                                               flex: 3,
-                                              child: const Text(
+                                              child: Text(
                                                 'Customer Name',
                                                 style: TextStyle(
                                                   fontWeight: FontWeight.bold,
                                                   fontSize: 12,
                                                   color:
-                                                      AppColors.textSecondary,
+                                                      Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
                                                 ),
                                               ),
                                             ),
                                             Expanded(
                                               flex: 2,
-                                              child: const Text(
+                                              child: Text(
                                                 'Phone',
                                                 style: TextStyle(
                                                   fontWeight: FontWeight.bold,
                                                   fontSize: 12,
                                                   color:
-                                                      AppColors.textSecondary,
+                                                      Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
                                                 ),
                                               ),
                                             ),
                                             Expanded(
                                               flex: 2,
-                                              child: const Text(
+                                              child: Text(
                                                 'City',
                                                 style: TextStyle(
                                                   fontWeight: FontWeight.bold,
                                                   fontSize: 12,
                                                   color:
-                                                      AppColors.textSecondary,
+                                                      Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
                                                 ),
                                               ),
                                             ),
                                             Expanded(
                                               flex: 2,
-                                              child: const Text(
+                                              child: Text(
                                                 'Total Purchases',
                                                 style: TextStyle(
                                                   fontWeight: FontWeight.bold,
                                                   fontSize: 12,
                                                   color:
-                                                      AppColors.textSecondary,
+                                                      Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
                                                 ),
                                               ),
                                             ),
                                             Expanded(
                                               flex: 2,
-                                              child: const Text(
+                                              child: Text(
                                                 'Last Purchase',
                                                 style: TextStyle(
                                                   fontWeight: FontWeight.bold,
                                                   fontSize: 12,
                                                   color:
-                                                      AppColors.textSecondary,
+                                                      Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
                                                 ),
                                               ),
                                             ),
                                             Expanded(
                                               flex: 2,
-                                              child: const Text(
+                                              child: Text(
                                                 'Status',
                                                 style: TextStyle(
                                                   fontWeight: FontWeight.bold,
                                                   fontSize: 12,
                                                   color:
-                                                      AppColors.textSecondary,
+                                                      Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
                                                 ),
                                               ),
                                             ),
-                                            const SizedBox(
+                                            SizedBox(
                                               width: 120,
                                               child: Text(
                                                 'Action',
@@ -564,7 +563,7 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                                                   fontWeight: FontWeight.bold,
                                                   fontSize: 12,
                                                   color:
-                                                      AppColors.textSecondary,
+                                                      Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
                                                 ),
                                               ),
                                             ),
@@ -574,14 +573,14 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
 
                                       // Table Body
                                       pagedCustomers.isEmpty
-                                          ? const Padding(
+                                          ? Padding(
                                               padding: EdgeInsets.all(32),
                                               child: Center(
                                                 child: Text(
                                                   'No customers found',
                                                   style: TextStyle(
                                                     color:
-                                                        AppColors.textSecondary,
+                                                        Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
                                                   ),
                                                 ),
                                               ),
@@ -610,15 +609,15 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                           // Pagination
                           if (totalRecords > 0)
                             Padding(
-                              padding: const EdgeInsets.all(16.0),
+                              padding: EdgeInsets.all(16.0),
                               child: Row(
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
                                     'Showing ${startIdx + 1} to $endIdx of $totalRecords customers',
-                                    style: const TextStyle(
-                                      color: AppColors.textSecondary,
+                                    style: TextStyle(
+                                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
                                       fontSize: 14,
                                     ),
                                   ),
@@ -638,7 +637,7 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
 
                   // Right Details Panel
                   if (_selectedCustomer != null) ...[
-                    const SizedBox(width: 24),
+                    SizedBox(width: 24),
                     SizedBox(
                       width: 320,
                       child: _buildCustomerDetailsPanel(_selectedCustomer!),
@@ -665,10 +664,10 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
         });
       },
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
           color: isSelected ? AppColors.primaryLight : Colors.white,
-          border: const Border(bottom: BorderSide(color: AppColors.divider)),
+          border: Border(bottom: BorderSide(color: Theme.of(context).dividerColor)),
         ),
         child: Row(
           children: [
@@ -676,7 +675,7 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
               width: 40,
               child: Text(
                 '${index + 1}',
-                style: const TextStyle(
+                style: TextStyle(
                   fontWeight: FontWeight.w500,
                   fontSize: 13,
                 ),
@@ -698,22 +697,22 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  SizedBox(width: 12),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         customer['name'],
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 13,
                         ),
                       ),
                       Text(
                         customer['id'],
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 11,
-                          color: AppColors.textSecondary,
+                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
                         ),
                       ),
                     ],
@@ -725,9 +724,9 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
               flex: 2,
               child: Text(
                 customer['phone'],
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13,
-                  color: AppColors.textPrimary,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
             ),
@@ -735,9 +734,9 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
               flex: 2,
               child: Text(
                 customer['city'],
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13,
-                  color: AppColors.textPrimary,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
             ),
@@ -748,16 +747,16 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                 children: [
                   Text(
                     '₹ ${customer['totalPurchases'].toStringAsFixed(2)}',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 13,
                     ),
                   ),
                   Text(
                     '${customer['bills']} bills',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 11,
-                      color: AppColors.textSecondary,
+                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
                     ),
                   ),
                 ],
@@ -767,9 +766,9 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
               flex: 2,
               child: Text(
                 customer['lastPurchase'],
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13,
-                  color: AppColors.textPrimary,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
             ),
@@ -791,7 +790,7 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                       });
                     },
                     style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
+                      padding: EdgeInsets.symmetric(
                         horizontal: 12,
                         vertical: 8,
                       ),
@@ -801,27 +800,27 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                       ),
                     ),
                     child: Row(
-                      children: const [
+                      children: [
                         Icon(
                           Icons.visibility,
                           size: 14,
-                          color: AppColors.textPrimary,
+                          color: Theme.of(context).colorScheme.onSurface,
                         ),
                         SizedBox(width: 4),
                         Text(
                           'View',
                           style: TextStyle(
                             fontSize: 11,
-                            color: AppColors.textPrimary,
+                            color: Theme.of(context).colorScheme.onSurface,
                           ),
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(width: 4),
+                  SizedBox(width: 4),
                   IconButton(
                     onPressed: () => _deleteCustomer(customer['full_id']),
-                    icon: const Icon(Icons.delete_outline, size: 16, color: Colors.red),
+                    icon: Icon(Icons.delete_outline, size: 16, color: Colors.red),
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
                     tooltip: 'Delete Customer',
@@ -840,16 +839,16 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Delete Customer'),
-          content: const Text('Are you sure you want to delete this customer? This action cannot be undone.'),
+          title: Text('Delete Customer'),
+          content: Text('Are you sure you want to delete this customer? This action cannot be undone.'),
           actions: <Widget>[
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+              child: Text('Cancel', style: TextStyle(color: Colors.grey)),
             ),
             TextButton(
               onPressed: () => Navigator.of(context).pop(true),
-              child: const Text('Delete', style: TextStyle(color: Colors.red)),
+              child: Text('Delete', style: TextStyle(color: Colors.red)),
             ),
           ],
         );
@@ -896,7 +895,7 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: bgColor,
         borderRadius: BorderRadius.circular(4),
@@ -909,7 +908,7 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
             height: 6,
             decoration: BoxDecoration(shape: BoxShape.circle, color: textColor),
           ),
-          const SizedBox(width: 6),
+          SizedBox(width: 6),
           Text(
             status,
             style: TextStyle(
@@ -942,7 +941,7 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
   Widget _buildCustomerDetailsPanel(Map<String, dynamic> customer) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
@@ -957,11 +956,11 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
         children: [
           // Header
           Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: EdgeInsets.all(16.0),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
+                Text(
                   'Customer Details',
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                 ),
@@ -974,19 +973,19 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                         () =>
                             ref.read(customerProvider.notifier).loadCustomers(),
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.edit_outlined,
                         size: 20,
                         color: AppColors.info,
                       ),
                     ),
-                    const SizedBox(width: 16),
+                    SizedBox(width: 16),
                     InkWell(
                       onTap: () => setState(() => _selectedCustomer = null),
-                      child: const Icon(
+                      child: Icon(
                         Icons.close,
                         size: 20,
-                        color: AppColors.textSecondary,
+                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
                       ),
                     ),
                   ],
@@ -994,11 +993,11 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
               ],
             ),
           ),
-          const Divider(height: 1, color: AppColors.divider),
+          Divider(height: 1, color: Theme.of(context).dividerColor),
 
           // Profile Info
           Padding(
-            padding: const EdgeInsets.all(20.0),
+            padding: EdgeInsets.all(20.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -1016,23 +1015,23 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                         ),
                       ),
                     ),
-                    const SizedBox(width: 16),
+                    SizedBox(width: 16),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             customer['name'],
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 16,
                             ),
                           ),
                           Text(
                             customer['id'],
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 12,
-                              color: AppColors.textSecondary,
+                              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
                             ),
                           ),
                         ],
@@ -1041,21 +1040,21 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                     _buildStatusChip(customer['status']),
                   ],
                 ),
-                const SizedBox(height: 24),
+                SizedBox(height: 24),
                 _buildContactRow(Icons.phone, customer['phone']),
-                const SizedBox(height: 12),
+                SizedBox(height: 12),
                 _buildContactRow(Icons.email, customer['email']),
-                const SizedBox(height: 12),
+                SizedBox(height: 12),
                 _buildContactRow(Icons.location_on, customer['city']),
-                const SizedBox(height: 12),
+                SizedBox(height: 12),
                 _buildContactRow(
                   Icons.calendar_today,
                   'Member since ${customer['memberSince']}',
                 ),
 
-                const SizedBox(height: 24),
-                const Divider(height: 1, color: AppColors.divider),
-                const SizedBox(height: 24),
+                SizedBox(height: 24),
+                Divider(height: 1, color: Theme.of(context).dividerColor),
+                SizedBox(height: 24),
 
                 // Stats
                 Row(
@@ -1070,7 +1069,7 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                   ],
                 ),
 
-                const SizedBox(height: 24),
+                SizedBox(height: 24),
 
                 // Action Buttons
                 Row(
@@ -1080,19 +1079,19 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                         onPressed: () {
                           context.go('/counter/billing');
                         },
-                        icon: const Icon(Icons.receipt_long, size: 16),
-                        label: const Text('New Bill'),
+                        icon: Icon(Icons.receipt_long, size: 16),
+                        label: Text('New Bill'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primaryDark,
                           foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          padding: EdgeInsets.symmetric(vertical: 12),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
                         ),
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    SizedBox(width: 12),
                     Expanded(
                       child: OutlinedButton.icon(
                         onPressed: () {
@@ -1104,18 +1103,18 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                             ),
                           );
                         },
-                        icon: const Icon(
+                        icon: Icon(
                           Icons.chat_bubble_outline,
                           size: 16,
                           color: AppColors.primaryDark,
                         ),
-                        label: const Text(
+                        label: Text(
                           'Send Message',
                           style: TextStyle(color: AppColors.primaryDark),
                         ),
                         style: OutlinedButton.styleFrom(
-                          side: const BorderSide(color: AppColors.primaryDark),
-                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          side: BorderSide(color: AppColors.primaryDark),
+                          padding: EdgeInsets.symmetric(vertical: 12),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
@@ -1130,8 +1129,8 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
 
           // Tabs
           Container(
-            decoration: const BoxDecoration(
-              border: Border(bottom: BorderSide(color: AppColors.divider)),
+            decoration: BoxDecoration(
+              border: Border(bottom: BorderSide(color: Theme.of(context).dividerColor)),
             ),
             child: Row(
               children: [
@@ -1139,7 +1138,7 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                   child: InkWell(
                     onTap: () => setState(() => _activeCustomerTab = 0),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      padding: EdgeInsets.symmetric(vertical: 12),
                       decoration: BoxDecoration(
                         border: Border(
                           bottom: BorderSide(
@@ -1156,7 +1155,7 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                           style: TextStyle(
                             color: _activeCustomerTab == 0
                                 ? AppColors.primaryDark
-                                : AppColors.textSecondary,
+                                : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
                             fontWeight: _activeCustomerTab == 0
                                 ? FontWeight.bold
                                 : FontWeight.normal,
@@ -1171,7 +1170,7 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                   child: InkWell(
                     onTap: () => setState(() => _activeCustomerTab = 1),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      padding: EdgeInsets.symmetric(vertical: 12),
                       decoration: BoxDecoration(
                         border: Border(
                           bottom: BorderSide(
@@ -1188,7 +1187,7 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                           style: TextStyle(
                             color: _activeCustomerTab == 1
                                 ? AppColors.primaryDark
-                                : AppColors.textSecondary,
+                                : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
                             fontWeight: _activeCustomerTab == 1
                                 ? FontWeight.bold
                                 : FontWeight.normal,
@@ -1222,13 +1221,13 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                           padding: EdgeInsets.zero,
                           children: [
                             Container(
-                              padding: const EdgeInsets.symmetric(
+                              padding: EdgeInsets.symmetric(
                                 horizontal: 16,
                                 vertical: 8,
                               ),
-                              color: AppColors.background,
+                              color: Theme.of(context).colorScheme.surface,
                               child: Row(
-                                children: const [
+                                children: [
                                   Expanded(
                                     flex: 2,
                                     child: Text(
@@ -1325,7 +1324,7 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                                     showViewBillDialog(context, bill, ref.read(settingsProvider).value ?? {});
                                   },
                                   child: Padding(
-                                    padding: const EdgeInsets.symmetric(
+                                    padding: EdgeInsets.symmetric(
                                       horizontal: 16,
                                       vertical: 12,
                                     ),
@@ -1335,7 +1334,7 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                                           flex: 2,
                                           child: Text(
                                             dateStr,
-                                            style: const TextStyle(
+                                            style: TextStyle(
                                               fontSize: 12,
                                             ),
                                           ),
@@ -1344,7 +1343,7 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                                           flex: 2,
                                           child: Text(
                                             h['bill_no']?.toString() ?? 'N/A',
-                                            style: const TextStyle(
+                                            style: TextStyle(
                                               fontSize: 12,
                                               fontWeight: FontWeight.bold,
                                             ),
@@ -1354,19 +1353,19 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                                           flex: 2,
                                           child: Text(
                                             '₹ ${amt.toStringAsFixed(2)}',
-                                            style: const TextStyle(
+                                            style: TextStyle(
                                               fontSize: 12,
                                               fontWeight: FontWeight.bold,
-                                              color: AppColors.textPrimary,
+                                              color: Theme.of(context).colorScheme.onSurface,
                                             ),
                                           ),
                                         ),
-                                        const SizedBox(
+                                        SizedBox(
                                           width: 40,
                                           child: Icon(
                                             Icons.chevron_right,
                                             size: 16,
-                                            color: AppColors.textHint,
+                                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4),
                                           ),
                                         ),
                                       ],
@@ -1375,13 +1374,13 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                                 );
                               }).toList())
                             else
-                              const Padding(
+                              Padding(
                                 padding: EdgeInsets.all(32.0),
                                 child: Center(
                                   child: Text(
                                     'No purchases found',
                                     style: TextStyle(
-                                      color: AppColors.textHint,
+                                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4),
                                       fontSize: 13,
                                     ),
                                   ),
@@ -1393,13 +1392,13 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                     );
                   },
                 )
-              : const Center(
+              : Center(
                   child: Padding(
                     padding: EdgeInsets.all(32.0),
                     child: Text(
                       'No notes available for this customer.',
                       style: TextStyle(
-                        color: AppColors.textSecondary,
+                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
                         fontSize: 13,
                       ),
                     ),
@@ -1408,19 +1407,19 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
 
           // View All Button
           Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: EdgeInsets.all(16.0),
             child: OutlinedButton.icon(
               onPressed: () {
                 context.go('/counter/history');
               },
-              icon: const Icon(
+              icon: Icon(
                 Icons.history,
                 size: 16,
-                color: AppColors.textPrimary,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
-              label: const Text(
+              label: Text(
                 'View All Purchases',
-                style: TextStyle(color: AppColors.textPrimary),
+                style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
               ),
               style: OutlinedButton.styleFrom(
                 minimumSize: const Size(double.infinity, 40),
@@ -1438,11 +1437,11 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
   Widget _buildContactRow(IconData icon, String text) {
     return Row(
       children: [
-        Icon(icon, size: 16, color: AppColors.textSecondary),
-        const SizedBox(width: 12),
+        Icon(icon, size: 16, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7)),
+        SizedBox(width: 12),
         Text(
           text,
-          style: const TextStyle(fontSize: 12, color: AppColors.textPrimary),
+          style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurface),
         ),
       ],
     );
@@ -1453,12 +1452,12 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
       children: [
         Text(
           value,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
         ),
-        const SizedBox(height: 2),
+        SizedBox(height: 2),
         Text(
           label,
-          style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
+          style: TextStyle(fontSize: 10, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7)),
         ),
       ],
     );
@@ -1467,28 +1466,28 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
   // ignore: unused_element
   Widget _buildHistoryRow(String date, String billNo, String amount) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: AppColors.divider)),
+      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(color: Theme.of(context).dividerColor)),
       ),
       child: Row(
         children: [
           Expanded(
             flex: 2,
-            child: Text(date, style: const TextStyle(fontSize: 11)),
+            child: Text(date, style: TextStyle(fontSize: 11)),
           ),
           Expanded(
             flex: 2,
             child: Text(
               billNo,
-              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
             ),
           ),
           Expanded(
             flex: 2,
             child: Text(
               amount,
-              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
             ),
           ),
           SizedBox(
@@ -1496,18 +1495,18 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
             child: InkWell(
               onTap: () {},
               child: Row(
-                children: const [
+                children: [
                   Icon(
                     Icons.visibility,
                     size: 12,
-                    color: AppColors.textSecondary,
+                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
                   ),
                   SizedBox(width: 2),
                   Text(
                     'View',
                     style: TextStyle(
                       fontSize: 9,
-                      color: AppColors.textSecondary,
+                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
                     ),
                   ),
                 ],
