@@ -491,9 +491,9 @@ class _BillCustomizationScreenState
             const SizedBox(height: 24),
             Expanded(
               child: ResponsiveSplitView(
-                leftPane: SingleChildScrollView(
-                  child: Column(
-                    children: [
+                leftPane: Builder(
+                  builder: (context) {
+                    final contentChildren = <Widget>[
                       Card(
                         color: Colors.white,
                         elevation: 0,
@@ -743,8 +743,13 @@ class _BillCustomizationScreenState
                           ),
                         ),
                       ),
-                    ],
-                  ),
+                    ];
+                    
+                    final column = Column(children: contentChildren);
+                    return Responsive.isDesktop(context) || Responsive.isTablet(context)
+                        ? SingleChildScrollView(child: column)
+                        : column;
+                  },
                 ),
                 rightPane: Card(
                   color: Colors.white,

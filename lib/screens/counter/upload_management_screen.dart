@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:file_picker/file_picker.dart';
 import '../../services/inventory_service.dart';
+import '../../services/export_service.dart';
 import '../../providers/counter_providers.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import '../../utils/responsive.dart';
 import '../../widgets/rack_dropdown.dart';
 import '../../widgets/category_dropdown.dart';
 import '../../widgets/distributor_dropdown.dart';
@@ -106,6 +108,69 @@ class _UploadManagementScreenState
         });
       }
     }
+  }
+
+  void _downloadTemplate() async {
+    final templateData = [
+      {
+        'Name': 'Paracetamol 500mg',
+        'SKU': 'MED-001',
+        'Batch': 'B2024-01',
+        'Stock': 100,
+        'Loose Stock': 10,
+        'Pack Size': 10,
+        'Buying Price (₹)': 40.0,
+        'Unit Price (₹)': 50.0,
+        'GST (%)': 12.0,
+        'Discount (%)': 0.0,
+        'Manufacturer': 'Sun Pharma',
+        'Expiry': '2026-12-31',
+        'Rack': 'R1',
+        'Category': 'Tablets',
+        'Distributor': 'Distributor Name',
+        'HSN Code': '30049099',
+      }
+    ];
+    await ExportService.exportToCSV(templateData, 'inventory_upload_template');
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Template downloaded successfully!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    }
+  }
+
+  Widget _buildResponsiveRow(BuildContext context, List<Widget> children) {
+    if (Responsive.isMobile(context)) {
+      final List<Widget> columnChildren = [];
+      for (var child in children) {
+        if (child is Expanded) {
+          columnChildren.add(Padding(
+            padding: const EdgeInsets.only(bottom: 16),
+            child: child.child,
+          ));
+        } else if (child is Spacer) {
+          // ignore spacer
+        } else if (child is SizedBox && child.width != null) {
+          // ignore horizontal spacing
+        } else {
+          columnChildren.add(Padding(
+            padding: const EdgeInsets.only(bottom: 16),
+            child: child,
+          ));
+        }
+      }
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: columnChildren,
+      );
+    }
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: children,
+    );
   }
 
   Widget _buildSectionHeader(IconData icon, String title, String subtitle) {
@@ -281,127 +346,195 @@ class _UploadManagementScreenState
               color: Colors.white,
               border: Border(bottom: BorderSide(color: Color(0xFFE2E8F0))),
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    InkWell(
-                      onTap: () => Navigator.pop(context),
-                      child: const Row(
-                        children: [
-                          Icon(
-                            Icons.arrow_back,
-                            color: Color(0xFF1E293B),
-                            size: 18,
-                          ),
-                          SizedBox(width: 8),
-                          Text(
-                            'Back',
-                            style: TextStyle(
-                              color: Color(0xFF1E293B),
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 32),
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: const BoxDecoration(
-                        color: Color(0xFF22C55E),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.medication,
-                        color: Colors.white,
-                        size: 24,
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    const Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Add Medicine',
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.w900,
-                            color: Color(0xFF1E293B),
-                          ),
-                        ),
-                        Text(
-                          'Add a new medicine to your inventory (Master DB)',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Color(0xFF64748B),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(width: 32),
-                    if (_isUploading)
-                      const CircularProgressIndicator(color: Color(0xFF22C55E))
-                    else
+            child: Responsive.isMobile(context)
+                ? Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                       Row(
                         children: [
-                          ElevatedButton.icon(
-                            onPressed: _uploadExcel,
-                            icon: const Icon(Icons.upload_file, size: 18),
-                            label: const Text('Bulk Upload (Excel)'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF1E293B),
-                              foregroundColor: Colors.white,
-                              elevation: 0,
+                          InkWell(
+                            onTap: () => Navigator.pop(context),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.arrow_back, color: Color(0xFF1E293B), size: 18),
+                                SizedBox(width: 4),
+                                Text('Back', style: TextStyle(color: Color(0xFF1E293B), fontWeight: FontWeight.bold)),
+                              ],
                             ),
                           ),
-                          const SizedBox(width: 8),
-                          Tooltip(
-                            message: 'Refresh Categories and Racks',
-                            child: IconButton(
-                              onPressed: () {
-                                ref.invalidate(categoryProvider);
-                                ref.invalidate(rackProvider);
-                              },
-                              icon: const Icon(Icons.refresh, color: Color(0xFF1E293B)),
+                          const SizedBox(width: 12),
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: const BoxDecoration(
+                              color: Color(0xFF22C55E),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(Icons.medication, color: Colors.white, size: 20),
+                          ),
+                          const SizedBox(width: 12),
+                          const Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Add Medicine',
+                                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: Color(0xFF1E293B)),
+                                ),
+                                Text(
+                                  'Add a new medicine to your inventory (Master DB)',
+                                  style: TextStyle(fontSize: 11, color: Color(0xFF64748B)),
+                                ),
+                              ],
                             ),
                           ),
                         ],
                       ),
-                  ],
-                ),
-                Row(
-                  children: [
-                    const Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text(
-                          'Better Care',
-                          style: TextStyle(
-                            color: Color(0xFF22C55E),
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                            fontStyle: FontStyle.italic,
-                          ),
+                      const SizedBox(height: 16),
+                      if (_isUploading)
+                        const CircularProgressIndicator(color: Color(0xFF22C55E))
+                      else
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            ElevatedButton.icon(
+                              onPressed: _downloadTemplate,
+                              icon: const Icon(Icons.download, size: 18),
+                              label: const Text('Download Template'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFFF1F5F9),
+                                foregroundColor: const Color(0xFF1E293B),
+                                elevation: 0,
+                                side: const BorderSide(color: Color(0xFFE2E8F0)),
+                              ),
+                            ),
+                            ElevatedButton.icon(
+                              onPressed: _uploadExcel,
+                              icon: const Icon(Icons.upload_file, size: 18),
+                              label: const Text('Bulk Upload (Excel)'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF1E293B),
+                                foregroundColor: Colors.white,
+                                elevation: 0,
+                              ),
+                            ),
+                            Tooltip(
+                              message: 'Refresh Categories and Racks',
+                              child: IconButton(
+                                onPressed: () {
+                                  ref.invalidate(categoryProvider);
+                                  ref.invalidate(rackProvider);
+                                },
+                                icon: const Icon(Icons.refresh, color: Color(0xFF1E293B)),
+                              ),
+                            ),
+                          ],
                         ),
-                        Text(
-                          'Brighter Tomorrow',
-                          style: TextStyle(
-                            color: Color(0xFF22C55E),
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                            fontStyle: FontStyle.italic,
+                    ],
+                  )
+                : Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          InkWell(
+                            onTap: () => Navigator.pop(context),
+                            child: const Row(
+                              children: [
+                                Icon(Icons.arrow_back, color: Color(0xFF1E293B), size: 18),
+                                SizedBox(width: 8),
+                                Text('Back', style: TextStyle(color: Color(0xFF1E293B), fontWeight: FontWeight.bold)),
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(width: 8),
-                    Icon(Icons.eco, color: const Color(0xFF22C55E), size: 24),
-                  ],
-                ),
-              ],
-            ),
+                          const SizedBox(width: 32),
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: const BoxDecoration(
+                              color: Color(0xFF22C55E),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(Icons.medication, color: Colors.white, size: 24),
+                          ),
+                          const SizedBox(width: 16),
+                          const Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Add Medicine',
+                                style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: Color(0xFF1E293B)),
+                              ),
+                              Text(
+                                'Add a new medicine to your inventory (Master DB)',
+                                style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(width: 32),
+                          if (_isUploading)
+                            const CircularProgressIndicator(color: Color(0xFF22C55E))
+                          else
+                            Row(
+                              children: [
+                                ElevatedButton.icon(
+                                  onPressed: _downloadTemplate,
+                                  icon: const Icon(Icons.download, size: 18),
+                                  label: const Text('Download Template'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFFF1F5F9),
+                                    foregroundColor: const Color(0xFF1E293B),
+                                    elevation: 0,
+                                    side: const BorderSide(color: Color(0xFFE2E8F0)),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                ElevatedButton.icon(
+                                  onPressed: _uploadExcel,
+                                  icon: const Icon(Icons.upload_file, size: 18),
+                                  label: const Text('Bulk Upload (Excel)'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFF1E293B),
+                                    foregroundColor: Colors.white,
+                                    elevation: 0,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Tooltip(
+                                  message: 'Refresh Categories and Racks',
+                                  child: IconButton(
+                                    onPressed: () {
+                                      ref.invalidate(categoryProvider);
+                                      ref.invalidate(rackProvider);
+                                    },
+                                    icon: const Icon(Icons.refresh, color: Color(0xFF1E293B)),
+                                  ),
+                                ),
+                              ],
+                            ),
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          const Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text(
+                                'Better Care',
+                                style: TextStyle(color: Color(0xFF22C55E), fontWeight: FontWeight.bold, fontSize: 14, fontStyle: FontStyle.italic),
+                              ),
+                              Text(
+                                'Brighter Tomorrow',
+                                style: TextStyle(color: Color(0xFF22C55E), fontWeight: FontWeight.bold, fontSize: 14, fontStyle: FontStyle.italic),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(width: 8),
+                          Icon(Icons.eco, color: const Color(0xFF22C55E), size: 24),
+                        ],
+                      ),
+                    ],
+                  ),
           ),
 
           // Form Content
@@ -426,15 +559,12 @@ class _UploadManagementScreenState
                           'Basic Information',
                           'General details about the medicine',
                         ),
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
+                        _buildResponsiveRow(context, [
                             Expanded(
                               flex: 2,
                               child: Column(
                                 children: [
-                                  Row(
-                                    children: [
+                                  _buildResponsiveRow(context, [
                                       Expanded(
                                         child: _buildTextField(
                                           'Medicine Name',
@@ -552,8 +682,7 @@ class _UploadManagementScreenState
                           ],
                         ),
                         const SizedBox(height: 24),
-                        Row(
-                          children: [
+                        _buildResponsiveRow(context, [
                             Expanded(
                               child: CategoryDropdown(
                                 selectedCategoryId: _selectedCategoryId,
@@ -609,8 +738,7 @@ class _UploadManagementScreenState
                           'Pricing & Stock Details',
                           'Set pricing and stock information',
                         ),
-                        Row(
-                          children: [
+                        _buildResponsiveRow(context, [
                             Expanded(
                               child: _buildTextField(
                                 'Buying Price (₹)',
@@ -656,8 +784,7 @@ class _UploadManagementScreenState
                           ],
                         ),
                         const SizedBox(height: 24),
-                        Row(
-                          children: [
+                        _buildResponsiveRow(context, [
                             Expanded(
                               child: _buildTextField(
                                 'Discount (%)',
@@ -690,8 +817,7 @@ class _UploadManagementScreenState
                           ],
                         ),
                         const SizedBox(height: 24),
-                        Row(
-                          children: [
+                        _buildResponsiveRow(context, [
                             // Expanded(child: _buildTextField('Minimum Stock Alert', '0')),
                             // const SizedBox(width: 24),
                             Expanded(
@@ -758,9 +884,7 @@ class _UploadManagementScreenState
                           'Additional Information',
                           'Optional details',
                         ),
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
+                        _buildResponsiveRow(context, [
                             Expanded(
                               flex: 1,
                               child: _buildTextField(

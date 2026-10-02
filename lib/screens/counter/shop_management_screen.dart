@@ -35,8 +35,7 @@ class _ShopManagementScreenState extends State<ShopManagementScreen> {
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
+              children: [                Container(
                   padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
                     color: isDark ? const Color(0xFF0F172A) : Colors.white,
@@ -74,8 +73,7 @@ class _ShopManagementScreenState extends State<ShopManagementScreen> {
                     height: 1.5,
                   ),
                 ),
-                const SizedBox(height: 16),
-                Text(
+                const SizedBox(height: 16),                Text(
                   'Soon, you will be able to designate a Main Branch, link Primary Branches, and\nsynchronize inventory, billing, and patient records seamlessly across all your locations.',
                   textAlign: TextAlign.center,
                   style: TextStyle(

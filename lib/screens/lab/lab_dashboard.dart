@@ -36,9 +36,11 @@ class _LabDashboardState extends State<LabDashboard> {
       key: _scaffoldKey,
       backgroundColor: const Color(0xFFF8FAFC),
       drawer: isDesktop ? null : Drawer(child: _buildSidebar()),
-      body: Column(
-        children: [
-          _buildHeader(isDesktop), // Global Top App Bar
+      body: SafeArea(
+        bottom: false,
+        child: Column(
+          children: [
+            _buildHeader(isDesktop), // Global Top App Bar
           Expanded(
             child: Row(
               children: [
@@ -54,6 +56,7 @@ class _LabDashboardState extends State<LabDashboard> {
           ),
         ],
       ),
+      ),
     );
   }
 
@@ -65,8 +68,11 @@ class _LabDashboardState extends State<LabDashboard> {
         color: Colors.white,
         border: Border(right: BorderSide(color: Color(0xFFE2E8F0))),
       ),
-      child: Column(
-        children: [
+      child: SafeArea(
+        top: !Responsive.isDesktop(context),
+        bottom: !Responsive.isDesktop(context),
+        child: Column(
+          children: [
           Expanded(
             child: ListView(
               padding: const EdgeInsets.symmetric(vertical: 16),
@@ -136,6 +142,7 @@ class _LabDashboardState extends State<LabDashboard> {
           ),
           const SizedBox(height: 24),
         ],
+      ),
       ),
     );
   }
@@ -214,23 +221,23 @@ class _LabDashboardState extends State<LabDashboard> {
       ),
       child: Row(
         children: [
-          IconButton(
-            icon: const Icon(Icons.menu),
-            onPressed: () {
-              if (isDesktop) {
-                setState(() {
-                  _isSidebarExpanded = !_isSidebarExpanded;
-                });
-              } else {
-                _scaffoldKey.currentState?.openDrawer();
-              }
-            },
-          ),
-          const SizedBox(width: 16),
-          // Logo & Brand
           Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Image.asset('assets/LOGO.png', height: 75, fit: BoxFit.contain, cacheHeight: 225),
+              IconButton(
+                icon: const Icon(Icons.menu),
+                onPressed: () {
+                  if (isDesktop) {
+                    setState(() {
+                      _isSidebarExpanded = !_isSidebarExpanded;
+                    });
+                  } else {
+                    _scaffoldKey.currentState?.openDrawer();
+                  }
+                },
+              ),
+              SizedBox(width: isDesktop ? 16 : 8),
+              Image.asset('assets/LOGO.png', height: isDesktop ? 75 : 45, fit: BoxFit.contain, cacheHeight: 225),
             ],
           ),
 
@@ -310,8 +317,8 @@ class _LabDashboardState extends State<LabDashboard> {
                       color: Color(0xFF64748B),
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  const Column(
+                  const SizedBox(width: 6),
+                  Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -319,25 +326,28 @@ class _LabDashboardState extends State<LabDashboard> {
                         'Lab Admin',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
-                          fontSize: 12,
-                          color: Color(0xFF1E293B),
+                          fontSize: isDesktop ? 12 : 10,
+                          color: const Color(0xFF1E293B),
                         ),
                       ),
-                      Text(
-                        'Diagnostic Lab',
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: Color(0xFF64748B),
+                      if (isDesktop)
+                        const Text(
+                          'Diagnostic Lab',
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: Color(0xFF64748B),
+                          ),
                         ),
-                      ),
                     ],
                   ),
-                  const SizedBox(width: 8),
-                  const Icon(
-                    Icons.keyboard_arrow_down,
-                    color: Color(0xFF64748B),
-                    size: 16,
-                  ),
+                  if (isDesktop) ...[
+                    const SizedBox(width: 6),
+                    const Icon(
+                      Icons.keyboard_arrow_down,
+                      color: Color(0xFF64748B),
+                      size: 16,
+                    ),
+                  ],
                 ],
               ),
             ),

@@ -15,10 +15,10 @@ class DashboardScreen extends ConsumerWidget {
     required String nextRoute,
     required bool isDark,
   }) {
+    final isWeb = MediaQuery.of(context).size.width > 800;
     final cardColor = isDark ? const Color(0xFF1E293B) : Colors.white;
     final textColor = isDark ? Colors.white : const Color(0xFF1E293B);
     final descColor = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
-
     return Container(
       decoration: BoxDecoration(
         color: cardColor,
@@ -143,7 +143,7 @@ class DashboardScreen extends ConsumerWidget {
           child: Stack(
             children: [
               Padding(
-                padding: const EdgeInsets.all(32.0),
+                padding: EdgeInsets.all(isWeb ? 32.0 : 16.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
@@ -161,8 +161,7 @@ class DashboardScreen extends ConsumerWidget {
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.w900,
-                        color: textColor,
-                      ),
+                        color: textColor,                      ),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 12),
@@ -172,45 +171,47 @@ class DashboardScreen extends ConsumerWidget {
                         fontSize: 14,
                         height: 1.5,
                         color: descColor,
-                        fontWeight: FontWeight.w500,
-                      ),
+                        fontWeight: FontWeight.w500,                      ),
                       textAlign: TextAlign.center,
                     ),
-                    const SizedBox(height: 24),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 12,
-                      ),
-                      decoration: BoxDecoration(
-                        color: primaryColor,
-                        borderRadius: BorderRadius.circular(30),
-                        boxShadow: [
-                          BoxShadow(
-                            color: primaryColor.withValues(alpha: 0.3),
-                            blurRadius: 8,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            'Open',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
+                    const SizedBox(height: 12),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: isWeb ? 24 : 16,
+                          vertical: isWeb ? 12 : 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: primaryColor,
+                          borderRadius: BorderRadius.circular(30),
+                          boxShadow: [
+                            BoxShadow(
+                              color: primaryColor.withValues(alpha: 0.3),
+                              blurRadius: 8,
+                              offset: const Offset(0, 4),
                             ),
-                          ),
-                          SizedBox(width: 8),
-                          Icon(
-                            Icons.arrow_forward,
-                            color: Colors.white,
-                            size: 18,
-                          ),
-                        ],
+                          ],
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'Open',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: isWeb ? 16 : 14,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Icon(
+                              Icons.arrow_forward,
+                              color: Colors.white,
+                              size: isWeb ? 18 : 16,
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ],
@@ -386,10 +387,11 @@ class DashboardScreen extends ConsumerWidget {
                     Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 48,
-                        vertical: 16,
-                      ),
+                        vertical: 16,                      ),
                       child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        mainAxisAlignment: isWeb
+                            ? MainAxisAlignment.spaceBetween
+                            : MainAxisAlignment.center,
                         children: [
                           Text(
                             '© 2026 SirfBill Bill Karo, Befikar Raho. All rights reserved.',
@@ -420,8 +422,7 @@ class DashboardScreen extends ConsumerWidget {
                     ),
                 ],
               );
-            },
-          ),
+            },          ),
         ),
       ),
     );

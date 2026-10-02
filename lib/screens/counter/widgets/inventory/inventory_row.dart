@@ -4,17 +4,98 @@ import '../../../../services/inventory_service.dart';
 import '../../../../config/api_constants.dart';
 import 'status_badge.dart';
 
-class InventoryRowWidget extends StatelessWidget {
+class InventoryRowLeftWidget extends StatelessWidget {
+  final InventoryItem medicine;
+  final VoidCallback onTap;
+
+  const InventoryRowLeftWidget({
+    super.key,
+    required this.medicine,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      hoverColor: const Color(0xFFF1F5F9),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: const Color(0xFFF1F5F9),
+                borderRadius: BorderRadius.circular(8),
+                image: (medicine.imageUrl != null && medicine.imageUrl!.isNotEmpty)
+                    ? DecorationImage(
+                        image: NetworkImage(
+                          '${ApiConstants.baseUrl}${medicine.imageUrl}',
+                        ),
+                        fit: BoxFit.cover,
+                      )
+                    : null,
+              ),
+              child: (medicine.imageUrl == null || medicine.imageUrl!.isEmpty)
+                  ? const Icon(
+                      Icons.medication,
+                      color: Color(0xFF94A3B8),
+                      size: 20,
+                    )
+                  : null,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    medicine.name,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1E293B),
+                      fontSize: 14,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    medicine.manufacturer.isNotEmpty
+                        ? medicine.manufacturer
+                        : 'Unknown',
+                    style: const TextStyle(
+                      color: Color(0xFF64748B),
+                      fontSize: 10,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class InventoryRowRightWidget extends StatelessWidget {
   final InventoryItem medicine;
   final String rackName;
+  final String categoryName;
   final VoidCallback onTap;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
 
-  const InventoryRowWidget({
+  const InventoryRowRightWidget({
     super.key,
     required this.medicine,
     required this.rackName,
+    required this.categoryName,
     required this.onTap,
     required this.onEdit,
     required this.onDelete,
@@ -35,223 +116,175 @@ class InventoryRowWidget extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
         child: Row(
           children: [
-            Expanded(
-            flex: 3,
-            child: Row(
-              children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF1F5F9),
-                    borderRadius: BorderRadius.circular(8),
-                    image: (medicine.imageUrl != null && medicine.imageUrl!.isNotEmpty)
-                        ? DecorationImage(
-                            image: NetworkImage(
-                              '${ApiConstants.baseUrl}${medicine.imageUrl}',
-                            ),
-                            fit: BoxFit.cover,
-                          )
-                        : null,
-                  ),
-                  child: (medicine.imageUrl == null || medicine.imageUrl!.isEmpty)
-                      ? const Icon(
-                          Icons.medication,
-                          color: Color(0xFF94A3B8),
-                          size: 20,
-                        )
-                      : null,
+            SizedBox(
+              width: 120,
+              child: Text(
+                categoryName,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: Color(0xFF1E293B),
+                  fontSize: 12,
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        medicine.name,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF1E293B),
-                          fontSize: 14,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        medicine.manufacturer.isNotEmpty
-                            ? medicine.manufacturer
-                            : 'Unknown',
-                        style: const TextStyle(
-                          color: Color(0xFF64748B),
-                          fontSize: 10,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+              ),
             ),
-          ),
-          Expanded(
-            flex: 1,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  medicine.createdAt != null
-                      ? DateFormat(
-                          'MMM dd, yyyy',
-                        ).format(DateTime.parse(medicine.createdAt!).toLocal())
-                      : 'N/A',
-                  style: const TextStyle(
-                    color: Color(0xFF1E293B),
-                    fontSize: 12,
-                  ),
-                ),
-                if (medicine.updatedAt != null)
+            SizedBox(
+              width: 120,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
                   Text(
-                    'Updated: ${DateFormat('MMM dd, yyyy').format(DateTime.parse(medicine.updatedAt!).toLocal())}',
+                    medicine.createdAt != null
+                        ? DateFormat(
+                            'MMM dd, yyyy',
+                          ).format(DateTime.parse(medicine.createdAt!).toLocal())
+                        : 'N/A',
                     style: const TextStyle(
-                      color: Color(0xFF64748B),
-                      fontSize: 10,
+                      color: Color(0xFF1E293B),
+                      fontSize: 12,
                     ),
                   ),
-              ],
-            ),
-          ),
-          Expanded(
-            flex: 1,
-            child: Text(
-              medicine.looseStock > 0 
-                  ? '${medicine.stockQuantity} Pk, ${medicine.looseStock} Pc'
-                  : medicine.stockQuantity.toString(),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                color: medicine.stockQuantity <= 0 && medicine.looseStock <= 0
-                    ? const Color(0xFFDC2626) // Red
-                    : (medicine.stockQuantity <=
-                              (medicine.lowStockThreshold ?? 10)
-                          ? const Color(0xFFD97706) // Yellow/Orange
-                          : (medicine.stockQuantity <= 50
-                                ? const Color(0xFF2563EB)
-                                : const Color(0xFF16A34A))), // Blue / Green
-                fontWeight: FontWeight.bold,
-                fontSize: 12,
+                  if (medicine.updatedAt != null)
+                    Text(
+                      'Updated: ${DateFormat('MMM dd, yyyy').format(DateTime.parse(medicine.updatedAt!).toLocal())}',
+                      style: const TextStyle(
+                        color: Color(0xFF64748B),
+                        fontSize: 10,
+                      ),
+                    ),
+                ],
               ),
             ),
-          ),
-          Expanded(
-            flex: 1,
-            child: Text(
-              rackName,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(color: Color(0xFF64748B), fontSize: 12),
-            ),
-          ),
-          Expanded(
-            flex: 1,
-            child: Text(
-              '₹${medicine.buyingPrice?.toStringAsFixed(2) ?? '0.00'}',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                color: Color(0xFF64748B),
-                fontSize: 12,
-              ),
-            ),
-          ),
-          Expanded(
-            flex: 1,
-            child: Text(
-              '₹${medicine.unitPrice.toStringAsFixed(2)}',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                color: Color(0xFF1E293B),
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-          Expanded(
-            flex: 1,
-            child: Text(
-              medicine.gst != null && medicine.gst! > 0
-                  ? '${medicine.gst!.toStringAsFixed(1)}%'
-                  : '-',
-              style: const TextStyle(color: Color(0xFF64748B), fontSize: 12),
-            ),
-          ),
-          Expanded(
-            flex: 1,
-            child: Text(
-              medicine.distributor ?? '-',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(color: Color(0xFF64748B), fontSize: 12),
-            ),
-          ),
-          Expanded(
-            flex: 1,
-            child: Text(
-              medicine.expiryDate,
-              style: const TextStyle(color: Color(0xFF64748B), fontSize: 12),
-            ),
-          ),
-          Expanded(
-            flex: 1,
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: StatusBadge(status: status),
-            ),
-          ),
-          SizedBox(
-            width: 40,
-            child: PopupMenuButton<String>(
-              icon: const Icon(
-                Icons.more_vert,
-                color: Color(0xFF94A3B8),
-                size: 20,
-              ),
-              onSelected: (value) {
-                if (value == 'edit') {
-                  onEdit();
-                } else if (value == 'delete') {
-                  onDelete();
-                }
-              },
-              itemBuilder: (context) => [
-                const PopupMenuItem(
-                  value: 'edit',
-                  child: Row(
-                    children: [
-                      Icon(Icons.edit, size: 16),
-                      SizedBox(width: 8),
-                      Text('Edit'),
-                    ],
-                  ),
+            SizedBox(
+              width: 100,
+              child: Text(
+                medicine.looseStock > 0 
+                    ? '${medicine.stockQuantity} Pk, ${medicine.looseStock} Pc'
+                    : medicine.stockQuantity.toString(),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: medicine.stockQuantity <= 0 && medicine.looseStock <= 0
+                      ? const Color(0xFFDC2626) // Red
+                      : (medicine.stockQuantity <=
+                                (medicine.lowStockThreshold ?? 10)
+                            ? const Color(0xFFD97706) // Yellow/Orange
+                            : (medicine.stockQuantity <= 50
+                                  ? const Color(0xFF2563EB)
+                                  : const Color(0xFF16A34A))), // Blue / Green
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
                 ),
-                const PopupMenuItem(
-                  value: 'delete',
-                  child: Row(
-                    children: [
-                      Icon(Icons.delete, color: Colors.red, size: 16),
-                      SizedBox(width: 8),
-                      Text('Delete', style: TextStyle(color: Colors.red)),
-                    ],
-                  ),
-                ),
-              ],
+              ),
             ),
-          ),
-        ],
-      ),
+            SizedBox(
+              width: 80,
+              child: Text(
+                rackName,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(color: Color(0xFF64748B), fontSize: 12),
+              ),
+            ),
+            SizedBox(
+              width: 100,
+              child: Text(
+                '₹${medicine.buyingPrice?.toStringAsFixed(2) ?? '0.00'}',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: Color(0xFF64748B),
+                  fontSize: 12,
+                ),
+              ),
+            ),
+            SizedBox(
+              width: 100,
+              child: Text(
+                '₹${medicine.unitPrice.toStringAsFixed(2)}',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: Color(0xFF1E293B),
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            SizedBox(
+              width: 80,
+              child: Text(
+                medicine.gst != null && medicine.gst! > 0
+                    ? '${medicine.gst!.toStringAsFixed(1)}%'
+                    : '-',
+                style: const TextStyle(color: Color(0xFF64748B), fontSize: 12),
+              ),
+            ),
+            SizedBox(
+              width: 120,
+              child: Text(
+                medicine.distributor ?? '-',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(color: Color(0xFF64748B), fontSize: 12),
+              ),
+            ),
+            SizedBox(
+              width: 100,
+              child: Text(
+                medicine.expiryDate,
+                style: const TextStyle(color: Color(0xFF64748B), fontSize: 12),
+              ),
+            ),
+            SizedBox(
+              width: 120,
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: StatusBadge(status: status),
+              ),
+            ),
+            SizedBox(
+              width: 40,
+              child: PopupMenuButton<String>(
+                icon: const Icon(
+                  Icons.more_vert,
+                  color: Color(0xFF94A3B8),
+                  size: 20,
+                ),
+                onSelected: (value) {
+                  if (value == 'edit') {
+                    onEdit();
+                  } else if (value == 'delete') {
+                    onDelete();
+                  }
+                },
+                itemBuilder: (context) => [
+                  const PopupMenuItem(
+                    value: 'edit',
+                    child: Row(
+                      children: [
+                        Icon(Icons.edit, size: 16),
+                        SizedBox(width: 8),
+                        Text('Edit'),
+                      ],
+                    ),
+                  ),
+                  const PopupMenuItem(
+                    value: 'delete',
+                    child: Row(
+                      children: [
+                        Icon(Icons.delete, color: Colors.red, size: 16),
+                        SizedBox(width: 8),
+                        Text('Delete', style: TextStyle(color: Colors.red)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
