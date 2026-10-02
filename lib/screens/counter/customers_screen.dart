@@ -107,7 +107,7 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                           ),
                           child: Icon(
                             Icons.people,
-                            color: Theme.of(context).cardColor,
+                            color: Colors.white,
                             size: 24,
                           ),
                         ),
@@ -129,7 +129,7 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                                 'Manage your customers, view purchase history and build better relationships',
                                 style: TextStyle(
                                   fontSize: 14,
-                                  color: Colors.grey[600],
+                                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
                                 ),
                               ),
                             ],
@@ -667,7 +667,7 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.primaryLight : Colors.white,
+          color: isSelected ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.1) : Colors.transparent,
           border: Border(bottom: BorderSide(color: Theme.of(context).dividerColor)),
         ),
         child: Row(

@@ -34,7 +34,7 @@ class InventoryNotifier extends AsyncNotifier<List<InventoryItem>> {
     _lastCategoryId = categoryId;
     _lastDistributorId = distributorId;
 
-    // Removed state = const AsyncValue.loading(); to prevent UI unmounting during search
+    // Removed // state = const AsyncValue.loading(); // prevent UI unmounting to prevent UI unmounting during search
     state = await AsyncValue.guard(
       () => _fetchInventory(
         searchQuery: searchQuery,

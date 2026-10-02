@@ -13,11 +13,21 @@ Widget buildModernTextField(
   return TextFormField(
     controller: controller,
     keyboardType: isNumber ? TextInputType.number : TextInputType.text,
-    style: TextStyle(fontSize: 14, color: Theme.of(context).colorScheme.onSurface),
+    style: TextStyle(
+      fontSize: 14,
+      color: Theme.of(context).colorScheme.onSurface,
+    ),
     decoration: InputDecoration(
       hintText: hint,
-      hintStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4), fontSize: 14),
-      prefixIcon: Icon(icon, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4), size: 20),
+      hintStyle: TextStyle(
+        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4),
+        fontSize: 14,
+      ),
+      prefixIcon: Icon(
+        icon,
+        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4),
+        size: 20,
+      ),
       filled: true,
       fillColor: Theme.of(context).colorScheme.surface,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
@@ -27,7 +37,10 @@ Widget buildModernTextField(
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: AppColors.primary, width: 1.5),
+        borderSide: BorderSide(
+          color: Theme.of(context).colorScheme.primary,
+          width: 1.5,
+        ),
       ),
     ),
   );
@@ -68,12 +81,12 @@ void showAddCustomerDialog(BuildContext context, VoidCallback onCustomerAdded) {
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: AppColors.primaryLight,
+                    color: Theme.of(context).colorScheme.primaryContainer,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
                     Icons.person_add_alt_1,
-                    color: AppColors.primaryDark,
+                    color: Theme.of(context).colorScheme.primary,
                     size: 24,
                   ),
                 ),
@@ -132,7 +145,9 @@ void showAddCustomerDialog(BuildContext context, VoidCallback onCustomerAdded) {
                   child: Text(
                     'Cancel',
                     style: TextStyle(
-                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurface.withValues(alpha: 0.7),
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -166,8 +181,8 @@ void showAddCustomerDialog(BuildContext context, VoidCallback onCustomerAdded) {
                     }
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primaryDark,
-                    foregroundColor: Colors.white,
+                    backgroundColor: Theme.of(context).colorScheme.primary,
+                    foregroundColor: Theme.of(context).colorScheme.onPrimary,
                     elevation: 0,
                     padding: const EdgeInsets.symmetric(
                       horizontal: 24,
@@ -236,12 +251,12 @@ void showEditCustomerDialog(
                   Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: AppColors.infoLight,
+                      color: Theme.of(context).colorScheme.primaryContainer,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Icon(
                       Icons.edit_outlined,
-                      color: AppColors.info,
+                      color: Theme.of(context).colorScheme.primary,
                       size: 24,
                     ),
                   ),
@@ -303,7 +318,7 @@ void showEditCustomerDialog(
                         isActive = val;
                       });
                     },
-                    activeThumbColor: AppColors.info,
+                    activeThumbColor: Theme.of(context).colorScheme.primary,
                   ),
                 ],
               ),
@@ -322,7 +337,9 @@ void showEditCustomerDialog(
                     child: Text(
                       'Cancel',
                       style: TextStyle(
-                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.onSurface.withValues(alpha: 0.7),
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -366,8 +383,8 @@ void showEditCustomerDialog(
                       }
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.info,
-                      foregroundColor: Colors.white,
+                      backgroundColor: Theme.of(context).colorScheme.primary,
+                      foregroundColor: Theme.of(context).colorScheme.onPrimary,
                       elevation: 0,
                       padding: const EdgeInsets.symmetric(
                         horizontal: 24,

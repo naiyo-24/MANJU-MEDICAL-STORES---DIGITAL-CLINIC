@@ -33,7 +33,7 @@ class RackNotifier extends AsyncNotifier<List<Rack>> {
   }
 
   Future<void> refresh() async {
-    state = const AsyncValue.loading();
+    // state = const AsyncValue.loading(); // prevent UI unmounting
     state = await AsyncValue.guard(() => _fetchRacks());
   }
 

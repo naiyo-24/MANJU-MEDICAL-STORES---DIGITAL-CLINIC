@@ -34,7 +34,7 @@ class CategoryNotifier extends AsyncNotifier<List<Category>> {
   }
 
   Future<void> refresh() async {
-    state = const AsyncValue.loading();
+    // state = const AsyncValue.loading(); // prevent UI unmounting
     state = await AsyncValue.guard(() => _fetchCategories());
   }
 

@@ -9,7 +9,7 @@ class LabPackagesNotifier extends AsyncNotifier<List<LabPackage>> {
   }
 
   Future<void> loadPackages() async {
-    state = const AsyncValue.loading();
+    // state = const AsyncValue.loading(); // prevent UI unmounting
     state = await AsyncValue.guard(() => LabDataService.getPackages());
   }
 
@@ -31,7 +31,7 @@ class LabTestsNotifier extends AsyncNotifier<List<LabTest>> {
   }
 
   Future<void> loadTests() async {
-    state = const AsyncValue.loading();
+    // state = const AsyncValue.loading(); // prevent UI unmounting
     state = await AsyncValue.guard(() => LabDataService.getTests());
   }
 
@@ -53,7 +53,7 @@ class LabTemplatesNotifier extends AsyncNotifier<List<LabTemplate>> {
   }
 
   Future<void> loadTemplates() async {
-    state = const AsyncValue.loading();
+    // state = const AsyncValue.loading(); // prevent UI unmounting
     state = await AsyncValue.guard(() => LabDataService.getTemplates());
   }
 
@@ -75,7 +75,7 @@ class LabBookingsNotifier extends AsyncNotifier<List<LabBooking>> {
   }
 
   Future<void> loadBookings() async {
-    state = const AsyncValue.loading();
+    // state = const AsyncValue.loading(); // prevent UI unmounting
     state = await AsyncValue.guard(() => LabDataService.getBookings());
   }
 
@@ -97,7 +97,7 @@ class CustomCategoriesNotifier extends AsyncNotifier<List<String>> {
   }
 
   Future<void> loadCategories() async {
-    state = const AsyncValue.loading();
+    // state = const AsyncValue.loading(); // prevent UI unmounting
     state = await AsyncValue.guard(() => LabDataService.getCustomCategories());
   }
 

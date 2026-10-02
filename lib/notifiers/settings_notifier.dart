@@ -8,7 +8,7 @@ class SettingsNotifier extends AsyncNotifier<Map<String, dynamic>> {
   }
 
   Future<void> reloadSettings() async {
-    state = const AsyncValue.loading();
+    // state = const AsyncValue.loading(); // prevent UI unmounting
     state = await AsyncValue.guard(() => ShopSettingsService.getSettings());
   }
 

@@ -9,7 +9,7 @@ class ShopNotifier extends AsyncNotifier<List<Map<String, dynamic>>> {
   }
 
   Future<void> loadShops() async {
-    state = const AsyncValue.loading();
+    // state = const AsyncValue.loading(); // prevent UI unmounting
     state = await AsyncValue.guard(() async {
       final shops = await ShopService.getShops();
       return shops.map((s) => s.toMap()).toList();

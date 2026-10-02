@@ -10,7 +10,7 @@ class CustomerNotifier extends AsyncNotifier<List<Map<String, dynamic>>> {
   }
 
   Future<void> loadCustomers() async {
-    state = const AsyncValue.loading();
+    // state = const AsyncValue.loading(); // prevent UI unmounting
     state = await AsyncValue.guard(() => _fetchCustomers());
   }
 

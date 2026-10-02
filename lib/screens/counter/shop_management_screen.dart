@@ -67,13 +67,17 @@ class _ShopManagementScreenState extends ConsumerState<ShopManagementScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        
         title: const Text('Delete Shop'),
         content: Text('Are you sure you want to delete ${shop['name']}?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Cancel', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7))),
+            child: Text(
+              'Cancel',
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+              ),
+            ),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -130,7 +134,6 @@ class _ShopManagementScreenState extends ConsumerState<ShopManagementScreen> {
         return StatefulBuilder(
           builder: (context, setDialogState) {
             return AlertDialog(
-              
               surfaceTintColor: Colors.transparent,
               title: Text(
                 isEditing ? 'Edit Shop' : 'Add New Shop',
@@ -203,7 +206,9 @@ class _ShopManagementScreenState extends ConsumerState<ShopManagementScreen> {
                                   style: TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.bold,
-                                    color: Theme.of(context).colorScheme.onSurface,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurface,
                                   ),
                                 ),
                                 const SizedBox(height: 8),
@@ -229,7 +234,9 @@ class _ShopManagementScreenState extends ConsumerState<ShopManagementScreen> {
                                       ),
                                       style: TextStyle(
                                         fontSize: 12,
-                                        color: Theme.of(context).colorScheme.onSurface,
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.onSurface,
                                       ),
                                       items: const [
                                         DropdownMenuItem(
@@ -259,7 +266,9 @@ class _ShopManagementScreenState extends ConsumerState<ShopManagementScreen> {
                         children: [
                           Theme(
                             data: ThemeData(
-                              unselectedWidgetColor: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+                              unselectedWidgetColor: Theme.of(
+                                context,
+                              ).colorScheme.onSurface.withOpacity(0.5),
                             ),
                             child: Checkbox(
                               value: isPrimary,
@@ -291,7 +300,9 @@ class _ShopManagementScreenState extends ConsumerState<ShopManagementScreen> {
                   child: Text(
                     'Cancel',
                     style: TextStyle(
-                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurface.withOpacity(0.7),
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -477,7 +488,9 @@ class _ShopManagementScreenState extends ConsumerState<ShopManagementScreen> {
                             label,
                             style: TextStyle(
                               fontSize: 12,
-                              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.8),
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurface.withOpacity(0.8),
                             ),
                           ),
                         ],
@@ -507,7 +520,6 @@ class _ShopManagementScreenState extends ConsumerState<ShopManagementScreen> {
     final isMobile = MediaQuery.of(context).size.width < 768;
 
     return Scaffold(
-      
       body: shopsAsync.when(
         skipLoadingOnReload: true,
         data: (shops) {
@@ -520,178 +532,223 @@ class _ShopManagementScreenState extends ConsumerState<ShopManagementScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                // Header
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Shop Management',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).colorScheme.onSurface,
-                      ),
-                    ),
-                    Row(
-                      children: [
-                        IconButton(
-                          onPressed: () {
-                            ref.invalidate(shopProvider);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Shop list refreshed!'), duration: Duration(seconds: 1)),
-                            );
-                          },
-                          icon: Icon(Icons.refresh),
-                          tooltip: 'Refresh Shops',
-                          style: IconButton.styleFrom(
-                            backgroundColor: Colors.green.shade50,
-                            foregroundColor: const Color(0xFF166534),
-                          ),
+                  // Header
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Shop Management',
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.onSurface,
                         ),
-                        if (shops.isEmpty) ...[
-                          const SizedBox(width: 16),
-                          ElevatedButton.icon(
-                            onPressed: () => _showAddEditDialog(),
-                            icon: Icon(Icons.add, size: 18),
-                            label: const Text('Add Shop', style: TextStyle(fontWeight: FontWeight.bold)),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF22C55E),
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                              elevation: 0,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
+                      ),
+                      Row(
+                        children: [
+                          IconButton(
+                            onPressed: () {
+                              ref.read(shopProvider.notifier).loadShops();
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Shop list refreshed!'),
+                                  duration: Duration(seconds: 1),
+                                ),
+                              );
+                            },
+                            icon: Icon(Icons.refresh),
+                            tooltip: 'Refresh Shops',
+                            style: IconButton.styleFrom(
+                              backgroundColor: Colors.green.shade50,
+                              foregroundColor: const Color(0xFF166534),
+                            ),
+                          ),
+                          if (shops.isEmpty) ...[
+                            const SizedBox(width: 16),
+                            ElevatedButton.icon(
+                              onPressed: () => _showAddEditDialog(),
+                              icon: Icon(Icons.add, size: 18),
+                              label: const Text(
+                                'Add Shop',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF22C55E),
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 20,
+                                  vertical: 16,
+                                ),
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
                               ),
                             ),
-                          ),
+                          ],
                         ],
-                      ],
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-
-                // Stats
-                Row(
-                  children: [
-                    _buildStatCard(
-                      shops.length.toString(),
-                      'Total Branches',
-                      const Color(0xFFE8F5E9),
-                      const Color(0xFF22C55E),
-                      Icons.storefront,
-                      () {},
-                      isDesktop: !isMobile,
-                    ),
-                    const SizedBox(width: 16),
-                    _buildStatCard(
-                      shops.where((s) => s['status'] == 'Active').length.toString(),
-                      'Active',
-                      const Color(0xFFEFF6FF),
-                      const Color(0xFF3B82F6),
-                      Icons.check_circle_outline,
-                      () {},
-                      isDesktop: !isMobile,
-                    ),
-                    const SizedBox(width: 16),
-                    _buildStatCard(
-                      shops.where((s) => s['status'] == 'Inactive').length.toString(),
-                      'Inactive',
-                      const Color(0xFFFEF2F2),
-                      const Color(0xFFEF4444),
-                      Icons.cancel_outlined,
-                      () {},
-                      isDesktop: !isMobile,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-
-                // Filters
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).cardColor,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Theme.of(context).dividerColor),
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        flex: 2,
-                        child: Container(
-                          height: 40,
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).cardColor,
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: Theme.of(context).dividerColor),
-                          ),
-                          child: TextField(
-                            onChanged: (val) {
-                              setState(() => _searchQuery = val);
-                            },
-                            style: TextStyle(fontSize: 13),
-                            decoration: InputDecoration(
-                              hintText: 'Search shops by name, code or location...',
-                              hintStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5)),
-                              prefixIcon: Icon(Icons.search, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5), size: 18),
-                              border: InputBorder.none,
-                              contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      _buildDropdownFilter(
-                        'Status',
-                        ['All Status', 'Active', 'Inactive'],
-                        _selectedStatus,
-                        (val) => setState(() => _selectedStatus = val!),
-                      ),
-                      const SizedBox(width: 16),
-                      _buildDropdownFilter(
-                        'City',
-                        cities,
-                        _selectedCity,
-                        (val) => setState(() => _selectedCity = val!),
-                      ),
-                      const SizedBox(width: 16),
-                      ElevatedButton.icon(
-                        onPressed: () {
-                           ExportService.exportToCSV(
-                            filteredShops,
-                            'shops_export.csv'
-                          );
-                        },
-                        icon: Icon(Icons.download, size: 16),
-                        label: const Text('Export', style: TextStyle(fontWeight: FontWeight.bold)),
-                        style: ElevatedButton.styleFrom(
-                          
-                          foregroundColor: Theme.of(context).colorScheme.onSurface,
-                          elevation: 0,
-                          side: BorderSide(color: Theme.of(context).dividerColor),
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                        ),
                       ),
                     ],
                   ),
-                ),
-                const SizedBox(height: 16),
+                  const SizedBox(height: 24),
 
-                // Table
-                Container(
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).cardColor,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Theme.of(context).dividerColor),
-                  ),
-                  child: Column(
+                  // Stats
+                  Row(
                     children: [
+                      _buildStatCard(
+                        shops.length.toString(),
+                        'Total Branches',
+                        const Color(0xFFE8F5E9),
+                        const Color(0xFF22C55E),
+                        Icons.storefront,
+                        () {},
+                        isDesktop: !isMobile,
+                      ),
+                      const SizedBox(width: 16),
+                      _buildStatCard(
+                        shops
+                            .where((s) => s['status'] == 'Active')
+                            .length
+                            .toString(),
+                        'Active',
+                        const Color(0xFFEFF6FF),
+                        const Color(0xFF3B82F6),
+                        Icons.check_circle_outline,
+                        () {},
+                        isDesktop: !isMobile,
+                      ),
+                      const SizedBox(width: 16),
+                      _buildStatCard(
+                        shops
+                            .where((s) => s['status'] == 'Inactive')
+                            .length
+                            .toString(),
+                        'Inactive',
+                        const Color(0xFFFEF2F2),
+                        const Color(0xFFEF4444),
+                        Icons.cancel_outlined,
+                        () {},
+                        isDesktop: !isMobile,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Filters
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).cardColor,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: Theme.of(context).dividerColor),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          flex: 2,
+                          child: Container(
+                            height: 40,
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).cardColor,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: Theme.of(context).dividerColor,
+                              ),
+                            ),
+                            child: TextField(
+                              onChanged: (val) {
+                                setState(() => _searchQuery = val);
+                              },
+                              style: TextStyle(fontSize: 13),
+                              decoration: InputDecoration(
+                                hintText:
+                                    'Search shops by name, code or location...',
+                                hintStyle: TextStyle(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurface.withOpacity(0.5),
+                                ),
+                                prefixIcon: Icon(
+                                  Icons.search,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurface.withOpacity(0.5),
+                                  size: 18,
+                                ),
+                                border: InputBorder.none,
+                                contentPadding: EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 12,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        _buildDropdownFilter(
+                          'Status',
+                          ['All Status', 'Active', 'Inactive'],
+                          _selectedStatus,
+                          (val) => setState(() => _selectedStatus = val!),
+                        ),
+                        const SizedBox(width: 16),
+                        _buildDropdownFilter(
+                          'City',
+                          cities,
+                          _selectedCity,
+                          (val) => setState(() => _selectedCity = val!),
+                        ),
+                        const SizedBox(width: 16),
+                        ElevatedButton.icon(
+                          onPressed: () {
+                            ExportService.exportToCSV(
+                              filteredShops,
+                              'shops_export.csv',
+                            );
+                          },
+                          icon: Icon(Icons.download, size: 16),
+                          label: const Text(
+                            'Export',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            foregroundColor: Theme.of(
+                              context,
+                            ).colorScheme.onSurface,
+                            elevation: 0,
+                            side: BorderSide(
+                              color: Theme.of(context).dividerColor,
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 16,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Table
+                  Container(
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).cardColor,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: Theme.of(context).dividerColor),
+                    ),
+                    child: Column(
+                      children: [
                         // Table Header
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 16,
+                          ),
                           decoration: BoxDecoration(
                             color: Theme.of(context).colorScheme.surface,
                             borderRadius: BorderRadius.only(
@@ -705,11 +762,26 @@ class _ShopManagementScreenState extends ConsumerState<ShopManagementScreen> {
                               _buildSortableHeader('Location', 'location', 2),
                               _buildSortableHeader('Contact', 'contact', 1),
                               _buildSortableHeader('Status', 'status', 1),
-                              SizedBox(width: 100, child: Text('Actions', style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7), fontSize: 12))),
+                              SizedBox(
+                                width: 100,
+                                child: Text(
+                                  'Actions',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurface.withOpacity(0.7),
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ),
                             ],
                           ),
                         ),
-                        Divider(height: 1, color: Theme.of(context).dividerColor),
+                        Divider(
+                          height: 1,
+                          color: Theme.of(context).dividerColor,
+                        ),
 
                         // Table Body
                         filteredShops.isEmpty
@@ -718,244 +790,331 @@ class _ShopManagementScreenState extends ConsumerState<ShopManagementScreen> {
                                 child: Center(
                                   child: Text(
                                     'No shops found',
-                                    style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5)),
+                                    style: TextStyle(
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onSurface.withOpacity(0.5),
+                                    ),
                                   ),
                                 ),
                               )
                             : ListView.separated(
                                 shrinkWrap: true,
                                 physics: const NeverScrollableScrollPhysics(),
-                                  itemCount: filteredShops.length,
-                                  separatorBuilder: (_, __) => Divider(height: 1, color: Theme.of(context).dividerColor),
-                                  itemBuilder: (context, index) {
-                                    final shop = filteredShops[index];
-                                    return Padding(
-                                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                                      child: Row(
-                                        children: [
-                                          Expanded(
-                                            flex: 2,
-                                            child: Column(
-                                              crossAxisAlignment: CrossAxisAlignment.start,
-                                              children: [
-                                                Row(
-                                                  children: [
-                                                    Text(
-                                                      shop['name'],
-                                                      style: TextStyle(
-                                                        fontWeight: FontWeight.bold,
-                                                        color: Theme.of(context).colorScheme.onSurface,
-                                                        fontSize: 14,
-                                                      ),
+                                itemCount: filteredShops.length,
+                                separatorBuilder: (_, __) => Divider(
+                                  height: 1,
+                                  color: Theme.of(context).dividerColor,
+                                ),
+                                itemBuilder: (context, index) {
+                                  final shop = filteredShops[index];
+                                  return Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 24,
+                                      vertical: 16,
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Expanded(
+                                          flex: 2,
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Row(
+                                                children: [
+                                                  Text(
+                                                    shop['name'],
+                                                    style: TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      color: Theme.of(
+                                                        context,
+                                                      ).colorScheme.onSurface,
+                                                      fontSize: 14,
                                                     ),
-                                                    if (shop['isPrimary'] == true) ...[
-                                                      const SizedBox(width: 8),
-                                                      Container(
-                                                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                                        decoration: BoxDecoration(
-                                                          color: const Color(0xFFFEF3C7),
-                                                          borderRadius: BorderRadius.circular(4),
+                                                  ),
+                                                  if (shop['isPrimary'] ==
+                                                      true) ...[
+                                                    const SizedBox(width: 8),
+                                                    Container(
+                                                      padding:
+                                                          const EdgeInsets.symmetric(
+                                                            horizontal: 6,
+                                                            vertical: 2,
+                                                          ),
+                                                      decoration: BoxDecoration(
+                                                        color: const Color(
+                                                          0xFFFEF3C7,
                                                         ),
-                                                        child: const Text(
-                                                          'MAIN',
-                                                          style: TextStyle(
-                                                            fontSize: 10,
-                                                            fontWeight: FontWeight.bold,
-                                                            color: Color(0xFFD97706),
+                                                        borderRadius:
+                                                            BorderRadius.circular(
+                                                              4,
+                                                            ),
+                                                      ),
+                                                      child: const Text(
+                                                        'MAIN',
+                                                        style: TextStyle(
+                                                          fontSize: 10,
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                          color: Color(
+                                                            0xFFD97706,
                                                           ),
                                                         ),
                                                       ),
-                                                    ],
+                                                    ),
                                                   ],
+                                                ],
+                                              ),
+                                              const SizedBox(height: 4),
+                                              Text(
+                                                'Code: ${shop['code']}',
+                                                style: TextStyle(
+                                                  color: Theme.of(context)
+                                                      .colorScheme
+                                                      .onSurface
+                                                      .withOpacity(0.7),
+                                                  fontSize: 12,
                                                 ),
-                                                const SizedBox(height: 4),
-                                                Text(
-                                                  'Code: ${shop['code']}',
-                                                  style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7), fontSize: 12),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        Expanded(
+                                          flex: 2,
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                shop['location'],
+                                                style: TextStyle(
+                                                  color: Theme.of(
+                                                    context,
+                                                  ).colorScheme.onSurface,
+                                                  fontSize: 13,
                                                 ),
-                                              ],
+                                              ),
+                                              const SizedBox(height: 2),
+                                              Text(
+                                                shop['city'],
+                                                style: TextStyle(
+                                                  color: Theme.of(context)
+                                                      .colorScheme
+                                                      .onSurface
+                                                      .withOpacity(0.7),
+                                                  fontSize: 12,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        Expanded(
+                                          flex: 1,
+                                          child: Text(
+                                            shop['contact']?.toString() ??
+                                                'N/A',
+                                            style: TextStyle(
+                                              color: Theme.of(
+                                                context,
+                                              ).colorScheme.onSurface,
+                                              fontSize: 13,
                                             ),
                                           ),
-                                          Expanded(
-                                            flex: 2,
-                                            child: Column(
-                                              crossAxisAlignment: CrossAxisAlignment.start,
-                                              children: [
-                                                Text(
-                                                  shop['location'],
-                                                  style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 13),
-                                                ),
-                                                const SizedBox(height: 2),
-                                                Text(
-                                                  shop['city'],
-                                                  style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7), fontSize: 12),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                          Expanded(
-                                            flex: 1,
-                                            child: Text(
-                                              shop['contact']?.toString() ?? 'N/A',
-                                              style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 13),
-                                            ),
-                                          ),
-                                          Expanded(
-                                            flex: 1,
-                                            child: Align(
-                                              alignment: Alignment.centerLeft,
-                                              child: Container(
-                                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                                decoration: BoxDecoration(
-                                                  color: shop['status'] == 'Active'
-                                                      ? const Color(0xFFDCFCE7)
-                                                      : const Color(0xFFFEE2E2),
-                                                  borderRadius: BorderRadius.circular(20),
-                                                ),
-                                                child: Text(
-                                                  shop['status'] ?? 'Unknown',
-                                                  style: TextStyle(
-                                                    color: shop['status'] == 'Active'
-                                                        ? const Color(0xFF166534)
-                                                        : const Color(0xFF991B1B),
-                                                    fontSize: 12,
-                                                    fontWeight: FontWeight.bold,
+                                        ),
+                                        Expanded(
+                                          flex: 1,
+                                          child: Align(
+                                            alignment: Alignment.centerLeft,
+                                            child: Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 10,
+                                                    vertical: 4,
                                                   ),
+                                              decoration: BoxDecoration(
+                                                color:
+                                                    shop['status'] == 'Active'
+                                                    ? const Color(0xFFDCFCE7)
+                                                    : const Color(0xFFFEE2E2),
+                                                borderRadius:
+                                                    BorderRadius.circular(20),
+                                              ),
+                                              child: Text(
+                                                shop['status'] ?? 'Unknown',
+                                                style: TextStyle(
+                                                  color:
+                                                      shop['status'] == 'Active'
+                                                      ? const Color(0xFF166534)
+                                                      : const Color(0xFF991B1B),
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.bold,
                                                 ),
                                               ),
                                             ),
                                           ),
-                                          SizedBox(
-                                            width: 100,
-                                            child: Row(
-                                              children: [
-                                                IconButton(
-                                                  onPressed: () => _showAddEditDialog(shop: shop),
-                                                  icon: Icon(Icons.edit_outlined, size: 18),
-                                                  color: const Color(0xFF3B82F6),
-                                                  tooltip: 'Edit Shop',
+                                        ),
+                                        SizedBox(
+                                          width: 100,
+                                          child: Row(
+                                            children: [
+                                              IconButton(
+                                                onPressed: () =>
+                                                    _showAddEditDialog(
+                                                      shop: shop,
+                                                    ),
+                                                icon: Icon(
+                                                  Icons.edit_outlined,
+                                                  size: 18,
                                                 ),
-                                                // IconButton(
-                                                //   onPressed: () => _showDeleteDialog(context, shop),
-                                                //   icon: Icon(Icons.delete_outline, size: 18),
-                                                //   color: Colors.red,
-                                                //   tooltip: 'Delete Shop',
-                                                // ),
-                                              ],
-                                            ),
+                                                color: const Color(0xFF3B82F6),
+                                                tooltip: 'Edit Shop',
+                                              ),
+                                              // IconButton(
+                                              //   onPressed: () => _showDeleteDialog(context, shop),
+                                              //   icon: Icon(Icons.delete_outline, size: 18),
+                                              //   color: Colors.red,
+                                              //   tooltip: 'Delete Shop',
+                                              // ),
+                                            ],
                                           ),
-                                        ],
-                                      ),
-                                    );
-                                  },
-                                ),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                },
+                              ),
                       ],
                     ),
                   ),
-                const SizedBox(height: 32),
-                Center(
-                  child: Container(
-                    width: 650,
-                    padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 32),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).cardColor,
-                      borderRadius: BorderRadius.circular(24),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.04),
-                          blurRadius: 24,
-                          offset: const Offset(0, 12),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).cardColor,
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.green.withOpacity(0.2),
-                                blurRadius: 50,
-                                spreadRadius: 15,
-                              ),
-                            ],
+                  const SizedBox(height: 32),
+                  Center(
+                    child: Container(
+                      width: 650,
+                      padding: const EdgeInsets.only(
+                        left: 48,
+                        right: 48,
+                        top: 32,
+                        bottom: 24,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).cardColor,
+                        borderRadius: BorderRadius.circular(24),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.04),
+                            blurRadius: 24,
+                            offset: const Offset(0, 12),
                           ),
-                          child: const Icon(
-                            Icons.hub,
-                            size: 48,
-                            color: Color(0xFF22C55E),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'Multi-Branch Management',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Theme.of(context).colorScheme.onSurface,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'We are designing a powerful new way for you to manage multiple\npharmacy branches from a single unified dashboard.',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.8),
-                            height: 1.5,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Soon, you will be able to designate a Main Branch, link Primary Branches, and\nsynchronize inventory, billing, and patient records seamlessly across all your locations.',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
-                            height: 1.5,
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                            borderRadius: BorderRadius.circular(30),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                Icons.architecture,
-                                size: 18,
-                                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
-                              ),
-                              SizedBox(width: 8),
-                              Text(
-                                'Feature currently on the drawing board',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
-                                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.8),
+                        ],
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).cardColor,
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.green.withOpacity(0.2),
+                                  blurRadius: 50,
+                                  spreadRadius: 15,
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
+                            child: const Icon(
+                              Icons.hub,
+                              size: 48,
+                              color: Color(0xFF22C55E),
+                            ),
                           ),
-                        ),
-                      ],
+                          const SizedBox(height: 16),
+                          Text(
+                            'Multi-Branch Management',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Theme.of(context).colorScheme.onSurface,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'We are designing a powerful new way for you to manage multiple\npharmacy branches from a single unified dashboard.',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurface.withOpacity(0.8),
+                              height: 1.5,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Soon, you will be able to designate a Main Branch, link Primary Branches, and\nsynchronize inventory, billing, and patient records seamlessly across all your locations.',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurface.withOpacity(0.5),
+                              height: 1.5,
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 20,
+                              vertical: 12,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.surfaceContainerHighest,
+                              borderRadius: BorderRadius.circular(30),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.architecture,
+                                  size: 18,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurface.withOpacity(0.7),
+                                ),
+                                SizedBox(width: 8),
+                                Text(
+                                  'Feature currently on the drawing board',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurface.withOpacity(0.8),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ));
+          );
         },
-        loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF22C55E))),
-        error: (err, stack) => Center(child: Text('Error: $err', style: TextStyle(color: Colors.red))),
+        loading: () => const Center(
+          child: CircularProgressIndicator(color: Color(0xFF22C55E)),
+        ),
+        error: (err, stack) => Center(
+          child: Text('Error: $err', style: TextStyle(color: Colors.red)),
+        ),
       ),
     );
   }
@@ -999,7 +1158,6 @@ class _ShopManagementScreenState extends ConsumerState<ShopManagementScreen> {
     );
   }
 
-
   Widget _buildDropdownFilter(
     String hint,
     List<String> items,
@@ -1025,7 +1183,10 @@ class _ShopManagementScreenState extends ConsumerState<ShopManagementScreen> {
               color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
               size: 18,
             ),
-            style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 13),
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurface,
+              fontSize: 13,
+            ),
             items: items
                 .map((e) => DropdownMenuItem(value: e, child: Text(e)))
                 .toList(),
@@ -1043,13 +1204,19 @@ class _ShopManagementScreenState extends ConsumerState<ShopManagementScreen> {
       decoration: BoxDecoration(
         color: isActive ? const Color(0xFF22C55E) : Colors.white,
         border: Border.all(
-          color: isActive ? const Color(0xFF22C55E) : Theme.of(context).dividerColor,
+          color: isActive
+              ? const Color(0xFF22C55E)
+              : Theme.of(context).dividerColor,
         ),
         borderRadius: BorderRadius.circular(6),
       ),
       child: Center(
         child: icon != null
-            ? Icon(icon, size: 18, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7))
+            ? Icon(
+                icon,
+                size: 18,
+                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+              )
             : Text(
                 text!,
                 style: TextStyle(
@@ -1092,7 +1259,9 @@ class _ShopManagementScreenState extends ConsumerState<ShopManagementScreen> {
                 Text(
                   subtitle,
                   style: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onSurface.withOpacity(0.7),
                     fontSize: 11,
                   ),
                 ),

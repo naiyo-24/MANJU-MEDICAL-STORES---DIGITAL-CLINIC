@@ -117,7 +117,7 @@ class HistoryNotifier extends AsyncNotifier<HistoryState> {
   }
 
   Future<void> reloadHistory() async {
-    state = const AsyncValue.loading();
+    // state = const AsyncValue.loading(); // prevent UI unmounting
     state = await AsyncValue.guard(() => _fetchHistory());
   }
 }

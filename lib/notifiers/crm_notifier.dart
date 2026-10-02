@@ -9,7 +9,7 @@ class CrmPatientsNotifier extends AsyncNotifier<List<CrmPatient>> {
   }
 
   Future<void> loadPatients() async {
-    state = const AsyncValue.loading();
+    // state = const AsyncValue.loading(); // prevent UI unmounting
     state = await AsyncValue.guard(() => CrmDataService.getPatients());
   }
 
@@ -36,7 +36,7 @@ class CrmAppointmentsNotifier extends AsyncNotifier<List<CrmAppointment>> {
   }
 
   Future<void> loadAppointments() async {
-    state = const AsyncValue.loading();
+    // state = const AsyncValue.loading(); // prevent UI unmounting
     state = await AsyncValue.guard(() => CrmDataService.getAppointments());
   }
 }
@@ -48,7 +48,7 @@ class CrmDoctorsNotifier extends AsyncNotifier<List<CrmDoctor>> {
   }
 
   Future<void> loadDoctors() async {
-    state = const AsyncValue.loading();
+    // state = const AsyncValue.loading(); // prevent UI unmounting
     state = await AsyncValue.guard(() => CrmDataService.getDoctors());
   }
 }
@@ -60,7 +60,7 @@ class CrmOrdersNotifier extends AsyncNotifier<List<CrmOrder>> {
   }
 
   Future<void> loadOrders() async {
-    state = const AsyncValue.loading();
+    // state = const AsyncValue.loading(); // prevent UI unmounting
     state = await AsyncValue.guard(() => CrmDataService.getOrders());
   }
 }

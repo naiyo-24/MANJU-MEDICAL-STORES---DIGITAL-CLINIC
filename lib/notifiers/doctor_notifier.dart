@@ -8,7 +8,7 @@ class DoctorNotifier extends AsyncNotifier<List<Doctor>> {
   }
 
   Future<void> loadDoctors() async {
-    state = const AsyncValue.loading();
+    // state = const AsyncValue.loading(); // prevent UI unmounting
     state = await AsyncValue.guard(() => _fetchDoctors());
   }
 

@@ -64,7 +64,7 @@ class AccountsNotifier extends AsyncNotifier<AccountsState> {
     String searchQuery = '',
   }) async {
     final shopId = ref.read(selectedShopIdProvider);
-    state = const AsyncValue.loading();
+    // state = const AsyncValue.loading(); // prevent UI unmounting
     state = await AsyncValue.guard(
       () => _fetchData(
         shopId: shopId,

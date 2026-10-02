@@ -50,7 +50,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
         onTap: () => _onSort(title),
         child: Row(
           children: [
-            Expanded(
+            Flexible(
               child: Text(
                 title,
                 style: TextStyle(
@@ -303,7 +303,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                               TextSpan(text: 'Medicine '),
                               TextSpan(
                                 text: 'Inventory',
-                                style: TextStyle(color: Color(0xFF166534)),
+                                style: TextStyle(color: isDark ? const Color(0xFF4ADE80) : const Color(0xFF166534)),
                               ),
                             ],
                           ),
