@@ -23,7 +23,7 @@ class SirfBillApp extends ConsumerWidget {
       debugShowCheckedModeBanner: false,
       themeMode: themeMode,
       theme: ThemeData(
-        scaffoldBackgroundColor: const Color(0xFFFFFFFF),
+        scaffoldBackgroundColor: const Color(0xFFF8FAFC),
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.green, brightness: Brightness.light),
         cardColor: Colors.white,
         useMaterial3: true,

@@ -423,14 +423,14 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                                 Icon(
                                   Icons.download_rounded,
                                   size: 20,
-                                  color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B),
+                                  color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF1E293B),
                                 ),
                                 SizedBox(width: 8),
                                 Text(
                                   'Export',
                                   style: TextStyle(
                                     fontWeight: FontWeight.w600,
-                                    color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B),
+                                    color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF1E293B),
                                   ),
                                 ),
                               ],
@@ -442,7 +442,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                           onPressed: () => _loadTransactions(),
                           icon: Icon(
                             Icons.refresh,
-                            color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B),
+                            color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF1E293B),
                           ),
                           tooltip: 'Refresh',
                         ),
@@ -576,7 +576,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                                   style: TextStyle(
                                     color: _activeTab == index
                                         ? (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF4ADE80) : const Color(0xFF166534))
-                                        : (Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B)),
+                                        : (Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF1E293B)),
                                     fontWeight: _activeTab == index
                                         ? FontWeight.bold
                                         : FontWeight.normal,
@@ -646,7 +646,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                                     icon: Icon(
                                       Icons.search,
                                       size: 18,
-                                      color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B),
+                                      color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF1E293B),
                                     ),
                                     hintText:
                                         'Search by description, customer, invoice no...',
@@ -829,7 +829,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                                             child: Text(
                                               'No transactions found. Add one to get started!',
                                               style: TextStyle(
-                                                color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B),
+                                                color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF1E293B),
                                               ),
                                             ),
                                           ),
@@ -1147,7 +1147,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                               Text(
                                 'Showing ${startIdx + 1} to $endIdx of $totalRecords records',
                                 style: TextStyle(
-                                  color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B),
+                                  color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF1E293B),
                                   fontSize: 12,
                                 ),
                               ),
@@ -1194,7 +1194,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                       Icons.credit_card,
                       'Total Income',
                       _fmt(_totalIncome),
-                      const Color(0xFF64748B),
+                      const Color(0xFF1E293B),
                     ),
                     AccountsWidgets.buildSummaryRow(context, 
                       Icons.credit_score,
@@ -1215,7 +1215,6 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
               const SizedBox(height: 24),
               AccountsWidgets.buildRightCard(context, 
                 title: 'Recent Activities',
-                actionText: 'View All',
                 expandChild: false,
                 child: _transactions.isEmpty
                     ? const Center(

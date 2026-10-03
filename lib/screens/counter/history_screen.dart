@@ -647,9 +647,10 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
         return Container(
           color: Colors.transparent,
           padding: const EdgeInsets.all(32.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
               // Header
               SizedBox(
                 width: double.infinity,
@@ -1257,15 +1258,13 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
               const SizedBox(height: 16),
 
               // Data Table
-              Expanded(
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    return SingleChildScrollView(
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  return SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
                       child: ConstrainedBox(
-                        constraints: BoxConstraints(
-                          minWidth: 1200,
-                          maxWidth: constraints.maxWidth > 1200
+                        constraints: BoxConstraints.tightFor(
+                          width: constraints.maxWidth > 1200
                               ? constraints.maxWidth
                               : 1200,
                         ),
@@ -1410,15 +1409,17 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                               ),
                               // Table Body
                               filtered.isEmpty
-                                  ? const Expanded(
+                                  ? const Padding(
+                                      padding: EdgeInsets.all(32.0),
                                       child: Center(
                                         child: Text('No history found'),
                                       ),
                                     )
-                                  : Expanded(
-                                      child: ListView.separated(
-                                        itemCount: pagedTransactions.length,
-                                        separatorBuilder: (context, index) =>
+                                  : ListView.separated(
+                                      shrinkWrap: true,
+                                      physics: const NeverScrollableScrollPhysics(),
+                                      itemCount: pagedTransactions.length,
+                                      separatorBuilder: (context, index) =>
                                             Divider(
                                               height: 1,
                                               color: Theme.of(context).dividerColor,
@@ -1712,27 +1713,6 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                                                               ),
                                                         ),
                                                       ),
-                                                      const SizedBox(width: 8),
-                                                      Container(
-                                                        height: 32,
-                                                        width: 32,
-                                                        decoration: BoxDecoration(
-                                                          border: Border.all(
-                                                            color: const Color(
-                                                              0xFFE2E8F0,
-                                                            ),
-                                                          ),
-                                                          borderRadius:
-                                                              BorderRadius.circular(
-                                                                6,
-                                                              ),
-                                                        ),
-                                                        child: Icon(
-                                                          Icons.more_vert,
-                                                          size: 16,
-                                                          color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : Color(0xFF64748B),
-                                                        ),
-                                                      ),
                                                     ],
                                                   ),
                                                 ),
@@ -1741,7 +1721,6 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                                           );
                                         },
                                       ),
-                                    ),
                               // Pagination
                               Container(
                                 padding: const EdgeInsets.symmetric(
@@ -1782,11 +1761,10 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                       ),
                     );
                   },
-                ),
               ),
             ],
           ),
-        );
+        ));
       },
     );
   }

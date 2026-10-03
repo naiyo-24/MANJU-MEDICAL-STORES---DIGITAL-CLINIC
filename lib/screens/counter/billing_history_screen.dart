@@ -86,7 +86,7 @@ class _BillingHistoryScreenState extends State<BillingHistoryScreen> {
           ? const Center(
               child: Text(
                 'No billing history found.',
-                style: TextStyle(color: Color(0xFF64748B)),
+                style: TextStyle(color: Color(0xFF1E293B)),
               ),
             )
           : ListView.builder(
@@ -124,7 +124,7 @@ class _BillingHistoryScreenState extends State<BillingHistoryScreen> {
                               Text(
                                 dateStr,
                                 style: const TextStyle(
-                                  color: Color(0xFF64748B),
+                                  color: Color(0xFF1E293B),
                                   fontSize: 12,
                                 ),
                               ),
@@ -211,7 +211,7 @@ class _BillingHistoryScreenState extends State<BillingHistoryScreen> {
                                 const Text(
                                   'Subtotal',
                                   style: TextStyle(
-                                    color: Color(0xFF64748B),
+                                    color: Color(0xFF1E293B),
                                     fontSize: 12,
                                   ),
                                 ),
@@ -231,7 +231,7 @@ class _BillingHistoryScreenState extends State<BillingHistoryScreen> {
                                 const Text(
                                   'Discount',
                                   style: TextStyle(
-                                    color: Color(0xFF64748B),
+                                    color: Color(0xFF1E293B),
                                     fontSize: 12,
                                   ),
                                 ),
@@ -251,7 +251,7 @@ class _BillingHistoryScreenState extends State<BillingHistoryScreen> {
                                 const Text(
                                   'Tax (GST)',
                                   style: TextStyle(
-                                    color: Color(0xFF64748B),
+                                    color: Color(0xFF1E293B),
                                     fontSize: 12,
                                   ),
                                 ),
