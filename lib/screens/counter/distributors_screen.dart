@@ -33,7 +33,7 @@ class _DistributorsScreenState extends ConsumerState<DistributorsScreen> {
           ).toList();
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Padding(
         padding: const EdgeInsets.all(24.0),
         child: Column(
@@ -45,12 +45,12 @@ class _DistributorsScreenState extends ConsumerState<DistributorsScreen> {
               runSpacing: 16,
               spacing: 16,
               children: [
-                const Text(
+                Text(
                   'Distributors',
                   style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF1E293B),
+                    color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
                   ),
                 ),
                 Wrap(
@@ -115,8 +115,8 @@ class _DistributorsScreenState extends ConsumerState<DistributorsScreen> {
                           builder: (context) => const AddDistributorDialog(),
                         );
                       },
-                      icon: const Icon(Icons.add, color: Colors.white, size: 18),
-                      label: const Text('Add Distributor', style: TextStyle(color: Colors.white)),
+                      icon: Icon(Icons.add, color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white, size: 18),
+                      label: Text('Add Distributor', style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white)),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF166534),
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -138,16 +138,16 @@ class _DistributorsScreenState extends ConsumerState<DistributorsScreen> {
               },
               decoration: InputDecoration(
                 hintText: 'Search distributors...',
-                prefixIcon: const Icon(Icons.search, color: Color(0xFF64748B)),
+                prefixIcon: Icon(Icons.search, color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B)),
                 filled: true,
-                fillColor: Colors.white,
+                fillColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
-                  borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                  borderSide: BorderSide(color: Theme.of(context).dividerColor),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
-                  borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                  borderSide: BorderSide(color: Theme.of(context).dividerColor),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
@@ -161,10 +161,10 @@ class _DistributorsScreenState extends ConsumerState<DistributorsScreen> {
               child: distributorsAsync.when(
                 data: (distributors) {
                   if (distributors.isEmpty) {
-                    return const Center(
+                    return Center(
                       child: Text(
                         'No distributors found. Add one to get started!',
-                        style: TextStyle(color: Color(0xFF64748B), fontSize: 16),
+                        style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B), fontSize: 16),
                       ),
                     );
                   }

@@ -13,9 +13,9 @@ class DistributorListView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: Theme.of(context).dividerColor),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.02),
@@ -29,16 +29,16 @@ class DistributorListView extends ConsumerWidget {
         children: [
           Container(
             padding: const EdgeInsets.all(20),
-            decoration: const BoxDecoration(
-              border: Border(bottom: BorderSide(color: Color(0xFFE2E8F0))),
+            decoration: BoxDecoration(
+              border: Border(bottom: BorderSide(color: Theme.of(context).dividerColor)),
             ),
-            child: const Text('All Distributors', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+            child: Text('All Distributors', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B))),
           ),
           ListView.separated(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemCount: distributors.length,
-            separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFF1F5F9)),
+            separatorBuilder: (context, index) => Divider(height: 1, color: Theme.of(context).dividerColor),
             itemBuilder: (context, index) {
               final dist = distributors[index];
               return InkWell(
@@ -60,12 +60,12 @@ class DistributorListView extends ConsumerWidget {
                           children: [
                             Text(
                               dist['name'] ?? 'Unknown',
-                              style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E293B), fontSize: 15),
+                              style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B), fontSize: 15),
                             ),
                             const SizedBox(height: 4),
                             Text(
                               'Phone: ${dist['phone'] ?? 'N/A'} | Email: ${dist['email'] ?? 'N/A'}',
-                              style: const TextStyle(fontSize: 13, color: Color(0xFF64748B)),
+                              style: TextStyle(fontSize: 13, color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B)),
                             ),
                           ],
                         ),
@@ -81,7 +81,7 @@ class DistributorListView extends ConsumerWidget {
                             },
                           ),
                           IconButton(
-                            icon: const Icon(Icons.edit, color: Color(0xFF64748B), size: 20),
+                            icon: Icon(Icons.edit, color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B), size: 20),
                             tooltip: 'Edit',
                             onPressed: () {
                               showDialog(
@@ -124,7 +124,7 @@ class DistributorListView extends ConsumerWidget {
                                         }
                                       },
                                       style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                                      child: const Text('Delete', style: TextStyle(color: Colors.white)),
+                                      child: Text('Delete', style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white)),
                                     ),
                                   ],
                                 ),

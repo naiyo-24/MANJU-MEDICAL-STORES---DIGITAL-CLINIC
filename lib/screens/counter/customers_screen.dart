@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 import '../../widgets/custom_pagination.dart';
 import '../../services/customer_service.dart';
 import '../../services/billing_history_service.dart';
+import '../../services/export_service.dart';
 
 import 'widgets/customers/customer_stat_card.dart';
 import 'widgets/customers/view_bill_dialog.dart';
@@ -157,6 +158,52 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                               color: (Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : AppColors.textSecondary),
                             ),
                             tooltip: 'Refresh',
+                          ),
+                          const SizedBox(width: 8),
+                          PopupMenuButton<String>(
+                            tooltip: 'Export Customers',
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                              decoration: BoxDecoration(
+                                border: Border.all(color: Theme.of(context).dividerColor),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.download, size: 18, color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : AppColors.textSecondary),
+                                  const SizedBox(width: 8),
+                                  Text('Export', style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : AppColors.textSecondary)),
+                                ],
+                              ),
+                            ),
+                            itemBuilder: (context) => [
+                              const PopupMenuItem(value: 'csv', child: Text('Export as CSV')),
+                              const PopupMenuItem(value: 'excel', child: Text('Export as Excel')),
+                            ],
+                            onSelected: (val) async {
+                              final exportData = filteredCustomers.map((c) => {
+                                'Customer ID': c['id'],
+                                'Name': c['name'],
+                                'Phone': c['phone'],
+                                'City': c['city'],
+                                'Status': c['status'],
+                                'Total Purchases': c['totalPurchases'] ?? 0,
+                                'Bills Count': c['bills'] ?? 0,
+                                'Created At': c['raw_created_at'] ?? '',
+                              }).toList();
+                              
+                              try {
+                                if (val == 'csv') {
+                                  await ExportService.exportToCSV(exportData, 'customers_export');
+                                } else {
+                                  await ExportService.exportToExcel(exportData, 'customers_export');
+                                }
+                                if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Export successful!')));
+                              } catch (e) {
+                                if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Export failed: $e')));
+                              }
+                            },
                           ),
                           const SizedBox(width: 8),
                           ElevatedButton.icon(
@@ -580,7 +627,7 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                                                     ),
                                                   ),
                                                   const SizedBox(
-                                                    width: 120,
+                                                    width: 130,
                                                     child: Text(
                                                       'Action',
                                                       style: TextStyle(
@@ -819,7 +866,7 @@ padding: EdgeInsets.all(32),
               ),
             ),
             SizedBox(
-              width: 120,
+              width: 130,
               child: Row(
                 children: [
                   OutlinedButton(

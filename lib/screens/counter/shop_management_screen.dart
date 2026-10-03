@@ -439,7 +439,7 @@ class _ShopManagementScreenState extends State<ShopManagementScreen> {
               decoration: BoxDecoration(
                 color: isDark ? const Color(0xFF1E293B) : Colors.white,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
+                border: Border.all(color: Theme.of(context).dividerColor),
               ),
               child: Column(
                 children: [
@@ -469,13 +469,13 @@ class _ShopManagementScreenState extends State<ShopManagementScreen> {
                                   : Colors.white,
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(8),
-                                borderSide: const BorderSide(
+                                borderSide: BorderSide(
                                   color: Color(0xFFE2E8F0),
                                 ),
                               ),
                               enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(8),
-                                borderSide: const BorderSide(
+                                borderSide: BorderSide(
                                   color: Color(0xFFE2E8F0),
                                 ),
                               ),
@@ -493,7 +493,7 @@ class _ShopManagementScreenState extends State<ShopManagementScreen> {
                             vertical: 2,
                           ),
                           decoration: BoxDecoration(
-                            border: Border.all(color: const Color(0xFFE2E8F0)),
+                            border: Border.all(color: Theme.of(context).dividerColor),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: DropdownButtonHideUnderline(
@@ -512,7 +512,7 @@ class _ShopManagementScreenState extends State<ShopManagementScreen> {
                                   value: value,
                                   child: Text(
                                     value,
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       color: Color(0xFF475569),
                                       fontSize: 14,
                                     ),
@@ -533,7 +533,7 @@ class _ShopManagementScreenState extends State<ShopManagementScreen> {
                             vertical: 2,
                           ),
                           decoration: BoxDecoration(
-                            border: Border.all(color: const Color(0xFFE2E8F0)),
+                            border: Border.all(color: Theme.of(context).dividerColor),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: DropdownButtonHideUnderline(
@@ -550,7 +550,7 @@ class _ShopManagementScreenState extends State<ShopManagementScreen> {
                                   value: value,
                                   child: Text(
                                     value,
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       color: Color(0xFF475569),
                                       fontSize: 14,
                                     ),
@@ -574,10 +574,10 @@ class _ShopManagementScreenState extends State<ShopManagementScreen> {
                               vertical: 14,
                             ),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFF8FAFC),
+                              color: Colors.transparent,
                               borderRadius: BorderRadius.circular(8),
                               border: Border.all(
-                                color: const Color(0xFFE2E8F0),
+                                color: Theme.of(context).dividerColor,
                               ),
                             ),
                             child: Row(
@@ -588,15 +588,15 @@ class _ShopManagementScreenState extends State<ShopManagementScreen> {
                                       ? Icons.arrow_upward
                                       : Icons.arrow_downward,
                                   size: 16,
-                                  color: const Color(0xFF475569),
+                                  color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF475569),
                                 ),
                                 const SizedBox(width: 8),
-                                const Text(
+                                Text(
                                   'Sort By: NAME',
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 12,
-                                    color: Color(0xFF1E293B),
+                                    color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
                                   ),
                                 ),
                               ],

@@ -251,13 +251,13 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                     horizontal: 20,
                     vertical: 12,
                   ),
-                  decoration: const BoxDecoration(
-                    color: Color(0xFFF8FAFC),
+                  decoration: BoxDecoration(
+                    color: Colors.transparent,
                     borderRadius: BorderRadius.vertical(
                       top: Radius.circular(12),
                     ),
                     border: Border(
-                      bottom: BorderSide(color: Color(0xFFE2E8F0)),
+                      bottom: BorderSide(color: Theme.of(context).dividerColor),
                     ),
                   ),
                   child: Row(
@@ -345,8 +345,8 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
             children: [
               Container(
                 padding: const EdgeInsets.all(10),
-                decoration: const BoxDecoration(
-                  color: Colors.white,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white,
                   shape: BoxShape.circle,
                 ),
                 child: Icon(icon, color: iconColor, size: 20),
@@ -358,18 +358,18 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                   children: [
                     Text(
                       value,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF1E293B),
+                        color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
                       ),
                       overflow: TextOverflow.ellipsis,
                     ),
                     Text(
                       label,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
-                        color: Color(0xFF475569),
+                        color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF475569),
                       ),
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -457,14 +457,14 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
               Icon(
                 Icons.calendar_today,
                 size: 14,
-                color: isActive ? Colors.white : const Color(0xFF1E293B),
+                color: isActive ? Colors.white : (Theme.of(context).brightness == Brightness.dark ? Colors.grey[300] : const Color(0xFF1E293B)),
               ),
               const SizedBox(width: 6),
             ],
             Text(
               title,
               style: TextStyle(
-                color: isActive ? Colors.white : const Color(0xFF1E293B),
+                color: isActive ? Colors.white : (Theme.of(context).brightness == Brightness.dark ? Colors.grey[300] : const Color(0xFF1E293B)),
                 fontWeight: FontWeight.bold,
                 fontSize: 12,
               ),
@@ -486,10 +486,10 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
       children: [
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.bold,
-            color: Color(0xFF1E293B),
+            color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
           ),
         ),
         const SizedBox(height: 8),
@@ -498,20 +498,20 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
           width: 150,
           padding: const EdgeInsets.symmetric(horizontal: 12),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white,
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: const Color(0xFFE2E8F0)),
+            border: Border.all(color: Theme.of(context).dividerColor),
           ),
           child: DropdownButtonHideUnderline(
             child: DropdownButton<String>(
               value: value,
               isExpanded: true,
-              icon: const Icon(
+              icon: Icon(
                 Icons.keyboard_arrow_down,
-                color: Color(0xFF64748B),
+                color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B),
                 size: 18,
               ),
-              style: const TextStyle(color: Color(0xFF1E293B), fontSize: 13),
+              style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B), fontSize: 13),
               items: items
                   .map((e) => DropdownMenuItem(value: e, child: Text(e)))
                   .toList(),
@@ -528,12 +528,12 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
     IconData icon;
     switch (type) {
       case 'Sale':
-        bgColor = const Color(0xFFDCFCE7);
+        bgColor = Theme.of(context).brightness == Brightness.dark ? const Color(0xFF052E16) : const Color(0xFFDCFCE7);
         textColor = const Color(0xFF22C55E);
         icon = Icons.shopping_cart_outlined;
         break;
       case 'Return':
-        bgColor = const Color(0xFFFEE2E2);
+        bgColor = Theme.of(context).brightness == Brightness.dark ? const Color(0xFF450A0A) : const Color(0xFFFEE2E2);
         textColor = Colors.red;
         icon = Icons.keyboard_return;
         break;
@@ -579,16 +579,16 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
 
   Widget _buildPaymentModePill(String mode) {
     if (mode == '-') {
-      return const Text('-', style: TextStyle(color: Color(0xFF64748B)));
+      return Text('-', style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B)));
     }
     Color bgColor, textColor;
     switch (mode) {
       case 'Cash':
-        bgColor = const Color(0xFFDCFCE7);
+        bgColor = Theme.of(context).brightness == Brightness.dark ? const Color(0xFF052E16) : const Color(0xFFDCFCE7);
         textColor = const Color(0xFF22C55E);
         break;
       case 'UPI':
-        bgColor = const Color(0xFFF3E8FF);
+        bgColor = Theme.of(context).brightness == Brightness.dark ? const Color(0xFF3B0764) : const Color(0xFFF3E8FF);
         textColor = const Color(0xFFA855F7);
         break;
       case 'Card':
@@ -596,7 +596,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
         textColor = const Color(0xFF3B82F6);
         break;
       case 'Bank Transfer':
-        bgColor = const Color(0xFFF3E8FF);
+        bgColor = Theme.of(context).brightness == Brightness.dark ? const Color(0xFF3B0764) : const Color(0xFFF3E8FF);
         textColor = const Color(0xFFA855F7);
         break;
       default:
@@ -645,7 +645,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
             : <Map<String, dynamic>>[];
 
         return Container(
-          color: const Color(0xFFF8FAFC),
+          color: Colors.transparent,
           padding: const EdgeInsets.all(32.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -669,9 +669,9 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                             color: const Color(0xFF22C55E),
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          child: const Icon(
+                          child: Icon(
                             Icons.history,
-                            color: Colors.white,
+                            color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white,
                             size: 24,
                           ),
                         ),
@@ -680,20 +680,20 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text(
+                              Text(
                                 'History',
                                 style: TextStyle(
                                   fontSize: 24,
                                   fontWeight: FontWeight.bold,
-                                  color: Color(0xFF1E293B),
+                                  color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
                                 ),
                               ),
                               const SizedBox(height: 4),
-                              const Text(
+                              Text(
                                 'View all transactions, activities and records',
                                 style: TextStyle(
                                   fontSize: 14,
-                                  color: Color(0xFF64748B),
+                                  color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B),
                                 ),
                               ),
                             ],
@@ -708,9 +708,9 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                           onPressed: () => ref
                               .read(historyProvider.notifier)
                               .reloadHistory(),
-                          icon: const Icon(
+                          icon: Icon(
                             Icons.refresh,
-                            color: Color(0xFF64748B),
+                            color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B),
                           ),
                           tooltip: 'Refresh',
                         ),
@@ -767,24 +767,24 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Icon(
+                                Icon(
                                   Icons.download,
                                   size: 16,
-                                  color: Color(0xFF166534),
+                                  color: Theme.of(context).brightness == Brightness.dark ? Colors.green[400]! : Color(0xFF166534),
                                 ),
                                 const SizedBox(width: 8),
-                                const Text(
+                                Text(
                                   'Export',
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
-                                    color: Color(0xFF166534),
+                                    color: Theme.of(context).brightness == Brightness.dark ? Colors.green[400]! : const Color(0xFF166534),
                                   ),
                                 ),
-                                const SizedBox(width: 4),
-                                const Icon(
+                                SizedBox(width: 4),
+                                Icon(
                                   Icons.arrow_drop_down,
                                   size: 18,
-                                  color: Color(0xFF166534),
+                                  color: Theme.of(context).brightness == Brightness.dark ? Colors.green[400]! : Color(0xFF166534),
                                 ),
                               ],
                             ),
@@ -884,8 +884,8 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                           child: _buildStatCard(
                             '₹${totalRevenue.toStringAsFixed(2)}',
                             'Total Revenue',
-                            const Color(0xFFDCFCE7),
-                            const Color(0xFF166534),
+                            Theme.of(context).brightness == Brightness.dark ? const Color(0xFF052E16) : const Color(0xFFDCFCE7),
+                            Theme.of(context).brightness == Brightness.dark ? Colors.green[400]! : const Color(0xFF166534),
                             Icons.currency_rupee,
                             '',
                           ),
@@ -898,8 +898,8 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                           child: _buildStatCard(
                             '$totalInvoices',
                             'Total Invoices',
-                            const Color(0xFFE0F2FE),
-                            const Color(0xFF0369A1),
+                            Theme.of(context).brightness == Brightness.dark ? const Color(0xFF082F49) : const Color(0xFFE0F2FE),
+                            Theme.of(context).brightness == Brightness.dark ? Colors.blue[400]! : const Color(0xFF0369A1),
                             Icons.receipt_long,
                             '',
                           ),
@@ -912,8 +912,8 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                           child: _buildStatCard(
                             '₹${totalReturns.toStringAsFixed(2)}',
                             'Total Returns',
-                            const Color(0xFFFEE2E2),
-                            Colors.red,
+                            Theme.of(context).brightness == Brightness.dark ? const Color(0xFF450A0A) : const Color(0xFFFEE2E2),
+                            Theme.of(context).brightness == Brightness.dark ? Colors.red[400]! : Colors.red,
                             Icons.keyboard_return,
                             '',
                           ),
@@ -926,8 +926,8 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                           child: _buildStatCard(
                             '₹${cashInHand.toStringAsFixed(2)}',
                             'Cash in Hand',
-                            const Color(0xFFF3E8FF),
-                            const Color(0xFF7E22CE),
+                            Theme.of(context).brightness == Brightness.dark ? const Color(0xFF3B0764) : const Color(0xFFF3E8FF),
+                            Theme.of(context).brightness == Brightness.dark ? Colors.purple[400]! : const Color(0xFF7E22CE),
                             Icons.account_balance_wallet,
                             '',
                           ),
@@ -950,12 +950,12 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text(
+                                Text(
                                   'Date Range',
                                   style: TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.bold,
-                                    color: Color(0xFF1E293B),
+                                    color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
                                   ),
                                 ),
                                 const SizedBox(height: 8),
@@ -966,10 +966,10 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                                     vertical: 4,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: Colors.white,
+                                    color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white,
                                     borderRadius: BorderRadius.circular(8),
                                     border: Border.all(
-                                      color: const Color(0xFFE2E8F0),
+                                      color: Theme.of(context).dividerColor,
                                     ),
                                   ),
                                   child: Row(
@@ -978,9 +978,9 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                                       _buildDateRangeBtn('This Week', false),
                                       _buildDateRangeBtn('This Month', false),
                                       _buildDateRangeBtn('This Year', false),
-                                      const VerticalDivider(
+                                      VerticalDivider(
                                         width: 16,
-                                        color: Color(0xFFE2E8F0),
+                                        color: Theme.of(context).dividerColor,
                                       ),
                                       _buildDateRangeBtn('Custom Range', true),
                                     ],
@@ -1021,10 +1021,10 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                                   Container(
                                     height: 40,
                                     decoration: BoxDecoration(
-                                      color: Colors.white,
+                                      color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white,
                                       borderRadius: BorderRadius.circular(8),
                                       border: Border.all(
-                                        color: const Color(0xFFE2E8F0),
+                                        color: Theme.of(context).dividerColor,
                                       ),
                                     ),
                                     child: TextField(
@@ -1061,21 +1061,21 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                                 const SizedBox(height: 8),
                                 OutlinedButton.icon(
                                   onPressed: _resetFilters,
-                                  icon: const Icon(
+                                  icon: Icon(
                                     Icons.clear,
-                                    color: Color(0xFF1E293B),
+                                    color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
                                     size: 16,
                                   ),
-                                  label: const Text(
+                                  label: Text(
                                     'Reset Filters',
                                     style: TextStyle(
-                                      color: Color(0xFF1E293B),
+                                      color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
                                   style: OutlinedButton.styleFrom(
-                                    side: const BorderSide(
-                                      color: Color(0xFFE2E8F0),
+                                    side: BorderSide(
+                                      color: Theme.of(context).dividerColor,
                                     ),
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(8),
@@ -1098,12 +1098,12 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Text(
+                                  Text(
                                     'Date Range',
                                     style: TextStyle(
                                       fontSize: 12,
                                       fontWeight: FontWeight.bold,
-                                      color: Color(0xFF1E293B),
+                                      color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
                                     ),
                                   ),
                                   const SizedBox(height: 8),
@@ -1114,10 +1114,10 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                                       vertical: 4,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: Colors.white,
+                                      color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white,
                                       borderRadius: BorderRadius.circular(8),
                                       border: Border.all(
-                                        color: const Color(0xFFE2E8F0),
+                                        color: Theme.of(context).dividerColor,
                                       ),
                                     ),
                                     child: Row(
@@ -1126,9 +1126,9 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                                         _buildDateRangeBtn('This Week', false),
                                         _buildDateRangeBtn('This Month', false),
                                         _buildDateRangeBtn('This Year', false),
-                                        const VerticalDivider(
+                                        VerticalDivider(
                                           width: 16,
-                                          color: Color(0xFFE2E8F0),
+                                          color: Theme.of(context).dividerColor,
                                         ),
                                         _buildDateRangeBtn(
                                           'Custom Range',
@@ -1179,10 +1179,10 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                                     Container(
                                       height: 40,
                                       decoration: BoxDecoration(
-                                        color: Colors.white,
+                                        color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white,
                                         borderRadius: BorderRadius.circular(8),
                                         border: Border.all(
-                                          color: const Color(0xFFE2E8F0),
+                                          color: Theme.of(context).dividerColor,
                                         ),
                                       ),
                                       child: TextField(
@@ -1222,21 +1222,21 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                                   const SizedBox(height: 8),
                                   OutlinedButton.icon(
                                     onPressed: _resetFilters,
-                                    icon: const Icon(
+                                    icon: Icon(
                                       Icons.clear,
-                                      color: Color(0xFF1E293B),
+                                      color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
                                       size: 16,
                                     ),
-                                    label: const Text(
+                                    label: Text(
                                       'Reset Filters',
                                       style: TextStyle(
-                                        color: Color(0xFF1E293B),
+                                        color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
                                     style: OutlinedButton.styleFrom(
-                                      side: const BorderSide(
-                                        color: Color(0xFFE2E8F0),
+                                      side: BorderSide(
+                                        color: Theme.of(context).dividerColor,
                                       ),
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(8),
@@ -1271,9 +1271,9 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                         ),
                         child: Container(
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white,
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: const Color(0xFFE2E8F0)),
+                            border: Border.all(color: Theme.of(context).dividerColor),
                           ),
                           child: Column(
                             children: [
@@ -1284,119 +1284,119 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                                   vertical: 16,
                                 ),
                                 decoration: const BoxDecoration(
-                                  color: Color(0xFFF8FAFC),
+                                  color: Colors.transparent,
                                   borderRadius: BorderRadius.vertical(
                                     top: Radius.circular(12),
                                   ),
                                 ),
                                 child: Row(
                                   children: [
-                                    const SizedBox(
+                                    SizedBox(
                                       width: 30,
                                       child: Text(
                                         '#',
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
-                                          color: Color(0xFF475569),
+                                          color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF475569),
                                           fontSize: 12,
                                         ),
                                       ),
                                     ),
-                                    const Expanded(
+                                    Expanded(
                                       flex: 2,
                                       child: Text(
                                         'Date & Time',
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
-                                          color: Color(0xFF475569),
+                                          color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF475569),
                                           fontSize: 12,
                                         ),
                                       ),
                                     ),
-                                    const Expanded(
+                                    Expanded(
                                       flex: 2,
                                       child: Text(
                                         'Bill No / Ref No',
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
-                                          color: Color(0xFF475569),
+                                          color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF475569),
                                           fontSize: 12,
                                         ),
                                       ),
                                     ),
-                                    const Expanded(
+                                    Expanded(
                                       flex: 3,
                                       child: Text(
                                         'Customer Name',
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
-                                          color: Color(0xFF475569),
+                                          color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF475569),
                                           fontSize: 12,
                                         ),
                                       ),
                                     ),
-                                    const Expanded(
+                                    Expanded(
                                       flex: 2,
                                       child: Text(
                                         'Type',
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
-                                          color: Color(0xFF475569),
+                                          color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF475569),
                                           fontSize: 12,
                                         ),
                                       ),
                                     ),
-                                    const Expanded(
+                                    Expanded(
                                       flex: 1,
                                       child: Text(
                                         'Items',
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
-                                          color: Color(0xFF475569),
+                                          color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF475569),
                                           fontSize: 12,
                                         ),
                                       ),
                                     ),
-                                    const Expanded(
+                                    Expanded(
                                       flex: 2,
                                       child: Text(
                                         'Amount (₹)',
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
-                                          color: Color(0xFF475569),
+                                          color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : Color(0xFF475569),
                                           fontSize: 12,
                                         ),
                                       ),
                                     ),
-                                    const Expanded(
+                                    Expanded(
                                       flex: 2,
                                       child: Text(
                                         'Payment Mode',
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
-                                          color: Color(0xFF475569),
+                                          color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF475569),
                                           fontSize: 12,
                                         ),
                                       ),
                                     ),
-                                    const Expanded(
+                                    Expanded(
                                       flex: 2,
                                       child: Text(
                                         'Status',
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
-                                          color: Color(0xFF475569),
+                                          color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF475569),
                                           fontSize: 12,
                                         ),
                                       ),
                                     ),
-                                    const SizedBox(
+                                    SizedBox(
                                       width: 200,
                                       child: Text(
                                         'Action',
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
-                                          color: Color(0xFF475569),
+                                          color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF475569),
                                           fontSize: 12,
                                         ),
                                       ),
@@ -1404,9 +1404,9 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                                   ],
                                 ),
                               ),
-                              const Divider(
+                              Divider(
                                 height: 1,
-                                color: Color(0xFFE2E8F0),
+                                color: Theme.of(context).dividerColor,
                               ),
                               // Table Body
                               filtered.isEmpty
@@ -1419,9 +1419,9 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                                       child: ListView.separated(
                                         itemCount: pagedTransactions.length,
                                         separatorBuilder: (context, index) =>
-                                            const Divider(
+                                            Divider(
                                               height: 1,
-                                              color: Color(0xFFF1F5F9),
+                                              color: Theme.of(context).dividerColor,
                                             ),
                                         itemBuilder: (context, index) {
                                           final tx = pagedTransactions[index];
@@ -1441,8 +1441,8 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                                                   width: 30,
                                                   child: Text(
                                                     '${startIdx + index + 1}',
-                                                    style: const TextStyle(
-                                                      color: Color(0xFF1E293B),
+                                                    style: TextStyle(
+                                                      color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
                                                       fontWeight:
                                                           FontWeight.bold,
                                                       fontSize: 13,
@@ -1458,22 +1458,18 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                                                     children: [
                                                       Text(
                                                         tx['date'],
-                                                        style: const TextStyle(
+                                                        style: TextStyle(
                                                           fontWeight:
                                                               FontWeight.bold,
-                                                          color: Color(
-                                                            0xFF1E293B,
-                                                          ),
+                                                          color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
                                                           fontSize: 12,
                                                         ),
                                                       ),
                                                       const SizedBox(height: 2),
                                                       Text(
                                                         tx['time'],
-                                                        style: const TextStyle(
-                                                          color: Color(
-                                                            0xFF64748B,
-                                                          ),
+                                                        style: TextStyle(
+                                                          color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B),
                                                           fontSize: 11,
                                                         ),
                                                       ),
@@ -1484,8 +1480,8 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                                                   flex: 2,
                                                   child: Text(
                                                     tx['refNo'],
-                                                    style: const TextStyle(
-                                                      color: Color(0xFF1E293B),
+                                                    style: TextStyle(
+                                                      color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
                                                       fontWeight:
                                                           FontWeight.bold,
                                                       fontSize: 12,
@@ -1501,12 +1497,10 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                                                     children: [
                                                       Text(
                                                         tx['customerName'],
-                                                        style: const TextStyle(
+                                                        style: TextStyle(
                                                           fontWeight:
                                                               FontWeight.bold,
-                                                          color: Color(
-                                                            0xFF1E293B,
-                                                          ),
+                                                          color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
                                                           fontSize: 12,
                                                         ),
                                                       ),
@@ -1518,10 +1512,8 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                                                         Text(
                                                           tx['customerPhone'],
                                                           style:
-                                                              const TextStyle(
-                                                                color: Color(
-                                                                  0xFF64748B,
-                                                                ),
+                                                              TextStyle(
+                                                                color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B),
                                                                 fontSize: 11,
                                                               ),
                                                         ),
@@ -1543,8 +1535,8 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                                                   flex: 1,
                                                   child: Text(
                                                     '${tx['items']} ${tx['items'] == 1 ? 'item' : 'items'}',
-                                                    style: const TextStyle(
-                                                      color: Color(0xFF475569),
+                                                    style: TextStyle(
+                                                      color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF475569),
                                                       fontSize: 12,
                                                     ),
                                                   ),
@@ -1630,19 +1622,15 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                                                             );
                                                           }
                                                         },
-                                                        icon: const Icon(
+                                                        icon: Icon(
                                                           Icons.visibility,
                                                           size: 14,
-                                                          color: Color(
-                                                            0xFF1E293B,
-                                                          ),
+                                                          color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Color(0xFF1E293B),
                                                         ),
-                                                        label: const Text(
+                                                        label: Text(
                                                           'View',
                                                           style: TextStyle(
-                                                            color: Color(
-                                                              0xFF1E293B,
-                                                            ),
+                                                            color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
                                                             fontWeight:
                                                                 FontWeight.bold,
                                                             fontSize: 11,
@@ -1739,12 +1727,10 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                                                                 6,
                                                               ),
                                                         ),
-                                                        child: const Icon(
+                                                        child: Icon(
                                                           Icons.more_vert,
                                                           size: 16,
-                                                          color: Color(
-                                                            0xFF64748B,
-                                                          ),
+                                                          color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : Color(0xFF64748B),
                                                         ),
                                                       ),
                                                     ],
@@ -1762,9 +1748,9 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                                   horizontal: 20,
                                   vertical: 12,
                                 ),
-                                decoration: const BoxDecoration(
+                                decoration: BoxDecoration(
                                   border: Border(
-                                    top: BorderSide(color: Color(0xFFE2E8F0)),
+                                    top: BorderSide(color: Theme.of(context).dividerColor),
                                   ),
                                 ),
                                 child: Row(
@@ -1773,8 +1759,8 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                                   children: [
                                     Text(
                                       'Showing ${totalRecords == 0 ? 0 : startIdx + 1} to $endIdx of $totalRecords records',
-                                      style: const TextStyle(
-                                        color: Color(0xFF64748B),
+                                      style: TextStyle(
+                                        color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B),
                                         fontSize: 12,
                                       ),
                                     ),

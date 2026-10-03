@@ -202,12 +202,13 @@ class _AddPurchaseBillScreenState extends ConsumerState<AddPurchaseBillScreen> {
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) {
+          final isDark = Theme.of(context).brightness == Brightness.dark;
           final inputDec = (String label) => InputDecoration(
             labelText: label,
             filled: true,
-            fillColor: Colors.grey.shade50,
+            fillColor: isDark ? Colors.grey.shade900 : Colors.grey.shade50,
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade200)),
+            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: isDark ? Colors.grey.shade800 : Colors.grey.shade200)),
             focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF166534), width: 1.5)),
             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
           );
@@ -219,7 +220,7 @@ class _AddPurchaseBillScreenState extends ConsumerState<AddPurchaseBillScreen> {
               width: 850,
               constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.9),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Theme.of(context).dialogBackgroundColor,
                 borderRadius: BorderRadius.circular(24),
                 boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 20, offset: Offset(0, 10))],
               ),
@@ -297,24 +298,25 @@ class _AddPurchaseBillScreenState extends ConsumerState<AddPurchaseBillScreen> {
                   
                   // Footer
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
                     decoration: BoxDecoration(
-                      color: Colors.grey.shade50,
+                      color: isDark ? Colors.grey.shade900 : Colors.grey.shade50,
                       borderRadius: const BorderRadius.vertical(bottom: Radius.circular(24)),
-                      border: Border(top: BorderSide(color: Colors.grey.shade200)),
+                      border: Border(top: BorderSide(color: isDark ? Colors.grey.shade800 : Colors.grey.shade200)),
                     ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
+                    child: Wrap(
+                      alignment: WrapAlignment.end,
+                      spacing: 12,
+                      runSpacing: 12,
                       children: [
                         TextButton(
                           onPressed: () => Navigator.pop(context),
                           style: TextButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                             foregroundColor: Colors.grey.shade700,
                           ),
                           child: const Text('Cancel', style: TextStyle(fontSize: 16)),
                         ),
-                        const SizedBox(width: 16),
                         ElevatedButton.icon(
                           icon: isSaving 
                               ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
@@ -323,7 +325,7 @@ class _AddPurchaseBillScreenState extends ConsumerState<AddPurchaseBillScreen> {
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF166534),
                             foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                             elevation: 0,
                           ),
@@ -400,461 +402,463 @@ class _AddPurchaseBillScreenState extends ConsumerState<AddPurchaseBillScreen> {
     final inventory = ref.watch(purchaseInventoryProvider);
     final racks = ref.watch(rackProvider);
     final categories = ref.watch(categoryProvider);
+    final isDesktop = MediaQuery.of(context).size.width >= 800;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
+    final searchPanel = Material(
+      color: isDark ? Theme.of(context).cardColor : Colors.white,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _searchCtrl,
+                    decoration: const InputDecoration(
+                      hintText: 'Search Medicine',
+                      prefixIcon: Icon(Icons.search),
+                      border: OutlineInputBorder(),
+                    ),
+                    onChanged: (val) {
+                      if (_searchDebounce?.isActive ?? false) _searchDebounce!.cancel();
+                      _searchDebounce = Timer(const Duration(milliseconds: 500), () {
+                        ref.read(purchaseInventoryProvider.notifier).loadInventory(
+                          searchQuery: val,
+                          distributorId: _filterByDistributor ? widget.distributor['id'] : null,
+                        );
+                      });
+                      setState(() {}); 
+                    },
+                  ),
+                ),
+                const SizedBox(width: 8),
+                IconButton(
+                  onPressed: () {
+                    ref.read(purchaseInventoryProvider.notifier).loadInventory(
+                      searchQuery: _searchCtrl.text.isNotEmpty ? _searchCtrl.text : null,
+                      distributorId: _filterByDistributor ? widget.distributor['id'] : null,
+                    );
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Medicine list refreshed!'), duration: Duration(seconds: 1)),
+                    );
+                  },
+                  icon: const Icon(Icons.refresh),
+                  tooltip: 'Refresh Medicines',
+                  style: IconButton.styleFrom(
+                    backgroundColor: isDark ? Colors.green.shade900.withOpacity(0.3) : Colors.green.shade50,
+                    foregroundColor: isDark ? Colors.greenAccent : const Color(0xFF166534),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            SwitchListTile(
+              title: const Text('Show only items from this distributor', style: TextStyle(fontSize: 14)),
+              value: _filterByDistributor,
+              activeColor: const Color(0xFF166534),
+              contentPadding: EdgeInsets.zero,
+              onChanged: (val) {
+                setState(() => _filterByDistributor = val);
+                ref.read(purchaseInventoryProvider.notifier).loadInventory(
+                  searchQuery: _searchCtrl.text.isNotEmpty ? _searchCtrl.text : null,
+                  distributorId: val ? widget.distributor['id'] : null,
+                );
+              },
+            ),
+            const SizedBox(height: 12),
+            Expanded(
+              child: inventory.when(
+                data: (items) {
+                  final q = _searchCtrl.text.toLowerCase();
+                  final filtered = items.where((i) {
+                    final matchesSearch = i.name.toLowerCase().contains(q) || i.sku.toLowerCase().contains(q);
+                    final matchesDistributor = !_filterByDistributor || 
+                        i.distributorId == widget.distributor['id'] ||
+                        (i.distributor != null && widget.distributor['name'] != null && 
+                         i.distributor!.toLowerCase() == widget.distributor['name'].toString().toLowerCase());
+                    return matchesSearch && matchesDistributor;
+                  }).toList();
+                  
+                  if (filtered.isEmpty) return const Center(child: Text('No items found', style: TextStyle(color: Colors.grey)));
+                  
+                  return ListView.builder(
+                    itemCount: filtered.length,
+                    itemBuilder: (context, index) {
+                      final item = filtered[index];
+                      return ListTile(
+                        title: Text(item.name, style: const TextStyle(fontWeight: FontWeight.bold)),
+                        subtitle: Text('Stock: ${item.stockQuantity} | BP: ₹${item.buyingPrice}'),
+                        trailing: IconButton(
+                          icon: const Icon(Icons.add_circle, color: Color(0xFF166534)),
+                          onPressed: () => _addItem({
+                            'id': item.id,
+                            'name': item.name,
+                            'buying_price': item.buyingPrice,
+                            'unit_price': item.unitPrice,
+                            'batch_number': item.batchNumber,
+                            'expiry_date': item.expiryDate,
+                            'hsn_code': item.hsnCode,
+                            'gst': item.gst,
+                            'rack_id': item.rackId,
+                            'category_id': item.categoryId,
+                          }),
+                        ),
+                      );
+                    },
+                  );
+                },
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (err, stack) => Text('Error: $err'),
+              ),
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                onPressed: () => ref.read(purchaseInventoryProvider.notifier).loadMore(),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: const Color(0xFF166534),
+                  side: const BorderSide(color: Color(0xFF166534)),
+                ),
+                child: const Text('Load More Medicines'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    final billPanel = Padding(
+      padding: EdgeInsets.all(isDesktop ? 24.0 : 16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text('Incoming Stock', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              if (!isDesktop)
+                Text('Items: ${_items.length}', style: const TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Expanded(
+            child: Card(
+              child: ListView.builder(
+                itemCount: _items.length,
+                itemBuilder: (context, index) {
+                  final item = _items[index];
+                  return ListTile(
+                    title: Text(item['name'], style: const TextStyle(fontWeight: FontWeight.bold)),
+                    subtitle: Wrap(
+                      spacing: 16,
+                      runSpacing: 8,
+                      children: [
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Text('Qty: '),
+                            SizedBox(width: 60, child: TextFormField(
+                              initialValue: item['quantity'].toString(),
+                              keyboardType: TextInputType.number,
+                              onChanged: (v) => setState(() => _items[index]['quantity'] = int.tryParse(v) ?? 1),
+                            )),
+                          ],
+                        ),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Text('BP: ₹'),
+                            SizedBox(width: 80, child: TextFormField(
+                              initialValue: item['buying_price'].toString(),
+                              keyboardType: TextInputType.number,
+                              onChanged: (v) => setState(() => _items[index]['buying_price'] = double.tryParse(v) ?? 0.0),
+                            )),
+                          ],
+                        ),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Text('SP: ₹'),
+                            SizedBox(width: 80, child: TextFormField(
+                              initialValue: item['selling_price'].toString(),
+                              keyboardType: TextInputType.number,
+                              onChanged: (v) => setState(() => _items[index]['selling_price'] = double.tryParse(v) ?? 0.0),
+                            )),
+                          ],
+                        ),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Text('Batch: '),
+                            SizedBox(width: 100, child: TextFormField(
+                              initialValue: item['batch_number'].toString(),
+                              onChanged: (v) => setState(() => _items[index]['batch_number'] = v),
+                            )),
+                          ],
+                        ),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Text('Exp: '),
+                            SizedBox(width: 100, child: TextFormField(
+                              initialValue: item['expiry_date'].toString(),
+                              decoration: const InputDecoration(hintText: 'YYYY-MM-DD'),
+                              onChanged: (v) => setState(() => _items[index]['expiry_date'] = v),
+                            )),
+                          ],
+                        ),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Text('GST %: '),
+                            SizedBox(width: 50, child: TextFormField(
+                              initialValue: item['gst'].toString(),
+                              keyboardType: TextInputType.number,
+                              onChanged: (v) => setState(() => _items[index]['gst'] = double.tryParse(v) ?? 0.0),
+                            )),
+                          ],
+                        ),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Text('HSN: '),
+                            SizedBox(width: 80, child: TextFormField(
+                              initialValue: item['hsn_code'].toString(),
+                              onChanged: (v) => setState(() => _items[index]['hsn_code'] = v),
+                            )),
+                          ],
+                        ),
+                        racks.when(
+                          data: (rList) => Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Text('Rack: '),
+                              DropdownButton<String>(
+                                value: item['rack_id'],
+                                hint: const Text('Select'),
+                                items: rList.map((r) => DropdownMenuItem(value: r.id, child: Text(r.rackNumber))).toList(),
+                                onChanged: (v) => setState(() => _items[index]['rack_id'] = v),
+                              ),
+                            ],
+                          ),
+                          loading: () => const SizedBox.shrink(),
+                          error: (_, __) => const SizedBox.shrink(),
+                        ),
+                        categories.when(
+                          data: (cList) => Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Text('Category: '),
+                              DropdownButton<String>(
+                                value: item['category_id'],
+                                hint: const Text('Select'),
+                                items: cList.map((c) => DropdownMenuItem(value: c.id, child: Text(c.name))).toList(),
+                                onChanged: (v) => setState(() => _items[index]['category_id'] = v),
+                              ),
+                            ],
+                          ),
+                          loading: () => const SizedBox.shrink(),
+                          error: (_, __) => const SizedBox.shrink(),
+                        ),
+                      ],
+                    ),
+                    trailing: IconButton(
+                      icon: const Icon(Icons.delete, color: Colors.red),
+                      onPressed: () => setState(() => _items.removeAt(index)),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+          const Divider(),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(color: isDark ? Colors.grey.shade900 : Colors.grey.shade50, borderRadius: BorderRadius.circular(8)),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+                  const Text('Subtotal: ', style: TextStyle(fontSize: 14)),
+                  SizedBox(width: 100, child: Text('₹${_subtotal.toStringAsFixed(2)}', textAlign: TextAlign.right)),
+                ]),
+                const SizedBox(height: 4),
+                Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+                  const Text('Total GST: ', style: TextStyle(fontSize: 14)),
+                  SizedBox(width: 100, child: Text('+ ₹${_totalGst.toStringAsFixed(2)}', textAlign: TextAlign.right)),
+                ]),
+                const SizedBox(height: 4),
+                Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+                  const Text('Discount: ', style: TextStyle(fontSize: 14)),
+                  SizedBox(
+                    width: 100, 
+                    child: TextField(
+                      textAlign: TextAlign.right,
+                      decoration: const InputDecoration(isDense: true, prefixText: '₹'),
+                      keyboardType: TextInputType.number,
+                      onChanged: (v) => setState(() => _globalDiscount = double.tryParse(v) ?? 0.0),
+                    ),
+                  ),
+                ]),
+                const Divider(),
+                Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+                  const Text('Grand Total: ', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  SizedBox(width: 100, child: Text('₹${_grandTotal.toStringAsFixed(2)}', textAlign: TextAlign.right, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold))),
+                ]),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          Wrap(
+            spacing: 16,
+            runSpacing: 16,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text('Payment Status: ', style: TextStyle(fontWeight: FontWeight.bold)),
+                  const SizedBox(width: 8),
+                  DropdownButton<String>(
+                    value: _paymentStatus,
+                    items: const [
+                      DropdownMenuItem(value: 'UNPAID', child: Text('UNPAID')),
+                      DropdownMenuItem(value: 'PARTIAL', child: Text('PARTIAL')),
+                      DropdownMenuItem(value: 'PAID', child: Text('PAID (Deduct from Accounts)')),
+                    ],
+                    onChanged: (v) {
+                      setState(() {
+                        _paymentStatus = v!;
+                        if (_paymentStatus == 'PAID') _amountPaid = _grandTotal;
+                      });
+                    },
+                  ),
+                ],
+              ),
+              if (_paymentStatus == 'PARTIAL') Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text('Amount Paid: ', style: TextStyle(fontWeight: FontWeight.bold)),
+                  const SizedBox(width: 8),
+                  SizedBox(
+                    width: 100,
+                    child: TextField(
+                      decoration: const InputDecoration(isDense: true, prefixText: '₹'),
+                      keyboardType: TextInputType.number,
+                      onChanged: (v) => setState(() => _amountPaid = double.tryParse(v) ?? 0.0),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+
+    final actionsWrap = Wrap(
+      spacing: 12,
+      runSpacing: 12,
+      alignment: WrapAlignment.center,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: [
+        ElevatedButton.icon(
+          onPressed: _showAddMedicineDialog,
+          icon: const Icon(Icons.add, size: 18),
+          label: const Text('Add New Medicine'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF166534),
+            foregroundColor: Colors.white,
+            elevation: 0,
+          ),
+        ),
+        SizedBox(
+          width: 150,
+          child: TextField(
+            controller: _invoiceCtrl,
+            decoration: const InputDecoration(
+              hintText: 'Auto Gen',
+              labelText: 'Invoice Number',
+              border: OutlineInputBorder(),
+              isDense: true,
+              contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            ),
+          ),
+        ),
+        ElevatedButton(
+          onPressed: _isLoading ? null : _submit,
+          style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF166534)),
+          child: _isLoading 
+            ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)) 
+            : const Text('Confirm Purchase', style: TextStyle(color: Colors.white)),
+        ),
+      ],
+    );
+
+    if (!isDesktop) {
+      return DefaultTabController(
+        length: 2,
+        child: Scaffold(
+          backgroundColor: isDark ? Theme.of(context).scaffoldBackgroundColor : const Color(0xFFF8FAFC),
+          appBar: AppBar(
+            title: Text('Purchase from ${widget.distributor['name']}', style: const TextStyle(fontSize: 16)),
+            backgroundColor: isDark ? Theme.of(context).appBarTheme.backgroundColor : Colors.white,
+            foregroundColor: isDark ? Colors.white : Colors.black,
+            elevation: 1,
+            bottom: const TabBar(
+              labelColor: Color(0xFF166534),
+              indicatorColor: Color(0xFF166534),
+              tabs: [
+                Tab(icon: Icon(Icons.search), text: 'Search'),
+                Tab(icon: Icon(Icons.receipt), text: 'Bill'),
+              ],
+            ),
+          ),
+          body: TabBarView(
+            children: [
+              searchPanel,
+              billPanel,
+            ],
+          ),
+          bottomNavigationBar: Container(
+            decoration: BoxDecoration(
+              color: isDark ? Theme.of(context).cardColor : Colors.white,
+              boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 4, offset: Offset(0, -2))],
+            ),
+            child: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: actionsWrap,
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    // Desktop Layout
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: isDark ? Theme.of(context).scaffoldBackgroundColor : const Color(0xFFF8FAFC),
       appBar: AppBar(
         title: Text('Purchase from ${widget.distributor['name']}'),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
+        backgroundColor: isDark ? Theme.of(context).appBarTheme.backgroundColor : Colors.white,
+        foregroundColor: isDark ? Colors.white : Colors.black,
         elevation: 1,
         actions: [
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8),
-            child: ElevatedButton.icon(
-              onPressed: _showAddMedicineDialog,
-              icon: const Icon(Icons.add, size: 18),
-              label: const Text('Add New Medicine'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF166534),
-                foregroundColor: Colors.white,
-                elevation: 0,
-              ),
-            ),
-          ),
-          Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
-            child: SizedBox(
-              width: 200,
-              child: TextField(
-                controller: _invoiceCtrl,
-                decoration: const InputDecoration(
-                  hintText: 'Auto Generated',
-                  labelText: 'Invoice Number',
-                  border: OutlineInputBorder(),
-                  contentPadding: EdgeInsets.symmetric(horizontal: 12),
-                ),
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
-            child: ElevatedButton(
-              onPressed: _isLoading ? null : _submit,
-              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF166534)),
-              child: _isLoading 
-                ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)) 
-                : const Text('Confirm Purchase', style: TextStyle(color: Colors.white)),
-            ),
+            child: actionsWrap,
           )
         ],
       ),
       body: Row(
         children: [
-          // Left: Product Search
-          Expanded(
-            flex: 1,
-            child: Material(
-              color: Colors.white,
-              child: Container(
-                padding: const EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          controller: _searchCtrl,
-                          decoration: const InputDecoration(
-                            hintText: 'Search Medicine',
-                            prefixIcon: Icon(Icons.search),
-                            border: OutlineInputBorder(),
-                          ),
-                          onChanged: (val) {
-                            if (_searchDebounce?.isActive ?? false) _searchDebounce!.cancel();
-                            _searchDebounce = Timer(const Duration(milliseconds: 500), () {
-                              ref.read(purchaseInventoryProvider.notifier).loadInventory(
-                                searchQuery: val,
-                                distributorId: _filterByDistributor ? widget.distributor['id'] : null,
-                              );
-                            });
-                            setState(() {}); // Still update local state for fast UI feedback
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      IconButton(
-                        onPressed: () {
-                          ref.read(purchaseInventoryProvider.notifier).loadInventory(
-                            searchQuery: _searchCtrl.text.isNotEmpty ? _searchCtrl.text : null,
-                            distributorId: _filterByDistributor ? widget.distributor['id'] : null,
-                          );
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Medicine list refreshed!'), duration: Duration(seconds: 1)),
-                          );
-                        },
-                        icon: const Icon(Icons.refresh),
-                        tooltip: 'Refresh Medicines',
-                        style: IconButton.styleFrom(
-                          backgroundColor: Colors.green.shade50,
-                          foregroundColor: const Color(0xFF166534),
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 12),
-                  SwitchListTile(
-                    title: const Text('Show only items from this distributor', style: TextStyle(fontSize: 14)),
-                    value: _filterByDistributor,
-                    activeColor: const Color(0xFF166534),
-                    contentPadding: EdgeInsets.zero,
-                    onChanged: (val) {
-                      setState(() => _filterByDistributor = val);
-                      ref.read(purchaseInventoryProvider.notifier).loadInventory(
-                        searchQuery: _searchCtrl.text.isNotEmpty ? _searchCtrl.text : null,
-                        distributorId: val ? widget.distributor['id'] : null,
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 12),
-                  Expanded(
-                    child: inventory.when(
-                      data: (items) {
-                        final q = _searchCtrl.text.toLowerCase();
-                        final filtered = items.where((i) {
-                          final matchesSearch = i.name.toLowerCase().contains(q) || i.sku.toLowerCase().contains(q);
-                          
-                          final matchesDistributor = !_filterByDistributor || 
-                              i.distributorId == widget.distributor['id'] ||
-                              (i.distributor != null && widget.distributor['name'] != null && 
-                               i.distributor!.toLowerCase() == widget.distributor['name'].toString().toLowerCase());
-                               
-                          return matchesSearch && matchesDistributor;
-                        }).toList();
-                        
-                        if (filtered.isEmpty) {
-                          return const Center(child: Text('No items found', style: TextStyle(color: Colors.grey)));
-                        }
-                        
-                        return ListView.builder(
-                          itemCount: filtered.length,
-                          itemBuilder: (context, index) {
-                            final item = filtered[index];
-                            return ListTile(
-                              title: Text(item.name, style: const TextStyle(fontWeight: FontWeight.bold)),
-                              subtitle: Text('Stock: ${item.stockQuantity} | BP: ₹${item.buyingPrice}'),
-                              trailing: IconButton(
-                                icon: const Icon(Icons.add_circle, color: Color(0xFF166534)),
-                                onPressed: () => _addItem({
-                                  'id': item.id,
-                                  'name': item.name,
-                                  'buying_price': item.buyingPrice,
-                                  'unit_price': item.unitPrice,
-                                  'batch_number': item.batchNumber,
-                                  'expiry_date': item.expiryDate,
-                                  'hsn_code': item.hsnCode,
-                                  'gst': item.gst,
-                                  'rack_id': item.rackId,
-                                  'category_id': item.categoryId,
-                                }),
-                              ),
-                            );
-                          },
-                        );
-                      },
-                      loading: () => const Center(child: CircularProgressIndicator()),
-                      error: (err, stack) => Text('Error: $err'),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton(
-                      onPressed: () {
-                        ref.read(purchaseInventoryProvider.notifier).loadMore();
-                      },
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: const Color(0xFF166534),
-                        side: const BorderSide(color: Color(0xFF166534)),
-                      ),
-                      child: const Text('Load More Medicines'),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            ),
-          ),
+          Expanded(flex: 1, child: searchPanel),
           const VerticalDivider(width: 1, color: Color(0xFFE2E8F0)),
-          // Right: Bill Details
-          Expanded(
-            flex: 2,
-            child: Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text('Incoming Stock', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 16),
-                  Expanded(
-                    child: Card(
-                      child: ListView.builder(
-                        itemCount: _items.length,
-                        itemBuilder: (context, index) {
-                          final item = _items[index];
-                          return ListTile(
-                            title: Text(item['name'], style: const TextStyle(fontWeight: FontWeight.bold)),
-                            subtitle: Wrap(
-                              spacing: 16,
-                              runSpacing: 8,
-                              children: [
-                                Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    const Text('Qty: '),
-                                    SizedBox(
-                                      width: 60,
-                                      child: TextFormField(
-                                        initialValue: item['quantity'].toString(),
-                                        keyboardType: TextInputType.number,
-                                        onChanged: (v) {
-                                          setState(() {
-                                            _items[index]['quantity'] = int.tryParse(v) ?? 1;
-                                          });
-                                        },
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    const Text('BP: ₹'),
-                                    SizedBox(
-                                      width: 80,
-                                      child: TextFormField(
-                                        initialValue: item['buying_price'].toString(),
-                                        keyboardType: TextInputType.number,
-                                        onChanged: (v) {
-                                          setState(() {
-                                            _items[index]['buying_price'] = double.tryParse(v) ?? 0.0;
-                                          });
-                                        },
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    const Text('SP: ₹'),
-                                    SizedBox(
-                                      width: 80,
-                                      child: TextFormField(
-                                        initialValue: item['selling_price'].toString(),
-                                        keyboardType: TextInputType.number,
-                                        onChanged: (v) {
-                                          setState(() {
-                                            _items[index]['selling_price'] = double.tryParse(v) ?? 0.0;
-                                          });
-                                        },
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    const Text('Batch: '),
-                                    SizedBox(
-                                      width: 100,
-                                      child: TextFormField(
-                                        initialValue: item['batch_number'].toString(),
-                                        onChanged: (v) {
-                                          setState(() {
-                                            _items[index]['batch_number'] = v;
-                                          });
-                                        },
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    const Text('Exp: '),
-                                    SizedBox(
-                                      width: 100,
-                                      child: TextFormField(
-                                        initialValue: item['expiry_date'].toString(),
-                                        decoration: const InputDecoration(hintText: 'YYYY-MM-DD'),
-                                        onChanged: (v) {
-                                          setState(() {
-                                            _items[index]['expiry_date'] = v;
-                                          });
-                                        },
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    const Text('GST %: '),
-                                    SizedBox(
-                                      width: 50,
-                                      child: TextFormField(
-                                        initialValue: item['gst'].toString(),
-                                        keyboardType: TextInputType.number,
-                                        onChanged: (v) {
-                                          setState(() {
-                                            _items[index]['gst'] = double.tryParse(v) ?? 0.0;
-                                          });
-                                        },
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    const Text('HSN: '),
-                                    SizedBox(
-                                      width: 80,
-                                      child: TextFormField(
-                                        initialValue: item['hsn_code'].toString(),
-                                        onChanged: (v) {
-                                          setState(() {
-                                            _items[index]['hsn_code'] = v;
-                                          });
-                                        },
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                racks.when(
-                                  data: (rList) => Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      const Text('Rack: '),
-                                      DropdownButton<String>(
-                                        value: item['rack_id'],
-                                        hint: const Text('Select'),
-                                        items: rList.map((r) => DropdownMenuItem(value: r.id, child: Text(r.rackNumber))).toList(),
-                                        onChanged: (v) => setState(() => _items[index]['rack_id'] = v),
-                                      ),
-                                    ],
-                                  ),
-                                  loading: () => const SizedBox.shrink(),
-                                  error: (_, __) => const SizedBox.shrink(),
-                                ),
-                                categories.when(
-                                  data: (cList) => Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      const Text('Category: '),
-                                      DropdownButton<String>(
-                                        value: item['category_id'],
-                                        hint: const Text('Select'),
-                                        items: cList.map((c) => DropdownMenuItem(value: c.id, child: Text(c.name))).toList(),
-                                        onChanged: (v) => setState(() => _items[index]['category_id'] = v),
-                                      ),
-                                    ],
-                                  ),
-                                  loading: () => const SizedBox.shrink(),
-                                  error: (_, __) => const SizedBox.shrink(),
-                                ),
-                              ],
-                            ),
-                            trailing: IconButton(
-                              icon: const Icon(Icons.delete, color: Colors.red),
-                              onPressed: () {
-                                setState(() {
-                                  _items.removeAt(index);
-                                });
-                              },
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                  ),
-                  const Divider(),
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(color: Colors.grey.shade50, borderRadius: BorderRadius.circular(8)),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-                          const Text('Subtotal: ', style: TextStyle(fontSize: 14)),
-                          SizedBox(width: 100, child: Text('₹${_subtotal.toStringAsFixed(2)}', textAlign: TextAlign.right)),
-                        ]),
-                        const SizedBox(height: 4),
-                        Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-                          const Text('Total GST: ', style: TextStyle(fontSize: 14)),
-                          SizedBox(width: 100, child: Text('+ ₹${_totalGst.toStringAsFixed(2)}', textAlign: TextAlign.right)),
-                        ]),
-                        const SizedBox(height: 4),
-                        Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-                          const Text('Discount: ', style: TextStyle(fontSize: 14)),
-                          SizedBox(
-                            width: 100, 
-                            child: TextField(
-                              textAlign: TextAlign.right,
-                              decoration: const InputDecoration(isDense: true, prefixText: '₹'),
-                              keyboardType: TextInputType.number,
-                              onChanged: (v) => setState(() => _globalDiscount = double.tryParse(v) ?? 0.0),
-                            ),
-                          ),
-                        ]),
-                        const Divider(),
-                        Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-                          const Text('Grand Total: ', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                          SizedBox(width: 100, child: Text('₹${_grandTotal.toStringAsFixed(2)}', textAlign: TextAlign.right, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold))),
-                        ]),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      const Text('Payment Status: ', style: TextStyle(fontWeight: FontWeight.bold)),
-                      const SizedBox(width: 8),
-                      DropdownButton<String>(
-                        value: _paymentStatus,
-                        items: const [
-                          DropdownMenuItem(value: 'UNPAID', child: Text('UNPAID')),
-                          DropdownMenuItem(value: 'PARTIAL', child: Text('PARTIAL')),
-                          DropdownMenuItem(value: 'PAID', child: Text('PAID (Deduct from Accounts)')),
-                        ],
-                        onChanged: (v) {
-                          setState(() {
-                            _paymentStatus = v!;
-                            if (_paymentStatus == 'PAID') _amountPaid = _grandTotal;
-                          });
-                        },
-                      ),
-                      if (_paymentStatus == 'PARTIAL') ...[
-                        const SizedBox(width: 16),
-                        const Text('Amount Paid: ', style: TextStyle(fontWeight: FontWeight.bold)),
-                        const SizedBox(width: 8),
-                        SizedBox(
-                          width: 100,
-                          child: TextField(
-                            decoration: const InputDecoration(isDense: true, prefixText: '₹'),
-                            keyboardType: TextInputType.number,
-                            onChanged: (v) => setState(() => _amountPaid = double.tryParse(v) ?? 0.0),
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          )
+          Expanded(flex: 2, child: billPanel),
         ],
       ),
     );

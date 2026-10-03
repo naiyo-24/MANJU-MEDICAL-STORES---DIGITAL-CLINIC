@@ -59,9 +59,11 @@ class _RoleLoginScreenState extends State<RoleLoginScreen> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(ctx),
-                  child: const Text(
+                  child: Text(
                     'OK',
-                    style: TextStyle(color: Color(0xFF1E293B)),
+                    style: TextStyle(
+                      color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
+                    ),
                   ),
                 ),
               ],
