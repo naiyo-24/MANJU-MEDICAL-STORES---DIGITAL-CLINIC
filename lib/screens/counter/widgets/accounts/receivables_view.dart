@@ -35,6 +35,7 @@ class _ReceivablesViewState extends State<ReceivablesView> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     if (_isLoading) {
       return const Center(
         child: Padding(
@@ -48,21 +49,21 @@ class _ReceivablesViewState extends State<ReceivablesView> {
       children: [
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          color: const Color(0xFFF8FAFC),
+          color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
           child: Row(
-            children: const [
+            children: [
               Expanded(
                 flex: 3,
                 child: Text(
                   'Customer Name',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                  style: TextStyle(color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B), fontWeight: FontWeight.bold, fontSize: 12),
                 ),
               ),
               Expanded(
                 flex: 2,
                 child: Text(
                   'Amount Owed',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                  style: TextStyle(color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B), fontWeight: FontWeight.bold, fontSize: 12),
                   textAlign: TextAlign.right,
                 ),
               ),
@@ -70,7 +71,7 @@ class _ReceivablesViewState extends State<ReceivablesView> {
                 width: 120,
                 child: Text(
                   'Action',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                  style: TextStyle(color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B), fontWeight: FontWeight.bold, fontSize: 12),
                   textAlign: TextAlign.center,
                 ),
               ),
@@ -78,12 +79,12 @@ class _ReceivablesViewState extends State<ReceivablesView> {
           ),
         ),
         _receivables.isEmpty
-            ? const Padding(
-                padding: EdgeInsets.all(32),
+            ? Padding(
+                padding: const EdgeInsets.all(32),
                 child: Center(
                   child: Text(
                     'No outstanding receivables!',
-                    style: TextStyle(color: Color(0xFF64748B)),
+                    style: TextStyle(color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                   ),
                 ),
               )
@@ -92,7 +93,7 @@ class _ReceivablesViewState extends State<ReceivablesView> {
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: _receivables.length,
                 separatorBuilder: (context, index) =>
-                    const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                    Divider(height: 1, color: isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9)),
                 itemBuilder: (context, index) {
                   final item = _receivables[index];
                   return Padding(
@@ -126,7 +127,8 @@ class _ReceivablesViewState extends State<ReceivablesView> {
                               const SizedBox(width: 12),
                               Text(
                                 item['entity_name']?.toString() ?? 'Unknown',
-                                style: const TextStyle(
+                                style: TextStyle(
+                                  color: isDark ? Colors.white : const Color(0xFF1E293B),
                                   fontWeight: FontWeight.w600,
                                   fontSize: 14,
                                 ),
@@ -188,26 +190,26 @@ class _ReceivablesViewState extends State<ReceivablesView> {
               ),
         Container(
           padding: const EdgeInsets.all(16),
-          decoration: const BoxDecoration(
-            color: Color(0xFFF8FAFC),
-            border: Border(top: BorderSide(color: Color(0xFFE2E8F0))),
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+            border: Border(top: BorderSide(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0))),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              const Text(
+              Text(
                 'Total Receivables: ',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF64748B),
+                  color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                 ),
               ),
               Text(
                 _fmt(_totalReceivables),
-                style: const TextStyle(
+                style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 18,
-                  color: Color(0xFF1E293B),
+                  color: isDark ? Colors.white : const Color(0xFF1E293B),
                 ),
               ),
             ],
