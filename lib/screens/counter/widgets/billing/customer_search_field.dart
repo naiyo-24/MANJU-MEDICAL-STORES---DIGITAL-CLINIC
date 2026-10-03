@@ -21,12 +21,12 @@ class CustomerSearchField extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Search Customer',
           style: TextStyle(
             fontSize: 11,
             fontWeight: FontWeight.bold,
-            color: Color(0xFF64748B),
+            color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
           ),
         ),
         const SizedBox(height: 4),

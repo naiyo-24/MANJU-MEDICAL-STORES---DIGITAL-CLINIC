@@ -170,11 +170,11 @@ Widget _buildCompactField(
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
+                      Text(
                         'Doctor Name',
                         style: TextStyle(
                           fontSize: 10,
-                          color: Color(0xFF64748B),
+                          color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                           fontWeight: FontWeight.bold,
                         ),
                       ),

@@ -306,10 +306,10 @@ class BillingSummaryWidget extends StatelessWidget {
             const SizedBox(height: 16),
             Row(
               children: [
-                const Text(
+                Text(
                   'Payment:',
                   style: TextStyle(
-                    color: Color(0xFF64748B),
+                    color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
                   ),
@@ -364,10 +364,10 @@ class BillingSummaryWidget extends StatelessWidget {
             const SizedBox(height: 16),
             Row(
               children: [
-                const Text(
+                Text(
                   'Format:',
                   style: TextStyle(
-                    color: Color(0xFF64748B),
+                    color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
                   ),
