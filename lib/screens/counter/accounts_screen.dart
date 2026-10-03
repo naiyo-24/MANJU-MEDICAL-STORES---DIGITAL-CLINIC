@@ -91,7 +91,9 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
     showDialog(
       context: context,
       builder: (context) => StatefulBuilder(
-        builder: (context, setStateDialog) => Dialog(
+        builder: (context, setStateDialog) {
+          final isDark = Theme.of(context).brightness == Brightness.dark;
+          return Dialog(
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),
@@ -107,22 +109,22 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                     Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFE0F2FE),
+                        color: isDark ? const Color(0xFF0F172A) : const Color(0xFFE0F2FE),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.receipt_long,
-                        color: Color(0xFF0369A1),
+                        color: isDark ? const Color(0xFF38BDF8) : const Color(0xFF0369A1),
                         size: 24,
                       ),
                     ),
                     const SizedBox(width: 16),
-                    const Text(
+                    Text(
                       'Add Transaction',
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF1E293B),
+                        color: isDark ? Colors.white : const Color(0xFF1E293B),
                       ),
                     ),
                   ],
@@ -226,8 +228,9 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
               ],
             ),
           ),
-        ),
-      ),
+        );
+      },
+    ),
     );
   }
 
@@ -248,8 +251,10 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
         ? _transactions.sublist(startIdx, endIdx)
         : <TransactionModel>[];
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
-      color: const Color(0xFFF8FAFC),
+      color: Theme.of(context).colorScheme.surface,
       padding: const EdgeInsets.all(24.0),
       child: LayoutBuilder(
         builder: (context, constraints) {
@@ -283,12 +288,12 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text(
+                              Text(
                                 'Accounts',
                                 style: TextStyle(
                                   fontSize: 24,
                                   fontWeight: FontWeight.bold,
-                                  color: Color(0xFF1E293B),
+                                  color: isDark ? Colors.white : const Color(0xFF1E293B),
                                 ),
                               ),
                               const SizedBox(height: 4),
@@ -296,7 +301,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                                 'Manage income, expenses, payments and financial reports',
                                 style: TextStyle(
                                   fontSize: 14,
-                                  color: Colors.grey[600],
+                                  color: isDark ? const Color(0xFF94A3B8) : Colors.grey[600],
                                 ),
                               ),
                             ],
