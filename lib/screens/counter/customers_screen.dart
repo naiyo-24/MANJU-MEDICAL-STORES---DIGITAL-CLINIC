@@ -1058,6 +1058,32 @@ Icon(
                 ),
                 Row(
                   children: [
+                    PopupMenuButton<String>(
+                      tooltip: 'Export Customer Data',
+                      icon: const Icon(Icons.download_outlined, size: 20, color: AppColors.primaryDark),
+                      onSelected: (String result) {
+                        _exportCustomerData(customer, result);
+                      },
+                      itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                        const PopupMenuItem<String>(
+                          value: 'All',
+                          child: Text('All Data'),
+                        ),
+                        const PopupMenuItem<String>(
+                          value: 'This Year',
+                          child: Text('This Year'),
+                        ),
+                        const PopupMenuItem<String>(
+                          value: 'This Month',
+                          child: Text('This Month'),
+                        ),
+                        const PopupMenuItem<String>(
+                          value: 'Today',
+                          child: Text('Today'),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(width: 16),
                     InkWell(
                       onTap: () => showEditCustomerDialog(
                         context,
@@ -1501,30 +1527,6 @@ padding: EdgeInsets.all(32.0),
                   ),
                 ),
 
-          // View All Button
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: OutlinedButton.icon(
-              onPressed: () {
-                context.go('/counter/history');
-              },
-              icon: Icon(
-                Icons.history,
-                size: 16,
-                color: (Theme.of(context).brightness == Brightness.dark ? Colors.white : AppColors.textPrimary),
-              ),
-              label: Text(
-                'View All Purchases',
-                style: TextStyle(color: (Theme.of(context).brightness == Brightness.dark ? Colors.white : AppColors.textPrimary)),
-              ),
-              style: OutlinedButton.styleFrom(
-                minimumSize: const Size(double.infinity, 40),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-            ),
-          ),
         ],
       ),
     );
@@ -1612,5 +1614,87 @@ Icon(
         ],
       ),
     );
+  }
+
+  Future<void> _exportCustomerData(Map<String, dynamic> customer, String filterType) async {
+    final history = (customer['history'] as List?)?.cast<Map<String, dynamic>>() ?? [];
+    
+    final now = DateTime.now();
+    List<Map<String, dynamic>> filtered = history.where((h) {
+      String dateStrRaw = h['date'].toString();
+      if (!dateStrRaw.endsWith('Z')) {
+        dateStrRaw += 'Z';
+      }
+      final date = DateTime.tryParse(dateStrRaw)?.toLocal();
+      if (date == null) return false;
+      
+      if (filterType == 'This Year') {
+        return date.year == now.year;
+      } else if (filterType == 'This Month') {
+        return date.year == now.year && date.month == now.month;
+      } else if (filterType == 'Today') {
+        return date.year == now.year && date.month == now.month && date.day == now.day;
+      }
+      return true; // 'All'
+    }).toList();
+
+    if (filtered.isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No records found for the selected period.')),
+        );
+      }
+      return;
+    }
+
+    final exportData = filtered.map((h) {
+      String dateStrRaw = h['date'].toString();
+      if (!dateStrRaw.endsWith('Z')) dateStrRaw += 'Z';
+      final date = DateTime.tryParse(dateStrRaw)?.toLocal();
+      final dateStr = date != null ? DateFormat('dd MMM yyyy').format(date) : h['date'].toString();
+      final timeStr = date != null ? DateFormat('hh:mm a').format(date) : '';
+      
+      return {
+        'Customer Name': customer['name'],
+        'Phone': customer['phone'],
+        'Date': dateStr,
+        'Time': timeStr,
+        'Bill No': h['bill_no'],
+        'Amount': h['amount'],
+      };
+    }).toList();
+
+    if (mounted) {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Export Format'),
+          content: const Text('Choose the format to export the data.'),
+          actions: [
+            TextButton(
+              onPressed: () async {
+                Navigator.pop(context);
+                await ExportService.exportToCSV(exportData, '${customer['name']}_export');
+              },
+              child: const Text('CSV'),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.pop(context);
+                await ExportService.exportToExcel(exportData, '${customer['name']}_export');
+              },
+              child: const Text('Excel'),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.pop(context);
+                await ExportService.exportToPDF(exportData, '${customer['name']}_export');
+              },
+              child: const Text('PDF'),
+            ),
+          ],
+        ),
+      );
+    }
   }
 }

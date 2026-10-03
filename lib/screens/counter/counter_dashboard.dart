@@ -139,15 +139,15 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
         : const Color(0xFF166534);
     final iconColorUnselected = isDark
         ? const Color(0xFF94A3B8)
-        : const Color(0xFF64748B);
+        : const Color(0xFF1E293B);
     final textColorSelected = isDark
         ? const Color(0xFF4ADE80)
         : const Color(0xFF166534);
     final textColorUnselected = isDark
         ? const Color(0xFFCBD5E1)
-        : const Color(0xFF64748B);
+        : const Color(0xFF1E293B);
     final shortcutColor = isDark
-        ? const Color(0xFF64748B)
+        ? const Color(0xFF1E293B)
         : const Color(0xFF94A3B8);
     final shortcutColorSelected = isDark
         ? const Color(0xFF4ADE80).withValues(alpha: 0.7)
@@ -303,7 +303,7 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
   Widget build(BuildContext context) {
     bool isDesktop = Responsive.isDesktop(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final scaffoldBg = isDark ? const Color(0xFF0F172A) : Colors.white;
+    final scaffoldBg = isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC);
 
     return PopScope(
       canPop: false,
@@ -363,7 +363,7 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
           style: TextStyle(
             fontSize: 11,
             fontWeight: FontWeight.w600,
-            color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+            color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF1E293B),
           ),
         ),
       ],
@@ -428,7 +428,7 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
                   const Icon(
                     Icons.keyboard,
                     size: 16,
-                    color: Color(0xFF64748B),
+                    color: Color(0xFF1E293B),
                   ),
                   _buildShortcutChip('F1', 'Billing'),
                   _buildShortcutChip('F2', 'Inventory'),
@@ -530,7 +530,7 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
                               Text(
                                 _formatTime(_currentTime),
                                 style: TextStyle(
-                                  color: const Color(0xFF64748B),
+                                  color: const Color(0xFF1E293B),
                                   fontSize: isDesktop ? 12 : 10,
                                 ),
                               ),
@@ -596,7 +596,7 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
                             child: Icon(
                               Icons.person,
                               size: 18,
-                              color: Color(0xFF64748B),
+                              color: Color(0xFF1E293B),
                             ),
                           ),
                           if (isDesktop) ...[
@@ -618,7 +618,7 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
                                   'Counter',
                                   style: TextStyle(
                                     fontSize: 10,
-                                    color: Color(0xFF64748B),
+                                    color: Color(0xFF1E293B),
                                   ),
                                 ),
                               ],
@@ -626,7 +626,7 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
                             const SizedBox(width: 8),
                             const Icon(
                               Icons.keyboard_arrow_down,
-                              color: Color(0xFF64748B),
+                              color: Color(0xFF1E293B),
                               size: 16,
                             ),
                           ],
@@ -656,7 +656,7 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
     final textColor = isDark ? Colors.white : const Color(0xFF1E293B);
     final subtitleColor = isDark
         ? const Color(0xFF94A3B8)
-        : const Color(0xFF64748B);
+        : const Color(0xFF1E293B);
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
