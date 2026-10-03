@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../widgets/custom_pagination.dart';
 import 'package:intl/intl.dart';
@@ -52,6 +53,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
   String _selectedCategory = 'All Categories';
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
+  Timer? _debounce;
 
   int _currentPage = 1;
   final int _itemsPerPage = 10;
@@ -66,6 +68,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
 
   @override
   void dispose() {
+    _debounce?.cancel();
     _searchController.dispose();
     super.dispose();
   }
@@ -465,7 +468,12 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                       ),
                     ),
 
-                    if (_activeTab == 0) ...[
+                    IndexedStack(
+                      index: _activeTab,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
                       // Filters
                       Padding(
                         padding: const EdgeInsets.all(16.0),
@@ -539,8 +547,11 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                                     border: InputBorder.none,
                                   ),
                                   onChanged: (value) {
-                                    _searchQuery = value;
-                                    _loadTransactions();
+                                    if (_debounce?.isActive ?? false) _debounce!.cancel();
+                                    _debounce = Timer(const Duration(milliseconds: 500), () {
+                                      _searchQuery = value;
+                                      _loadTransactions();
+                                    });
                                   },
                                 ),
                               ),
@@ -1052,11 +1063,12 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                             ],
                           ),
                         ),
-                    ] else if (_activeTab == 1) ...[
-                      const ReceivablesView(),
-                    ] else if (_activeTab == 2) ...[
-                      const PayablesView(),
-                    ],
+                          ],
+                        ),
+                        const ReceivablesView(),
+                        const PayablesView(),
+                      ],
+                    ),
                   ],
                 ),
               ),

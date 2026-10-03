@@ -8,10 +8,13 @@ class ReceivablesView extends StatefulWidget {
   State<ReceivablesView> createState() => _ReceivablesViewState();
 }
 
-class _ReceivablesViewState extends State<ReceivablesView> {
+class _ReceivablesViewState extends State<ReceivablesView> with AutomaticKeepAliveClientMixin {
   bool _isLoading = true;
   List<dynamic> _receivables = [];
   double _totalReceivables = 0.0;
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
@@ -35,6 +38,7 @@ class _ReceivablesViewState extends State<ReceivablesView> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     if (_isLoading) {
       return const Center(
