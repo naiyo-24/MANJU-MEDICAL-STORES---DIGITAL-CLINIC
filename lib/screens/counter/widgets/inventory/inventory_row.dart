@@ -30,9 +30,10 @@ class InventoryRowLeftWidget extends StatelessWidget {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: const Color(0xFFF1F5F9),
+                color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[800] : const Color(0xFFF1F5F9),
                 borderRadius: BorderRadius.circular(8),
-                image: (medicine.imageUrl != null && medicine.imageUrl!.isNotEmpty)
+                image:
+                    (medicine.imageUrl != null && medicine.imageUrl!.isNotEmpty)
                     ? DecorationImage(
                         image: NetworkImage(
                           '${ApiConstants.baseUrl}${medicine.imageUrl}',
@@ -57,9 +58,9 @@ class InventoryRowLeftWidget extends StatelessWidget {
                 children: [
                   Text(
                     medicine.name,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF1E293B),
+                      color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
                       fontSize: 14,
                     ),
                     maxLines: 2,
@@ -70,8 +71,8 @@ class InventoryRowLeftWidget extends StatelessWidget {
                     medicine.manufacturer.isNotEmpty
                         ? medicine.manufacturer
                         : 'Unknown',
-                    style: const TextStyle(
-                      color: Color(0xFF64748B),
+                    style: TextStyle(
+                      color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B),
                       fontSize: 10,
                     ),
                     maxLines: 1,
@@ -123,50 +124,47 @@ class InventoryRowRightWidget extends StatelessWidget {
         padding: EdgeInsets.symmetric(horizontal: isDesktopWidth ? 24 : 8),
         child: Row(
           children: [
-            SizedBox(
-              width: 120,
+            Expanded(
+              flex: 120,
               child: Text(
                 categoryName,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  color: Color(0xFF1E293B),
-                  fontSize: 12,
-                ),
+                style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B), fontSize: 12),
               ),
             ),
-            SizedBox(
-              width: 120,
+            Expanded(
+              flex: 120,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
                     medicine.createdAt != null
-                        ? DateFormat(
-                            'MMM dd, yyyy',
-                          ).format(DateTime.parse(medicine.createdAt!).toLocal())
+                        ? DateFormat('MMM dd, yyyy').format(
+                            DateTime.parse(medicine.createdAt!).toLocal(),
+                          )
                         : 'N/A',
-                    style: const TextStyle(
-                      color: Color(0xFF1E293B),
+                    style: TextStyle(
+                      color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
                       fontSize: 12,
                     ),
                   ),
                   if (medicine.updatedAt != null)
                     Text(
                       'Updated: ${DateFormat('MMM dd, yyyy').format(DateTime.parse(medicine.updatedAt!).toLocal())}',
-                      style: const TextStyle(
-                        color: Color(0xFF64748B),
+                      style: TextStyle(
+                        color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B),
                         fontSize: 10,
                       ),
                     ),
                 ],
               ),
             ),
-            SizedBox(
-              width: 100,
+            Expanded(
+              flex: 100,
               child: Text(
-                medicine.looseStock > 0 
+                medicine.looseStock > 0
                     ? '${medicine.stockQuantity} Pk, ${medicine.looseStock} Pc'
                     : medicine.stockQuantity.toString(),
                 maxLines: 1,
@@ -185,67 +183,64 @@ class InventoryRowRightWidget extends StatelessWidget {
                 ),
               ),
             ),
-            SizedBox(
-              width: 80,
+            Expanded(
+              flex: 80,
               child: Text(
                 rackName,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(color: Color(0xFF64748B), fontSize: 12),
+                style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B), fontSize: 12),
               ),
             ),
-            SizedBox(
-              width: 100,
+            Expanded(
+              flex: 100,
               child: Text(
                 '₹${medicine.buyingPrice?.toStringAsFixed(2) ?? '0.00'}',
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  color: Color(0xFF64748B),
-                  fontSize: 12,
-                ),
+                style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B), fontSize: 12),
               ),
             ),
-            SizedBox(
-              width: 100,
+            Expanded(
+              flex: 100,
               child: Text(
                 '₹${medicine.unitPrice.toStringAsFixed(2)}',
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  color: Color(0xFF1E293B),
+                style: TextStyle(
+                  color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
                 ),
               ),
             ),
-            SizedBox(
-              width: 80,
+            Expanded(
+              flex: 80,
               child: Text(
                 medicine.gst != null && medicine.gst! > 0
                     ? '${medicine.gst!.toStringAsFixed(1)}%'
                     : '-',
-                style: const TextStyle(color: Color(0xFF64748B), fontSize: 12),
+                style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B), fontSize: 12),
               ),
             ),
-            SizedBox(
-              width: 120,
+            Expanded(
+              flex: 120,
               child: Text(
                 medicine.distributor ?? '-',
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(color: Color(0xFF64748B), fontSize: 12),
+                style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B), fontSize: 12),
               ),
             ),
-            SizedBox(
-              width: 100,
+            Expanded(
+              flex: 100,
               child: Text(
                 medicine.expiryDate,
-                style: const TextStyle(color: Color(0xFF64748B), fontSize: 12),
+                style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B), fontSize: 12),
               ),
             ),
-            SizedBox(
-              width: 120,
+            Expanded(
+              flex: 120,
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: StatusBadge(status: status),

@@ -40,12 +40,12 @@ class BillingCartTable extends StatelessWidget {
                 children: [
                   // Bill Table Header
                   Container(
-                    color: const Color(0xFFF8FAFC),
+                    color: Theme.of(context).scaffoldBackgroundColor,
                     padding: const EdgeInsets.symmetric(
                       horizontal: 16,
                       vertical: 12,
                     ),
-                    child: const Row(
+                    child: Row(
                       children: [
                         SizedBox(
                           width: 20,
@@ -53,7 +53,7 @@ class BillingCartTable extends StatelessWidget {
                             '#',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFF475569),
+                              color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[300] : const Color(0xFF475569),
                               fontSize: 10,
                             ),
                           ),
@@ -64,7 +64,7 @@ class BillingCartTable extends StatelessWidget {
                             'Item Name',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFF475569),
+                              color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[300] : const Color(0xFF475569),
                               fontSize: 10,
                             ),
                           ),
@@ -75,7 +75,7 @@ class BillingCartTable extends StatelessWidget {
                             'Qty',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFF475569),
+                              color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[300] : const Color(0xFF475569),
                               fontSize: 10,
                             ),
                           ),
@@ -86,7 +86,7 @@ class BillingCartTable extends StatelessWidget {
                             'Disc (%)',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFF475569),
+                              color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[300] : const Color(0xFF475569),
                               fontSize: 10,
                             ),
                           ),
@@ -97,7 +97,7 @@ class BillingCartTable extends StatelessWidget {
                             'Price (₹)',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFF475569),
+                              color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[300] : const Color(0xFF475569),
                               fontSize: 10,
                             ),
                           ),
@@ -108,7 +108,7 @@ class BillingCartTable extends StatelessWidget {
                             'GST (%)',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFF475569),
+                              color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[300] : const Color(0xFF475569),
                               fontSize: 10,
                             ),
                           ),
@@ -119,7 +119,7 @@ class BillingCartTable extends StatelessWidget {
                             'Total (₹)',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFF475569),
+                              color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[300] : const Color(0xFF475569),
                               fontSize: 10,
                             ),
                           ),
@@ -130,7 +130,7 @@ class BillingCartTable extends StatelessWidget {
                             'Action',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFF475569),
+                              color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[300] : const Color(0xFF475569),
                               fontSize: 10,
                             ),
                           ),
@@ -155,9 +155,9 @@ class BillingCartTable extends StatelessWidget {
                           physics: const NeverScrollableScrollPhysics(),
                           itemCount: billingState.currentBill.length,
                           separatorBuilder: (context, index) =>
-                              const Divider(
+                              Divider(
                                 height: 1,
-                                color: Color(0xFFE2E8F0),
+                                color: Theme.of(context).dividerColor,
                               ),
                           itemBuilder: (context, index) {
                             final item = billingState.currentBill[index];
@@ -172,8 +172,8 @@ class BillingCartTable extends StatelessWidget {
                                     width: 20,
                                     child: Text(
                                       '${index + 1}',
-                                      style: const TextStyle(
-                                        color: Color(0xFF64748B),
+                                      style: TextStyle(
+                                        color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B),
                                         fontSize: 12,
                                       ),
                                     ),
@@ -186,16 +186,16 @@ class BillingCartTable extends StatelessWidget {
                                       children: [
                                         Text(
                                           item['name'].toString().split(' - Item')[0],
-                                          style: const TextStyle(
+                                          style: TextStyle(
                                             fontWeight: FontWeight.bold,
-                                            color: Color(0xFF1E293B),
+                                            color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
                                             fontSize: 11,
                                           ),
                                         ),
                                         Text(
                                           item['brand'],
-                                          style: const TextStyle(
-                                            color: Color(0xFF64748B),
+                                          style: TextStyle(
+                                            color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B),
                                             fontSize: 9,
                                           ),
                                         ),
@@ -215,11 +215,11 @@ class BillingCartTable extends StatelessWidget {
                                                       color: const Color(0xFF166534),
                                                     ),
                                                     const SizedBox(width: 4),
-                                                    const Text(
+                                                    Text(
                                                       'Loose',
                                                       style: TextStyle(
                                                         fontSize: 9,
-                                                        color: Color(0xFF1E293B),
+                                                        color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
                                                         fontWeight: FontWeight.w600,
                                                       ),
                                                     ),
@@ -237,7 +237,7 @@ class BillingCartTable extends StatelessWidget {
                                       child: Container(
                                         decoration: BoxDecoration(
                                           border: Border.all(
-                                            color: const Color(0xFFE2E8F0),
+                                            color: Theme.of(context).dividerColor,
                                           ),
                                           borderRadius:
                                               BorderRadius.circular(4),
@@ -316,8 +316,8 @@ class BillingCartTable extends StatelessWidget {
                                       ((item['is_loose'] == true) 
                                           ? (item['price'] / (item['pack_size'] ?? 1)) 
                                           : item['price']).toStringAsFixed(2),
-                                      style: const TextStyle(
-                                        color: Color(0xFF1E293B),
+                                      style: TextStyle(
+                                        color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
                                         fontSize: 11,
                                       ),
                                     ),
@@ -331,8 +331,8 @@ class BillingCartTable extends StatelessWidget {
                                               0
                                           ? '${((item['cgst'] as num? ?? 0.0) + (item['sgst'] as num? ?? 0.0)).toStringAsFixed(1)}%'
                                           : '-',
-                                      style: const TextStyle(
-                                        color: Color(0xFF64748B),
+                                      style: TextStyle(
+                                        color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B),
                                         fontSize: 11,
                                       ),
                                     ),
@@ -341,8 +341,8 @@ class BillingCartTable extends StatelessWidget {
                                     flex: 2,
                                     child: Text(
                                       item['total'].toStringAsFixed(2),
-                                      style: const TextStyle(
-                                        color: Color(0xFF1E293B),
+                                      style: TextStyle(
+                                        color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
                                         fontSize: 11,
                                       ),
                                     ),

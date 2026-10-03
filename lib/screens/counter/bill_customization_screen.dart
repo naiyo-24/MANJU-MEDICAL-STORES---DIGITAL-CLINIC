@@ -446,438 +446,502 @@ class _BillCustomizationScreenState
         padding: const EdgeInsets.all(24.0),
         child: Column(
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Bill Customization',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF1E293B),
-                  ),
-                ),
-                Row(
-                  children: [
-                    ElevatedButton.icon(
-                      onPressed: _isSaving ? null : _saveSettings,
-                      icon: _isSaving
-                          ? const SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CircularProgressIndicator(
-                                color: Colors.white,
-                                strokeWidth: 2,
-                              ),
-                            )
-                          : const Icon(Icons.save),
-                      label: const Text(
-                        'Save Settings',
-                        style: TextStyle(fontWeight: FontWeight.bold),
+            SizedBox(
+              width: double.infinity,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const Expanded(
+                    child: Text(
+                      'Bill Customization',
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF1E293B),
                       ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF22C55E),
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 24,
-                          vertical: 16,
-                        ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  ElevatedButton.icon(
+                    onPressed: _isSaving ? null : _saveSettings,
+                    icon: _isSaving
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
+                          )
+                        : const Icon(Icons.save),
+                    label: const Text(
+                      'Save',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF22C55E),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
                       ),
                     ),
-                  ],
-                ),
-              ],
+                  ),
+                ],
+              ),
             ),
             const SizedBox(height: 24),
             Expanded(
-              child: ResponsiveSplitView(
-                leftPane: Builder(
-                  builder: (context) {
-                    final contentChildren = <Widget>[
-                      Card(
-                        color: Colors.white,
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(24.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Shop Details',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF1E293B),
-                                ),
-                              ),
-                              const SizedBox(height: 16),
-                              _buildTextField('Shop Name', _shopNameCtrl),
-                              _buildTextField('Tagline', _taglineCtrl),
-                              _buildTextField(
-                                'Address',
-                                _addressCtrl,
-                                maxLines: 2,
-                              ),
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: _buildTextField(
-                                      'Phone',
-                                      _phoneCtrl,
-                                      maxLength: 10,
-                                      keyboardType: TextInputType.phone,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: _buildTextField(
-                                      'Landline',
-                                      _landlineCtrl,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: _buildTextField('Email', _emailCtrl),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: _buildTextField(
-                                      'GST Number',
-                                      _gstCtrl,
-                                      maxLength: 15,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
+              child: Builder(
+                builder: (context) {
+                  final isDesktop =
+                      Responsive.isDesktop(context) ||
+                      Responsive.isTablet(context);
+
+                  final contentChildren = <Widget>[
+                    Card(
+                      color: Colors.white,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      const SizedBox(height: 16),
-                      Card(
-                        color: Colors.white,
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(24.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Bank Details',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF1E293B),
-                                ),
-                              ),
-                              const SizedBox(height: 16),
-                              _buildTextField('Bank Name', _bankNameCtrl),
-                              _buildTextField('Branch Name', _branchNameCtrl),
-                              _buildTextField('A/C Holder Name', _acHolderCtrl),
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: _buildTextField(
-                                      'Account Number',
-                                      _acNumberCtrl,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: _buildTextField(
-                                      'IFSC Code',
-                                      _ifscCtrl,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      Card(
-                        color: Colors.white,
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(24.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Terms & Conditions (Footer)',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF1E293B),
-                                ),
-                              ),
-                              const SizedBox(height: 16),
-                              _buildTextField('Term 1', _terms1Ctrl),
-                              _buildTextField('Term 2', _terms2Ctrl),
-                              _buildTextField('Term 3', _terms3Ctrl),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      Card(
-                        color: Colors.white,
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(24.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Media (Logo & UPI QR)',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF1E293B),
-                                ),
-                              ),
-                              const SizedBox(height: 16),
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceAround,
-                                children: [
-                                  Column(
-                                    children: [
-                                      const Text(
-                                        'Shop Logo',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          color: Color(0xFF64748B),
-                                        ),
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Container(
-                                        width: 120,
-                                        height: 120,
-                                        decoration: BoxDecoration(
-                                          border: Border.all(
-                                            color: Colors.grey.shade300,
-                                          ),
-                                          borderRadius: BorderRadius.circular(
-                                            8,
-                                          ),
-                                        ),
-                                        child: _logoUrl != null
-                                            ? Image.network(
-                                                '${ApiConstants.baseUrl}$_logoUrl',
-                                                fit: BoxFit.contain,
-                                              )
-                                            : const Icon(
-                                                Icons.image,
-                                                size: 40,
-                                                color: Colors.grey,
-                                              ),
-                                      ),
-                                      const SizedBox(height: 8),
-                                      OutlinedButton.icon(
-                                        onPressed: () => _pickImage(true),
-                                        icon: const Icon(Icons.upload),
-                                        label: const Text('Upload'),
-                                      ),
-                                    ],
-                                  ),
-                                  Column(
-                                    children: [
-                                      const Text(
-                                        'UPI QR Code',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          color: Color(0xFF64748B),
-                                        ),
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Container(
-                                        width: 120,
-                                        height: 120,
-                                        decoration: BoxDecoration(
-                                          border: Border.all(
-                                            color: Colors.grey.shade300,
-                                          ),
-                                          borderRadius: BorderRadius.circular(
-                                            8,
-                                          ),
-                                        ),
-                                        child: _qrUrl != null
-                                            ? Image.network(
-                                                '${ApiConstants.baseUrl}$_qrUrl',
-                                                fit: BoxFit.contain,
-                                              )
-                                            : const Icon(
-                                                Icons.qr_code,
-                                                size: 40,
-                                                color: Colors.grey,
-                                              ),
-                                      ),
-                                      const SizedBox(height: 8),
-                                      OutlinedButton.icon(
-                                        onPressed: () => _pickImage(false),
-                                        icon: const Icon(Icons.upload),
-                                        label: const Text('Upload'),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ];
-                    
-                    final column = Column(children: contentChildren);
-                    return Responsive.isDesktop(context) || Responsive.isTablet(context)
-                        ? SingleChildScrollView(child: column)
-                        : column;
-                  },
-                ),
-                rightPane: Card(
-                  color: Colors.white,
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      children: [
-                        Wrap(
-                          alignment: WrapAlignment.spaceBetween,
-                          crossAxisAlignment: WrapCrossAlignment.center,
-                          runSpacing: 16,
-                          spacing: 16,
+                      child: Padding(
+                        padding: const EdgeInsets.all(24.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const Text(
-                              'Live Preview',
+                              'Shop Details',
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
                                 color: Color(0xFF1E293B),
                               ),
                             ),
-                            Wrap(
-                              spacing: 16,
-                              runSpacing: 16,
-                              crossAxisAlignment: WrapCrossAlignment.center,
+                            const SizedBox(height: 16),
+                            _buildTextField('Shop Name', _shopNameCtrl),
+                            _buildTextField('Tagline', _taglineCtrl),
+                            _buildTextField(
+                              'Address',
+                              _addressCtrl,
+                              maxLines: 2,
+                            ),
+                            Row(
                               children: [
-                                ToggleButtons(
-                                  isSelected: [
-                                    _previewFormat == 'Thermal',
-                                    _previewFormat == 'A4',
-                                    _previewFormat == 'A5',
-                                  ],
-                                  onPressed: (index) {
-                                    setState(() {
-                                      _previewFormat = index == 0
-                                          ? 'Thermal'
-                                          : (index == 1 ? 'A4' : 'A5');
-                                      _previewBytes =
-                                          null; // Clear old preview on format change
-                                    });
-                                  },
-                                  borderRadius: BorderRadius.circular(8),
-                                  color: const Color(0xFF64748B),
-                                  selectedColor: const Color(0xFF22C55E),
-                                  fillColor: const Color(0xFFF1F8F5),
-                                  children: const [
-                                    Padding(
-                                      padding: EdgeInsets.symmetric(
-                                        horizontal: 12,
-                                      ),
-                                      child: Text(
-                                        'Thermal',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 12,
-                                        ),
-                                      ),
-                                    ),
-                                    Padding(
-                                      padding: EdgeInsets.symmetric(
-                                        horizontal: 12,
-                                      ),
-                                      child: Text(
-                                        'A4',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 12,
-                                        ),
-                                      ),
-                                    ),
-                                    Padding(
-                                      padding: EdgeInsets.symmetric(
-                                        horizontal: 12,
-                                      ),
-                                      child: Text(
-                                        'A5',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 12,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
+                                Expanded(
+                                  child: _buildTextField(
+                                    'Phone',
+                                    _phoneCtrl,
+                                    maxLength: 10,
+                                    keyboardType: TextInputType.phone,
+                                  ),
                                 ),
-                                ElevatedButton.icon(
-                                  onPressed: _isGenerating
-                                      ? null
-                                      : _generatePreviewPdf,
-                                  icon: const Icon(Icons.refresh),
-                                  label: const Text('Generate Preview'),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: const Color(0xFF3B82F6),
-                                    foregroundColor: Colors.white,
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: _buildTextField(
+                                    'Landline',
+                                    _landlineCtrl,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: _buildTextField('Email', _emailCtrl),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: _buildTextField(
+                                    'GST Number',
+                                    _gstCtrl,
+                                    maxLength: 15,
                                   ),
                                 ),
                               ],
                             ),
                           ],
                         ),
-                        const SizedBox(height: 16),
-                        Expanded(
-                          child: _previewBytes == null
-                              ? const Center(
-                                  child: Text(
-                                    'Click "Generate Preview" to see the bill format',
-                                    style: TextStyle(
-                                      color: Colors.grey,
-                                      fontSize: 16,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Card(
+                      color: Colors.white,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(24.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Bank Details',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF1E293B),
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            _buildTextField('Bank Name', _bankNameCtrl),
+                            _buildTextField('Branch Name', _branchNameCtrl),
+                            _buildTextField('A/C Holder Name', _acHolderCtrl),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: _buildTextField(
+                                    'Account Number',
+                                    _acNumberCtrl,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: _buildTextField(
+                                    'IFSC Code',
+                                    _ifscCtrl,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Card(
+                      color: Colors.white,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(24.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Terms & Conditions (Footer)',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF1E293B),
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            _buildTextField('Term 1', _terms1Ctrl),
+                            _buildTextField('Term 2', _terms2Ctrl),
+                            _buildTextField('Term 3', _terms3Ctrl),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Card(
+                      color: Colors.white,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(24.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Media (Logo & UPI QR)',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF1E293B),
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceAround,
+                              children: [
+                                Column(
+                                  children: [
+                                    const Text(
+                                      'Shop Logo',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF64748B),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Container(
+                                      width: 120,
+                                      height: 120,
+                                      decoration: BoxDecoration(
+                                        border: Border.all(
+                                          color: Colors.grey.shade300,
+                                        ),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: _logoUrl != null
+                                          ? Image.network(
+                                              '${ApiConstants.baseUrl}$_logoUrl',
+                                              fit: BoxFit.contain,
+                                            )
+                                          : const Icon(
+                                              Icons.image,
+                                              size: 40,
+                                              color: Colors.grey,
+                                            ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    OutlinedButton.icon(
+                                      onPressed: () => _pickImage(true),
+                                      icon: const Icon(Icons.upload),
+                                      label: const Text('Upload'),
+                                    ),
+                                  ],
+                                ),
+                                Column(
+                                  children: [
+                                    const Text(
+                                      'UPI QR Code',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF64748B),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Container(
+                                      width: 120,
+                                      height: 120,
+                                      decoration: BoxDecoration(
+                                        border: Border.all(
+                                          color: Colors.grey.shade300,
+                                        ),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: _qrUrl != null
+                                          ? Image.network(
+                                              '${ApiConstants.baseUrl}$_qrUrl',
+                                              fit: BoxFit.contain,
+                                            )
+                                          : const Icon(
+                                              Icons.qr_code,
+                                              size: 40,
+                                              color: Colors.grey,
+                                            ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    OutlinedButton.icon(
+                                      onPressed: () => _pickImage(false),
+                                      icon: const Icon(Icons.upload),
+                                      label: const Text('Upload'),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ];
+
+                  final rightPane = Card(
+                    color: Colors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        children: [
+                          Wrap(
+                            alignment: WrapAlignment.spaceBetween,
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            runSpacing: 16,
+                            spacing: 16,
+                            children: [
+                              const Text(
+                                'Live Preview',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF1E293B),
+                                ),
+                              ),
+                              Wrap(
+                                spacing: 16,
+                                runSpacing: 16,
+                                crossAxisAlignment: WrapCrossAlignment.center,
+                                children: [
+                                  ToggleButtons(
+                                    isSelected: [
+                                      _previewFormat == 'Thermal',
+                                      _previewFormat == 'A4',
+                                      _previewFormat == 'A5',
+                                    ],
+                                    onPressed: (index) {
+                                      setState(() {
+                                        _previewFormat = index == 0
+                                            ? 'Thermal'
+                                            : (index == 1 ? 'A4' : 'A5');
+                                        _previewBytes =
+                                            null; // Clear old preview on format change
+                                      });
+                                    },
+                                    borderRadius: BorderRadius.circular(8),
+                                    color: const Color(0xFF64748B),
+                                    selectedColor: const Color(0xFF22C55E),
+                                    fillColor: const Color(0xFFF1F8F5),
+                                    children: const [
+                                      Padding(
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: 12,
+                                        ),
+                                        child: Text(
+                                          'Thermal',
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                      ),
+                                      Padding(
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: 12,
+                                        ),
+                                        child: Text(
+                                          'A4',
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                      ),
+                                      Padding(
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: 12,
+                                        ),
+                                        child: Text(
+                                          'A5',
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  ElevatedButton.icon(
+                                    onPressed: _isGenerating
+                                        ? null
+                                        : _generatePreviewPdf,
+                                    icon: const Icon(Icons.refresh),
+                                    label: const Text('Generate Preview'),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: const Color(0xFF3B82F6),
+                                      foregroundColor: Colors.white,
                                     ),
                                   ),
-                                )
-                              : PdfPreview(
-                                  build: (format) async => _previewBytes!,
-                                  canChangePageFormat: false,
-                                  canChangeOrientation: false,
-                                  canDebug: false,
-                                  allowPrinting: false,
-                                  allowSharing: false,
+                                ],
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          Expanded(
+                            child: _previewBytes == null
+                                ? const Center(
+                                    child: Text(
+                                      'Click "Generate Preview" to see the bill format',
+                                      style: TextStyle(
+                                        color: Colors.grey,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                  )
+                                : PdfPreview(
+                                    build: (format) async => _previewBytes!,
+                                    canChangePageFormat: false,
+                                    canChangeOrientation: false,
+                                    canDebug: false,
+                                    allowPrinting: false,
+                                    allowSharing: false,
+                                  ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+
+                  final leftPane = DefaultTabController(
+                    length: isDesktop ? 2 : 3,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: TabBar(
+                            isScrollable: !isDesktop,
+                            tabAlignment: !isDesktop ? TabAlignment.start : TabAlignment.fill,
+                            labelColor: const Color(0xFF166534),
+                            unselectedLabelColor: const Color(0xFF64748B),
+                            indicatorColor: const Color(0xFF22C55E),
+                            tabs: [
+                              const Tab(text: 'Shop Details'),
+                              const Tab(text: 'Bill Customization'),
+                              if (!isDesktop) const Tab(text: 'Live Preview'),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Expanded(
+                          child: TabBarView(
+                            children: [
+                              SingleChildScrollView(
+                                child: Column(
+                                  children: [
+                                    contentChildren[0], // Shop Details
+                                    contentChildren[1], // SizedBox
+                                    contentChildren[2], // Bank Details
+                                  ],
                                 ),
+                              ),
+                              SingleChildScrollView(
+                                child: Column(
+                                  children: [
+                                    contentChildren[4], // Terms & Conditions
+                                    contentChildren[5], // SizedBox
+                                    contentChildren[6], // Media
+                                  ],
+                                ),
+                              ),
+                              if (!isDesktop) rightPane,
+                            ],
+                          ),
                         ),
                       ],
                     ),
-                  ),
-                ),
+                  );
+
+                  if (isDesktop) {
+                    return Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(child: leftPane),
+                        const SizedBox(width: 24),
+                        Expanded(child: rightPane),
+                      ],
+                    );
+                  } else {
+                    return leftPane;
+                  }
+                },
               ),
             ),
           ],

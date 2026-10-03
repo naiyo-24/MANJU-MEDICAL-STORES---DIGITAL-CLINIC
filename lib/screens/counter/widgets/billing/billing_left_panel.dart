@@ -69,7 +69,7 @@ class _BillingLeftPanelState extends ConsumerState<BillingLeftPanel> {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           decoration: BoxDecoration(
-            color: isSelected ? const Color(0xFF22C55E) : Colors.white,
+            color: isSelected ? const Color(0xFF22C55E) : (Theme.of(context).brightness == Brightness.dark ? Colors.grey[800] : Colors.white),
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
               color: isSelected
@@ -80,7 +80,7 @@ class _BillingLeftPanelState extends ConsumerState<BillingLeftPanel> {
           child: Text(
             label,
             style: TextStyle(
-              color: isSelected ? Colors.white : const Color(0xFF64748B),
+              color: isSelected ? Colors.white : (Theme.of(context).brightness == Brightness.dark ? Colors.grey[300] : const Color(0xFF64748B)),
               fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
               fontSize: 12,
             ),
@@ -107,9 +107,9 @@ class _BillingLeftPanelState extends ConsumerState<BillingLeftPanel> {
 
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: Theme.of(context).dividerColor),
       ),
       child: Column(
         children: [
@@ -123,14 +123,14 @@ class _BillingLeftPanelState extends ConsumerState<BillingLeftPanel> {
                     height: 40,
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     decoration: BoxDecoration(
-                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                      border: Border.all(color: Theme.of(context).dividerColor),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Row(
                       children: [
-                        const Icon(
+                        Icon(
                           Icons.search,
-                          color: Color(0xFF64748B),
+                          color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B),
                           size: 18,
                         ),
                         const SizedBox(width: 8),
@@ -138,21 +138,21 @@ class _BillingLeftPanelState extends ConsumerState<BillingLeftPanel> {
                           child: TextField(
                             controller: widget.searchController,
                             onSubmitted: widget.onSearch,
-                            decoration: const InputDecoration(
+                            decoration: InputDecoration(
                               border: InputBorder.none,
                               hintText:
                                   'Search medicine by name, brand, barcode...',
                               hintStyle: TextStyle(
-                                color: Color(0xFF94A3B8),
+                                color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[500] : const Color(0xFF94A3B8),
                                 fontSize: 12,
                               ),
                               isDense: true,
                             ),
                           ),
                         ),
-                        const Icon(
+                        Icon(
                           Icons.qr_code_scanner,
-                          color: Color(0xFF64748B),
+                          color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B),
                           size: 18,
                         ),
                       ],
@@ -169,12 +169,12 @@ class _BillingLeftPanelState extends ConsumerState<BillingLeftPanel> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
+                Text(
                   'Available Medicines',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
-                    color: Color(0xFF1E293B),
+                    color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
                   ),
                 ),
                 InkWell(
@@ -216,21 +216,21 @@ class _BillingLeftPanelState extends ConsumerState<BillingLeftPanel> {
                     // FIXED LEFT COLUMN (Medicine Name)
                     Container(
                       width: widget.isDesktopWidth ? 200 : 120,
-                      decoration: const BoxDecoration(
-                        border: Border(right: BorderSide(color: Color(0xFFE2E8F0))),
+                      decoration: BoxDecoration(
+                        border: Border(right: BorderSide(color: Theme.of(context).dividerColor)),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           Container(
                             height: 40,
-                            color: const Color(0xFFF1F5F9),
+                            color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[800] : const Color(0xFFF1F5F9),
                             padding: EdgeInsets.symmetric(horizontal: widget.isDesktopWidth ? 16 : 8, vertical: 12),
-                            child: const Text(
+                            child: Text(
                               'Medicine Name',
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
-                                color: Color(0xFF475569),
+                                color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[300] : const Color(0xFF475569),
                                 fontSize: 12,
                               ),
                             ),
@@ -242,7 +242,7 @@ class _BillingLeftPanelState extends ConsumerState<BillingLeftPanel> {
                               shrinkWrap: !widget.hasEnoughHeight,
                               physics: widget.hasEnoughHeight ? const AlwaysScrollableScrollPhysics() : const NeverScrollableScrollPhysics(),
                               itemCount: widget.filteredMedicines.length + 1,
-                              separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFE2E8F0)),
+                              separatorBuilder: (context, index) => Divider(height: 1, color: Theme.of(context).dividerColor),
                               itemBuilder: (context, index) {
                                 if (index == widget.filteredMedicines.length) {
                                   return const SizedBox(height: 68); // Match the Load More button height
@@ -256,9 +256,7 @@ class _BillingLeftPanelState extends ConsumerState<BillingLeftPanel> {
                                     (item['name'] ?? '').toString().split(' - Item')[0],
                                     maxLines: 2,
                                     overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      color: Color(0xFF1E293B),
+                                    style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
                                       fontSize: 12,
                                     ),
                                   ),
@@ -281,19 +279,19 @@ class _BillingLeftPanelState extends ConsumerState<BillingLeftPanel> {
                             children: [
                               Container(
                                 height: 40,
-                                color: const Color(0xFFF1F5F9),
+                                color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[800] : const Color(0xFFF1F5F9),
                                 padding: EdgeInsets.symmetric(horizontal: widget.isDesktopWidth ? 16 : 8, vertical: 12),
-                                child: const Row(
+                                child: Row(
                                   children: [
-                                    Expanded(flex: 2, child: Text('Brand', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 12))),
-                                    Expanded(flex: 2, child: Text('SKU / Barcode', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 12))),
-                                    Expanded(flex: 2, child: Text('Batch No', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 12))),
-                                    Expanded(flex: 2, child: Text('Expiry', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 12))),
-                                    Expanded(flex: 2, child: Text('HSN Code', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 12))),
-                                    Expanded(flex: 2, child: Text('MRP', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 12))),
-                                    Expanded(flex: 2, child: Text('GST (%)', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 12))),
-                                    Expanded(flex: 2, child: Text('Stock', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 12))),
-                                    SizedBox(width: 80, child: Text('Action', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF475569), fontSize: 12))),
+                                    Expanded(flex: 2, child: Text('Brand', style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[300] : const Color(0xFF475569), fontSize: 12))),
+                                    Expanded(flex: 2, child: Text('SKU / Barcode', style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[300] : const Color(0xFF475569), fontSize: 12))),
+                                    Expanded(flex: 2, child: Text('Batch No', style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[300] : const Color(0xFF475569), fontSize: 12))),
+                                    Expanded(flex: 2, child: Text('Expiry', style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[300] : const Color(0xFF475569), fontSize: 12))),
+                                    Expanded(flex: 2, child: Text('HSN Code', style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[300] : const Color(0xFF475569), fontSize: 12))),
+                                    Expanded(flex: 2, child: Text('MRP', style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[300] : const Color(0xFF475569), fontSize: 12))),
+                                    Expanded(flex: 2, child: Text('GST (%)', style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[300] : const Color(0xFF475569), fontSize: 12))),
+                                    Expanded(flex: 2, child: Text('Stock', style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[300] : const Color(0xFF475569), fontSize: 12))),
+                                    SizedBox(width: 80, child: Text('Action', style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[300] : const Color(0xFF475569), fontSize: 12))),
                                   ],
                                 ),
                               ),
@@ -304,7 +302,7 @@ class _BillingLeftPanelState extends ConsumerState<BillingLeftPanel> {
                                   shrinkWrap: !widget.hasEnoughHeight,
                                   physics: widget.hasEnoughHeight ? const AlwaysScrollableScrollPhysics() : const NeverScrollableScrollPhysics(),
                                   itemCount: widget.filteredMedicines.length + 1,
-                                  separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFE2E8F0)),
+                                  separatorBuilder: (context, index) => Divider(height: 1, color: Theme.of(context).dividerColor),
                                   itemBuilder: (context, index) {
                                     if (index == widget.filteredMedicines.length) {
                                       if (widget.hasMore) {
@@ -327,12 +325,12 @@ class _BillingLeftPanelState extends ConsumerState<BillingLeftPanel> {
                                       padding: EdgeInsets.symmetric(horizontal: widget.isDesktopWidth ? 16 : 8, vertical: 0),
                                       child: Row(
                                         children: [
-                                          Expanded(flex: 2, child: Align(alignment: Alignment.centerLeft, child: Text(item['brand'] ?? item['manufacturer'] ?? '', style: const TextStyle(color: Color(0xFF1E293B), fontSize: 12), overflow: TextOverflow.ellipsis))),
-                                          Expanded(flex: 2, child: Align(alignment: Alignment.centerLeft, child: Text(item['pack'] ?? item['sku'] ?? '', style: const TextStyle(color: Color(0xFF64748B), fontSize: 12), overflow: TextOverflow.ellipsis))),
-                                          Expanded(flex: 2, child: Align(alignment: Alignment.centerLeft, child: Text(item['batch_number'] ?? '', style: const TextStyle(color: Color(0xFF64748B), fontSize: 12), overflow: TextOverflow.ellipsis))),
-                                          Expanded(flex: 2, child: Align(alignment: Alignment.centerLeft, child: Text(item['expiry_date'] ?? '', style: const TextStyle(color: Color(0xFF64748B), fontSize: 12), overflow: TextOverflow.ellipsis))),
-                                          Expanded(flex: 2, child: Align(alignment: Alignment.centerLeft, child: Text(item['hsn_code'] ?? '-', style: const TextStyle(color: Color(0xFF64748B), fontSize: 12), overflow: TextOverflow.ellipsis))),
-                                          Expanded(flex: 2, child: Align(alignment: Alignment.centerLeft, child: Text('₹${(item['mrp'] ?? 0).toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E293B), fontSize: 12), overflow: TextOverflow.ellipsis))),
+                                          Expanded(flex: 2, child: Align(alignment: Alignment.centerLeft, child: Text(item['brand'] ?? item['manufacturer'] ?? '', style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B), fontSize: 12), overflow: TextOverflow.ellipsis))),
+                                          Expanded(flex: 2, child: Align(alignment: Alignment.centerLeft, child: Text(item['pack'] ?? item['sku'] ?? '', style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B), fontSize: 12), overflow: TextOverflow.ellipsis))),
+                                          Expanded(flex: 2, child: Align(alignment: Alignment.centerLeft, child: Text(item['batch_number'] ?? '', style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B), fontSize: 12), overflow: TextOverflow.ellipsis))),
+                                          Expanded(flex: 2, child: Align(alignment: Alignment.centerLeft, child: Text(item['expiry_date'] ?? '', style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B), fontSize: 12), overflow: TextOverflow.ellipsis))),
+                                          Expanded(flex: 2, child: Align(alignment: Alignment.centerLeft, child: Text(item['hsn_code'] ?? '-', style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B), fontSize: 12), overflow: TextOverflow.ellipsis))),
+                                          Expanded(flex: 2, child: Align(alignment: Alignment.centerLeft, child: Text('₹${(item['mrp'] ?? 0).toStringAsFixed(2)}', style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B), fontSize: 12), overflow: TextOverflow.ellipsis))),
                                           Expanded(
                                             flex: 2, 
                                             child: Align(
@@ -341,7 +339,7 @@ class _BillingLeftPanelState extends ConsumerState<BillingLeftPanel> {
                                                 ((item['cgst'] as num? ?? 0) + (item['sgst'] as num? ?? 0)) > 0 
                                                     ? '${((item['cgst'] as num? ?? 0) + (item['sgst'] as num? ?? 0)).toStringAsFixed(1)}%' 
                                                     : '-', 
-                                                style: const TextStyle(color: Color(0xFF64748B), fontSize: 12), 
+                                                style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B), fontSize: 12), 
                                                 overflow: TextOverflow.ellipsis
                                               )
                                             )

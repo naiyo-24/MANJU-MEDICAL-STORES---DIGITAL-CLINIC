@@ -1046,17 +1046,19 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
     List<Map<String, dynamic>> computedFilteredMedicines = allMedicines;
 
     // Removed local search filtering since we will fetch from backend
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
-      color: const Color(0xFFF8FAFC),
+      color: Theme.of(context).scaffoldBackgroundColor,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // Top Header
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              border: Border(bottom: BorderSide(color: Color(0xFFE2E8F0))),
+            decoration: BoxDecoration(
+              color: Theme.of(context).cardColor,
+              border: Border(bottom: BorderSide(color: Theme.of(context).dividerColor)),
             ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1082,19 +1084,19 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
+                            Text(
                               'New Bill',
                               style: TextStyle(
                                 fontSize: 24,
                                 fontWeight: FontWeight.w900,
-                                color: Color(0xFF1E293B),
+                                color: isDark ? Colors.white : const Color(0xFF1E293B),
                               ),
                             ),
-                            const Text(
+                            Text(
                               'Create a new invoice, search medicines and add to cart',
                               style: TextStyle(
                                 fontSize: 12,
-                                color: Color(0xFF64748B),
+                                color: isDark ? Colors.grey[400] : const Color(0xFF64748B),
                               ),
                             ),
                           ],
@@ -1131,9 +1133,9 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                           ),
                         );
                       },
-                      icon: const Icon(
+                      icon: Icon(
                         Icons.refresh,
-                        color: Color(0xFF64748B),
+                        color: isDark ? Colors.grey[400] : const Color(0xFF64748B),
                       ),
                       tooltip: 'Refresh',
                     ),

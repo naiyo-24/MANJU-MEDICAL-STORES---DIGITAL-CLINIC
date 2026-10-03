@@ -103,7 +103,7 @@ class _ReportsViewState extends State<ReportsView> {
                           'No financial data available for charts yet.',
                           style: TextStyle(
                             fontSize: 16,
-                            color: Colors.grey[600],
+                            color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : Colors.grey[600],
                           ),
                         ),
                       )
@@ -235,7 +235,7 @@ class _ReportsViewState extends State<ReportsView> {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: const Color(0xFFE2E8F0)),
         boxShadow: [

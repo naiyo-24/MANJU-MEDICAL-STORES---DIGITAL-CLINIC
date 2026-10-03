@@ -20,20 +20,20 @@ class CustomerSearchField extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Search Customer',
           style: TextStyle(
             fontSize: 11,
             fontWeight: FontWeight.bold,
-            color: Color(0xFF64748B),
+            color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B),
           ),
         ),
         const SizedBox(height: 4),
         Container(
           height: 36,
           decoration: BoxDecoration(
-            color: const Color(0xFFF8FAFC),
-            border: Border.all(color: const Color(0xFFE2E8F0)),
+            color: Theme.of(context).scaffoldBackgroundColor,
+            border: Border.all(color: Theme.of(context).dividerColor),
             borderRadius: BorderRadius.circular(6),
           ),
           child: RawAutocomplete<Customer>(
@@ -113,12 +113,12 @@ class CustomerSearchField extends StatelessWidget {
                         final option = options.elementAt(index);
 
                         if (option.id == 'NO_DATA') {
-                          return const Padding(
-                            padding: EdgeInsets.all(12),
+                          return Padding(
+                            padding: const EdgeInsets.all(12),
                             child: Text(
                               'No data found',
                               style: TextStyle(
-                                color: Color(0xFF64748B),
+                                color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B),
                                 fontSize: 12,
                               ),
                             ),
