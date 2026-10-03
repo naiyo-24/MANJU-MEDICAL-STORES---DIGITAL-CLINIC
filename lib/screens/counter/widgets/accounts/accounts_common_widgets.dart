@@ -89,27 +89,33 @@ class AccountsWidgets {
     List<String> items,
     ValueChanged<String?> onChanged,
   ) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
-      decoration: BoxDecoration(
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<String>(
-          value: value,
-          icon: const Icon(
-            Icons.keyboard_arrow_down,
-            size: 16,
-            color: Color(0xFF64748B),
+    return Builder(
+      builder: (context) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
+          decoration: BoxDecoration(
+            border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+            borderRadius: BorderRadius.circular(8),
           ),
-          style: const TextStyle(fontSize: 12, color: Color(0xFF1E293B)),
-          items: items.map((String val) {
-            return DropdownMenuItem<String>(value: val, child: Text(val));
-          }).toList(),
-          onChanged: onChanged,
-        ),
-      ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              dropdownColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+              value: value,
+              icon: Icon(
+                Icons.keyboard_arrow_down,
+                size: 16,
+                color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+              ),
+              style: TextStyle(fontSize: 12, color: isDark ? Colors.white : const Color(0xFF1E293B)),
+              items: items.map((String val) {
+                return DropdownMenuItem<String>(value: val, child: Text(val));
+              }).toList(),
+              onChanged: onChanged,
+            ),
+          ),
+        );
+      }
     );
   }
 

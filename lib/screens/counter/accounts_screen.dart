@@ -401,7 +401,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
               // Main Content Area
               Container(
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: isDark ? const Color(0xFF1E293B) : Colors.white,
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(
@@ -419,9 +419,10 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                         horizontal: 16,
                         vertical: 8,
                       ),
-                      decoration: const BoxDecoration(
+                      decoration: BoxDecoration(
                         border: Border(
-                          bottom: BorderSide(color: Color(0xFFF1F5F9)),
+                          bottom: BorderSide(
+                              color: isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9)),
                         ),
                       ),
                       child: SingleChildScrollView(
@@ -450,8 +451,8 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                                   _tabs[index],
                                   style: TextStyle(
                                     color: _activeTab == index
-                                        ? const Color(0xFF166534)
-                                        : const Color(0xFF64748B),
+                                        ? (isDark ? const Color(0xFF4ADE80) : const Color(0xFF166534))
+                                        : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                                     fontWeight: _activeTab == index
                                         ? FontWeight.bold
                                         : FontWeight.normal,
@@ -514,21 +515,24 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                                 ),
                                 decoration: BoxDecoration(
                                   border: Border.all(
-                                    color: const Color(0xFFE2E8F0),
+                                    color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
                                   ),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: TextField(
                                   controller: _searchController,
-                                  decoration: const InputDecoration(
+                                  style: TextStyle(
+                                    color: isDark ? Colors.white : const Color(0xFF1E293B),
+                                  ),
+                                  decoration: InputDecoration(
                                     icon: Icon(
                                       Icons.search,
                                       size: 18,
-                                      color: Color(0xFF64748B),
+                                      color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                                     ),
                                     hintText:
                                         'Search by description, customer, invoice no...',
-                                    hintStyle: TextStyle(
+                                    hintStyle: const TextStyle(
                                       fontSize: 12,
                                       color: Color(0xFF94A3B8),
                                     ),
@@ -552,18 +556,18 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                                 });
                                 _loadTransactions();
                               },
-                              icon: const Icon(
+                              icon: Icon(
                                 Icons.refresh,
                                 size: 16,
-                                color: Color(0xFF1E293B),
+                                color: isDark ? Colors.white : const Color(0xFF1E293B),
                               ),
-                              label: const Text(
+                              label: Text(
                                 'Reset',
-                                style: TextStyle(color: Color(0xFF1E293B)),
+                                style: TextStyle(color: isDark ? Colors.white : const Color(0xFF1E293B)),
                               ),
                               style: OutlinedButton.styleFrom(
-                                side: const BorderSide(
-                                  color: Color(0xFFE2E8F0),
+                                side: BorderSide(
+                                  color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
                                 ),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(8),
@@ -591,14 +595,15 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                                       horizontal: 16,
                                       vertical: 12,
                                     ),
-                                    color: const Color(0xFFF8FAFC),
+                                    color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
                                     child: Row(
-                                      children: const [
+                                      children: [
                                         SizedBox(
                                           width: 30,
                                           child: Text(
                                             '#',
                                             style: TextStyle(
+                                              color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                                               fontWeight: FontWeight.bold,
                                               fontSize: 12,
                                             ),
@@ -609,6 +614,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                                           child: Text(
                                             'Date & Time',
                                             style: TextStyle(
+                                              color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                                               fontWeight: FontWeight.bold,
                                               fontSize: 12,
                                             ),
@@ -619,6 +625,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                                           child: Text(
                                             'Type',
                                             style: TextStyle(
+                                              color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                                               fontWeight: FontWeight.bold,
                                               fontSize: 12,
                                             ),
@@ -629,6 +636,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                                           child: Text(
                                             'Category',
                                             style: TextStyle(
+                                              color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                                               fontWeight: FontWeight.bold,
                                               fontSize: 12,
                                             ),
@@ -639,6 +647,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                                           child: Text(
                                             'Description',
                                             style: TextStyle(
+                                              color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                                               fontWeight: FontWeight.bold,
                                               fontSize: 12,
                                             ),
@@ -649,6 +658,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                                           child: Text(
                                             'Debit (₹)',
                                             style: TextStyle(
+                                              color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                                               fontWeight: FontWeight.bold,
                                               fontSize: 12,
                                             ),
@@ -660,6 +670,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                                           child: Text(
                                             'Credit (₹)',
                                             style: TextStyle(
+                                              color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                                               fontWeight: FontWeight.bold,
                                               fontSize: 12,
                                             ),
@@ -671,6 +682,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                                           child: Text(
                                             'Balance (₹)',
                                             style: TextStyle(
+                                              color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                                               fontWeight: FontWeight.bold,
                                               fontSize: 12,
                                             ),
@@ -682,6 +694,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                                           child: Text(
                                             'Action',
                                             style: TextStyle(
+                                              color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                                               fontWeight: FontWeight.bold,
                                               fontSize: 12,
                                             ),
@@ -701,13 +714,13 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                                           ),
                                         )
                                       : pagedTxns.isEmpty
-                                      ? const Padding(
-                                          padding: EdgeInsets.all(32),
+                                      ? Padding(
+                                          padding: const EdgeInsets.all(32),
                                           child: Center(
                                             child: Text(
                                               'No transactions found. Add one to get started!',
                                               style: TextStyle(
-                                                color: Color(0xFF64748B),
+                                                color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                                               ),
                                             ),
                                           ),
@@ -718,9 +731,9 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                                               const NeverScrollableScrollPhysics(),
                                           itemCount: pagedTxns.length,
                                           separatorBuilder: (context, index) =>
-                                              const Divider(
+                                              Divider(
                                                 height: 1,
-                                                color: Color(0xFFF1F5F9),
+                                                color: isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9),
                                               ),
                                           itemBuilder: (context, index) {
                                             final txn = pagedTxns[index];
