@@ -285,11 +285,11 @@ Widget _buildCompactField(
                         size: 14,
                         color: Color(0xFF22C55E),
                       ),
-                      label: const Text(
+                      label: Text(
                         'Save to DB',
                         style: TextStyle(
                           fontSize: 12,
-                          color: Color(0xFF166534),
+                          color: isDark ? const Color(0xFF4ADE80) : const Color(0xFF166534),
                           fontWeight: FontWeight.bold,
                         ),
                       ),
