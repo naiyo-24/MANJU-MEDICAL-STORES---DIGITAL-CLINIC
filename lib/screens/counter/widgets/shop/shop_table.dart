@@ -19,7 +19,7 @@ class _ShopTableState extends State<ShopTable> {
   Widget _buildHeader(String title, int flex) {
     return Expanded(
       flex: flex,
-      child: Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF475569))),
+      child: Text(title, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF475569))),
     );
   }
 
@@ -28,20 +28,20 @@ class _ShopTableState extends State<ShopTable> {
       children: [
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: const BoxDecoration(
-            color: Color(0xFFF8FAFC), 
-            border: Border(bottom: BorderSide(color: Color(0xFFE2E8F0))),
+          decoration: BoxDecoration(
+            color: Colors.transparent, 
+            border: Border(bottom: BorderSide(color: Theme.of(context).dividerColor)),
           ),
           child: Row(
             children: [
-              const SizedBox(width: 32, child: Text('#', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF475569)))),
+              SizedBox(width: 32, child: Text('#', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF475569)))),
               _buildHeader('Shop Name', 2),
               _buildHeader('Shop Code', 1),
               _buildHeader('Location', 1),
               _buildHeader('City', 1),
               _buildHeader('Contact', 1),
               _buildHeader('Status', 1),
-              const SizedBox(width: 100, child: Text('Action', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF475569)))),
+              SizedBox(width: 100, child: Text('Action', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF475569)))),
             ],
           ),
         ),
@@ -49,7 +49,7 @@ class _ShopTableState extends State<ShopTable> {
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           itemCount: paginatedShops.length,
-          separatorBuilder: (_, __) => const Divider(height: 1, color: Color(0xFFE2E8F0)),
+          separatorBuilder: (_, __) => Divider(height: 1, color: Theme.of(context).dividerColor),
           itemBuilder: (context, index) {
             final shop = paginatedShops[index];
             final isActive = shop.status.toLowerCase() == 'active';
@@ -60,7 +60,7 @@ class _ShopTableState extends State<ShopTable> {
                 children: [
                   SizedBox(
                     width: 32, 
-                    child: Text('${index + 1}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                    child: Text('${index + 1}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
                   ),
                   Expanded(
                     flex: 2,
@@ -74,7 +74,7 @@ class _ShopTableState extends State<ShopTable> {
                                 shop.name, 
                                 maxLines: 1, 
                                 overflow: TextOverflow.ellipsis, 
-                                style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E293B), fontSize: 13),
+                                style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B), fontSize: 13),
                               ),
                             ),
                             if (shop.isPrimary) ...[
@@ -85,38 +85,38 @@ class _ShopTableState extends State<ShopTable> {
                                   color: const Color(0xFF22C55E), 
                                   borderRadius: BorderRadius.circular(4),
                                 ),
-                                child: const Text('Primary', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                                child: Text('Primary', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
                               ),
                             ]
                           ],
                         ),
                         const SizedBox(height: 2),
-                        const Text('SirfBill', style: TextStyle(fontSize: 11, color: Color(0xFF94A3B8))),
+                        Text('SirfBill', style: TextStyle(fontSize: 11, color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[500] : const Color(0xFF94A3B8))),
                       ],
                     ),
                   ),
-                  Expanded(flex: 1, child: Text(shop.code, style: const TextStyle(color: Color(0xFF475569), fontSize: 13))),
+                  Expanded(flex: 1, child: Text(shop.code, style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF475569), fontSize: 13))),
                   Expanded(
                     flex: 1, 
                     child: Row(
                       children: [
-                        const Icon(Icons.location_on, size: 14, color: Color(0xFF94A3B8)), 
+                        Icon(Icons.location_on, size: 14, color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[500] : const Color(0xFF94A3B8)), 
                         const SizedBox(width: 4), 
                         Expanded(
-                          child: Text(shop.location, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Color(0xFF475569), fontSize: 13)),
+                          child: Text(shop.location, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF475569), fontSize: 13)),
                         ),
                       ],
                     ),
                   ),
-                  Expanded(flex: 1, child: Text(shop.city, style: const TextStyle(color: Color(0xFF475569), fontSize: 13))),
+                  Expanded(flex: 1, child: Text(shop.city, style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF475569), fontSize: 13))),
                   Expanded(
                     flex: 1, 
                     child: Row(
                       children: [
-                        const Icon(Icons.phone, size: 14, color: Color(0xFF94A3B8)), 
+                        Icon(Icons.phone, size: 14, color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[500] : const Color(0xFF94A3B8)), 
                         const SizedBox(width: 4), 
                         Expanded(
-                          child: Text(shop.contact, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Color(0xFF475569), fontSize: 13)),
+                          child: Text(shop.contact, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF475569), fontSize: 13)),
                         ),
                       ],
                     ),
@@ -128,7 +128,7 @@ class _ShopTableState extends State<ShopTable> {
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
-                          color: isActive ? const Color(0xFFDCFCE7) : const Color(0xFFFEE2E2), 
+                          color: isActive ? (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF052E16) : const Color(0xFFDCFCE7)) : (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF450A0A) : const Color(0xFFFEE2E2)), 
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Row(
@@ -150,12 +150,12 @@ class _ShopTableState extends State<ShopTable> {
                     child: Row(
                       children: [
                         OutlinedButton.icon(
-                          icon: const Icon(Icons.edit, size: 14, color: Color(0xFF1E293B)),
-                          label: const Text('Edit', style: TextStyle(color: Color(0xFF1E293B))),
+                          icon: Icon(Icons.edit, size: 14, color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B)),
+                          label: Text('Edit', style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B))),
                           style: OutlinedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(horizontal: 12), 
                             minimumSize: const Size(0, 32),
-                            side: const BorderSide(color: Color(0xFFE2E8F0)),
+                            side: BorderSide(color: Theme.of(context).dividerColor),
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                           ),
                           onPressed: () {
@@ -188,9 +188,9 @@ class _ShopTableState extends State<ShopTable> {
         return Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: const Color(0xFFE2E8F0)),
+            border: Border.all(color: Theme.of(context).dividerColor),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withOpacity(0.02),
@@ -213,7 +213,7 @@ class _ShopTableState extends State<ShopTable> {
                             shop.name, 
                             maxLines: 1, 
                             overflow: TextOverflow.ellipsis, 
-                            style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E293B), fontSize: 16),
+                            style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B), fontSize: 16),
                           ),
                         ),
                         if (shop.isPrimary) ...[
@@ -224,7 +224,7 @@ class _ShopTableState extends State<ShopTable> {
                               color: const Color(0xFF22C55E), 
                               borderRadius: BorderRadius.circular(4),
                             ),
-                            child: const Text('Primary', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                            child: Text('Primary', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
                           ),
                         ]
                       ],
@@ -233,7 +233,7 @@ class _ShopTableState extends State<ShopTable> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: isActive ? const Color(0xFFDCFCE7) : const Color(0xFFFEE2E2), 
+                      color: isActive ? (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF052E16) : const Color(0xFFDCFCE7)) : (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF450A0A) : const Color(0xFFFEE2E2)), 
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Row(
@@ -261,11 +261,11 @@ class _ShopTableState extends State<ShopTable> {
                 children: [
                   Expanded(
                     child: OutlinedButton.icon(
-                      icon: const Icon(Icons.edit, size: 16, color: Color(0xFF1E293B)),
-                      label: const Text('Edit', style: TextStyle(color: Color(0xFF1E293B))),
+                      icon: Icon(Icons.edit, size: 16, color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B)),
+                      label: Text('Edit', style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B))),
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 12), 
-                        side: const BorderSide(color: Color(0xFFE2E8F0)),
+                        side: BorderSide(color: Theme.of(context).dividerColor),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                       ),
                       onPressed: () {
@@ -286,12 +286,12 @@ class _ShopTableState extends State<ShopTable> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 16, color: const Color(0xFF94A3B8)),
+        Icon(icon, size: 16, color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[500] : const Color(0xFF94A3B8)),
         const SizedBox(width: 8),
         Expanded(
           child: Text(
             value,
-            style: const TextStyle(color: Color(0xFF475569), fontSize: 13),
+            style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF475569), fontSize: 13),
           ),
         ),
       ],
@@ -332,15 +332,15 @@ class _ShopTableState extends State<ShopTable> {
             // Footer (Dynamic Pagination)
             Container(
               padding: const EdgeInsets.all(16),
-              decoration: const BoxDecoration(
-                border: Border(top: BorderSide(color: Color(0xFFE2E8F0))),
+              decoration: BoxDecoration(
+                border: Border(top: BorderSide(color: Theme.of(context).dividerColor)),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
                     'Showing ${startIndex + 1} to $endIndex of ${widget.shops.length} shops', 
-                    style: const TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
+                    style: TextStyle(fontSize: 12, color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[500] : const Color(0xFF94A3B8)),
                   ),
                   Row(
                     children: [
@@ -350,9 +350,9 @@ class _ShopTableState extends State<ShopTable> {
                           width: 28,
                           height: 28,
                           decoration: BoxDecoration(
-                            border: Border.all(color: const Color(0xFFE2E8F0)), 
+                            border: Border.all(color: Theme.of(context).dividerColor), 
                             borderRadius: BorderRadius.circular(6),
-                            color: _currentPage > 1 ? Colors.white : const Color(0xFFF1F5F9),
+                            color: _currentPage > 1 ? Colors.transparent : (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9)),
                           ),
                           child: Icon(Icons.chevron_left, size: 16, color: _currentPage > 1 ? const Color(0xFF1E293B) : const Color(0xFF94A3B8)),
                         ),
@@ -362,7 +362,7 @@ class _ShopTableState extends State<ShopTable> {
                         width: 28,
                         height: 28,
                         decoration: BoxDecoration(color: const Color(0xFF22C55E), borderRadius: BorderRadius.circular(6)),
-                        child: Center(child: Text('$_currentPage', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12))),
+                        child: Center(child: Text('$_currentPage', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12))),
                       ),
                       const SizedBox(width: 8),
                       InkWell(
@@ -371,9 +371,9 @@ class _ShopTableState extends State<ShopTable> {
                           width: 28,
                           height: 28,
                           decoration: BoxDecoration(
-                            border: Border.all(color: const Color(0xFFE2E8F0)), 
+                            border: Border.all(color: Theme.of(context).dividerColor), 
                             borderRadius: BorderRadius.circular(6),
-                            color: _currentPage < totalPages ? Colors.white : const Color(0xFFF1F5F9),
+                            color: _currentPage < totalPages ? Colors.transparent : (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9)),
                           ),
                           child: Icon(Icons.chevron_right, size: 16, color: _currentPage < totalPages ? const Color(0xFF1E293B) : const Color(0xFF94A3B8)),
                         ),

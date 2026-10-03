@@ -400,9 +400,9 @@ class _BillCustomizationScreenState
         children: [
           Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontWeight: FontWeight.bold,
-              color: Color(0xFF64748B),
+              color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B),
             ),
           ),
           const SizedBox(height: 8),
@@ -413,14 +413,14 @@ class _BillCustomizationScreenState
             keyboardType: keyboardType,
             decoration: InputDecoration(
               filled: true,
-              fillColor: const Color(0xFFF8FAFC),
+              fillColor: Colors.transparent,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
-                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                borderSide: BorderSide(color: Theme.of(context).dividerColor),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
-                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                borderSide: BorderSide(color: Theme.of(context).dividerColor),
               ),
               contentPadding: const EdgeInsets.symmetric(
                 horizontal: 12,
@@ -441,7 +441,7 @@ class _BillCustomizationScreenState
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF1F5F9),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Padding(
         padding: const EdgeInsets.all(24.0),
         child: Column(
@@ -452,13 +452,13 @@ class _BillCustomizationScreenState
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  const Expanded(
+                  Expanded(
                     child: Text(
                       'Bill Customization',
                       style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF1E293B),
+                        color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -468,11 +468,11 @@ class _BillCustomizationScreenState
                   ElevatedButton.icon(
                     onPressed: _isSaving ? null : _saveSettings,
                     icon: _isSaving
-                        ? const SizedBox(
+                        ? SizedBox(
                             width: 16,
                             height: 16,
                             child: CircularProgressIndicator(
-                              color: Colors.white,
+                              color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white,
                               strokeWidth: 2,
                             ),
                           )
@@ -503,7 +503,7 @@ class _BillCustomizationScreenState
 
                   final contentChildren = <Widget>[
                     Card(
-                      color: Colors.white,
+                      color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white,
                       elevation: 0,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -513,12 +513,12 @@ class _BillCustomizationScreenState
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
+                            Text(
                               'Shop Details',
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
-                                color: Color(0xFF1E293B),
+                                color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
                               ),
                             ),
                             const SizedBox(height: 16),
@@ -569,7 +569,7 @@ class _BillCustomizationScreenState
                     ),
                     const SizedBox(height: 16),
                     Card(
-                      color: Colors.white,
+                      color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white,
                       elevation: 0,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -579,12 +579,12 @@ class _BillCustomizationScreenState
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
+                            Text(
                               'Bank Details',
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
-                                color: Color(0xFF1E293B),
+                                color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
                               ),
                             ),
                             const SizedBox(height: 16),
@@ -614,7 +614,7 @@ class _BillCustomizationScreenState
                     ),
                     const SizedBox(height: 16),
                     Card(
-                      color: Colors.white,
+                      color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white,
                       elevation: 0,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -624,12 +624,12 @@ class _BillCustomizationScreenState
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
+                            Text(
                               'Terms & Conditions (Footer)',
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
-                                color: Color(0xFF1E293B),
+                                color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Color(0xFF1E293B),
                               ),
                             ),
                             const SizedBox(height: 16),
@@ -642,7 +642,7 @@ class _BillCustomizationScreenState
                     ),
                     const SizedBox(height: 16),
                     Card(
-                      color: Colors.white,
+                      color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white,
                       elevation: 0,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -652,12 +652,12 @@ class _BillCustomizationScreenState
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
+                            Text(
                               'Media (Logo & UPI QR)',
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
-                                color: Color(0xFF1E293B),
+                                color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Color(0xFF1E293B),
                               ),
                             ),
                             const SizedBox(height: 16),
@@ -666,33 +666,53 @@ class _BillCustomizationScreenState
                               children: [
                                 Column(
                                   children: [
-                                    const Text(
+                                    Text(
                                       'Shop Logo',
                                       style: TextStyle(
                                         fontWeight: FontWeight.bold,
-                                        color: Color(0xFF64748B),
+                                        color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B),
                                       ),
                                     ),
                                     const SizedBox(height: 8),
-                                    Container(
-                                      width: 120,
-                                      height: 120,
-                                      decoration: BoxDecoration(
-                                        border: Border.all(
-                                          color: Colors.grey.shade300,
-                                        ),
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                      child: _logoUrl != null
-                                          ? Image.network(
-                                              '${ApiConstants.baseUrl}$_logoUrl',
-                                              fit: BoxFit.contain,
-                                            )
-                                          : const Icon(
-                                              Icons.image,
-                                              size: 40,
-                                              color: Colors.grey,
+                                    Stack(
+                                      children: [
+                                        Container(
+                                          width: 120,
+                                          height: 120,
+                                          decoration: BoxDecoration(
+                                            border: Border.all(
+                                              color: Colors.grey.shade300,
                                             ),
+                                            borderRadius: BorderRadius.circular(8),
+                                          ),
+                                          child: _logoUrl != null
+                                              ? ClipRRect(
+                                                  borderRadius: BorderRadius.circular(8),
+                                                  child: Image.network(
+                                                    '${ApiConstants.baseUrl}$_logoUrl',
+                                                    fit: BoxFit.contain,
+                                                  ),
+                                                )
+                                              : const Icon(
+                                                  Icons.image,
+                                                  size: 40,
+                                                  color: Colors.grey,
+                                                ),
+                                        ),
+                                        if (_logoUrl != null)
+                                          Positioned(
+                                            top: -8,
+                                            right: -8,
+                                            child: IconButton(
+                                              icon: const Icon(Icons.cancel, color: Colors.red),
+                                              onPressed: () {
+                                                setState(() {
+                                                  _logoUrl = null;
+                                                });
+                                              },
+                                            ),
+                                          ),
+                                      ],
                                     ),
                                     const SizedBox(height: 8),
                                     OutlinedButton.icon(
@@ -704,33 +724,53 @@ class _BillCustomizationScreenState
                                 ),
                                 Column(
                                   children: [
-                                    const Text(
+                                    Text(
                                       'UPI QR Code',
                                       style: TextStyle(
                                         fontWeight: FontWeight.bold,
-                                        color: Color(0xFF64748B),
+                                        color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B),
                                       ),
                                     ),
                                     const SizedBox(height: 8),
-                                    Container(
-                                      width: 120,
-                                      height: 120,
-                                      decoration: BoxDecoration(
-                                        border: Border.all(
-                                          color: Colors.grey.shade300,
-                                        ),
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                      child: _qrUrl != null
-                                          ? Image.network(
-                                              '${ApiConstants.baseUrl}$_qrUrl',
-                                              fit: BoxFit.contain,
-                                            )
-                                          : const Icon(
-                                              Icons.qr_code,
-                                              size: 40,
-                                              color: Colors.grey,
+                                    Stack(
+                                      children: [
+                                        Container(
+                                          width: 120,
+                                          height: 120,
+                                          decoration: BoxDecoration(
+                                            border: Border.all(
+                                              color: Colors.grey.shade300,
                                             ),
+                                            borderRadius: BorderRadius.circular(8),
+                                          ),
+                                          child: _qrUrl != null
+                                              ? ClipRRect(
+                                                  borderRadius: BorderRadius.circular(8),
+                                                  child: Image.network(
+                                                    '${ApiConstants.baseUrl}$_qrUrl',
+                                                    fit: BoxFit.contain,
+                                                  ),
+                                                )
+                                              : const Icon(
+                                                  Icons.qr_code,
+                                                  size: 40,
+                                                  color: Colors.grey,
+                                                ),
+                                        ),
+                                        if (_qrUrl != null)
+                                          Positioned(
+                                            top: -8,
+                                            right: -8,
+                                            child: IconButton(
+                                              icon: const Icon(Icons.cancel, color: Colors.red),
+                                              onPressed: () {
+                                                setState(() {
+                                                  _qrUrl = null;
+                                                });
+                                              },
+                                            ),
+                                          ),
+                                      ],
                                     ),
                                     const SizedBox(height: 8),
                                     OutlinedButton.icon(
@@ -749,7 +789,7 @@ class _BillCustomizationScreenState
                   ];
 
                   final rightPane = Card(
-                    color: Colors.white,
+                    color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white,
                     elevation: 0,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -764,12 +804,12 @@ class _BillCustomizationScreenState
                             runSpacing: 16,
                             spacing: 16,
                             children: [
-                              const Text(
+                              Text(
                                 'Live Preview',
                                 style: TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
-                                  color: Color(0xFF1E293B),
+                                  color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
                                 ),
                               ),
                               Wrap(
@@ -793,9 +833,9 @@ class _BillCustomizationScreenState
                                       });
                                     },
                                     borderRadius: BorderRadius.circular(8),
-                                    color: const Color(0xFF64748B),
-                                    selectedColor: const Color(0xFF22C55E),
-                                    fillColor: const Color(0xFFF1F8F5),
+                                    color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B),
+                                    selectedColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF052E16) : const Color(0xFF22C55E),
+                                    fillColor: Theme.of(context).brightness == Brightness.dark ? Colors.transparent : const Color(0xFFF1F8F5),
                                     children: const [
                                       Padding(
                                         padding: EdgeInsets.symmetric(
@@ -883,14 +923,14 @@ class _BillCustomizationScreenState
                       children: [
                         Container(
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white,
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: TabBar(
                             isScrollable: !isDesktop,
                             tabAlignment: !isDesktop ? TabAlignment.start : TabAlignment.fill,
-                            labelColor: const Color(0xFF166534),
-                            unselectedLabelColor: const Color(0xFF64748B),
+                            labelColor: Theme.of(context).brightness == Brightness.dark ? Colors.green[400] : const Color(0xFF166534),
+                            unselectedLabelColor: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B),
                             indicatorColor: const Color(0xFF22C55E),
                             tabs: [
                               const Tab(text: 'Shop Details'),
