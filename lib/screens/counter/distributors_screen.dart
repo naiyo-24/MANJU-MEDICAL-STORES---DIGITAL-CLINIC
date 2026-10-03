@@ -8,6 +8,7 @@ import 'widgets/distributors/dashboard/distributor_list_view.dart';
 import 'distributor_detail_screen.dart';
 import 'add_purchase_bill_screen.dart';
 import 'package:go_router/go_router.dart';
+import '../../services/export_service.dart';
 
 class DistributorsScreen extends ConsumerStatefulWidget {
   const DistributorsScreen({super.key});
@@ -22,6 +23,14 @@ class _DistributorsScreenState extends ConsumerState<DistributorsScreen> {
   @override
   Widget build(BuildContext context) {
     final distributorsAsync = ref.watch(distributorsProvider);
+    final allDistributors = distributorsAsync.value ?? [];
+    final filteredDistributors = _searchQuery.isEmpty 
+        ? allDistributors 
+        : allDistributors.where((d) => 
+            (d['name']?.toString().toLowerCase() ?? '').contains(_searchQuery) ||
+            (d['email']?.toString().toLowerCase() ?? '').contains(_searchQuery) ||
+            (d['phone']?.toString().toLowerCase() ?? '').contains(_searchQuery)
+          ).toList();
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
@@ -30,8 +39,11 @@ class _DistributorsScreenState extends ConsumerState<DistributorsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              runSpacing: 16,
+              spacing: 16,
               children: [
                 const Text(
                   'Distributors',
@@ -41,22 +53,79 @@ class _DistributorsScreenState extends ConsumerState<DistributorsScreen> {
                     color: Color(0xFF1E293B),
                   ),
                 ),
-                ElevatedButton.icon(
-                  onPressed: () {
-                    showDialog(
-                      context: context,
-                      builder: (context) => const AddDistributorDialog(),
-                    );
-                  },
-                  icon: const Icon(Icons.add, color: Colors.white, size: 18),
-                  label: const Text('Add Distributor', style: TextStyle(color: Colors.white)),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF166534),
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
+                Wrap(
+                  spacing: 12,
+                  runSpacing: 12,
+                  children: [
+                    PopupMenuButton<String>(
+                      onSelected: (value) async {
+                        final dataToExport = filteredDistributors.map((d) => {
+                          'Name': d['name'] ?? '',
+                          'Email': d['email'] ?? '',
+                          'Phone': d['phone'] ?? '',
+                          'GSTIN': d['gstin'] ?? '',
+                          'Address': d['address'] ?? '',
+                          'Status': d['status'] ?? 'Active',
+                        }).toList();
+
+                        final timestamp = DateTime.now().millisecondsSinceEpoch;
+                        if (value == 'csv') {
+                          await ExportService.exportToCSV(dataToExport, 'Distributors_$timestamp');
+                        } else if (value == 'excel') {
+                          await ExportService.exportToExcel(dataToExport, 'Distributors_$timestamp');
+                        } else if (value == 'pdf') {
+                          await ExportService.exportToPDF(dataToExport, 'Distributors_$timestamp');
+                        }
+                      },
+                      offset: const Offset(0, 40),
+                      itemBuilder: (context) => [
+                        const PopupMenuItem(
+                          value: 'csv',
+                          child: Text('Export as CSV'),
+                        ),
+                        const PopupMenuItem(
+                          value: 'excel',
+                          child: Text('Export as Excel'),
+                        ),
+                        const PopupMenuItem(
+                          value: 'pdf',
+                          child: Text('Export as PDF'),
+                        ),
+                      ],
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: const Color(0xFF166534)),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.download, color: Color(0xFF166534), size: 18),
+                            SizedBox(width: 8),
+                            Text('Export', style: TextStyle(color: Color(0xFF166534), fontWeight: FontWeight.bold)),
+                          ],
+                        ),
+                      ),
                     ),
-                  ),
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        showDialog(
+                          context: context,
+                          builder: (context) => const AddDistributorDialog(),
+                        );
+                      },
+                      icon: const Icon(Icons.add, color: Colors.white, size: 18),
+                      label: const Text('Add Distributor', style: TextStyle(color: Colors.white)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF166534),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -99,13 +168,6 @@ class _DistributorsScreenState extends ConsumerState<DistributorsScreen> {
                       ),
                     );
                   }
-                  final filteredDistributors = _searchQuery.isEmpty 
-                      ? distributors 
-                      : distributors.where((d) => 
-                          (d['name']?.toString().toLowerCase() ?? '').contains(_searchQuery) ||
-                          (d['email']?.toString().toLowerCase() ?? '').contains(_searchQuery) ||
-                          (d['phone']?.toString().toLowerCase() ?? '').contains(_searchQuery)
-                        ).toList();
 
                   return SingleChildScrollView(
                     child: Column(

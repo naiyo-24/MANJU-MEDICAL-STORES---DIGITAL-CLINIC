@@ -24,7 +24,7 @@ class InventoryScreen extends ConsumerStatefulWidget {
 
 class _InventoryScreenState extends ConsumerState<InventoryScreen> {
   final TextEditingController _searchController = TextEditingController();
-  
+
   late LinkedScrollControllerGroup _controllers;
   late ScrollController _headController;
   late ScrollController _bodyController;
@@ -50,30 +50,30 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
   Widget _buildSortableHeader(String title, int flex) {
     return InkWell(
       onTap: () => _onSort(title),
-        child: Row(
-          children: [
-            Expanded(
-              child: Text(
-                title,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF475569),
-                  fontSize: 12,
-                ),
-                overflow: TextOverflow.ellipsis,
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              title,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[300] : const Color(0xFF475569),
+                fontSize: 12,
               ),
+              overflow: TextOverflow.ellipsis,
             ),
-            const SizedBox(width: 4),
-            if (_sortColumn == title)
-              Icon(
-                _sortAscending ? Icons.arrow_upward : Icons.arrow_downward,
-                size: 14,
-                color: const Color(0xFF22C55E),
-              )
-            else
-              const Icon(Icons.unfold_more, size: 14, color: Colors.black26),
-          ],
-        ),
+          ),
+          const SizedBox(width: 4),
+          if (_sortColumn == title)
+            Icon(
+              _sortAscending ? Icons.arrow_upward : Icons.arrow_downward,
+              size: 14,
+              color: const Color(0xFF22C55E),
+            )
+          else
+            const Icon(Icons.unfold_more, size: 14, color: Colors.black26),
+        ],
+      ),
     );
   }
 
@@ -159,30 +159,42 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
     final currentState = ref.read(inventoryProvider);
     final racks = ref.read(rackProvider).value ?? [];
     final categories = ref.read(categoryProvider).value ?? [];
-    
-    final data = currentState.value?.map((m) {
-      final rackName = racks.firstWhere((r) => r.id == m.rackId, orElse: () => Rack(id: '', rackNumber: 'N/A')).rackNumber;
-      final categoryName = categories.firstWhere((c) => c.id == m.categoryId, orElse: () => Category(id: '', name: 'N/A')).name;
-      
-      return {
-        'Name': m.name,
-        'SKU': m.sku,
-        'Batch': m.batchNumber,
-        'Stock': m.stockQuantity,
-        'Loose Stock': m.looseStock,
-        'Pack Size': m.packSize ?? 'N/A',
-        'Buying Price (₹)': m.buyingPrice,
-        'Unit Price (₹)': m.unitPrice,
-        'GST (%)': m.gst ?? 0,
-        'Discount (%)': m.discount ?? 0,
-        'Manufacturer': m.manufacturer,
-        'Expiry': m.expiryDate,
-        'Rack': rackName,
-        'Category': categoryName,
-        'Distributor': m.distributor ?? 'N/A',
-        'HSN Code': m.hsnCode ?? 'N/A',
-      };
-    }).toList() ?? [];
+
+    final data =
+        currentState.value?.map((m) {
+          final rackName = racks
+              .firstWhere(
+                (r) => r.id == m.rackId,
+                orElse: () => Rack(id: '', rackNumber: 'N/A'),
+              )
+              .rackNumber;
+          final categoryName = categories
+              .firstWhere(
+                (c) => c.id == m.categoryId,
+                orElse: () => Category(id: '', name: 'N/A'),
+              )
+              .name;
+
+          return {
+            'Name': m.name,
+            'SKU': m.sku,
+            'Batch': m.batchNumber,
+            'Stock': m.stockQuantity,
+            'Loose Stock': m.looseStock,
+            'Pack Size': m.packSize ?? 'N/A',
+            'Buying Price (₹)': m.buyingPrice,
+            'Unit Price (₹)': m.unitPrice,
+            'GST (%)': m.gst ?? 0,
+            'Discount (%)': m.discount ?? 0,
+            'Manufacturer': m.manufacturer,
+            'Expiry': m.expiryDate,
+            'Rack': rackName,
+            'Category': categoryName,
+            'Distributor': m.distributor ?? 'N/A',
+            'HSN Code': m.hsnCode ?? 'N/A',
+          };
+        }).toList() ??
+        [];
 
     final settings = ref.read(settingsProvider).value ?? {};
     final shopDetails = {
@@ -272,7 +284,12 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
   }
 
   void _showEditMedicineDialog(InventoryItem item) {
-    InventoryDialogs.showEditMedicineDialog(context, ref, item, () => _fetchData());
+    InventoryDialogs.showEditMedicineDialog(
+      context,
+      ref,
+      item,
+      () => _fetchData(),
+    );
   }
 
   Widget _buildConditionalWrapper(bool isShort, Widget child) {
@@ -297,18 +314,21 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
     final racks = ref.watch(rackProvider).value ?? [];
     final categories = ref.watch(categoryProvider).value ?? [];
     return Container(
-      color: const Color(0xFFF8FAFC),
+      color: Theme.of(context).scaffoldBackgroundColor,
       child: LayoutBuilder(
         builder: (context, screenConstraints) {
-          bool isScreenShort = screenConstraints.maxHeight < 850 || screenConstraints.maxWidth < 1000;
+          bool isScreenShort =
+              screenConstraints.maxHeight < 850 ||
+              screenConstraints.maxWidth < 1000;
           final isDesktopWidth = screenConstraints.maxWidth >= 1000;
           Widget content = Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               // Top Header
               Container(
+                width: double.infinity,
                 padding: const EdgeInsets.all(32.0),
-                color: Colors.white,
+                color: Colors.transparent,
                 child: Wrap(
                   alignment: WrapAlignment.spaceBetween,
                   crossAxisAlignment: WrapCrossAlignment.center,
@@ -319,11 +339,11 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         RichText(
-                          text: const TextSpan(
+                          text: TextSpan(
                             style: TextStyle(
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFF1E293B),
+                              color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
                             ),
                             children: [
                               TextSpan(text: 'Medicine '),
@@ -335,87 +355,122 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                           ),
                         ),
                         const SizedBox(height: 4),
-                        const Text(
+                        Text(
                           'Manage your medicine stock, expiry, and availability in one place.',
                           style: TextStyle(
-                            color: Color(0xFF64748B),
+                            color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B),
                             fontSize: 12,
                           ),
                         ),
                       ],
                     ),
-                      Wrap(
-                        spacing: 16,
-                        runSpacing: 16,
-                        crossAxisAlignment: WrapCrossAlignment.center,
-                        children: [
-                          // Shop Dropdown
-                          shopsAsync.when(
-                            data: (shops) {
-                              if (shops.isEmpty) return const SizedBox();
-                              return Container(
-                                height: 44,
-                                padding: const EdgeInsets.symmetric(horizontal: 12),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                    Wrap(
+                      spacing: 16,
+                      runSpacing: 16,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        // Shop Dropdown
+                        shopsAsync.when(
+                          data: (shops) {
+                            if (shops.isEmpty) return const SizedBox();
+                            return Container(
+                              height: 44,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Theme.of(context).cardColor,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: Theme.of(context).dividerColor,
                                 ),
-                                child: DropdownButtonHideUnderline(
-                                  child: DropdownButton<String>(
-                                    value: (() {
-                                      final id = selectedShopId ?? (shops.isNotEmpty ? shops.first['id'].toString() : null);
-                                      if (id != null && shops.any((shop) => shop['id'].toString() == id)) {
-                                        return id;
-                                      }
-                                      return shops.isNotEmpty ? shops.first['id'].toString() : null;
-                                    })(),
-                                    icon: const Icon(Icons.store, size: 16, color: Color(0xFF64748B)),
-                                    style: const TextStyle(fontSize: 14, color: Color(0xFF1E293B)),
-                                    onChanged: (String? newShopId) async {
-                                      if (newShopId != null && newShopId != selectedShopId) {
-                                        ref.read(selectedShopIdProvider.notifier).updateShopId(newShopId);
-                                        await InventoryService.setShopId(newShopId);
-                                        ref.invalidate(rackProvider);
-                                        ref.invalidate(categoryProvider);
-                                        _fetchData(); // Refetch inventory for new shop
-                                      }
-                                    },
-                                    items: shops.map((shop) {
-                                      return DropdownMenuItem<String>(
-                                        value: shop['id'].toString(),
-                                        child: Padding(
-                                          padding: const EdgeInsets.only(right: 8.0),
-                                          child: Text(shop['name'] ?? 'Unknown Shop'),
-                                        ),
-                                      );
-                                    }).toList(),
+                              ),
+                              child: DropdownButtonHideUnderline(
+                                child: DropdownButton<String>(
+                                  value: (() {
+                                    final id =
+                                        selectedShopId ??
+                                        (shops.isNotEmpty
+                                            ? shops.first['id'].toString()
+                                            : null);
+                                    if (id != null &&
+                                        shops.any(
+                                          (shop) => shop['id'].toString() == id,
+                                        )) {
+                                      return id;
+                                    }
+                                    return shops.isNotEmpty
+                                        ? shops.first['id'].toString()
+                                        : null;
+                                  })(),
+                                  icon: Icon(
+                                    Icons.store,
+                                    size: 16,
+                                    color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B),
                                   ),
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
+                                  ),
+                                  onChanged: (String? newShopId) async {
+                                    if (newShopId != null &&
+                                        newShopId != selectedShopId) {
+                                      ref
+                                          .read(selectedShopIdProvider.notifier)
+                                          .updateShopId(newShopId);
+                                      await InventoryService.setShopId(
+                                        newShopId,
+                                      );
+                                      ref.invalidate(rackProvider);
+                                      ref.invalidate(categoryProvider);
+                                      _fetchData(); // Refetch inventory for new shop
+                                    }
+                                  },
+                                  items: shops.map((shop) {
+                                    return DropdownMenuItem<String>(
+                                      value: shop['id'].toString(),
+                                      child: Padding(
+                                        padding: const EdgeInsets.only(
+                                          right: 8.0,
+                                        ),
+                                        child: Text(
+                                          shop['name'] ?? 'Unknown Shop',
+                                        ),
+                                      ),
+                                    );
+                                  }).toList(),
                                 ),
-                              );
-                            },
-                            loading: () => const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)),
-                            error: (err, stack) => IconButton(
-                              icon: const Icon(Icons.refresh, color: Colors.red),
-                              tooltip: 'Retry',
-                              onPressed: () => ref.read(inventoryProvider.notifier).loadInventory(),
-                            ),
+                              ),
+                            );
+                          },
+                          loading: () => const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
                           ),
-                          // Search Bar
-                          Container(
+                          error: (err, stack) => IconButton(
+                            icon: const Icon(Icons.refresh, color: Colors.red),
+                            tooltip: 'Retry',
+                            onPressed: () => ref
+                                .read(inventoryProvider.notifier)
+                                .loadInventory(),
+                          ),
+                        ),
+                        // Search Bar
+                        Container(
                           width: 280,
                           height: 44,
                           padding: const EdgeInsets.symmetric(horizontal: 16),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFF1F5F9),
+                            color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[800] : const Color(0xFFF1F5F9),
                             borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: const Color(0xFFE2E8F0)),
+                            border: Border.all(color: Theme.of(context).dividerColor),
                           ),
                           child: Row(
                             children: [
-                              const Icon(
+                              Icon(
                                 Icons.search,
-                                color: Color(0xFF64748B),
+                                color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B),
                                 size: 18,
                               ),
                               const SizedBox(width: 8),
@@ -445,21 +500,21 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                           height: 44,
                           padding: const EdgeInsets.symmetric(horizontal: 12),
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: Theme.of(context).cardColor,
                             borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: const Color(0xFFE2E8F0)),
+                            border: Border.all(color: Theme.of(context).dividerColor),
                           ),
                           child: DropdownButtonHideUnderline(
                             child: DropdownButton<String>(
                               value: _selectedDateFilter,
-                              icon: const Icon(
+                              icon: Icon(
                                 Icons.calendar_today,
                                 size: 16,
-                                color: Color(0xFF64748B),
+                                color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B),
                               ),
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 14,
-                                color: Color(0xFF1E293B),
+                                color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
                               ),
                               onChanged: (value) {
                                 if (value != null) _onDateFilterChanged(value);
@@ -501,25 +556,25 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                             height: 44,
                             padding: const EdgeInsets.symmetric(horizontal: 16),
                             decoration: BoxDecoration(
-                              color: Colors.white,
+                              color: Theme.of(context).cardColor,
                               borderRadius: BorderRadius.circular(8),
                               border: Border.all(
-                                color: const Color(0xFFE2E8F0),
+                                color: Theme.of(context).dividerColor,
                               ),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Icon(
+                                Icon(
                                   Icons.sort,
-                                  color: Color(0xFF64748B),
+                                  color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B),
                                   size: 18,
                                 ),
                                 const SizedBox(width: 8),
                                 Text(
                                   'Sort By',
-                                  style: const TextStyle(
-                                    color: Color(0xFF1E293B),
+                                  style: TextStyle(
+                                    color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
@@ -576,25 +631,25 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                             height: 44,
                             padding: const EdgeInsets.symmetric(horizontal: 16),
                             decoration: BoxDecoration(
-                              color: Colors.white,
+                              color: Theme.of(context).cardColor,
                               borderRadius: BorderRadius.circular(8),
                               border: Border.all(
-                                color: const Color(0xFFE2E8F0),
+                                color: Theme.of(context).dividerColor,
                               ),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
-                              children: const [
+                              children: [
                                 Icon(
                                   Icons.download,
-                                  color: Color(0xFF64748B),
+                                  color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B),
                                   size: 18,
                                 ),
                                 SizedBox(width: 8),
                                 Text(
                                   'Export',
                                   style: TextStyle(
-                                    color: Color(0xFF1E293B),
+                                    color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
@@ -618,9 +673,9 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                         ),
                         IconButton(
                           onPressed: () => _fetchData(),
-                          icon: const Icon(
+                          icon: Icon(
                             Icons.refresh,
-                            color: Color(0xFF64748B),
+                            color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B),
                           ),
                           tooltip: 'Refresh',
                         ),
@@ -660,11 +715,9 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                   padding: const EdgeInsets.all(32.0),
                   child: Container(
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: Theme.of(context).cardColor,
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: const Color(0xFFE2E8F0),
-                      ),
+                      border: Border.all(color: Theme.of(context).dividerColor),
                       boxShadow: const [
                         BoxShadow(
                           color: Colors.black12,
@@ -687,13 +740,13 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                             children: [
                               Text(
                                 err.toString(),
-                                style: const TextStyle(
-                                  color: Colors.red,
-                                ),
+                                style: const TextStyle(color: Colors.red),
                               ),
                               const SizedBox(height: 16),
                               ElevatedButton(
-                                onPressed: () => ref.read(inventoryProvider.notifier).loadInventory(),
+                                onPressed: () => ref
+                                    .read(inventoryProvider.notifier)
+                                    .loadInventory(),
                                 child: const Text('Retry'),
                               ),
                             ],
@@ -708,12 +761,16 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                             );
                           }
 
-                          final sortedItems = List<InventoryItem>.from(medicines);
+                          final sortedItems = List<InventoryItem>.from(
+                            medicines,
+                          );
                           sortedItems.sort((a, b) {
                             int cmp = 0;
                             switch (_sortColumn) {
                               case 'Medicine Name':
-                                cmp = a.name.toLowerCase().compareTo(b.name.toLowerCase());
+                                cmp = a.name.toLowerCase().compareTo(
+                                  b.name.toLowerCase(),
+                                );
                                 break;
                               case 'Added/Updated':
                                 final aDate = a.createdAt ?? '';
@@ -721,7 +778,9 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                                 cmp = aDate.compareTo(bDate);
                                 break;
                               case 'Stock':
-                                cmp = a.stockQuantity.compareTo(b.stockQuantity);
+                                cmp = a.stockQuantity.compareTo(
+                                  b.stockQuantity,
+                                );
                                 break;
                               case 'Price (₹)':
                                 cmp = a.unitPrice.compareTo(b.unitPrice);
@@ -735,8 +794,12 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                               case 'Status':
                                 final aLow = a.lowStockThreshold ?? 10;
                                 final bLow = b.lowStockThreshold ?? 10;
-                                final aStatus = a.stockQuantity == 0 ? 0 : (a.stockQuantity <= aLow ? 1 : 2);
-                                final bStatus = b.stockQuantity == 0 ? 0 : (b.stockQuantity <= bLow ? 1 : 2);
+                                final aStatus = a.stockQuantity == 0
+                                    ? 0
+                                    : (a.stockQuantity <= aLow ? 1 : 2);
+                                final bStatus = b.stockQuantity == 0
+                                    ? 0
+                                    : (b.stockQuantity <= bLow ? 1 : 2);
                                 cmp = aStatus.compareTo(bStatus);
                                 break;
                             }
@@ -750,27 +813,42 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                               SizedBox(
                                 width: isDesktopWidth ? 280 : 140,
                                 child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
                                   children: [
                                     Container(
                                       height: 48,
-                                      color: const Color(0xFFF1F5F9),
-                                      padding: EdgeInsets.symmetric(horizontal: isDesktopWidth ? 24 : 8),
-                                      child: _buildSortableHeader('Medicine Name', 1),
+                                      color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[800] : const Color(0xFFF1F5F9),
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: isDesktopWidth ? 24 : 8,
+                                      ),
+                                      child: _buildSortableHeader(
+                                        'Medicine Name',
+                                        1,
+                                      ),
                                     ),
                                     Expanded(
                                       child: ListView.separated(
                                         controller: _headController,
                                         itemCount: sortedItems.length + 1,
-                                        separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFE2E8F0)),
+                                        separatorBuilder: (context, index) =>
+                                            Divider(
+                                              height: 1,
+                                              color: Theme.of(context).dividerColor,
+                                            ),
                                         itemBuilder: (context, index) {
                                           if (index == sortedItems.length) {
-                                            return const SizedBox(height: 80); // match right side height
+                                            return const SizedBox(
+                                              height: 80,
+                                            ); // match right side height
                                           }
                                           final medicine = sortedItems[index];
                                           return InventoryRowLeftWidget(
                                             medicine: medicine,
-                                            onTap: () => _showEditMedicineDialog(medicine),
+                                            onTap: () =>
+                                                _showEditMedicineDialog(
+                                                  medicine,
+                                                ),
                                             isDesktopWidth: isDesktopWidth,
                                           );
                                         },
@@ -779,32 +857,111 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                                   ],
                                 ),
                               ),
-                              
+
                               // SCROLLABLE RIGHT COLUMNS
                               Expanded(
                                 child: SingleChildScrollView(
                                   scrollDirection: Axis.horizontal,
                                   child: SizedBox(
-                                    width: isDesktopWidth ? 1128 : 1096,
+                                    width: isDesktopWidth
+                                        ? (screenConstraints.maxWidth -
+                                                      64 -
+                                                      280 >
+                                                  1128
+                                              ? screenConstraints.maxWidth -
+                                                    64 -
+                                                    280
+                                              : 1128)
+                                        : (screenConstraints.maxWidth -
+                                                      64 -
+                                                      140 >
+                                                  1096
+                                              ? screenConstraints.maxWidth -
+                                                    64 -
+                                                    140
+                                              : 1096),
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.stretch,
                                       children: [
                                         Container(
                                           height: 48,
-                                          color: const Color(0xFFF1F5F9),
-                                          padding: EdgeInsets.symmetric(horizontal: isDesktopWidth ? 24 : 8),
+                                          color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[800] : const Color(0xFFF1F5F9),
+                                          padding: EdgeInsets.symmetric(
+                                            horizontal: isDesktopWidth ? 24 : 8,
+                                          ),
                                           child: Row(
                                             children: [
-                                              SizedBox(width: 120, child: _buildSortableHeader('Category', 1)),
-                                              SizedBox(width: 120, child: _buildSortableHeader('Added/Updated', 1)),
-                                              SizedBox(width: 100, child: _buildSortableHeader('Stock', 1)),
-                                              SizedBox(width: 80, child: _buildSortableHeader('Rack', 1)),
-                                              SizedBox(width: 100, child: _buildSortableHeader('Buying Price', 1)),
-                                              SizedBox(width: 100, child: _buildSortableHeader('Price (₹)', 1)),
-                                              SizedBox(width: 80, child: _buildSortableHeader('GST (%)', 1)),
-                                              SizedBox(width: 120, child: _buildSortableHeader('Distributor', 1)),
-                                              SizedBox(width: 100, child: _buildSortableHeader('Expiry Date', 1)),
-                                              SizedBox(width: 120, child: _buildSortableHeader('Status', 1)),
+                                              Expanded(
+                                                flex: 120,
+                                                child: _buildSortableHeader(
+                                                  'Category',
+                                                  1,
+                                                ),
+                                              ),
+                                              Expanded(
+                                                flex: 120,
+                                                child: _buildSortableHeader(
+                                                  'Added/Updated',
+                                                  1,
+                                                ),
+                                              ),
+                                              Expanded(
+                                                flex: 100,
+                                                child: _buildSortableHeader(
+                                                  'Stock',
+                                                  1,
+                                                ),
+                                              ),
+                                              Expanded(
+                                                flex: 80,
+                                                child: _buildSortableHeader(
+                                                  'Rack',
+                                                  1,
+                                                ),
+                                              ),
+                                              Expanded(
+                                                flex: 100,
+                                                child: _buildSortableHeader(
+                                                  'Buying Price',
+                                                  1,
+                                                ),
+                                              ),
+                                              Expanded(
+                                                flex: 100,
+                                                child: _buildSortableHeader(
+                                                  'Price (₹)',
+                                                  1,
+                                                ),
+                                              ),
+                                              Expanded(
+                                                flex: 80,
+                                                child: _buildSortableHeader(
+                                                  'GST (%)',
+                                                  1,
+                                                ),
+                                              ),
+                                              Expanded(
+                                                flex: 120,
+                                                child: _buildSortableHeader(
+                                                  'Distributor',
+                                                  1,
+                                                ),
+                                              ),
+                                              Expanded(
+                                                flex: 100,
+                                                child: _buildSortableHeader(
+                                                  'Expiry Date',
+                                                  1,
+                                                ),
+                                              ),
+                                              Expanded(
+                                                flex: 120,
+                                                child: _buildSortableHeader(
+                                                  'Status',
+                                                  1,
+                                                ),
+                                              ),
                                               const SizedBox(width: 40),
                                             ],
                                           ),
@@ -813,34 +970,85 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                                           child: ListView.separated(
                                             controller: _bodyController,
                                             itemCount: sortedItems.length + 1,
-                                            separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFE2E8F0)),
+                                            separatorBuilder:
+                                                (context, index) =>
+                                                    Divider(
+                                                      height: 1,
+                                                      color: Theme.of(context).dividerColor,
+                                                    ),
                                             itemBuilder: (context, index) {
                                               if (index == sortedItems.length) {
-                                                if (ref.read(inventoryProvider.notifier).hasMore) {
+                                                if (ref
+                                                    .read(
+                                                      inventoryProvider
+                                                          .notifier,
+                                                    )
+                                                    .hasMore) {
                                                   return Padding(
-                                                    padding: const EdgeInsets.all(16.0),
+                                                    padding:
+                                                        const EdgeInsets.all(
+                                                          16.0,
+                                                        ),
                                                     child: Center(
                                                       child: OutlinedButton(
-                                                        onPressed: () => ref.read(inventoryProvider.notifier).loadMore(),
-                                                        child: const Text('Load More'),
+                                                        onPressed: () => ref
+                                                            .read(
+                                                              inventoryProvider
+                                                                  .notifier,
+                                                            )
+                                                            .loadMore(),
+                                                        child: const Text(
+                                                          'Load More',
+                                                        ),
                                                       ),
                                                     ),
                                                   );
                                                 }
-                                                return const SizedBox(height: 80);
+                                                return const SizedBox(
+                                                  height: 80,
+                                                );
                                               }
 
-                                              final medicine = sortedItems[index];
-                                              final rackName = racks.firstWhere((r) => r.id == medicine.rackId, orElse: () => Rack(id: '', rackNumber: '-')).rackNumber;
-                                              final categoryName = categories.firstWhere((c) => c.id == medicine.categoryId, orElse: () => Category(id: '', name: 'N/A')).name;
+                                              final medicine =
+                                                  sortedItems[index];
+                                              final rackName = racks
+                                                  .firstWhere(
+                                                    (r) =>
+                                                        r.id == medicine.rackId,
+                                                    orElse: () => Rack(
+                                                      id: '',
+                                                      rackNumber: '-',
+                                                    ),
+                                                  )
+                                                  .rackNumber;
+                                              final categoryName = categories
+                                                  .firstWhere(
+                                                    (c) =>
+                                                        c.id ==
+                                                        medicine.categoryId,
+                                                    orElse: () => Category(
+                                                      id: '',
+                                                      name: 'N/A',
+                                                    ),
+                                                  )
+                                                  .name;
 
                                               return InventoryRowRightWidget(
                                                 medicine: medicine,
                                                 rackName: rackName,
                                                 categoryName: categoryName,
-                                                onTap: () => _showEditMedicineDialog(medicine),
-                                                onEdit: () => _showEditMedicineDialog(medicine),
-                                                onDelete: () => _confirmDeleteMedicine(medicine.id),
+                                                onTap: () =>
+                                                    _showEditMedicineDialog(
+                                                      medicine,
+                                                    ),
+                                                onEdit: () =>
+                                                    _showEditMedicineDialog(
+                                                      medicine,
+                                                    ),
+                                                onDelete: () =>
+                                                    _confirmDeleteMedicine(
+                                                      medicine.id,
+                                                    ),
                                                 isDesktopWidth: isDesktopWidth,
                                               );
                                             },

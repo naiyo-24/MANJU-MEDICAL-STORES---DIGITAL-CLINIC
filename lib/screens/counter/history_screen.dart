@@ -11,6 +11,7 @@ import '../../widgets/custom_date_range_picker.dart';
 import '../../widgets/custom_pagination.dart';
 import '../../services/billing_history_service.dart';
 import '../../utils/pdf_generator.dart';
+import '../../services/export_service.dart';
 
 class HistoryScreen extends ConsumerStatefulWidget {
   const HistoryScreen({super.key});
@@ -25,6 +26,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
   String _selectedPaymentMode = 'All';
   String _searchQuery = '';
   int _currentPage = 1;
+  DateTimeRange? _customDateRange;
   @override
   void initState() {
     super.initState();
@@ -45,14 +47,17 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
   }
 
   List<Map<String, dynamic>> _filteredTransactions(
-    List<Map<String, dynamic>> allTransactions,
-  ) {
+    List<Map<String, dynamic>> allTransactions, {
+    String? overrideDateRange,
+  }) {
     final now = DateTime.now();
+    final targetRange = overrideDateRange ?? _activeDateRange;
+    
     return allTransactions.where((tx) {
       DateTime date = tx['createdAtDate'] ?? now;
 
       bool matchesDate = false;
-      switch (_activeDateRange) {
+      switch (targetRange) {
         case 'Today':
           matchesDate =
               date.year == now.year &&
@@ -70,6 +75,15 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
           break;
         case 'This Year':
           matchesDate = date.year == now.year;
+          break;
+        case 'Custom Range':
+          if (_customDateRange != null) {
+            final start = _customDateRange!.start;
+            final end = _customDateRange!.end.add(const Duration(days: 1));
+            matchesDate = date.isAfter(start.subtract(const Duration(seconds: 1))) && date.isBefore(end);
+          } else {
+            matchesDate = true;
+          }
           break;
         default:
           matchesDate = true;
@@ -102,33 +116,45 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
       _selectedPaymentMode = 'All';
       _searchQuery = '';
       _currentPage = 1;
+      _customDateRange = null;
     });
   }
 
-  Future<void> _exportToExcel(
-    List<Map<String, dynamic>> allTransactions,
-  ) async {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('Generating Excel Report...')));
+    Future<void> _exportToExcel(
+      List<Map<String, dynamic>> allTransactions, {
+      bool exportFiltered = true,
+      String? overrideDateRange,
+    }) async {
+      final targetData = exportFiltered ? _filteredTransactions(allTransactions, overrideDateRange: overrideDateRange) : allTransactions;
+  
+      if (targetData.isEmpty) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No data available to export for the selected filter!')));
+        }
+        return;
+      }
 
-    var excel = Excel.createExcel();
-    Sheet sheetObject = excel['History'];
-    excel.setDefaultSheet('History');
-
-    sheetObject.appendRow([
-      TextCellValue('Date'),
-      TextCellValue('Time'),
-      TextCellValue('Bill No / Ref No'),
-      TextCellValue('Customer Name'),
-      TextCellValue('Type'),
-      TextCellValue('Items'),
-      TextCellValue('Amount'),
-      TextCellValue('Payment Mode'),
-      TextCellValue('Status'),
-    ]);
-
-    for (var tx in _filteredTransactions(allTransactions)) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Generating Excel Report...')));
+  
+      var excel = Excel.createExcel();
+      Sheet sheetObject = excel['History'];
+      excel.setDefaultSheet('History');
+  
+      sheetObject.appendRow([
+        TextCellValue('Date'),
+        TextCellValue('Time'),
+        TextCellValue('Bill No / Ref No'),
+        TextCellValue('Customer Name'),
+        TextCellValue('Type'),
+        TextCellValue('Items'),
+        TextCellValue('Amount'),
+        TextCellValue('Payment Mode'),
+        TextCellValue('Status'),
+      ]);
+  
+      for (var tx in targetData) {
       sheetObject.appendRow([
         TextCellValue(tx['date'].toString()),
         TextCellValue(tx['time'].toString()),
@@ -144,77 +170,50 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
 
     var fileBytes = excel.save();
     if (fileBytes != null) {
-      await FileSaver.instance.saveFile(
-        name: 'History_Report_${DateTime.now().millisecondsSinceEpoch}',
-        bytes: Uint8List.fromList(fileBytes),
-        fileExtension: 'xlsx',
-        mimeType: MimeType.microsoftExcel,
-      );
+      try {
+        final path = await FileSaver.instance.saveAs(
+          name: 'History_Report_${DateTime.now().millisecondsSinceEpoch}',
+          bytes: Uint8List.fromList(fileBytes),
+          fileExtension: 'xlsx',
+          mimeType: MimeType.microsoftExcel,
+        );
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Excel report saved successfully to your device!')));
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error saving: $e')));
+      }
     }
   }
 
-  Future<void> _exportToPdf(List<Map<String, dynamic>> allTransactions) async {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('Generating PDF Report...')));
+  Future<void> _exportToPdf(
+      List<Map<String, dynamic>> allTransactions, {
+      bool exportFiltered = true,
+      String? overrideDateRange,
+    }) async {
+      final targetData = exportFiltered ? _filteredTransactions(allTransactions, overrideDateRange: overrideDateRange) : allTransactions;
 
-    final pdf = pw.Document();
+      if (targetData.isEmpty) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No data available to export for the selected filter!')));
+        }
+        return;
+      }
 
-    pdf.addPage(
-      pw.Page(
-        pageFormat: PdfPageFormat.a4,
-        build: (pw.Context context) {
-          return pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.start,
-            children: [
-              pw.Text(
-                'History Report',
-                style: pw.TextStyle(
-                  fontSize: 24,
-                  fontWeight: pw.FontWeight.bold,
-                ),
-              ),
-              pw.SizedBox(height: 20),
-              pw.TableHelper.fromTextArray(
-                context: context,
-                headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                headers: [
-                  'Date',
-                  'Bill No',
-                  'Customer Name',
-                  'Type',
-                  'Amount',
-                  'Mode',
-                  'Status',
-                ],
-                data: _filteredTransactions(allTransactions)
-                    .map(
-                      (tx) => [
-                        tx['date'].toString(),
-                        tx['refNo'].toString(),
-                        tx['customerName'].toString(),
-                        tx['type'].toString(),
-                        tx['amount'].toString(),
-                        tx['paymentMode'].toString(),
-                        tx['status'].toString(),
-                      ],
-                    )
-                    .toList(),
-              ),
-            ],
-          );
-        },
-      ),
-    );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Generating PDF Report...')));
+  
+      final dataToExport = targetData.map((tx) => {
+        'Date': tx['date'].toString(),
+        'Bill No': tx['refNo'].toString(),
+        'Customer Name': tx['customerName'].toString(),
+        'Type': tx['type'].toString(),
+        'Amount': tx['amount'].toString(),
+        'Mode': tx['paymentMode'].toString(),
+        'Status': tx['status'].toString(),
+      }).toList();
 
-    final Uint8List fileBytes = await pdf.save();
-
-    await FileSaver.instance.saveFile(
-      name: 'History_Report_${DateTime.now().millisecondsSinceEpoch}',
-      bytes: fileBytes,
-      fileExtension: 'pdf',
-      mimeType: MimeType.pdf,
-    );
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      await ExportService.exportToPDF(dataToExport, 'History_Report_$timestamp');
   }
 
   void _viewBill(SavedBill bill) async {
@@ -435,8 +434,8 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
           if (picked != null) {
             setState(() {
               _activeDateRange = title;
+              _customDateRange = picked;
               _currentPage = 1;
-              // Can use picked.start and picked.end to filter the data here if real backend was hooked up
             });
           }
         } else {
@@ -622,8 +621,6 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
     );
   }
 
-
-
   @override
   Widget build(BuildContext context) {
     final historyAsync = ref.watch(historyProvider);
@@ -635,11 +632,17 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
         final filtered = _filteredTransactions(historyState.transactions);
         final int itemsPerPage = 10;
         final int totalRecords = filtered.length;
-        final int totalPages = (totalRecords / itemsPerPage).ceil() == 0 ? 1 : (totalRecords / itemsPerPage).ceil();
-        
+        final int totalPages = (totalRecords / itemsPerPage).ceil() == 0
+            ? 1
+            : (totalRecords / itemsPerPage).ceil();
+
         final int startIdx = (_currentPage - 1) * itemsPerPage;
-        final int endIdx = (startIdx + itemsPerPage > totalRecords) ? totalRecords : startIdx + itemsPerPage;
-        final pagedTransactions = filtered.isNotEmpty ? filtered.sublist(startIdx, endIdx) : <Map<String, dynamic>>[];
+        final int endIdx = (startIdx + itemsPerPage > totalRecords)
+            ? totalRecords
+            : startIdx + itemsPerPage;
+        final pagedTransactions = filtered.isNotEmpty
+            ? filtered.sublist(startIdx, endIdx)
+            : <Map<String, dynamic>>[];
 
         return Container(
           color: const Color(0xFFF8FAFC),
@@ -648,11 +651,16 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               // Header
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Row(
+              SizedBox(
+                width: double.infinity,
+                child: Wrap(
+                  alignment: WrapAlignment.spaceBetween,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: 16,
+                  runSpacing: 16,
+                  children: [
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Container(
@@ -668,7 +676,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                           ),
                         ),
                         const SizedBox(width: 16),
-                        Expanded(
+                        Flexible(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -693,102 +701,152 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                         ),
                       ],
                     ),
-                  ),
-                  const SizedBox(width: 16),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        onPressed: () =>
-                            ref.read(historyProvider.notifier).reloadHistory(),
-                        icon: const Icon(
-                          Icons.refresh,
-                          color: Color(0xFF64748B),
-                        ),
-                        tooltip: 'Refresh',
-                      ),
-                      const SizedBox(width: 8),
-                      PopupMenuButton<String>(
-                        onSelected: (value) {
-                          if (value == 'Excel') {
-                            _exportToExcel(historyState.transactions);
-                          }
-                          if (value == 'PDF') {
-                            _exportToPdf(historyState.transactions);
-                          }
-                        },
-                        offset: const Offset(0, 50),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 20,
-                            vertical: 12,
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          onPressed: () => ref
+                              .read(historyProvider.notifier)
+                              .reloadHistory(),
+                          icon: const Icon(
+                            Icons.refresh,
+                            color: Color(0xFF64748B),
                           ),
-                          decoration: BoxDecoration(
-                            border: Border.all(color: const Color(0xFF22C55E)),
+                          tooltip: 'Refresh',
+                        ),
+                        const SizedBox(width: 8),
+                        PopupMenuButton<String>(
+                          onSelected: (value) {
+                            final parts = value.split('_');
+                            final format = parts[0];
+                            final action = parts[1];
+
+                            if (action == 'All') {
+                              if (format == 'Excel') {
+                                _exportToExcel(historyState.transactions, exportFiltered: false);
+                              } else {
+                                _exportToPdf(historyState.transactions, exportFiltered: false);
+                              }
+                            } else if (action == 'Filtered') {
+                              if (format == 'Excel') {
+                                _exportToExcel(historyState.transactions, exportFiltered: true);
+                              } else {
+                                _exportToPdf(historyState.transactions, exportFiltered: true);
+                              }
+                            } else {
+                              // specific date ranges
+                              final dateRangeMap = {
+                                'Today': 'Today',
+                                'Week': 'This Week',
+                                'Month': 'This Month',
+                                'Year': 'This Year',
+                              };
+                              final dateRange = dateRangeMap[action];
+                              if (format == 'Excel') {
+                                _exportToExcel(historyState.transactions, exportFiltered: true, overrideDateRange: dateRange);
+                              } else {
+                                _exportToPdf(historyState.transactions, exportFiltered: true, overrideDateRange: dateRange);
+                              }
+                            }
+                          },
+                          offset: const Offset(0, 50),
+                          shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(
-                                Icons.download,
-                                size: 16,
-                                color: Color(0xFF166534),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 20,
+                              vertical: 12,
+                            ),
+                            decoration: BoxDecoration(
+                              border: Border.all(
+                                color: const Color(0xFF22C55E),
                               ),
-                              const SizedBox(width: 8),
-                              const Text(
-                                'Export',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(
+                                  Icons.download,
+                                  size: 16,
                                   color: Color(0xFF166534),
                                 ),
-                              ),
-                              const SizedBox(width: 4),
-                              const Icon(
-                                Icons.arrow_drop_down,
-                                size: 18,
-                                color: Color(0xFF166534),
-                              ),
-                            ],
+                                const SizedBox(width: 8),
+                                const Text(
+                                  'Export',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF166534),
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                const Icon(
+                                  Icons.arrow_drop_down,
+                                  size: 18,
+                                  color: Color(0xFF166534),
+                                ),
+                              ],
+                            ),
                           ),
+                          itemBuilder: (context) => [
+                            const PopupMenuItem(
+                              value: 'Excel_Filtered',
+                              child: Text('Export Current Filtered List (Excel)'),
+                            ),
+                            const PopupMenuDivider(),
+                            const PopupMenuItem(
+                              value: 'Excel_Today',
+                              child: Text('Export Today (Excel)'),
+                            ),
+                            const PopupMenuItem(
+                              value: 'Excel_Week',
+                              child: Text('Export This Week (Excel)'),
+                            ),
+                            const PopupMenuItem(
+                              value: 'Excel_Month',
+                              child: Text('Export This Month (Excel)'),
+                            ),
+                            const PopupMenuItem(
+                              value: 'Excel_Year',
+                              child: Text('Export This Year (Excel)'),
+                            ),
+                            const PopupMenuItem(
+                              value: 'Excel_All',
+                              child: Text('Export All Time (Excel)'),
+                            ),
+                            const PopupMenuDivider(),
+                            const PopupMenuItem(
+                              value: 'PDF_Filtered',
+                              child: Text('Export Current Filtered List (PDF)'),
+                            ),
+                            const PopupMenuDivider(),
+                            const PopupMenuItem(
+                              value: 'PDF_Today',
+                              child: Text('Export Today (PDF)'),
+                            ),
+                            const PopupMenuItem(
+                              value: 'PDF_Week',
+                              child: Text('Export This Week (PDF)'),
+                            ),
+                            const PopupMenuItem(
+                              value: 'PDF_Month',
+                              child: Text('Export This Month (PDF)'),
+                            ),
+                            const PopupMenuItem(
+                              value: 'PDF_Year',
+                              child: Text('Export This Year (PDF)'),
+                            ),
+                            const PopupMenuItem(
+                              value: 'PDF_All',
+                              child: Text('Export All Time (PDF)'),
+                            ),
+                          ],
                         ),
-                        itemBuilder: (context) => [
-                          const PopupMenuItem(
-                            value: 'Excel',
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.table_chart_outlined,
-                                  color: Color(0xFF22C55E),
-                                  size: 18,
-                                ),
-                                SizedBox(width: 8),
-                                Text('Export as Excel'),
-                              ],
-                            ),
-                          ),
-                          const PopupMenuItem(
-                            value: 'PDF',
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.picture_as_pdf_outlined,
-                                  color: Colors.red,
-                                  size: 18,
-                                ),
-                                SizedBox(width: 8),
-                                Text('Export as PDF'),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ],
+                      ],
+                    ),
+                  ],
+                ),
               ),
               const SizedBox(height: 24),
 
@@ -1102,11 +1160,10 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                                 'Payment Mode',
                                 ['All', 'Cash', 'UPI', 'Card', 'Bank Transfer'],
                                 _selectedPaymentMode,
-                                (v) =>
-                                    setState(() {
-                                      _selectedPaymentMode = v!;
-                                      _currentPage = 1;
-                                    }),
+                                (v) => setState(() {
+                                  _selectedPaymentMode = v!;
+                                  _currentPage = 1;
+                                }),
                               ),
                               const SizedBox(width: 16),
                               SizedBox(

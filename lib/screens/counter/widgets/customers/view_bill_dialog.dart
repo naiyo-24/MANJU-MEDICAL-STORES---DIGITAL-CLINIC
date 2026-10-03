@@ -23,10 +23,10 @@ void showViewBillDialog(BuildContext context, SavedBill bill, Map<String, dynami
                   horizontal: 20,
                   vertical: 12,
                 ),
-                decoration: const BoxDecoration(
-                  color: AppColors.background,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).scaffoldBackgroundColor,
                   borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
-                  border: Border(bottom: BorderSide(color: AppColors.border)),
+                  border: Border(bottom: BorderSide(color: Theme.of(context).dividerColor)),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,

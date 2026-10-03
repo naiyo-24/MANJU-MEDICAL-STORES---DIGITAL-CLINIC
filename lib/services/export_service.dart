@@ -9,6 +9,8 @@ import 'dart:io';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
+import 'shop_settings_service.dart';
+import '../config/api_constants.dart';
 
 class ExportService {
   static Future<void> _exportOrShare(String filename, Uint8List bytes, String ext, MimeType mimeType) async {
@@ -73,6 +75,14 @@ class ExportService {
   ]) async {
     final pdf = pw.Document();
 
+    if (shopDetails == null) {
+      try {
+        shopDetails = await ShopSettingsService.getSettings();
+      } catch (e) {
+        // Fallback to empty if fetch fails
+      }
+    }
+
     if (data.isNotEmpty) {
       final headers = data.first.keys.where((k) => k != 'id').toList();
       final tableData = [headers.map((h) => h.toUpperCase()).toList()];
@@ -85,8 +95,11 @@ class ExportService {
       pw.ImageProvider logoImage;
       if (shopDetails?['logo_url'] != null && shopDetails!['logo_url'].toString().isNotEmpty) {
         try {
+          final logoUrl = shopDetails['logo_url'].toString().startsWith('http') 
+              ? shopDetails['logo_url'] 
+              : '${ApiConstants.baseUrl}${shopDetails['logo_url']}';
           final response = await Dio().get(
-            shopDetails['logo_url'],
+            logoUrl,
             options: Options(responseType: ResponseType.bytes),
           );
           logoImage = pw.MemoryImage(Uint8List.fromList(response.data));

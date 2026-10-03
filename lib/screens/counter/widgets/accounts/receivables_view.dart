@@ -48,7 +48,7 @@ class _ReceivablesViewState extends State<ReceivablesView> {
       children: [
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          color: const Color(0xFFF8FAFC),
+          color: Colors.transparent,
           child: Row(
             children: const [
               Expanded(
@@ -78,12 +78,12 @@ class _ReceivablesViewState extends State<ReceivablesView> {
           ),
         ),
         _receivables.isEmpty
-            ? const Padding(
+            ? Padding(
                 padding: EdgeInsets.all(32),
                 child: Center(
                   child: Text(
                     'No outstanding receivables!',
-                    style: TextStyle(color: Color(0xFF64748B)),
+                    style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B)),
                   ),
                 ),
               )
@@ -92,7 +92,7 @@ class _ReceivablesViewState extends State<ReceivablesView> {
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: _receivables.length,
                 separatorBuilder: (context, index) =>
-                    const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                    Divider(height: 1, color: Theme.of(context).dividerColor),
                 itemBuilder: (context, index) {
                   final item = _receivables[index];
                   return Padding(
@@ -108,7 +108,7 @@ class _ReceivablesViewState extends State<ReceivablesView> {
                             children: [
                               CircleAvatar(
                                 radius: 16,
-                                backgroundColor: const Color(0xFFE0F2FE),
+                                backgroundColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF0C4A6E) : const Color(0xFFE0F2FE),
                                 child: Text(
                                   (item['entity_name']?.toString().isNotEmpty ==
                                           true)
@@ -116,8 +116,8 @@ class _ReceivablesViewState extends State<ReceivablesView> {
                                             .toString()[0]
                                             .toUpperCase()
                                       : '?',
-                                  style: const TextStyle(
-                                    color: Color(0xFF0369A1),
+                                  style: TextStyle(
+                                    color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF38BDF8) : const Color(0xFF0369A1),
                                     fontWeight: FontWeight.bold,
                                     fontSize: 12,
                                   ),
@@ -138,10 +138,10 @@ class _ReceivablesViewState extends State<ReceivablesView> {
                           flex: 2,
                           child: Text(
                             _fmt(item['amount_owed']?.toDouble() ?? 0.0),
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 14,
-                              color: Color(0xFFB91C1C),
+                              color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFFF87171) : const Color(0xFFB91C1C),
                             ),
                             textAlign: TextAlign.right,
                           ),
@@ -159,20 +159,20 @@ class _ReceivablesViewState extends State<ReceivablesView> {
                                   ),
                                 );
                               },
-                              icon: const Icon(
+                              icon: Icon(
                                 Icons.download,
                                 size: 16,
-                                color: Color(0xFF166534),
+                                color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF4ADE80) : const Color(0xFF166534),
                               ),
-                              label: const Text(
+                              label: Text(
                                 'Receive',
                                 style: TextStyle(
                                   fontSize: 12,
-                                  color: Color(0xFF166534),
+                                  color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF4ADE80) : const Color(0xFF166534),
                                 ),
                               ),
                               style: TextButton.styleFrom(
-                                backgroundColor: const Color(0xFFDCFCE7),
+                                backgroundColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF052E16) : const Color(0xFFDCFCE7),
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 12,
                                   vertical: 8,
@@ -188,26 +188,26 @@ class _ReceivablesViewState extends State<ReceivablesView> {
               ),
         Container(
           padding: const EdgeInsets.all(16),
-          decoration: const BoxDecoration(
-            color: Color(0xFFF8FAFC),
-            border: Border(top: BorderSide(color: Color(0xFFE2E8F0))),
+          decoration: BoxDecoration(
+            color: Colors.transparent,
+            border: Border(top: BorderSide(color: Theme.of(context).dividerColor)),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              const Text(
+              Text(
                 'Total Receivables: ',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF64748B),
+                  color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B),
                 ),
               ),
               Text(
                 _fmt(_totalReceivables),
-                style: const TextStyle(
+                style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 18,
-                  color: Color(0xFF1E293B),
+                  color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
                 ),
               ),
             ],

@@ -42,7 +42,7 @@ class _LedgerViewState extends State<LedgerView> {
         children: [
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            color: const Color(0xFFF8FAFC),
+            color: Colors.transparent,
             child: Row(
               children: const [
                 Expanded(
@@ -72,16 +72,16 @@ class _LedgerViewState extends State<LedgerView> {
           ),
           Expanded(
             child: _accounts.isEmpty
-                ? const Center(
+                ? Center(
                     child: Text(
                       'No accounts found in ledger.',
-                      style: TextStyle(color: Color(0xFF64748B)),
+                      style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B)),
                     ),
                   )
                 : ListView.separated(
                     itemCount: _accounts.length,
                     separatorBuilder: (context, index) =>
-                        const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                        Divider(height: 1, color: Theme.of(context).dividerColor),
                     itemBuilder: (context, index) {
                       final acc = _accounts[index];
                       return Padding(
@@ -95,9 +95,9 @@ class _LedgerViewState extends State<LedgerView> {
                               flex: 3,
                               child: Row(
                                 children: [
-                                  const Icon(
+                                  Icon(
                                     Icons.account_balance_wallet,
-                                    color: Color(0xFF64748B),
+                                    color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B),
                                     size: 18,
                                   ),
                                   const SizedBox(width: 8),
@@ -119,14 +119,14 @@ class _LedgerViewState extends State<LedgerView> {
                                   vertical: 4,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFFF1F5F9),
+                                  color: Theme.of(context).dividerColor,
                                   borderRadius: BorderRadius.circular(4),
                                 ),
                                 child: Text(
                                   acc['type'].toString(),
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 12,
-                                    color: Color(0xFF475569),
+                                    color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF475569),
                                   ),
                                 ),
                               ),
