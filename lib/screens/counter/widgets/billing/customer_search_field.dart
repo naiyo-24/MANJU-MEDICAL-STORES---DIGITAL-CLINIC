@@ -26,7 +26,7 @@ class CustomerSearchField extends StatelessWidget {
           style: TextStyle(
             fontSize: 11,
             fontWeight: FontWeight.bold,
-            color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+            color: isDark ? Colors.white : Colors.black87,
           ),
         ),
         const SizedBox(height: 4),

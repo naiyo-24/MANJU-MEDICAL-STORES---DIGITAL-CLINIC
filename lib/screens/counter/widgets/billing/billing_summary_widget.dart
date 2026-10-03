@@ -143,7 +143,7 @@ class BillingSummaryWidget extends StatelessWidget {
                             style: TextStyle(
                               color: billingState.isDiscountPercentage
                                   ? Colors.white
-                                  : const Color(0xFF64748B),
+                                  : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
                             ),
@@ -171,7 +171,7 @@ class BillingSummaryWidget extends StatelessWidget {
                             style: TextStyle(
                               color: !billingState.isDiscountPercentage
                                   ? Colors.white
-                                  : const Color(0xFF64748B),
+                                  : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
                             ),
@@ -309,7 +309,7 @@ class BillingSummaryWidget extends StatelessWidget {
                 Text(
                   'Payment:',
                   style: TextStyle(
-                    color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                    color: isDark ? Colors.white : Colors.black87,
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
                   ),
@@ -345,7 +345,7 @@ class BillingSummaryWidget extends StatelessWidget {
                                 style: TextStyle(
                                   color: isSelected
                                       ? Colors.white
-                                      : const Color(0xFF64748B),
+                                      : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                                   fontWeight: isSelected
                                       ? FontWeight.bold
                                       : FontWeight.normal,
@@ -367,7 +367,7 @@ class BillingSummaryWidget extends StatelessWidget {
                 Text(
                   'Format:',
                   style: TextStyle(
-                    color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                    color: isDark ? Colors.white : Colors.black87,
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
                   ),
@@ -414,7 +414,7 @@ class BillingSummaryWidget extends StatelessWidget {
                                 style: TextStyle(
                                   color: isSelected
                                       ? Colors.white
-                                      : const Color(0xFF64748B),
+                                      : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
                                   fontWeight: isSelected
                                       ? FontWeight.bold
                                       : FontWeight.normal,

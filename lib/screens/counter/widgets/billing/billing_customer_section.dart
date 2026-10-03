@@ -174,7 +174,7 @@ Widget _buildCompactField(
                         'Doctor Name',
                         style: TextStyle(
                           fontSize: 10,
-                          color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                          color: isDark ? Colors.white : Colors.black87,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
