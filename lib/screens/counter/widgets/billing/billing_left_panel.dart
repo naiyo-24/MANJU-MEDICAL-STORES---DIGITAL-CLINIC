@@ -138,6 +138,7 @@ class _BillingLeftPanelState extends ConsumerState<BillingLeftPanel> {
                         Expanded(
                           child: TextField(
                             controller: widget.searchController,
+                            onChanged: widget.onSearch,
                             onSubmitted: widget.onSearch,
                             decoration: InputDecoration(
                               border: InputBorder.none,

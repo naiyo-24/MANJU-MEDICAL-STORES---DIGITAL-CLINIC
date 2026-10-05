@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:linked_scroll_controller/linked_scroll_controller.dart';
@@ -24,6 +25,7 @@ class InventoryScreen extends ConsumerStatefulWidget {
 
 class _InventoryScreenState extends ConsumerState<InventoryScreen> {
   final TextEditingController _searchController = TextEditingController();
+  Timer? _searchDebounce;
 
   late LinkedScrollControllerGroup _controllers;
   late ScrollController _headController;
@@ -300,6 +302,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
 
   @override
   void dispose() {
+    _searchDebounce?.cancel();
     _searchController.dispose();
     _headController.dispose();
     _bodyController.dispose();
@@ -477,6 +480,12 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                               Expanded(
                                 child: TextField(
                                   controller: _searchController,
+                                    onChanged: (value) {
+                                      if (_searchDebounce?.isActive ?? false) _searchDebounce!.cancel();
+                                      _searchDebounce = Timer(const Duration(milliseconds: 500), () {
+                                        _fetchData(value);
+                                      });
+                                    },
                                   onSubmitted: (value) => _fetchData(value),
                                   decoration: const InputDecoration(
                                     border: InputBorder.none,
