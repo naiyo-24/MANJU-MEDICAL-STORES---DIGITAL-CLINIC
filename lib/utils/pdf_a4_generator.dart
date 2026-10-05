@@ -2,6 +2,7 @@ import 'dart:typed_data';
 import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
+import 'format_utils.dart';
 
 class PdfA4Generator {
   static Future<Uint8List> generateA4Bill({
@@ -353,7 +354,7 @@ class PdfA4Generator {
                           horizontal: 4,
                         ),
                         child: pw.Text(
-                          (item['is_loose'] == true) ? '${(item['qty'] ?? 0)} Pc' : (item['qty'] ?? 0).toString(),
+                          FormatUtils.formatQty(item),
                           style: pw.TextStyle(
                             fontSize: format == 'A4' ? 8 : 7,
                           ),

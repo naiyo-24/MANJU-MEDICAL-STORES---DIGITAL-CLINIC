@@ -2,6 +2,7 @@ import 'dart:typed_data';
 import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
+import 'format_utils.dart';
 
 class PdfThermalGenerator {
   static Future<Uint8List> generateThermalBill({
@@ -159,7 +160,7 @@ class PdfThermalGenerator {
                         pw.Padding(
                           padding: const pw.EdgeInsets.all(2),
                           child: pw.Text(
-                            (item['is_loose'] == true) ? '${(item['qty'] ?? 0)} Pc' : (item['qty'] ?? 0).toString(),
+                            FormatUtils.formatQty(item),
                             style: const pw.TextStyle(fontSize: 8),
                             textAlign: pw.TextAlign.center,
                           ),

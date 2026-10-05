@@ -86,7 +86,7 @@ class _RoleLoginScreenState extends State<RoleLoginScreen> {
     final subtitleColor = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 24.0),
+      padding: const EdgeInsets.only(bottom: 16.0),
       child: Row(
         children: [
           Container(
@@ -130,47 +130,51 @@ class _RoleLoginScreenState extends State<RoleLoginScreen> {
     final scaffoldBg = isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC);
     final shaderColor = isDark ? const Color(0xFF0F172A) : Colors.white;
 
-    return Scaffold(
-      backgroundColor: scaffoldBg,
-      body: Stack(
-        children: [
-          // Background Image (Blurred)
-          Positioned.fill(
-            child: ShaderMask(
-              shaderCallback: (rect) {
-                return LinearGradient(
-                  begin: Alignment.centerLeft,
-                  end: Alignment.centerRight,
-                  colors: [shaderColor, shaderColor.withValues(alpha: 0.2)],
-                  stops: const [0.4, 1.0],
-                ).createShader(rect);
-              },
-              blendMode: BlendMode.dstOut,
-              child: Image.asset(
-                'assets/back.png',
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) =>
-                    Container(color: isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0)),
+    return Stack(
+      children: [
+        // Solid Background
+        Positioned.fill(
+          child: Container(color: scaffoldBg),
+        ),
+        // Background Image (Blurred)
+        Positioned.fill(
+          child: ShaderMask(
+            shaderCallback: (rect) {
+              return LinearGradient(
+                begin: Alignment.centerLeft,
+                end: Alignment.centerRight,
+                colors: [shaderColor, shaderColor.withValues(alpha: 0.2)],
+                stops: const [0.4, 1.0],
+              ).createShader(rect);
+            },
+            blendMode: BlendMode.dstOut,
+            child: Image.asset(
+              'assets/back.png',
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) =>
+                  Container(color: isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0)),
+            ),
+          ),
+        ),
+        // Gradient Overlay
+        Positioned.fill(
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.centerLeft,
+                end: Alignment.centerRight,
+                colors: [
+                  scaffoldBg.withValues(alpha: 0.95),
+                  scaffoldBg.withValues(alpha: 0.6),
+                ],
               ),
             ),
           ),
-          // Gradient Overlay
-          Positioned.fill(
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.centerLeft,
-                  end: Alignment.centerRight,
-                  colors: [
-                    scaffoldBg.withValues(alpha: 0.95),
-                    scaffoldBg.withValues(alpha: 0.6),
-                  ],
-                ),
-              ),
-            ),
-          ),
-
-          Column(
+        ),
+        // Foreground UI
+        Scaffold(
+          backgroundColor: Colors.transparent,
+          body: Column(
             children: [
               // Custom Top Bar
               Container(
@@ -251,10 +255,10 @@ class _RoleLoginScreenState extends State<RoleLoginScreen> {
                   ),
                 ),
             ],
-          ),
-        ],
-      ),
-    );
+          ), // Closes Column
+        ), // Closes Scaffold
+      ],
+    ); // Closes Stack
   }
 
   Widget _buildWebLayout() {
@@ -264,11 +268,12 @@ class _RoleLoginScreenState extends State<RoleLoginScreen> {
     return Center(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 1200),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 64.0, vertical: 32.0),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 64.0, vertical: 16.0),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
               // Left Content
               Expanded(
                 flex: 1,
@@ -281,7 +286,7 @@ class _RoleLoginScreenState extends State<RoleLoginScreen> {
                       height: 80,
                       cacheHeight: 250,
                     ),
-                    const SizedBox(height: 48),
+                    const SizedBox(height: 24),
                     Text(
                       'Welcome to',
                       style: TextStyle(fontSize: 24, color: subtitleColor),
@@ -307,7 +312,7 @@ class _RoleLoginScreenState extends State<RoleLoginScreen> {
                         height: 1.5,
                       ),
                     ),
-                    const SizedBox(height: 48),
+                    const SizedBox(height: 24),
                     if (widget.roleName == 'Counter') ...[
                       _buildFeatureItem(
                         Icons.medication,
@@ -375,9 +380,10 @@ class _RoleLoginScreenState extends State<RoleLoginScreen> {
             ],
           ), // Closes Row
         ), // Closes Padding
-      ), // Closes ConstrainedBox
-    ); // Closes Center
-  }
+      ), // Closes SingleChildScrollView
+    ), // Closes ConstrainedBox
+  ); // Closes Center
+}
 
   Widget _buildMobileLayout() {
     return Center(
@@ -411,7 +417,7 @@ class _RoleLoginScreenState extends State<RoleLoginScreen> {
     final borderColor = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
 
     return Container(
-      padding: const EdgeInsets.all(40),
+      padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
         color: cardColor,
         borderRadius: BorderRadius.circular(24),
@@ -429,7 +435,7 @@ class _RoleLoginScreenState extends State<RoleLoginScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: widget.themeColor.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
@@ -440,7 +446,7 @@ class _RoleLoginScreenState extends State<RoleLoginScreen> {
                 color: widget.themeColor,
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
             Text(
               'Access ${widget.roleName} Module',
               textAlign: TextAlign.center,
@@ -455,7 +461,7 @@ class _RoleLoginScreenState extends State<RoleLoginScreen> {
               'Sign in to continue',
               style: TextStyle(color: subtitleColor, fontSize: 14),
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: 24),
             TextFormField(
               controller: _userIdController,
               textInputAction: TextInputAction.next,

@@ -131,7 +131,7 @@ class DashboardScreen extends ConsumerWidget {
               Padding(
                 padding: EdgeInsets.symmetric(
                   horizontal: isWeb ? 32 : 20,
-                  vertical: isWeb ? 80 : 24,
+                  vertical: isWeb ? 40 : 24,
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -242,9 +242,13 @@ class DashboardScreen extends ConsumerWidget {
             builder: (context, constraints) {
               final isWeb = constraints.maxWidth > 800;
 
-              return Stack(
-                children: [
-                  Column(
+              return SingleChildScrollView(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minHeight: constraints.maxHeight,
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       // Top App Bar Area (Toggle button right)
                       Padding(
@@ -271,183 +275,177 @@ class DashboardScreen extends ConsumerWidget {
                         ),
                       ),
 
-                      Expanded(
-                        child: Align(
-                          alignment: const Alignment(0, -0.3),
-                          child: SingleChildScrollView(
-                            child: Padding(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: isWeb ? 64.0 : 24.0,
+                      // Main Content
+                      Padding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: isWeb ? 64.0 : 24.0,
+                          vertical: 24.0,
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Center(
+                              child: Image.asset(
+                                isDark
+                                    ? 'assets/LOGO_DM.png'
+                                    : 'assets/LOGO.png',
+                                height: isWeb ? 100 : 80,
+                                fit: BoxFit.contain,
+                                errorBuilder: (_, __, ___) => const Icon(
+                                  Icons.local_hospital,
+                                  color: Color(0xFF166534),
+                                  size: 40,
+                                ),
                               ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Center(
-                                    child: Image.asset(
-                                      isDark
-                                          ? 'assets/LOGO_DM.png'
-                                          : 'assets/LOGO.png',
-                                      height: isWeb ? 160 : 90,
-                                      fit: BoxFit.contain,
-                                      errorBuilder: (_, __, ___) => const Icon(
-                                        Icons.local_hospital,
-                                        color: Color(0xFF166534),
-                                        size: 40,
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 16),
+                            ),
+                            const SizedBox(height: 16),
 
-                                  Text(
-                                    'WELCOME BACK!',
+                            Text(
+                              'WELCOME BACK!',
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 1.5,
+                                color: isDark
+                                    ? const Color(0xFF94A3B8)
+                                    : const Color(0xFF64748B),
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            RichText(
+                              text: TextSpan(
+                                style: TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.w900,
+                                  color: isDark
+                                      ? Colors.white
+                                      : const Color(0xFF1E293B),
+                                ),
+                                children: const [
+                                  TextSpan(text: 'Select a '),
+                                  TextSpan(
+                                    text: 'Module',
                                     style: TextStyle(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.bold,
-                                      letterSpacing: 1.5,
-                                      color: isDark
-                                          ? const Color(0xFF94A3B8)
-                                          : const Color(0xFF64748B),
+                                      color: Color(0xFF166534),
                                     ),
                                   ),
-                                  const SizedBox(height: 4),
-                                  RichText(
-                                    text: TextSpan(
-                                      style: TextStyle(
-                                        fontSize: 24,
-                                        fontWeight: FontWeight.w900,
-                                        color: isDark
-                                            ? Colors.white
-                                            : const Color(0xFF1E293B),
-                                      ),
-                                      children: const [
-                                        TextSpan(text: 'Select a '),
-                                        TextSpan(
-                                          text: 'Module',
-                                          style: TextStyle(
-                                            color: Color(0xFF166534),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    'Choose a module to continue and manage your services',
-                                    textAlign: TextAlign.start,
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                      color: isDark
-                                          ? const Color(0xFF94A3B8)
-                                          : const Color(0xFF64748B),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 16),
-
-                                  // Cards
-                                  if (isWeb)
-                                    Row(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Expanded(
-                                          child: _buildDashboardCard(
-                                            context: context,
-                                            title: 'Counter',
-                                            description:
-                                                'Manage sales, billing, inventory.',
-                                            icon: Icons.point_of_sale_rounded,
-                                            primaryColor: const Color(
-                                              0xFF22C55E,
-                                            ),
-                                            nextRoute: '/counter/billing',
-                                            isDark: isDark,
-                                            indexText: '01',
-                                            isWeb: isWeb,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 16),
-                                        Expanded(
-                                          child: _buildDashboardCard(
-                                            context: context,
-                                            title: 'Lab Test',
-                                            description:
-                                                'Manage lab test bookings, reports.',
-                                            icon: Icons.science_rounded,
-                                            primaryColor: const Color(
-                                              0xFFF97316,
-                                            ),
-                                            nextRoute: '/lab/dashboard',
-                                            isDark: isDark,
-                                            indexText: '02',
-                                            isWeb: isWeb,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 16),
-                                        Expanded(
-                                          child: _buildDashboardCard(
-                                            context: context,
-                                            title: 'CRM',
-                                            description:
-                                                'Manage patients, follow-ups.',
-                                            icon: Icons.people_alt_rounded,
-                                            primaryColor: const Color(
-                                              0xFF8B5CF6,
-                                            ),
-                                            nextRoute: '/crm/dashboard',
-                                            isDark: isDark,
-                                            indexText: '03',
-                                            isWeb: isWeb,
-                                          ),
-                                        ),
-                                      ],
-                                    )
-                                  else
-                                    Column(
-                                      children: [
-                                        _buildDashboardCard(
-                                          context: context,
-                                          title: 'Counter',
-                                          description:
-                                              'Manage sales, billing, inventory.',
-                                          icon: Icons.point_of_sale_rounded,
-                                          primaryColor: const Color(0xFF22C55E),
-                                          nextRoute: '/counter/billing',
-                                          isDark: isDark,
-                                          indexText: '01',
-                                          isWeb: isWeb,
-                                        ),
-                                        _buildDashboardCard(
-                                          context: context,
-                                          title: 'Lab Test',
-                                          description:
-                                              'Manage lab test bookings, reports.',
-                                          icon: Icons.science_rounded,
-                                          primaryColor: const Color(0xFFF97316),
-                                          nextRoute: '/lab/dashboard',
-                                          isDark: isDark,
-                                          indexText: '02',
-                                          isWeb: isWeb,
-                                        ),
-                                        _buildDashboardCard(
-                                          context: context,
-                                          title: 'CRM',
-                                          description:
-                                              'Manage patients, follow-ups.',
-                                          icon: Icons.people_alt_rounded,
-                                          primaryColor: const Color(0xFF8B5CF6),
-                                          nextRoute: '/crm/dashboard',
-                                          isDark: isDark,
-                                          indexText: '03',
-                                          isWeb: isWeb,
-                                        ),
-                                      ],
-                                    ),
-                                  const SizedBox(height: 24),
                                 ],
                               ),
                             ),
-                          ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Choose a module to continue and manage your services',
+                              textAlign: TextAlign.start,
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: isDark
+                                    ? const Color(0xFF94A3B8)
+                                    : const Color(0xFF64748B),
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+
+                            // Cards
+                            if (isWeb)
+                              Row(
+                                crossAxisAlignment:
+                                    CrossAxisAlignment.start,
+                                children: [
+                                  Expanded(
+                                    child: _buildDashboardCard(
+                                      context: context,
+                                      title: 'Counter',
+                                      description:
+                                          'Manage sales, billing, inventory.',
+                                      icon: Icons.point_of_sale_rounded,
+                                      primaryColor: const Color(
+                                        0xFF22C55E,
+                                      ),
+                                      nextRoute: '/counter/billing',
+                                      isDark: isDark,
+                                      indexText: '01',
+                                      isWeb: isWeb,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    child: _buildDashboardCard(
+                                      context: context,
+                                      title: 'Lab Test',
+                                      description:
+                                          'Manage lab test bookings, reports.',
+                                      icon: Icons.science_rounded,
+                                      primaryColor: const Color(
+                                        0xFFF97316,
+                                      ),
+                                      nextRoute: '/lab/dashboard',
+                                      isDark: isDark,
+                                      indexText: '02',
+                                      isWeb: isWeb,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    child: _buildDashboardCard(
+                                      context: context,
+                                      title: 'CRM',
+                                      description:
+                                          'Manage patients, follow-ups.',
+                                      icon: Icons.people_alt_rounded,
+                                      primaryColor: const Color(
+                                        0xFF8B5CF6,
+                                      ),
+                                      nextRoute: '/crm/dashboard',
+                                      isDark: isDark,
+                                      indexText: '03',
+                                      isWeb: isWeb,
+                                    ),
+                                  ),
+                                ],
+                              )
+                            else
+                              Column(
+                                children: [
+                                  _buildDashboardCard(
+                                    context: context,
+                                    title: 'Counter',
+                                    description:
+                                        'Manage sales, billing, inventory.',
+                                    icon: Icons.point_of_sale_rounded,
+                                    primaryColor: const Color(0xFF22C55E),
+                                    nextRoute: '/counter/billing',
+                                    isDark: isDark,
+                                    indexText: '01',
+                                    isWeb: isWeb,
+                                  ),
+                                  _buildDashboardCard(
+                                    context: context,
+                                    title: 'Lab Test',
+                                    description:
+                                        'Manage lab test bookings, reports.',
+                                    icon: Icons.science_rounded,
+                                    primaryColor: const Color(0xFFF97316),
+                                    nextRoute: '/lab/dashboard',
+                                    isDark: isDark,
+                                    indexText: '02',
+                                    isWeb: isWeb,
+                                  ),
+                                  _buildDashboardCard(
+                                    context: context,
+                                    title: 'CRM',
+                                    description:
+                                        'Manage patients, follow-ups.',
+                                    icon: Icons.people_alt_rounded,
+                                    primaryColor: const Color(0xFF8B5CF6),
+                                    nextRoute: '/crm/dashboard',
+                                    isDark: isDark,
+                                    indexText: '03',
+                                    isWeb: isWeb,
+                                  ),
+                                ],
+                              ),
+                          ],
                         ),
                       ),
 
@@ -492,7 +490,7 @@ class DashboardScreen extends ConsumerWidget {
                       ),
                     ],
                   ),
-                ],
+                ),
               );
             },
           ),

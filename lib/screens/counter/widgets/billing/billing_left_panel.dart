@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../providers/billing_provider.dart';
 import '../../../../providers/counter_providers.dart';
+import '../../../../../utils/format_utils.dart';
 import 'billing_dialogs.dart';
 
 class BillingLeftPanel extends ConsumerStatefulWidget {
@@ -348,10 +349,13 @@ class _BillingLeftPanelState extends ConsumerState<BillingLeftPanel> {
                                             flex: 2,
                                             child: Align(
                                               alignment: Alignment.centerLeft,
-                                              child: Container(
-                                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                                decoration: BoxDecoration(color: (item['stock'] ?? 0) <= 0 ? const Color(0xFFFEE2E2) : const Color(0xFFF1F8F5), borderRadius: BorderRadius.circular(12)),
-                                                child: Text('${item['stock'] ?? 0}', style: TextStyle(color: (item['stock'] ?? 0) <= 0 ? Colors.red : const Color(0xFF22C55E), fontWeight: FontWeight.bold, fontSize: 12)),
+                                              child: FittedBox(
+                                                fit: BoxFit.scaleDown,
+                                                child: Container(
+                                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                                  decoration: BoxDecoration(color: (item['stock'] ?? 0) <= 0 && (item['loose_stock'] ?? 0) <= 0 ? const Color(0xFFFEE2E2) : const Color(0xFFF1F8F5), borderRadius: BorderRadius.circular(12)),
+                                                  child: Text(FormatUtils.formatInventoryStock(item), style: TextStyle(color: (item['stock'] ?? 0) <= 0 && (item['loose_stock'] ?? 0) <= 0 ? Colors.red : const Color(0xFF22C55E), fontWeight: FontWeight.bold, fontSize: 12)),
+                                                ),
                                               ),
                                             ),
                                           ),
