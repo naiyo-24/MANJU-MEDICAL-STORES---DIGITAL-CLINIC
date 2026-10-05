@@ -72,6 +72,7 @@ class _AddDistributorDialogState extends ConsumerState<AddDistributorDialog> {
   Widget build(BuildContext context) {
     return AlertDialog(
       title: Text('Add New Distributor', style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B))),
+      title: const Text('Add New Distributor', style: TextStyle(fontWeight: FontWeight.bold)),
       content: SizedBox(
         width: 400,
         child: Form(
@@ -122,7 +123,7 @@ class _AddDistributorDialogState extends ConsumerState<AddDistributorDialog> {
       actions: [
         TextButton(
           onPressed: _isLoading ? null : () => Navigator.pop(context),
-          child: const Text('Cancel', style: TextStyle(color: Color(0xFF64748B))),
+          child: const Text('Cancel'),
         ),
         ElevatedButton(
           onPressed: _isLoading ? null : _submit,
