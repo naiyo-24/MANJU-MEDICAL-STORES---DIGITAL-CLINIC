@@ -1,4 +1,5 @@
 import '../config/api_client.dart';
+import 'inventory_service.dart';
 
 class AccountSummaryModel {
   final double cashInHand;
@@ -31,12 +32,14 @@ class AccountModel {
   final String name;
   final String accountType;
   final double balance;
+  final String? tenantId;
 
   AccountModel({
     required this.id,
     required this.name,
     required this.accountType,
     required this.balance,
+    this.tenantId,
   });
 
   factory AccountModel.fromJson(Map<String, dynamic> json) {
@@ -45,6 +48,7 @@ class AccountModel {
       name: json['name'] ?? '',
       accountType: json['account_type'] ?? '',
       balance: (json['balance'] ?? 0.0).toDouble(),
+      tenantId: json['tenant_id'],
     );
   }
 }
@@ -52,7 +56,8 @@ class AccountModel {
 class AccountService {
   static Future<AccountSummaryModel> getSummary({String? shopId}) async {
     try {
-      final queryParams = shopId != null ? {'shop_id': shopId} : null;
+      final actualShopId = shopId ?? await InventoryService.getShopId();
+      final queryParams = {'shop_id': actualShopId, 'tenant_id': actualShopId};
       final response = await ApiClient().dio.get('/api/accounts/summary', queryParameters: queryParams);
 
       if (response.statusCode == 200) {
@@ -74,7 +79,8 @@ class AccountService {
 
   static Future<List<AccountModel>> getAccounts() async {
     try {
-      final response = await ApiClient().dio.get('/api/accounts');
+      final shopId = await InventoryService.getShopId();
+      final response = await ApiClient().dio.get('/api/accounts', queryParameters: {'tenant_id': shopId, 'shop_id': shopId});
 
       if (response.statusCode == 200) {
         final List<dynamic> data = response.data;

@@ -6,9 +6,11 @@ class Customer {
   final String location;
   final bool isActive;
   final String? createdAt;
+  final String? tenantId;
 
   Customer({
     required this.id,
+    this.tenantId,
     required this.name,
     required this.phone,
     this.email = '',
@@ -20,6 +22,7 @@ class Customer {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
+      'tenant_id': tenantId,
       'name': name,
       'phone': phone,
       'email': email,
@@ -31,6 +34,7 @@ class Customer {
   factory Customer.fromJson(Map<String, dynamic> json) {
     return Customer(
       id: json['id'] ?? '',
+      tenantId: json['tenant_id'],
       name: json['name'] ?? '',
       phone: json['phone'] ?? '',
       email: json['email'] ?? '',
@@ -57,9 +61,11 @@ class SavedBill {
   final List<Map<String, dynamic>> items;
   final DateTime createdAt;
   final String format;
+  final String? tenantId;
 
   SavedBill({
     required this.id,
+    this.tenantId,
     required this.invoiceNo,
     required this.customerName,
     required this.customerPhone,
@@ -78,6 +84,7 @@ class SavedBill {
 
   Map<String, dynamic> toJson() => {
     'id': id,
+    'tenant_id': tenantId,
     'invoiceNo': invoiceNo,
     'customerName': customerName,
     'customerPhone': customerPhone,
@@ -96,6 +103,7 @@ class SavedBill {
 
   factory SavedBill.fromJson(Map<String, dynamic> json) => SavedBill(
     id: json['id'],
+    tenantId: json['tenant_id'],
     invoiceNo: json['invoiceNo'],
     customerName: json['customerName'],
     customerPhone: json['customerPhone'] ?? '',

@@ -174,6 +174,7 @@ class CrmOrder {
   final String status;
   final String source;
   final List<CrmOrderItem> items;
+  final String? tenantId;
 
   CrmOrder({
     required this.id,
@@ -185,5 +186,6 @@ class CrmOrder {
     required this.status,
     required this.source,
     required this.items,
+    this.tenantId,
   });
 }

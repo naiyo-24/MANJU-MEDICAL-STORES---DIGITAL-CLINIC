@@ -6,11 +6,13 @@ class Category {
   final String id;
   final String name;
   final String? description;
+  final String? tenantId;
 
   Category({
     required this.id,
     required this.name,
     this.description,
+    this.tenantId,
   });
 
   factory Category.fromJson(Map<String, dynamic> json) {
@@ -18,6 +20,7 @@ class Category {
       id: json['id'].toString(),
       name: json['name'].toString(),
       description: json['description']?.toString(),
+      tenantId: json['tenant_id'],
     );
   }
 }
@@ -26,7 +29,7 @@ class CategoryService {
   static Future<List<Category>> getCategories() async {
     try {
       final shopId = await InventoryService.getShopId();
-      final response = await ApiClient().dio.get('/api/admin/categories/$shopId');
+      final response = await ApiClient().dio.get('/api/admin/categories/$shopId', queryParameters: {'tenant_id': shopId, 'shop_id': shopId});
       
       if (response.statusCode == 200) {
         dynamic data = response.data;
@@ -54,6 +57,7 @@ class CategoryService {
         '/api/admin/categories/',
         data: {
           'shop_id': shopId,
+          'tenant_id': shopId,
           'name': name,
           'description': description,
         },

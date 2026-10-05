@@ -30,6 +30,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
   late LinkedScrollControllerGroup _controllers;
   late ScrollController _headController;
   late ScrollController _bodyController;
+  late ScrollController _horizontalController;
 
   String _selectedDateFilter = 'All Time';
   DateTime? _startDate;
@@ -85,6 +86,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
     _controllers = LinkedScrollControllerGroup();
     _headController = _controllers.addAndGet();
     _bodyController = _controllers.addAndGet();
+    _horizontalController = ScrollController();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _fetchData();
     });
@@ -306,6 +308,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
     _searchController.dispose();
     _headController.dispose();
     _bodyController.dispose();
+    _horizontalController.dispose();
     super.dispose();
   }
 
@@ -869,9 +872,14 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
 
                               // SCROLLABLE RIGHT COLUMNS
                               Expanded(
-                                child: SingleChildScrollView(
-                                  scrollDirection: Axis.horizontal,
-                                  child: SizedBox(
+                                child: Scrollbar(
+                                  controller: _horizontalController,
+                                  thumbVisibility: true,
+                                  thickness: 8,
+                                  child: SingleChildScrollView(
+                                    controller: _horizontalController,
+                                    scrollDirection: Axis.horizontal,
+                                    child: SizedBox(
                                     width: isDesktopWidth
                                         ? (screenConstraints.maxWidth -
                                                       64 -
@@ -1066,6 +1074,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                                       ],
                                     ),
                                   ),
+                                ),
                                 ),
                               ),
                             ],

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../config/api_client.dart';
+import 'inventory_service.dart';
 
 class PurchaseService {
   final ApiClient _apiClient = ApiClient();
@@ -8,6 +9,8 @@ class PurchaseService {
   // Create a purchase bill
   Future<Map<String, dynamic>> createPurchaseBill(Map<String, dynamic> data) async {
     try {
+      final shopId = await InventoryService.getShopId();
+      data['tenant_id'] = shopId;
       final response = await _apiClient.dio.post(
         '/api/admin/purchases/',
         data: data,
@@ -25,11 +28,10 @@ class PurchaseService {
   // Fetch purchase bills
   Future<List<dynamic>> getPurchaseBills() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final shopId = prefs.getString('shop_id');
+      final shopId = await InventoryService.getShopId();
       final response = await _apiClient.dio.get(
         '/api/admin/purchases/',
-        queryParameters: shopId != null ? {'shop_id': shopId} : {},
+        queryParameters: {'shop_id': shopId, 'tenant_id': shopId},
       );
       if (response.statusCode == 200) {
         return response.data as List<dynamic>;

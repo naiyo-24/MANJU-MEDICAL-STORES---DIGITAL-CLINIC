@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../notifiers/billing_notifier.dart';
 import '../../../../../utils/format_utils.dart';
 
-class BillingCartTable extends StatelessWidget {
+class BillingCartTable extends StatefulWidget {
   final BillingState billingState;
   final BillingNotifier notifier;
   final Function(int) onIncreaseQty;
@@ -24,12 +24,36 @@ class BillingCartTable extends StatelessWidget {
   });
 
   @override
+  State<BillingCartTable> createState() => _BillingCartTableState();
+}
+
+class _BillingCartTableState extends State<BillingCartTable> {
+  late final ScrollController _scrollController;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController = ScrollController();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return       // Bill Table
       LayoutBuilder(
         builder: (context, tableConstraints) {
-          return SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
+          return Scrollbar(
+            controller: _scrollController,
+            thumbVisibility: true,
+            thickness: 8,
+            child: SingleChildScrollView(
+              controller: _scrollController,
+              scrollDirection: Axis.horizontal,
             child: ConstrainedBox(
               constraints: BoxConstraints(
                 minWidth: 500,
@@ -141,7 +165,7 @@ class BillingCartTable extends StatelessWidget {
                   ),
 
                   // Bill Table Body
-                  billingState.currentBill.isEmpty
+                  widget.billingState.currentBill.isEmpty
                       ? const Center(
                           child: Padding(
                             padding: EdgeInsets.all(16.0),
@@ -154,14 +178,14 @@ class BillingCartTable extends StatelessWidget {
                       : ListView.separated(
                           shrinkWrap: true,
                           physics: const NeverScrollableScrollPhysics(),
-                          itemCount: billingState.currentBill.length,
+                          itemCount: widget.billingState.currentBill.length,
                           separatorBuilder: (context, index) =>
                               Divider(
                                 height: 1,
                                 color: Theme.of(context).dividerColor,
                               ),
                           itemBuilder: (context, index) {
-                            final item = billingState.currentBill[index];
+                            final item = widget.billingState.currentBill[index];
                             return Padding(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 16,
@@ -204,7 +228,7 @@ class BillingCartTable extends StatelessWidget {
                                             Padding(
                                               padding: const EdgeInsets.only(top: 4.0),
                                               child: InkWell(
-                                                onTap: () => onToggleLoose(index),
+                                                onTap: () => widget.onToggleLoose(index),
                                                 child: Row(
                                                   mainAxisSize: MainAxisSize.min,
                                                   children: [
@@ -250,7 +274,7 @@ class BillingCartTable extends StatelessWidget {
                                           children: [
                                             InkWell(
                                               onTap: () =>
-                                                  onDecreaseQty(index),
+                                                  widget.onDecreaseQty(index),
                                               child: const Padding(
                                                 padding:
                                                     EdgeInsets.symmetric(
@@ -272,7 +296,7 @@ class BillingCartTable extends StatelessWidget {
                                             ),
                                             InkWell(
                                               onTap: () =>
-                                                  onIncreaseQty(index),
+                                                  widget.onIncreaseQty(index),
                                               child: const Padding(
                                                 padding:
                                                     EdgeInsets.symmetric(
@@ -308,7 +332,7 @@ class BillingCartTable extends StatelessWidget {
                                           ),
                                           onChanged: (val) {
                                             final disc = double.tryParse(val) ?? 0.0;
-                                            onUpdateItemDiscount(index, disc);
+                                            widget.onUpdateItemDiscount(index, disc);
                                           },
                                         ),
                                       ),
@@ -354,7 +378,7 @@ class BillingCartTable extends StatelessWidget {
                                   SizedBox(
                                     width: 45,
                                     child: InkWell(
-                                      onTap: () => onRemoveItem(index),
+                                      onTap: () => widget.onRemoveItem(index),
                                       child: Container(
                                         padding: const EdgeInsets.all(4),
                                         decoration: BoxDecoration(
@@ -377,6 +401,7 @@ class BillingCartTable extends StatelessWidget {
                         ),
                 ],
               ),
+            ),
             ),
           );
         },
