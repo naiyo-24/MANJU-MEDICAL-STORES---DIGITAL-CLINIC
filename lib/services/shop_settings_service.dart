@@ -1,9 +1,11 @@
 import 'package:dio/dio.dart';
 import '../config/api_client.dart';
+import 'inventory_service.dart';
 
 class ShopSettingsService {
   static Future<Map<String, dynamic>> getSettings() async {
-    final response = await ApiClient().dio.get('/api/admin/shop-settings/');
+    final shopId = await InventoryService.getShopId();
+    final response = await ApiClient().dio.get('/api/admin/shop-settings/', queryParameters: {'tenant_id': shopId, 'shop_id': shopId});
     if (response.statusCode == 200) {
       return response.data;
     } else {
@@ -14,6 +16,9 @@ class ShopSettingsService {
   static Future<Map<String, dynamic>> updateSettings(
     Map<String, dynamic> data,
   ) async {
+    final shopId = await InventoryService.getShopId();
+    data['tenant_id'] = shopId;
+    data['shop_id'] = shopId;
     final response = await ApiClient().dio.put(
       '/api/admin/shop-settings/',
       data: data,

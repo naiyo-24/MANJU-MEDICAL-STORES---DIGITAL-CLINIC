@@ -1,5 +1,6 @@
 import '../config/api_client.dart';
 import 'package:intl/intl.dart';
+import 'inventory_service.dart';
 
 class TransactionModel {
   final String id;
@@ -11,6 +12,7 @@ class TransactionModel {
   final double amount;
   final String paymentMode;
   double runningBalance = 0.0; // Initialized to prevent null errors
+  final String? tenantId;
 
   TransactionModel({
     required this.id,
@@ -22,6 +24,7 @@ class TransactionModel {
     required this.amount,
     required this.paymentMode,
     this.runningBalance = 0.0,
+    this.tenantId,
   });
 
   factory TransactionModel.fromJson(Map<String, dynamic> json) {
@@ -63,6 +66,7 @@ class TransactionModel {
       amount: (json['amount'] ?? 0.0).toDouble(),
       paymentMode:
           'Cash', // Defaulting as backend doesn't seem to store it explicitly unless we use accounts
+      tenantId: json['tenant_id'],
     );
   }
 }
@@ -70,6 +74,8 @@ class TransactionModel {
 class TransactionService {
   static Future<void> saveTransaction(Map<String, dynamic> payload) async {
     try {
+      final shopId = await InventoryService.getShopId();
+      payload['tenant_id'] = shopId;
       final response = await ApiClient().dio.post(
         '/api/transactions',
         data: payload,
@@ -88,7 +94,8 @@ class TransactionService {
     String? shopId,
   }) async {
     try {
-      final queryParams = <String, dynamic>{'skip': skip, 'limit': limit};
+      final actualShopId = shopId ?? await InventoryService.getShopId();
+      final queryParams = <String, dynamic>{'skip': skip, 'limit': limit, 'tenant_id': actualShopId};
       if (shopId != null) queryParams['shop_id'] = shopId;
       
       final response = await ApiClient().dio.get(

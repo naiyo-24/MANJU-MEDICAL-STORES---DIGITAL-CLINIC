@@ -58,6 +58,13 @@ class _DistributorsScreenState extends ConsumerState<DistributorsScreen> {
                   runSpacing: 12,
                   crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
+                    IconButton(
+                      icon: Icon(Icons.refresh, color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B)),
+                      onPressed: () {
+                        ref.invalidate(distributorsProvider);
+                      },
+                      tooltip: 'Refresh',
+                    ),
                     PopupMenuButton<String>(
                       padding: EdgeInsets.zero,
                       onSelected: (value) async {

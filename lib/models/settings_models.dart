@@ -14,6 +14,7 @@ class ShopSettings {
   final String terms1;
   final String terms2;
   final String terms3;
+  final String? tenantId;
 
   ShopSettings({
     required this.shopName,
@@ -31,6 +32,7 @@ class ShopSettings {
     required this.terms1,
     required this.terms2,
     required this.terms3,
+    this.tenantId,
   });
 
   factory ShopSettings.fromMap(Map<String, dynamic> map) {
@@ -50,6 +52,7 @@ class ShopSettings {
       terms1: map['terms_1'] ?? '',
       terms2: map['terms_2'] ?? '',
       terms3: map['terms_3'] ?? '',
+      tenantId: map['tenant_id'],
     );
   }
 
@@ -70,6 +73,7 @@ class ShopSettings {
       'terms_1': terms1,
       'terms_2': terms2,
       'terms_3': terms3,
+      'tenant_id': tenantId,
     };
   }
 }
@@ -88,6 +92,7 @@ class BillItem {
   final double cgst;
   final double sgst;
   final int stock;
+  final String? tenantId;
 
   BillItem({
     required this.id,
@@ -103,6 +108,7 @@ class BillItem {
     this.cgst = 0,
     this.sgst = 0,
     this.stock = 0,
+    this.tenantId,
   });
 
   BillItem copyWith({
@@ -119,6 +125,7 @@ class BillItem {
     double? cgst,
     double? sgst,
     int? stock,
+    String? tenantId,
   }) {
     return BillItem(
       id: id ?? this.id,
@@ -134,6 +141,7 @@ class BillItem {
       cgst: cgst ?? this.cgst,
       sgst: sgst ?? this.sgst,
       stock: stock ?? this.stock,
+      tenantId: tenantId ?? this.tenantId,
     );
   }
 
@@ -152,6 +160,7 @@ class BillItem {
       cgst: (map['cgst'] as num?)?.toDouble() ?? 0.0,
       sgst: (map['sgst'] as num?)?.toDouble() ?? 0.0,
       stock: map['stock'] ?? 0,
+      tenantId: map['tenant_id'],
     );
   }
 
@@ -171,6 +180,7 @@ class BillItem {
       'cgst': cgst,
       'sgst': sgst,
       'stock': stock,
+      'tenant_id': tenantId,
     };
   }
 }

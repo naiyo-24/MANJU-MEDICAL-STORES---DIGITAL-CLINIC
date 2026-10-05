@@ -18,6 +18,7 @@ class BillingService {
 
       final requestData = {
         'shop_id': shopId,
+        'tenant_id': shopId,
         'items': items
             .map(
               (item) => {
@@ -73,6 +74,7 @@ class BillingService {
         '/api/admin/pos/history',
         queryParameters: {
           'shop_id': shopId,
+          'tenant_id': shopId,
           'limit': 1000,
         },
       );
