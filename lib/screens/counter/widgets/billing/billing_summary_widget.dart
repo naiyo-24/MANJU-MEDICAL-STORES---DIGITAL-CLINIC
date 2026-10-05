@@ -1,5 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../../../notifiers/billing_notifier.dart';
+
+class UpperCaseTextFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
+    return TextEditingValue(
+      text: newValue.text.toUpperCase(),
+      selection: newValue.selection,
+    );
+  }
+}
 
 class BillingSummaryWidget extends StatelessWidget {
   final BillingState billingState;
@@ -253,8 +264,14 @@ class BillingSummaryWidget extends StatelessWidget {
                       ),
                       child: TextFormField(
                         initialValue: billingState.gstNumber,
-                        onChanged: (val) => notifier.updateGstNumber(val),
+                        onChanged: (val) => notifier.updateGstNumber(val.toUpperCase()),
                         style: const TextStyle(fontSize: 12),
+                        textCapitalization: TextCapitalization.characters,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9]')),
+                          LengthLimitingTextInputFormatter(15),
+                          UpperCaseTextFormatter(),
+                        ],
                         decoration: const InputDecoration(
                           border: InputBorder.none,
                           isDense: true,

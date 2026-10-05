@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../notifiers/billing_notifier.dart';
+import '../../../../../utils/format_utils.dart';
 
 class BillingCartTable extends StatelessWidget {
   final BillingState billingState;
@@ -234,7 +235,9 @@ class BillingCartTable extends StatelessWidget {
                                     flex: 2,
                                     child: Align(
                                       alignment: Alignment.centerLeft,
-                                      child: Container(
+                                      child: FittedBox(
+                                        fit: BoxFit.scaleDown,
+                                        child: Container(
                                         decoration: BoxDecoration(
                                           border: Border.all(
                                             color: Theme.of(context).dividerColor,
@@ -261,7 +264,7 @@ class BillingCartTable extends StatelessWidget {
                                               ),
                                             ),
                                             Text(
-                                              '${item['qty']}',
+                                              FormatUtils.formatQty(item),
                                               style: const TextStyle(
                                                 fontWeight: FontWeight.bold,
                                                 fontSize: 12,
@@ -284,6 +287,7 @@ class BillingCartTable extends StatelessWidget {
                                             ),
                                           ],
                                         ),
+                                      ),
                                       ),
                                     ),
                                   ),
