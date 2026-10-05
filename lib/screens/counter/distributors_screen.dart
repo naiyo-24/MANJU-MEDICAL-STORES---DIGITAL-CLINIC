@@ -56,8 +56,10 @@ class _DistributorsScreenState extends ConsumerState<DistributorsScreen> {
                 Wrap(
                   spacing: 12,
                   runSpacing: 12,
+                  crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     PopupMenuButton<String>(
+                      padding: EdgeInsets.zero,
                       onSelected: (value) async {
                         final dataToExport = filteredDistributors.map((d) => {
                           'Name': d['name'] ?? '',
@@ -115,8 +117,8 @@ class _DistributorsScreenState extends ConsumerState<DistributorsScreen> {
                           builder: (context) => const AddDistributorDialog(),
                         );
                       },
-                      icon: Icon(Icons.add, color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white, size: 18),
-                      label: Text('Add Distributor', style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white)),
+                      icon: const Icon(Icons.add, color: Colors.white, size: 18),
+                      label: const Text('Add Distributor', style: TextStyle(color: Colors.white)),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF166534),
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
