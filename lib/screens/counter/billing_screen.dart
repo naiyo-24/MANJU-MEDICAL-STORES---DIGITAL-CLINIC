@@ -1195,9 +1195,12 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                       },
                       searchController: _medicineSearchController,
                       onSearch: (q) {
-                        ref
-                            .read(billingInventoryProvider.notifier)
-                            .loadInventory(searchQuery: q);
+                        if (_searchDebounce?.isActive ?? false) _searchDebounce!.cancel();
+                        _searchDebounce = Timer(const Duration(milliseconds: 500), () {
+                          ref
+                              .read(billingInventoryProvider.notifier)
+                              .loadInventory(searchQuery: q);
+                        });
                       },
                     ),
                     loading: () => const Center(
