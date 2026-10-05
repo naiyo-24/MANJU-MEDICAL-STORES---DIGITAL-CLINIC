@@ -289,7 +289,7 @@ class DashboardScreen extends ConsumerWidget {
                                 isDark
                                     ? 'assets/LOGO_DM.png'
                                     : 'assets/LOGO.png',
-                                height: isWeb ? 100 : 80,
+                                height: isWeb ? 180 : 120,
                                 fit: BoxFit.contain,
                                 errorBuilder: (_, __, ___) => const Icon(
                                   Icons.local_hospital,

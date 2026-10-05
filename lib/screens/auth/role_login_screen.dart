@@ -34,6 +34,54 @@ class _RoleLoginScreenState extends State<RoleLoginScreen> {
         _isLoading = true;
       });
 
+      final userId = _userIdController.text.trim().toLowerCase();
+      
+      // Role-based validation
+      bool isValidRole = true;
+      String errorMsg = '';
+      
+      if (widget.roleName == 'Counter' && !userId.contains('counter')) {
+        isValidRole = false;
+        errorMsg = 'Unauthorized: Only Counter admins can access this module.';
+      } else if (widget.roleName == 'CRM' && !userId.contains('crm')) {
+        isValidRole = false;
+        errorMsg = 'Unauthorized: Only CRM admins can access this module.';
+      } else if (widget.roleName == 'Lab Test' && !userId.contains('lab')) {
+        isValidRole = false;
+        errorMsg = 'Unauthorized: Only Lab admins can access this module.';
+      }
+
+      if (!isValidRole) {
+        setState(() {
+          _isLoading = false;
+        });
+        showDialog(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Row(
+              children: [
+                Icon(Icons.error_outline, color: Colors.red),
+                SizedBox(width: 8),
+                Text('Access Denied', style: TextStyle(color: Colors.red)),
+              ],
+            ),
+            content: Text(errorMsg),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: Text(
+                  'OK',
+                  style: TextStyle(
+                    color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+        return;
+      }
+
       try {
         final success = await AuthService.adminLogin(
           _userIdController.text,

@@ -71,6 +71,7 @@ class _AddDistributorDialogState extends ConsumerState<AddDistributorDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
+      title: Text('Add New Distributor', style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B))),
       title: const Text('Add New Distributor', style: TextStyle(fontWeight: FontWeight.bold)),
       content: SizedBox(
         width: 400,

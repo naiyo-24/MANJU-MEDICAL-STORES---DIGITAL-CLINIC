@@ -96,6 +96,119 @@ class _ShopManagementScreenState extends State<ShopManagementScreen> {
     }
   }
 
+  void _showAddShopDialog() {
+    final nameCtrl = TextEditingController();
+    final codeCtrl = TextEditingController();
+    final locationCtrl = TextEditingController();
+    final cityCtrl = TextEditingController();
+    final contactCtrl = TextEditingController();
+    String status = 'Active';
+    bool isPrimary = false;
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: const Text('Add New Shop'),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextField(
+                      controller: nameCtrl,
+                      decoration: const InputDecoration(labelText: 'Shop Name'),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: codeCtrl,
+                      decoration: const InputDecoration(labelText: 'Shop Code'),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: locationCtrl,
+                      decoration: const InputDecoration(labelText: 'Address'),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: cityCtrl,
+                      decoration: const InputDecoration(labelText: 'City'),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: contactCtrl,
+                      decoration: const InputDecoration(
+                        labelText: 'Contact Number',
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    DropdownButtonFormField<String>(
+                      value: status,
+                      items: const [
+                        DropdownMenuItem(
+                          value: 'Active',
+                          child: Text('Active'),
+                        ),
+                        DropdownMenuItem(
+                          value: 'Inactive',
+                          child: Text('Inactive'),
+                        ),
+                      ],
+                      onChanged: (v) => setDialogState(() => status = v!),
+                      decoration: const InputDecoration(labelText: 'Status'),
+                    ),
+                    const SizedBox(height: 12),
+                    SwitchListTile(
+                      title: const Text('Is Primary Shop?'),
+                      value: isPrimary,
+                      onChanged: (v) => setDialogState(() => isPrimary = v),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancel'),
+                ),
+                ElevatedButton(
+                  onPressed: () async {
+                    try {
+                      await ShopService.createShop(
+                        name: nameCtrl.text,
+                        code: codeCtrl.text,
+                        address: locationCtrl.text,
+                        city: cityCtrl.text,
+                        contactNumber: contactCtrl.text,
+                        status: status,
+                        isPrimary: isPrimary,
+                      );
+                      if (context.mounted) {
+                        Navigator.pop(context);
+                        _loadShops();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Shop added successfully'),
+                          ),
+                        );
+                      }
+                    } catch (e) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Error adding shop: $e')),
+                      );
+                    }
+                  },
+                  child: const Text('Add'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
   void _showEditShopDialog(Shop shop) {
     final nameCtrl = TextEditingController(text: shop.name);
     final codeCtrl = TextEditingController(text: shop.code);
@@ -404,7 +517,7 @@ class _ShopManagementScreenState extends State<ShopManagementScreen> {
                         ElevatedButton.icon(
                           icon: const Icon(Icons.add, size: 18),
                           label: const Text('Add New Shop'),
-                          onPressed: () {},
+                          onPressed: _showAddShopDialog,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF22C55E),
                             foregroundColor: Colors.white,
