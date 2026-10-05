@@ -2,6 +2,7 @@ import 'dart:typed_data';
 import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
+import 'format_utils.dart';
 
 class PdfA5Generator {
   static double _parseDouble(dynamic val) {
@@ -368,7 +369,7 @@ class PdfA5Generator {
               ),
               pw.Padding(
                 padding: const pw.EdgeInsets.symmetric(vertical: 1.5, horizontal: 2),
-                child: pw.Text((item['is_loose'] == true) ? '${_parseDouble(item['qty']).toInt()} Pc' : _parseDouble(item['qty']).toInt().toString(), style: const pw.TextStyle(fontSize: 7), textAlign: pw.TextAlign.center),
+                child: pw.Text(FormatUtils.formatQty(item), style: const pw.TextStyle(fontSize: 7), textAlign: pw.TextAlign.center),
               ),
               pw.Padding(
                 padding: const pw.EdgeInsets.symmetric(vertical: 1.5, horizontal: 2),

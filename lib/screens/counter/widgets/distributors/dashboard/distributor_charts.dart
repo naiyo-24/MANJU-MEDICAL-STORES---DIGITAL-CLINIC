@@ -81,11 +81,11 @@ class DistributorCharts extends ConsumerWidget {
                 width: isSmall ? constraints.maxWidth : (constraints.maxWidth - 24) * 0.6,
                 height: 350,
                 padding: const EdgeInsets.all(24),
-                decoration: _cardDecoration(),
+                decoration: _cardDecoration(context),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Purchase Trend (Last 6 Months)', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                    Text('Purchase Trend (Last 6 Months)', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B))),
                     const SizedBox(height: 24),
                     Expanded(
                       child: LineChart(
@@ -94,7 +94,7 @@ class DistributorCharts extends ConsumerWidget {
                             show: true, 
                             drawVerticalLine: false,
                             horizontalInterval: 20000,
-                            getDrawingHorizontalLine: (value) => FlLine(color: const Color(0xFFE2E8F0), strokeWidth: 1),
+                            getDrawingHorizontalLine: (value) => FlLine(color: Theme.of(context).dividerColor, strokeWidth: 1),
                           ),
                           titlesData: FlTitlesData(
                             leftTitles: AxisTitles(
@@ -103,7 +103,7 @@ class DistributorCharts extends ConsumerWidget {
                                 reservedSize: 40,
                                 getTitlesWidget: (value, meta) => Text(
                                   '${(value / 1000).toInt()}k',
-                                  style: const TextStyle(color: Color(0xFF64748B), fontSize: 12),
+                                  style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B), fontSize: 12),
                                 ),
                               ),
                             ),
@@ -114,7 +114,7 @@ class DistributorCharts extends ConsumerWidget {
                                   if (value.toInt() >= 0 && value.toInt() < 6) {
                                     return Padding(
                                       padding: const EdgeInsets.only(top: 8.0),
-                                      child: Text(monthLabels[value.toInt()], style: const TextStyle(color: Color(0xFF64748B), fontSize: 12)),
+                                      child: Text(monthLabels[value.toInt()], style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B), fontSize: 12)),
                                     );
                                   }
                                   return const SizedBox();
@@ -158,11 +158,11 @@ class DistributorCharts extends ConsumerWidget {
                 width: isSmall ? constraints.maxWidth : (constraints.maxWidth - 24) * 0.4,
                 height: 350,
                 padding: const EdgeInsets.all(24),
-                decoration: _cardDecoration(),
+                decoration: _cardDecoration(context),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Top Distributors', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                    Text('Top Distributors', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B))),
                     const SizedBox(height: 24),
                     Expanded(
                       child: BarChart(
@@ -190,7 +190,7 @@ class DistributorCharts extends ConsumerWidget {
                                     padding: const EdgeInsets.only(top: 8.0),
                                     child: Text(
                                       name,
-                                      style: const TextStyle(color: Color(0xFF64748B), fontSize: 11),
+                                      style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B), fontSize: 11),
                                     ),
                                   );
                                 },
@@ -203,10 +203,10 @@ class DistributorCharts extends ConsumerWidget {
                           gridData: const FlGridData(show: false),
                           borderData: FlBorderData(show: false),
                           barGroups: [
-                            _buildBarGroup(0, topDistVals[0], const Color(0xFF22C55E)),
-                            _buildBarGroup(1, topDistVals[1], const Color(0xFFF59E0B)),
-                            _buildBarGroup(2, topDistVals[2], const Color(0xFF8B5CF6)),
-                            _buildBarGroup(3, topDistVals[3], const Color(0xFFEC4899)),
+                            _buildBarGroup(context, 0, topDistVals[0], const Color(0xFF22C55E)),
+                            _buildBarGroup(context, 1, topDistVals[1], const Color(0xFFF59E0B)),
+                            _buildBarGroup(context, 2, topDistVals[2], const Color(0xFF8B5CF6)),
+                            _buildBarGroup(context, 3, topDistVals[3], const Color(0xFFEC4899)),
                           ],
                         ),
                       ),
@@ -221,7 +221,7 @@ class DistributorCharts extends ConsumerWidget {
     );
   }
 
-  BarChartGroupData _buildBarGroup(int x, double y, Color color) {
+  BarChartGroupData _buildBarGroup(BuildContext context, int x, double y, Color color) {
     return BarChartGroupData(
       x: x,
       barRods: [
@@ -235,11 +235,11 @@ class DistributorCharts extends ConsumerWidget {
     );
   }
 
-  BoxDecoration _cardDecoration() {
+  BoxDecoration _cardDecoration(BuildContext context) {
     return BoxDecoration(
-      color: Colors.white,
+      color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white,
       borderRadius: BorderRadius.circular(16),
-      border: Border.all(color: const Color(0xFFE2E8F0)),
+      border: Border.all(color: Theme.of(context).dividerColor),
       boxShadow: [
         BoxShadow(
           color: Colors.black.withValues(alpha: 0.02),

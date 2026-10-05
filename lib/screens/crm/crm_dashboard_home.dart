@@ -81,7 +81,7 @@ class CrmDashboardHome extends StatelessWidget {
                     ),
                   ),
                 ],
-              ),
+              ),  
               const SizedBox(width: 24),
               // Doctor graphic placeholder
               Container(

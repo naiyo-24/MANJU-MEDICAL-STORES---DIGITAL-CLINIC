@@ -20,7 +20,7 @@ class CustomPagination extends StatelessWidget {
 
     // Previous Button
     pageButtons.add(
-      _buildPaginationBtn(
+      _buildPaginationBtn(context, 
         icon: Icons.chevron_left,
         isActive: false,
         onTap: currentPage > 1 ? () => onPageChanged(currentPage - 1) : null,
@@ -31,7 +31,7 @@ class CustomPagination extends StatelessWidget {
     if (totalPages <= 7) {
       for (int i = 1; i <= totalPages; i++) {
         pageButtons.add(
-          _buildPaginationBtn(
+          _buildPaginationBtn(context, 
             text: '$i',
             isActive: currentPage == i,
             onTap: () => onPageChanged(i),
@@ -42,7 +42,7 @@ class CustomPagination extends StatelessWidget {
       if (currentPage <= 4) {
         for (int i = 1; i <= 5; i++) {
           pageButtons.add(
-            _buildPaginationBtn(
+            _buildPaginationBtn(context, 
               text: '$i',
               isActive: currentPage == i,
               onTap: () => onPageChanged(i),
@@ -50,19 +50,19 @@ class CustomPagination extends StatelessWidget {
           );
         }
         pageButtons.add(
-          const Padding(
+          Padding(
             padding: EdgeInsets.symmetric(horizontal: 4),
             child: Text(
               '...',
               style: TextStyle(
-                color: Color(0xFF64748B),
+                color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B),
                 fontWeight: FontWeight.bold,
               ),
             ),
           ),
         );
         pageButtons.add(
-          _buildPaginationBtn(
+          _buildPaginationBtn(context, 
             text: '$totalPages',
             isActive: currentPage == totalPages,
             onTap: () => onPageChanged(totalPages),
@@ -70,19 +70,19 @@ class CustomPagination extends StatelessWidget {
         );
       } else if (currentPage >= totalPages - 3) {
         pageButtons.add(
-          _buildPaginationBtn(
+          _buildPaginationBtn(context, 
             text: '1',
             isActive: currentPage == 1,
             onTap: () => onPageChanged(1),
           ),
         );
         pageButtons.add(
-          const Padding(
+          Padding(
             padding: EdgeInsets.symmetric(horizontal: 4),
             child: Text(
               '...',
               style: TextStyle(
-                color: Color(0xFF64748B),
+                color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B),
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -90,7 +90,7 @@ class CustomPagination extends StatelessWidget {
         );
         for (int i = totalPages - 4; i <= totalPages; i++) {
           pageButtons.add(
-            _buildPaginationBtn(
+            _buildPaginationBtn(context, 
               text: '$i',
               isActive: currentPage == i,
               onTap: () => onPageChanged(i),
@@ -99,19 +99,19 @@ class CustomPagination extends StatelessWidget {
         }
       } else {
         pageButtons.add(
-          _buildPaginationBtn(
+          _buildPaginationBtn(context, 
             text: '1',
             isActive: currentPage == 1,
             onTap: () => onPageChanged(1),
           ),
         );
         pageButtons.add(
-          const Padding(
+          Padding(
             padding: EdgeInsets.symmetric(horizontal: 4),
             child: Text(
               '...',
               style: TextStyle(
-                color: Color(0xFF64748B),
+                color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B),
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -119,7 +119,7 @@ class CustomPagination extends StatelessWidget {
         );
         for (int i = currentPage - 1; i <= currentPage + 1; i++) {
           pageButtons.add(
-            _buildPaginationBtn(
+            _buildPaginationBtn(context, 
               text: '$i',
               isActive: currentPage == i,
               onTap: () => onPageChanged(i),
@@ -127,19 +127,19 @@ class CustomPagination extends StatelessWidget {
           );
         }
         pageButtons.add(
-          const Padding(
+          Padding(
             padding: EdgeInsets.symmetric(horizontal: 4),
             child: Text(
               '...',
               style: TextStyle(
-                color: Color(0xFF64748B),
+                color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B),
                 fontWeight: FontWeight.bold,
               ),
             ),
           ),
         );
         pageButtons.add(
-          _buildPaginationBtn(
+          _buildPaginationBtn(context, 
             text: '$totalPages',
             isActive: currentPage == totalPages,
             onTap: () => onPageChanged(totalPages),
@@ -150,7 +150,7 @@ class CustomPagination extends StatelessWidget {
 
     // Next Button
     pageButtons.add(
-      _buildPaginationBtn(
+      _buildPaginationBtn(context, 
         icon: Icons.chevron_right,
         isActive: false,
         onTap: currentPage < totalPages
@@ -165,7 +165,7 @@ class CustomPagination extends StatelessWidget {
     );
   }
 
-  Widget _buildPaginationBtn({
+  Widget _buildPaginationBtn(BuildContext context, {
     IconData? icon,
     String? text,
     required bool isActive,
@@ -180,11 +180,11 @@ class CustomPagination extends StatelessWidget {
           width: 32,
           height: 32,
           decoration: BoxDecoration(
-            color: isActive ? const Color(0xFF22C55E) : Colors.white,
+            color: isActive ? const Color(0xFF22C55E) : Colors.transparent,
             border: Border.all(
               color: isActive
                   ? const Color(0xFF22C55E)
-                  : const Color(0xFFE2E8F0),
+                  : Theme.of(context).dividerColor,
             ),
             borderRadius: BorderRadius.circular(8),
           ),
@@ -195,12 +195,12 @@ class CustomPagination extends StatelessWidget {
                     size: 16,
                     color: onTap == null
                         ? const Color(0xFFCBD5E1)
-                        : (isActive ? Colors.white : const Color(0xFF1E293B)),
+                        : (isActive ? Colors.white : (Theme.of(context).brightness == Brightness.dark ? Colors.grey[300]! : const Color(0xFF1E293B))),
                   )
                 : Text(
                     text!,
                     style: TextStyle(
-                      color: isActive ? Colors.white : const Color(0xFF1E293B),
+                      color: isActive ? Colors.white : (Theme.of(context).brightness == Brightness.dark ? Colors.grey[300]! : const Color(0xFF1E293B)),
                       fontWeight: FontWeight.bold,
                       fontSize: 12,
                     ),

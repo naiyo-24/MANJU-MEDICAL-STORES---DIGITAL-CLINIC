@@ -13,12 +13,12 @@ class BillingDialogs {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text(
+          title: Text(
             'New Customer',
             style: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 18,
-              color: Color(0xFF1E293B),
+              color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
             ),
           ),
           content: SizedBox(
@@ -27,12 +27,12 @@ class BillingDialogs {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'Customer Name *',
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF1E293B),
+                    color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -49,7 +49,7 @@ class BillingDialogs {
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
-                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                      borderSide: BorderSide(color: Theme.of(context).dividerColor),
                     ),
                     isDense: true,
                     contentPadding: const EdgeInsets.symmetric(
@@ -59,12 +59,12 @@ class BillingDialogs {
                   ),
                 ),
                 const SizedBox(height: 16),
-                const Text(
+                Text(
                   'Phone Number *',
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF1E293B),
+                    color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -82,7 +82,7 @@ class BillingDialogs {
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
-                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                      borderSide: BorderSide(color: Theme.of(context).dividerColor),
                     ),
                     isDense: true,
                     contentPadding: const EdgeInsets.symmetric(
@@ -92,12 +92,12 @@ class BillingDialogs {
                   ),
                 ),
                 const SizedBox(height: 16),
-                const Text(
+                Text(
                   'Address',
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF1E293B),
+                    color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -115,7 +115,7 @@ class BillingDialogs {
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
-                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                      borderSide: BorderSide(color: Theme.of(context).dividerColor),
                     ),
                     isDense: true,
                     contentPadding: const EdgeInsets.symmetric(
@@ -130,10 +130,10 @@ class BillingDialogs {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text(
+              child: Text(
                 'Cancel',
                 style: TextStyle(
-                  color: Color(0xFF64748B),
+                  color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B),
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -190,12 +190,12 @@ class BillingDialogs {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text(
+          title: Text(
             'Add Custom Item',
             style: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 18,
-              color: Color(0xFF1E293B),
+              color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
             ),
           ),
           content: SizedBox(
@@ -205,12 +205,12 @@ class BillingDialogs {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Name
-                const Text(
+                Text(
                   'Item Name *',
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF1E293B),
+                    color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -227,7 +227,7 @@ class BillingDialogs {
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
-                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                      borderSide: BorderSide(color: Theme.of(context).dividerColor),
                     ),
                     isDense: true,
                     contentPadding: const EdgeInsets.symmetric(
@@ -245,12 +245,12 @@ class BillingDialogs {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
+                          Text(
                             'Brand',
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFF1E293B),
+                              color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
                             ),
                           ),
                           const SizedBox(height: 8),
@@ -267,8 +267,8 @@ class BillingDialogs {
                               ),
                               enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(8),
-                                borderSide: const BorderSide(
-                                  color: Color(0xFFE2E8F0),
+                                borderSide: BorderSide(
+                                  color: Theme.of(context).dividerColor,
                                 ),
                               ),
                               isDense: true,
@@ -286,12 +286,12 @@ class BillingDialogs {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
+                          Text(
                             'SKU / Barcode',
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFF1E293B),
+                              color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
                             ),
                           ),
                           const SizedBox(height: 8),
@@ -308,8 +308,8 @@ class BillingDialogs {
                               ),
                               enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(8),
-                                borderSide: const BorderSide(
-                                  color: Color(0xFFE2E8F0),
+                                borderSide: BorderSide(
+                                  color: Theme.of(context).dividerColor,
                                 ),
                               ),
                               isDense: true,
@@ -333,12 +333,12 @@ class BillingDialogs {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
+                          Text(
                             'HSN Code',
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFF1E293B),
+                              color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
                             ),
                           ),
                           const SizedBox(height: 8),
@@ -355,8 +355,8 @@ class BillingDialogs {
                               ),
                               enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(8),
-                                borderSide: const BorderSide(
-                                  color: Color(0xFFE2E8F0),
+                                borderSide: BorderSide(
+                                  color: Theme.of(context).dividerColor,
                                 ),
                               ),
                               isDense: true,
@@ -382,12 +382,12 @@ class BillingDialogs {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
+                          Text(
                             'Quantity *',
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFF1E293B),
+                              color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
                             ),
                           ),
                           const SizedBox(height: 8),
@@ -400,8 +400,8 @@ class BillingDialogs {
                               ),
                               enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(8),
-                                borderSide: const BorderSide(
-                                  color: Color(0xFFE2E8F0),
+                                borderSide: BorderSide(
+                                  color: Theme.of(context).dividerColor,
                                 ),
                               ),
                               isDense: true,
@@ -419,12 +419,12 @@ class BillingDialogs {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
+                          Text(
                             'Price (₹) *',
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFF1E293B),
+                              color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
                             ),
                           ),
                           const SizedBox(height: 8),
@@ -442,8 +442,8 @@ class BillingDialogs {
                               ),
                               enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(8),
-                                borderSide: const BorderSide(
-                                  color: Color(0xFFE2E8F0),
+                                borderSide: BorderSide(
+                                  color: Theme.of(context).dividerColor,
                                 ),
                               ),
                               isDense: true,
@@ -467,12 +467,12 @@ class BillingDialogs {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
+                          Text(
                             'Discount (%)',
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFF1E293B),
+                              color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
                             ),
                           ),
                           const SizedBox(height: 8),
@@ -490,8 +490,8 @@ class BillingDialogs {
                               ),
                               enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(8),
-                                borderSide: const BorderSide(
-                                  color: Color(0xFFE2E8F0),
+                                borderSide: BorderSide(
+                                  color: Theme.of(context).dividerColor,
                                 ),
                               ),
                               isDense: true,
@@ -514,10 +514,10 @@ class BillingDialogs {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text(
+              child: Text(
                 'Cancel',
                 style: TextStyle(
-                  color: Color(0xFF64748B),
+                  color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B),
                   fontWeight: FontWeight.bold,
                 ),
               ),

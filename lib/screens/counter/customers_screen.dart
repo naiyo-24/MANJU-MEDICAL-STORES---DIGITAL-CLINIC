@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 import '../../widgets/custom_pagination.dart';
 import '../../services/customer_service.dart';
 import '../../services/billing_history_service.dart';
+import '../../services/export_service.dart';
 
 import 'widgets/customers/customer_stat_card.dart';
 import 'widgets/customers/view_bill_dialog.dart';
@@ -87,566 +88,648 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
             : <Map<String, dynamic>>[];
 
         return Container(
-          color: AppColors.background, // Light gray background
-          child: ListView(
-            padding: const EdgeInsets.all(24.0),
-            children: [
-              // Header
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
+          color: Theme.of(context).scaffoldBackgroundColor, // Light gray background
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              bool isDesktop = constraints.maxWidth > 800;
+              return ListView(
+                padding: const EdgeInsets.all(24.0),
                 children: [
-                  Expanded(
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: AppColors.primaryDark, // Dark Green
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Icon(
-                            Icons.people,
-                            color: Colors.white,
-                            size: 24,
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Customers',
-                                style: TextStyle(
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.textPrimary,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                'Manage your customers, view purchase history and build better relationships',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.grey[600],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
+                  // Header
+                  Wrap(
+                    alignment: WrapAlignment.spaceBetween,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    runSpacing: 16,
+                    spacing: 16,
                     children: [
-                      IconButton(
-                        onPressed: () =>
-                            ref.read(customerProvider.notifier).loadCustomers(),
-                        icon: const Icon(
-                          Icons.refresh,
-                          color: AppColors.textSecondary,
-                        ),
-                        tooltip: 'Refresh',
-                      ),
-                      const SizedBox(width: 8),
-                      ElevatedButton.icon(
-                        onPressed: () => showAddCustomerDialog(
-                          context,
-                          () => ref
-                              .read(customerProvider.notifier)
-                              .loadCustomers(),
-                        ),
-                        icon: const Icon(Icons.add, size: 18),
-                        label: const Text('Add Customer'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primaryDark,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 20,
-                            vertical: 16,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
-
-              // Summary Cards
-              LayoutBuilder(
-                builder: (context, constraints) {
-                  bool isDesktop = constraints.maxWidth > 800;
-                  return SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: [
-                        SizedBox(
-                          width: isDesktop
-                              ? (constraints.maxWidth - 48) / 4
-                              : 250,
-                          child: CustomerStatCard(
-                            title: 'Total Customers',
-                            value: '${allCustomers.length}',
-                            icon: Icons.people,
-                            bgColor: AppColors.primaryLight,
-                            iconColor: AppColors.primaryDark,
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        SizedBox(
-                          width: isDesktop
-                              ? (constraints.maxWidth - 48) / 4
-                              : 250,
-                          child: CustomerStatCard(
-                            title: 'Active Customers',
-                            value: '${allCustomers.where((c) => c['status'] == 'Active').length}',
-                            icon: Icons.check_circle_outline,
-                            bgColor: AppColors.infoLight,
-                            iconColor: AppColors.info,
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        SizedBox(
-                          width: isDesktop
-                              ? (constraints.maxWidth - 48) / 4
-                              : 250,
-                          child: CustomerStatCard(
-                            title: 'New This Month',
-                            value: '${allCustomers.where((c) {
-                              if (c['raw_created_at'] == null) return false;
-                              try {
-                                final dt = DateTime.parse(c['raw_created_at']).toLocal();
-                                final now = DateTime.now();
-                                return dt.month == now.month && dt.year == now.year;
-                              } catch(e) { return false; }
-                            }).length}',
-                            icon: Icons.person_add_alt_1,
-                            bgColor: AppColors.warningLight,
-                            iconColor: AppColors.warning,
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        SizedBox(
-                          width: isDesktop
-                              ? (constraints.maxWidth - 48) / 4
-                              : 250,
-                          child: CustomerStatCard(
-                            title: 'Loyal Customers',
-                            value: '${allCustomers.where((c) => (c['bills'] ?? 0) >= 10).length}',
-                            icon: Icons.star,
-                            bgColor: AppColors.secondaryLight,
-                            iconColor: AppColors.secondary,
-                            subtitle: '(10+ purchases)',
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
-              const SizedBox(height: 24),
-
-              // Main Content
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Left Table Area
-                  Expanded(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.02),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        children: [
-                          // Filter Bar
-                          LayoutBuilder(
-                            builder: (context, constraints) {
-                              return SingleChildScrollView(
-                                scrollDirection: Axis.horizontal,
-                                child: Container(
-                                  width: constraints.maxWidth > 800
-                                      ? constraints.maxWidth
-                                      : 800,
-                                  padding: const EdgeInsets.all(16.0),
-                                  child: Row(
-                                    children: [
-                                      Expanded(
-                                        flex: 2,
-                                        child: TextField(
-                                          controller: _searchCtrl,
-                                          onChanged: (val) => setState(() {
-                                            _searchQuery = val;
-                                            _currentPage = 1;
-                                          }),
-                                          decoration: InputDecoration(
-                                            hintText:
-                                                'Search by name, phone, customer ID...',
-                                            prefixIcon: const Icon(
-                                              Icons.search,
-                                              size: 20,
-                                            ),
-                                            border: OutlineInputBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(8),
-                                              borderSide: const BorderSide(
-                                                color: AppColors.border,
-                                              ),
-                                            ),
-                                            contentPadding:
-                                                const EdgeInsets.symmetric(
-                                                  vertical: 0,
-                                                  horizontal: 16,
-                                                ),
-                                          ),
-                                        ),
-                                      ),
-                                      const SizedBox(width: 12),
-                                      Expanded(
-                                        flex: 1,
-                                        child: DropdownButtonFormField<String>(
-                                          decoration: InputDecoration(
-                                            border: OutlineInputBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(8),
-                                              borderSide: const BorderSide(
-                                                color: AppColors.border,
-                                              ),
-                                            ),
-                                            contentPadding:
-                                                const EdgeInsets.symmetric(
-                                                  vertical: 0,
-                                                  horizontal: 12,
-                                                ),
-                                          ),
-                                          initialValue: _selectedStatus,
-                                          items:
-                                              [
-                                                    'All Status',
-                                                    ...allCustomers
-                                                        .map(
-                                                          (e) => e['status']
-                                                              .toString(),
-                                                        )
-                                                        .toSet(),
-                                                  ]
-                                                  .map(
-                                                    (s) => DropdownMenuItem(
-                                                      value: s,
-                                                      child: Text(
-                                                        s,
-                                                        style: const TextStyle(
-                                                          fontSize: 14,
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  )
-                                                  .toList(),
-                                          onChanged: (val) => setState(() {
-                                            _selectedStatus = val!;
-                                            _currentPage = 1;
-                                          }),
-                                        ),
-                                      ),
-                                      const SizedBox(width: 12),
-                                      Expanded(
-                                        flex: 1,
-                                        child: DropdownButtonFormField<String>(
-                                          decoration: InputDecoration(
-                                            border: OutlineInputBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(8),
-                                              borderSide: const BorderSide(
-                                                color: AppColors.border,
-                                              ),
-                                            ),
-                                            contentPadding:
-                                                const EdgeInsets.symmetric(
-                                                  vertical: 0,
-                                                  horizontal: 12,
-                                                ),
-                                          ),
-                                          initialValue: _selectedCity,
-                                          items:
-                                              [
-                                                    'All Cities',
-                                                    ...allCustomers
-                                                        .map(
-                                                          (e) => e['city']
-                                                              .toString(),
-                                                        )
-                                                        .toSet(),
-                                                  ]
-                                                  .map(
-                                                    (s) => DropdownMenuItem(
-                                                      value: s,
-                                                      child: Text(
-                                                        s,
-                                                        style: const TextStyle(
-                                                          fontSize: 14,
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  )
-                                                  .toList(),
-                                          onChanged: (val) => setState(() {
-                                            _selectedCity = val!;
-                                            _currentPage = 1;
-                                          }),
-                                        ),
-                                      ),
-                                      const SizedBox(width: 12),
-                                      OutlinedButton.icon(
-                                        onPressed: () {
-                                          setState(() {
-                                            _searchCtrl.clear();
-                                            _searchQuery = '';
-                                            _selectedStatus = 'All Status';
-                                            _selectedCity = 'All Cities';
-                                            _currentPage = 1;
-                                          });
-                                        },
-                                        icon: const Icon(
-                                          Icons.refresh,
-                                          size: 18,
-                                        ),
-                                        label: const Text('Reset'),
-                                        style: OutlinedButton.styleFrom(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 16,
-                                            vertical: 16,
-                                          ),
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(
-                                              8,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-
-                          LayoutBuilder(
-                            builder: (context, constraints) {
-                              return SingleChildScrollView(
-                                scrollDirection: Axis.horizontal,
-                                child: ConstrainedBox(
-                                  constraints: BoxConstraints(
-                                    minWidth: 1000,
-                                    maxWidth: constraints.maxWidth > 1000
-                                        ? constraints.maxWidth
-                                        : 1000,
-                                  ),
-                                  child: Column(
-                                    children: [
-                                      // Table Header
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 16,
-                                          vertical: 12,
-                                        ),
-                                        decoration: const BoxDecoration(
-                                          border: Border(
-                                            bottom: BorderSide(
-                                              color: AppColors.divider,
-                                            ),
-                                          ),
-                                        ),
-                                        child: Row(
-                                          children: [
-                                            const SizedBox(
-                                              width: 40,
-                                              child: Text(
-                                                '#',
-                                                style: TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 12,
-                                                  color:
-                                                      AppColors.textSecondary,
-                                                ),
-                                              ),
-                                            ),
-                                            Expanded(
-                                              flex: 3,
-                                              child: const Text(
-                                                'Customer Name',
-                                                style: TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 12,
-                                                  color:
-                                                      AppColors.textSecondary,
-                                                ),
-                                              ),
-                                            ),
-                                            Expanded(
-                                              flex: 2,
-                                              child: const Text(
-                                                'Phone',
-                                                style: TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 12,
-                                                  color:
-                                                      AppColors.textSecondary,
-                                                ),
-                                              ),
-                                            ),
-                                            Expanded(
-                                              flex: 2,
-                                              child: const Text(
-                                                'City',
-                                                style: TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 12,
-                                                  color:
-                                                      AppColors.textSecondary,
-                                                ),
-                                              ),
-                                            ),
-                                            Expanded(
-                                              flex: 2,
-                                              child: const Text(
-                                                'Total Purchases',
-                                                style: TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 12,
-                                                  color:
-                                                      AppColors.textSecondary,
-                                                ),
-                                              ),
-                                            ),
-                                            Expanded(
-                                              flex: 2,
-                                              child: const Text(
-                                                'Last Purchase',
-                                                style: TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 12,
-                                                  color:
-                                                      AppColors.textSecondary,
-                                                ),
-                                              ),
-                                            ),
-                                            Expanded(
-                                              flex: 2,
-                                              child: const Text(
-                                                'Status',
-                                                style: TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 12,
-                                                  color:
-                                                      AppColors.textSecondary,
-                                                ),
-                                              ),
-                                            ),
-                                            const SizedBox(
-                                              width: 120,
-                                              child: Text(
-                                                'Action',
-                                                style: TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 12,
-                                                  color:
-                                                      AppColors.textSecondary,
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-
-                                      // Table Body
-                                      pagedCustomers.isEmpty
-                                          ? const Padding(
-                                              padding: EdgeInsets.all(32),
-                                              child: Center(
-                                                child: Text(
-                                                  'No customers found',
-                                                  style: TextStyle(
-                                                    color:
-                                                        AppColors.textSecondary,
-                                                  ),
-                                                ),
-                                              ),
-                                            )
-                                          : ListView.builder(
-                                              shrinkWrap: true,
-                                              physics:
-                                                  const NeverScrollableScrollPhysics(),
-                                              itemCount: pagedCustomers.length,
-                                              itemBuilder: (context, index) {
-                                                final customer =
-                                                    pagedCustomers[index];
-                                                return _buildCustomerRow(
-                                                  customer,
-                                                  index,
-                                                );
-                                              },
-                                            ),
-                                    ],
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-
-                          // Pagination
-                          if (totalRecords > 0)
-                            Padding(
-                              padding: const EdgeInsets.all(16.0),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
+                      Container(
+                        constraints: const BoxConstraints(maxWidth: 400),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: AppColors.primaryDark, // Dark Green
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Icon(
+                                Icons.people,
+                                color: Theme.of(context).cardColor,
+                                size: 24,
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    'Showing ${startIdx + 1} to $endIdx of $totalRecords customers',
-                                    style: const TextStyle(
-                                      color: AppColors.textSecondary,
-                                      fontSize: 14,
+                                    'Customers',
+                                    style: TextStyle(
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.bold,
+                                      color: (Theme.of(context).brightness == Brightness.dark ? Colors.white : AppColors.textPrimary),
                                     ),
                                   ),
-                                  CustomPagination(
-                                    currentPage: _currentPage,
-                                    totalPages: totalPages,
-                                    onPageChanged: (page) =>
-                                        setState(() => _currentPage = page),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Manage your customers, view purchase history and build better relationships',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : Colors.grey[600],
+                                    ),
                                   ),
                                 ],
                               ),
                             ),
+                          ],
+                        ),
+                      ),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            onPressed: () => ref
+                                .read(customerProvider.notifier)
+                                .loadCustomers(),
+                            icon: Icon(
+                              Icons.refresh,
+                              color: (Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : AppColors.textSecondary),
+                            ),
+                            tooltip: 'Refresh',
+                          ),
+                          const SizedBox(width: 8),
+                          PopupMenuButton<String>(
+                            tooltip: 'Export Customers',
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                              decoration: BoxDecoration(
+                                border: Border.all(color: Theme.of(context).dividerColor),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.download, size: 18, color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : AppColors.textSecondary),
+                                  const SizedBox(width: 8),
+                                  Text('Export', style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : AppColors.textSecondary)),
+                                ],
+                              ),
+                            ),
+                            itemBuilder: (context) => [
+                              const PopupMenuItem(value: 'csv', child: Text('Export as CSV')),
+                              const PopupMenuItem(value: 'excel', child: Text('Export as Excel')),
+                            ],
+                            onSelected: (val) async {
+                              final exportData = filteredCustomers.map((c) => {
+                                'Customer ID': c['id'],
+                                'Name': c['name'],
+                                'Phone': c['phone'],
+                                'City': c['city'],
+                                'Status': c['status'],
+                                'Total Purchases': c['totalPurchases'] ?? 0,
+                                'Bills Count': c['bills'] ?? 0,
+                                'Created At': c['raw_created_at'] ?? '',
+                              }).toList();
+                              
+                              try {
+                                if (val == 'csv') {
+                                  await ExportService.exportToCSV(exportData, 'customers_export');
+                                } else {
+                                  await ExportService.exportToExcel(exportData, 'customers_export');
+                                }
+                                if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Export successful!')));
+                              } catch (e) {
+                                if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Export failed: $e')));
+                              }
+                            },
+                          ),
+                          const SizedBox(width: 8),
+                          ElevatedButton.icon(
+                            onPressed: () => showAddCustomerDialog(
+                              context,
+                              () => ref
+                                  .read(customerProvider.notifier)
+                                  .loadCustomers(),
+                            ),
+                            icon: const Icon(Icons.add, size: 18),
+                            label: const Text('Add Customer'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.primaryDark,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                                vertical: 16,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                          ),
                         ],
                       ),
-                    ),
+                    ],
                   ),
+                  const SizedBox(height: 24),
 
-                  // Right Details Panel
-                  if (_selectedCustomer != null) ...[
-                    const SizedBox(width: 24),
-                    SizedBox(
-                      width: 320,
-                      child: _buildCustomerDetailsPanel(_selectedCustomer!),
-                    ),
-                  ],
+                  // Summary Cards
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      bool isDesktop = constraints.maxWidth > 800;
+                      return Wrap(
+                        spacing: 16,
+                        runSpacing: 16,
+                        children: [
+                          SizedBox(
+                            width: isDesktop
+                                ? (constraints.maxWidth - 48) / 4
+                                : (constraints.maxWidth - 20) / 2,
+                            child: CustomerStatCard(
+                              title: 'Total Customers',
+                              value: '${allCustomers.length}',
+                              icon: Icons.people,
+                              bgColor: AppColors.primaryLight,
+                              iconColor: AppColors.primaryDark,
+                            ),
+                          ),
+                          SizedBox(
+                            width: isDesktop
+                                ? (constraints.maxWidth - 48) / 4
+                                : (constraints.maxWidth - 20) / 2,
+                            child: CustomerStatCard(
+                              title: 'Active Customers',
+                              value:
+                                  '${allCustomers.where((c) => c['status'] == 'Active').length}',
+                              icon: Icons.check_circle_outline,
+                              bgColor: AppColors.infoLight,
+                              iconColor: AppColors.info,
+                            ),
+                          ),
+                          SizedBox(
+                            width: isDesktop
+                                ? (constraints.maxWidth - 48) / 4
+                                : (constraints.maxWidth - 20) / 2,
+                            child: CustomerStatCard(
+                              title: 'New This Month',
+                              value:
+                                  '${allCustomers.where((c) {
+                                    if (c['raw_created_at'] == null) return false;
+                                    try {
+                                      final dt = DateTime.parse(c['raw_created_at']).toLocal();
+                                      final now = DateTime.now();
+                                      return dt.month == now.month && dt.year == now.year;
+                                    } catch (e) {
+                                      return false;
+                                    }
+                                  }).length}',
+                              icon: Icons.person_add_alt_1,
+                              bgColor: AppColors.warningLight,
+                              iconColor: AppColors.warning,
+                            ),
+                          ),
+                          SizedBox(
+                            width: isDesktop
+                                ? (constraints.maxWidth - 48) / 4
+                                : (constraints.maxWidth - 20) / 2,
+                            child: CustomerStatCard(
+                              title: 'Loyal Customers',
+                              value:
+                                  '${allCustomers.where((c) => (c['bills'] ?? 0) >= 10).length}',
+                              icon: Icons.star,
+                              bgColor: AppColors.secondaryLight,
+                              iconColor: AppColors.secondary,
+                              subtitle: '(10+ purchases)',
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Main Content
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Left Table Area
+                      if (isDesktop || _selectedCustomer == null)
+                        Expanded(
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).cardColor,
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.02),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              children: [
+                                // Filter Bar
+                                LayoutBuilder(
+                                  builder: (context, constraints) {
+                                    bool isDesktop = constraints.maxWidth > 800;
+                                    return Container(
+                                      padding: const EdgeInsets.all(16.0),
+                                      child: Wrap(
+                                        spacing: 12,
+                                        runSpacing: 12,
+                                        children: [
+                                          SizedBox(
+                                            width: isDesktop
+                                                ? (constraints.maxWidth * 0.4)
+                                                : constraints.maxWidth,
+                                            child: TextField(
+                                              controller: _searchCtrl,
+                                              onChanged: (val) => setState(() {
+                                                _searchQuery = val;
+                                                _currentPage = 1;
+                                              }),
+                                              decoration: InputDecoration(
+                                                hintText:
+                                                    'Search by name, phone, customer ID...',
+                                                prefixIcon: const Icon(
+                                                  Icons.search,
+                                                  size: 20,
+                                                ),
+                                                border: OutlineInputBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(8),
+                                                  borderSide: BorderSide(
+                                                    color: Theme.of(context).dividerColor,
+                                                  ),
+                                                ),
+                                                contentPadding:
+                                                    const EdgeInsets.symmetric(
+                                                      vertical: 0,
+                                                      horizontal: 16,
+                                                    ),
+                                              ),
+                                            ),
+                                          ),
+                                          SizedBox(
+                                            width: isDesktop
+                                                ? (constraints.maxWidth * 0.25 -
+                                                      12)
+                                                : (constraints.maxWidth - 20) /
+                                                      2,
+                                            child: DropdownButtonFormField<String>(
+                                              decoration: InputDecoration(
+                                                border: OutlineInputBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(8),
+                                                  borderSide: BorderSide(
+                                                    color: Theme.of(context).dividerColor,
+                                                  ),
+                                                ),
+                                                contentPadding:
+                                                    const EdgeInsets.symmetric(
+                                                      vertical: 0,
+                                                      horizontal: 12,
+                                                    ),
+                                              ),
+                                              initialValue: _selectedStatus,
+                                              items:
+                                                  [
+                                                        'All Status',
+                                                        ...allCustomers
+                                                            .map(
+                                                              (e) => e['status']
+                                                                  .toString(),
+                                                            )
+                                                            .toSet(),
+                                                      ]
+                                                      .map(
+                                                        (s) => DropdownMenuItem(
+                                                          value: s,
+                                                          child: Text(
+                                                            s,
+                                                            style:
+                                                                const TextStyle(
+                                                                  fontSize: 14,
+                                                                ),
+                                                          ),
+                                                        ),
+                                                      )
+                                                      .toList(),
+                                              onChanged: (val) => setState(() {
+                                                _selectedStatus = val!;
+                                                _currentPage = 1;
+                                              }),
+                                            ),
+                                          ),
+                                          SizedBox(
+                                            width: isDesktop
+                                                ? (constraints.maxWidth * 0.25 -
+                                                      12)
+                                                : (constraints.maxWidth - 20) /
+                                                      2,
+                                            child: DropdownButtonFormField<String>(
+                                              decoration: InputDecoration(
+                                                border: OutlineInputBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(8),
+                                                  borderSide: BorderSide(
+                                                    color: Theme.of(context).dividerColor,
+                                                  ),
+                                                ),
+                                                contentPadding:
+                                                    const EdgeInsets.symmetric(
+                                                      vertical: 0,
+                                                      horizontal: 12,
+                                                    ),
+                                              ),
+                                              initialValue: _selectedCity,
+                                              items:
+                                                  [
+                                                        'All Cities',
+                                                        ...allCustomers
+                                                            .map(
+                                                              (e) => e['city']
+                                                                  .toString(),
+                                                            )
+                                                            .toSet(),
+                                                      ]
+                                                      .map(
+                                                        (s) => DropdownMenuItem(
+                                                          value: s,
+                                                          child: Text(
+                                                            s,
+                                                            style:
+                                                                const TextStyle(
+                                                                  fontSize: 14,
+                                                                ),
+                                                          ),
+                                                        ),
+                                                      )
+                                                      .toList(),
+                                              onChanged: (val) => setState(() {
+                                                _selectedCity = val!;
+                                                _currentPage = 1;
+                                              }),
+                                            ),
+                                          ),
+                                          OutlinedButton.icon(
+                                            onPressed: () {
+                                              setState(() {
+                                                _searchCtrl.clear();
+                                                _searchQuery = '';
+                                                _selectedStatus = 'All Status';
+                                                _selectedCity = 'All Cities';
+                                                _currentPage = 1;
+                                              });
+                                            },
+                                            icon: const Icon(
+                                              Icons.refresh,
+                                              size: 18,
+                                            ),
+                                            label: const Text('Reset'),
+                                            style: OutlinedButton.styleFrom(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 16,
+                                                    vertical: 16,
+                                                  ),
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(8),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  },
+                                ),
+
+                                LayoutBuilder(
+                                  builder: (context, constraints) {
+                                    return SingleChildScrollView(
+                                      scrollDirection: Axis.horizontal,
+                                      child: ConstrainedBox(
+                                        constraints: BoxConstraints(
+                                          minWidth: 1000,
+                                          maxWidth: constraints.maxWidth > 1000
+                                              ? constraints.maxWidth
+                                              : 1000,
+                                        ),
+                                        child: Column(
+                                          children: [
+                                            // Table Header
+                                            Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 16,
+                                                    vertical: 12,
+                                                  ),
+                                              decoration: BoxDecoration(
+                                                border: Border(
+                                                  bottom: BorderSide(
+                                                    color: Theme.of(context).dividerColor,
+                                                  ),
+                                                ),
+                                              ),
+                                              child: Row(
+                                                children: [
+                                                  const SizedBox(
+                                                    width: 40,
+                                                    child: Text(
+                                                      '#',
+                                                      style: TextStyle(
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        fontSize: 12,
+                                                        color: AppColors
+                                                            .textSecondary,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  Expanded(
+                                                    flex: 3,
+                                                    child: const Text(
+                                                      'Customer Name',
+                                                      style: TextStyle(
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        fontSize: 12,
+                                                        color: AppColors
+                                                            .textSecondary,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  Expanded(
+                                                    flex: 2,
+                                                    child: const Text(
+                                                      'Phone',
+                                                      style: TextStyle(
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        fontSize: 12,
+                                                        color: AppColors
+                                                            .textSecondary,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  Expanded(
+                                                    flex: 2,
+                                                    child: const Text(
+                                                      'City',
+                                                      style: TextStyle(
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        fontSize: 12,
+                                                        color: AppColors
+                                                            .textSecondary,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  Expanded(
+                                                    flex: 2,
+                                                    child: const Text(
+                                                      'Total Purchases',
+                                                      style: TextStyle(
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        fontSize: 12,
+                                                        color: AppColors
+                                                            .textSecondary,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  Expanded(
+                                                    flex: 2,
+                                                    child: const Text(
+                                                      'Last Purchase',
+                                                      style: TextStyle(
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        fontSize: 12,
+                                                        color: AppColors
+                                                            .textSecondary,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  Expanded(
+                                                    flex: 2,
+                                                    child: const Text(
+                                                      'Status',
+                                                      style: TextStyle(
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        fontSize: 12,
+                                                        color: AppColors
+                                                            .textSecondary,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  const SizedBox(
+                                                    width: 130,
+                                                    child: Text(
+                                                      'Action',
+                                                      style: TextStyle(
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        fontSize: 12,
+                                                        color: AppColors
+                                                            .textSecondary,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+
+                                            // Table Body
+                                            pagedCustomers.isEmpty
+                                                ? Padding(
+padding: EdgeInsets.all(32),
+                                                    child: Center(
+                                                      child: Text(
+                                                        'No customers found',
+                                                        style: TextStyle(
+                                                          color: AppColors
+                                                              .textSecondary,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  )
+                                                : ListView.builder(
+                                                    shrinkWrap: true,
+                                                    physics:
+                                                        const NeverScrollableScrollPhysics(),
+                                                    itemCount:
+                                                        pagedCustomers.length,
+                                                    itemBuilder: (context, index) {
+                                                      final customer =
+                                                          pagedCustomers[index];
+                                                      return _buildCustomerRow(
+                                                        customer,
+                                                        index,
+                                                      );
+                                                    },
+                                                  ),
+                                          ],
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+
+                                // Pagination
+                                if (totalRecords > 0)
+                                  Padding(
+                                    padding: const EdgeInsets.all(16.0),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          'Showing ${startIdx + 1} to $endIdx of $totalRecords customers',
+                                          style: TextStyle(
+                                            color: (Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : AppColors.textSecondary),
+                                            fontSize: 14,
+                                          ),
+                                        ),
+                                        CustomPagination(
+                                          currentPage: _currentPage,
+                                          totalPages: totalPages,
+                                          onPageChanged: (page) => setState(
+                                            () => _currentPage = page,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ),
+
+                      // Right Details Panel
+                      if (_selectedCustomer != null) ...[
+                        if (isDesktop) const SizedBox(width: 24),
+                        isDesktop
+                            ? SizedBox(
+                                width: 320,
+                                child: _buildCustomerDetailsPanel(
+                                  _selectedCustomer!,
+                                ),
+                              )
+                            : Expanded(
+                                child: _buildCustomerDetailsPanel(
+                                  _selectedCustomer!,
+                                ),
+                              ),
+                      ],
+                    ],
+                  ),
                 ],
-              ),
-            ],
+              );
+            },
           ),
         );
       },
@@ -667,8 +750,10 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.primaryLight : Colors.white,
-          border: const Border(bottom: BorderSide(color: AppColors.divider)),
+          color: isSelected 
+              ? (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF166534) : AppColors.primaryLight) 
+              : Colors.transparent,
+          border: Border(bottom: BorderSide(color: Theme.of(context).dividerColor)),
         ),
         child: Row(
           children: [
@@ -711,9 +796,9 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                       ),
                       Text(
                         customer['id'],
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 11,
-                          color: AppColors.textSecondary,
+                          color: (Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : AppColors.textSecondary),
                         ),
                       ),
                     ],
@@ -725,9 +810,9 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
               flex: 2,
               child: Text(
                 customer['phone'],
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13,
-                  color: AppColors.textPrimary,
+                  color: (Theme.of(context).brightness == Brightness.dark ? Colors.white : AppColors.textPrimary),
                 ),
               ),
             ),
@@ -735,9 +820,9 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
               flex: 2,
               child: Text(
                 customer['city'],
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13,
-                  color: AppColors.textPrimary,
+                  color: (Theme.of(context).brightness == Brightness.dark ? Colors.white : AppColors.textPrimary),
                 ),
               ),
             ),
@@ -755,9 +840,9 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                   ),
                   Text(
                     '${customer['bills']} bills',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 11,
-                      color: AppColors.textSecondary,
+                      color: (Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : AppColors.textSecondary),
                     ),
                   ),
                 ],
@@ -767,9 +852,9 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
               flex: 2,
               child: Text(
                 customer['lastPurchase'],
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13,
-                  color: AppColors.textPrimary,
+                  color: (Theme.of(context).brightness == Brightness.dark ? Colors.white : AppColors.textPrimary),
                 ),
               ),
             ),
@@ -781,7 +866,7 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
               ),
             ),
             SizedBox(
-              width: 120,
+              width: 130,
               child: Row(
                 children: [
                   OutlinedButton(
@@ -801,18 +886,18 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                       ),
                     ),
                     child: Row(
-                      children: const [
-                        Icon(
+                      children: [
+Icon(
                           Icons.visibility,
                           size: 14,
-                          color: AppColors.textPrimary,
+                          color: (Theme.of(context).brightness == Brightness.dark ? Colors.white : AppColors.textPrimary),
                         ),
                         SizedBox(width: 4),
                         Text(
                           'View',
                           style: TextStyle(
                             fontSize: 11,
-                            color: AppColors.textPrimary,
+                            color: (Theme.of(context).brightness == Brightness.dark ? Colors.white : AppColors.textPrimary),
                           ),
                         ),
                       ],
@@ -821,7 +906,11 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                   const SizedBox(width: 4),
                   IconButton(
                     onPressed: () => _deleteCustomer(customer['full_id']),
-                    icon: const Icon(Icons.delete_outline, size: 16, color: Colors.red),
+                    icon: const Icon(
+                      Icons.delete_outline,
+                      size: 16,
+                      color: Colors.red,
+                    ),
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
                     tooltip: 'Delete Customer',
@@ -841,7 +930,9 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Delete Customer'),
-          content: const Text('Are you sure you want to delete this customer? This action cannot be undone.'),
+          content: const Text(
+            'Are you sure you want to delete this customer? This action cannot be undone.',
+          ),
           actions: <Widget>[
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
@@ -942,7 +1033,7 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
   Widget _buildCustomerDetailsPanel(Map<String, dynamic> customer) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
@@ -967,6 +1058,32 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                 ),
                 Row(
                   children: [
+                    PopupMenuButton<String>(
+                      tooltip: 'Export Customer Data',
+                      icon: const Icon(Icons.download_outlined, size: 20, color: AppColors.primaryDark),
+                      onSelected: (String result) {
+                        _exportCustomerData(customer, result);
+                      },
+                      itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                        const PopupMenuItem<String>(
+                          value: 'All',
+                          child: Text('All Data'),
+                        ),
+                        const PopupMenuItem<String>(
+                          value: 'This Year',
+                          child: Text('This Year'),
+                        ),
+                        const PopupMenuItem<String>(
+                          value: 'This Month',
+                          child: Text('This Month'),
+                        ),
+                        const PopupMenuItem<String>(
+                          value: 'Today',
+                          child: Text('Today'),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(width: 16),
                     InkWell(
                       onTap: () => showEditCustomerDialog(
                         context,
@@ -983,10 +1100,10 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                     const SizedBox(width: 16),
                     InkWell(
                       onTap: () => setState(() => _selectedCustomer = null),
-                      child: const Icon(
+                      child: Icon(
                         Icons.close,
                         size: 20,
-                        color: AppColors.textSecondary,
+                        color: (Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : AppColors.textSecondary),
                       ),
                     ),
                   ],
@@ -994,7 +1111,7 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
               ],
             ),
           ),
-          const Divider(height: 1, color: AppColors.divider),
+          Divider(height: 1, color: Theme.of(context).dividerColor),
 
           // Profile Info
           Padding(
@@ -1030,9 +1147,9 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                           ),
                           Text(
                             customer['id'],
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 12,
-                              color: AppColors.textSecondary,
+                              color: (Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : AppColors.textSecondary),
                             ),
                           ),
                         ],
@@ -1054,7 +1171,7 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                 ),
 
                 const SizedBox(height: 24),
-                const Divider(height: 1, color: AppColors.divider),
+                Divider(height: 1, color: Theme.of(context).dividerColor),
                 const SizedBox(height: 24),
 
                 // Stats
@@ -1130,8 +1247,8 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
 
           // Tabs
           Container(
-            decoration: const BoxDecoration(
-              border: Border(bottom: BorderSide(color: AppColors.divider)),
+            decoration: BoxDecoration(
+              border: Border(bottom: BorderSide(color: Theme.of(context).dividerColor)),
             ),
             child: Row(
               children: [
@@ -1156,7 +1273,7 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                           style: TextStyle(
                             color: _activeCustomerTab == 0
                                 ? AppColors.primaryDark
-                                : AppColors.textSecondary,
+                                : (Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : AppColors.textSecondary),
                             fontWeight: _activeCustomerTab == 0
                                 ? FontWeight.bold
                                 : FontWeight.normal,
@@ -1188,7 +1305,7 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                           style: TextStyle(
                             color: _activeCustomerTab == 1
                                 ? AppColors.primaryDark
-                                : AppColors.textSecondary,
+                                : (Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : AppColors.textSecondary),
                             fontWeight: _activeCustomerTab == 1
                                 ? FontWeight.bold
                                 : FontWeight.normal,
@@ -1226,7 +1343,7 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                                 horizontal: 16,
                                 vertical: 8,
                               ),
-                              color: AppColors.background,
+                              color: Theme.of(context).scaffoldBackgroundColor,
                               child: Row(
                                 children: const [
                                   Expanded(
@@ -1322,7 +1439,11 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                                       items: itemsList,
                                       createdAt: dt,
                                     );
-                                    showViewBillDialog(context, bill, ref.read(settingsProvider).value ?? {});
+                                    showViewBillDialog(
+                                      context,
+                                      bill,
+                                      ref.read(settingsProvider).value ?? {},
+                                    );
                                   },
                                   child: Padding(
                                     padding: const EdgeInsets.symmetric(
@@ -1354,19 +1475,19 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                                           flex: 2,
                                           child: Text(
                                             '₹ ${amt.toStringAsFixed(2)}',
-                                            style: const TextStyle(
+                                            style: TextStyle(
                                               fontSize: 12,
                                               fontWeight: FontWeight.bold,
-                                              color: AppColors.textPrimary,
+                                              color: (Theme.of(context).brightness == Brightness.dark ? Colors.white : AppColors.textPrimary),
                                             ),
                                           ),
                                         ),
-                                        const SizedBox(
+                                        SizedBox(
                                           width: 40,
                                           child: Icon(
                                             Icons.chevron_right,
                                             size: 16,
-                                            color: AppColors.textHint,
+                                            color: (Theme.of(context).brightness == Brightness.dark ? Colors.grey[500] : AppColors.textHint),
                                           ),
                                         ),
                                       ],
@@ -1375,13 +1496,13 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                                 );
                               }).toList())
                             else
-                              const Padding(
-                                padding: EdgeInsets.all(32.0),
+                              Padding(
+padding: EdgeInsets.all(32.0),
                                 child: Center(
                                   child: Text(
                                     'No purchases found',
                                     style: TextStyle(
-                                      color: AppColors.textHint,
+                                      color: (Theme.of(context).brightness == Brightness.dark ? Colors.grey[500] : AppColors.textHint),
                                       fontSize: 13,
                                     ),
                                   ),
@@ -1393,43 +1514,19 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                     );
                   },
                 )
-              : const Center(
+              : Center(
                   child: Padding(
-                    padding: EdgeInsets.all(32.0),
+                    padding: const EdgeInsets.all(32.0),
                     child: Text(
                       'No notes available for this customer.',
                       style: TextStyle(
-                        color: AppColors.textSecondary,
+                        color: (Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : AppColors.textSecondary),
                         fontSize: 13,
                       ),
                     ),
                   ),
                 ),
 
-          // View All Button
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: OutlinedButton.icon(
-              onPressed: () {
-                context.go('/counter/history');
-              },
-              icon: const Icon(
-                Icons.history,
-                size: 16,
-                color: AppColors.textPrimary,
-              ),
-              label: const Text(
-                'View All Purchases',
-                style: TextStyle(color: AppColors.textPrimary),
-              ),
-              style: OutlinedButton.styleFrom(
-                minimumSize: const Size(double.infinity, 40),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-            ),
-          ),
         ],
       ),
     );
@@ -1438,11 +1535,11 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
   Widget _buildContactRow(IconData icon, String text) {
     return Row(
       children: [
-        Icon(icon, size: 16, color: AppColors.textSecondary),
+        Icon(icon, size: 16, color: (Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : AppColors.textSecondary)),
         const SizedBox(width: 12),
         Text(
           text,
-          style: const TextStyle(fontSize: 12, color: AppColors.textPrimary),
+          style: TextStyle(fontSize: 12, color: (Theme.of(context).brightness == Brightness.dark ? Colors.white : AppColors.textPrimary)),
         ),
       ],
     );
@@ -1458,7 +1555,7 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
         const SizedBox(height: 2),
         Text(
           label,
-          style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
+          style: TextStyle(fontSize: 10, color: (Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : AppColors.textSecondary)),
         ),
       ],
     );
@@ -1468,8 +1565,8 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
   Widget _buildHistoryRow(String date, String billNo, String amount) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: AppColors.divider)),
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(color: Theme.of(context).dividerColor)),
       ),
       child: Row(
         children: [
@@ -1496,18 +1593,18 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
             child: InkWell(
               onTap: () {},
               child: Row(
-                children: const [
-                  Icon(
+                children: [
+Icon(
                     Icons.visibility,
                     size: 12,
-                    color: AppColors.textSecondary,
+                    color: (Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : AppColors.textSecondary),
                   ),
                   SizedBox(width: 2),
                   Text(
                     'View',
                     style: TextStyle(
                       fontSize: 9,
-                      color: AppColors.textSecondary,
+                      color: (Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : AppColors.textSecondary),
                     ),
                   ),
                 ],
@@ -1517,5 +1614,87 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
         ],
       ),
     );
+  }
+
+  Future<void> _exportCustomerData(Map<String, dynamic> customer, String filterType) async {
+    final history = (customer['history'] as List?)?.cast<Map<String, dynamic>>() ?? [];
+    
+    final now = DateTime.now();
+    List<Map<String, dynamic>> filtered = history.where((h) {
+      String dateStrRaw = h['date'].toString();
+      if (!dateStrRaw.endsWith('Z')) {
+        dateStrRaw += 'Z';
+      }
+      final date = DateTime.tryParse(dateStrRaw)?.toLocal();
+      if (date == null) return false;
+      
+      if (filterType == 'This Year') {
+        return date.year == now.year;
+      } else if (filterType == 'This Month') {
+        return date.year == now.year && date.month == now.month;
+      } else if (filterType == 'Today') {
+        return date.year == now.year && date.month == now.month && date.day == now.day;
+      }
+      return true; // 'All'
+    }).toList();
+
+    if (filtered.isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No records found for the selected period.')),
+        );
+      }
+      return;
+    }
+
+    final exportData = filtered.map((h) {
+      String dateStrRaw = h['date'].toString();
+      if (!dateStrRaw.endsWith('Z')) dateStrRaw += 'Z';
+      final date = DateTime.tryParse(dateStrRaw)?.toLocal();
+      final dateStr = date != null ? DateFormat('dd MMM yyyy').format(date) : h['date'].toString();
+      final timeStr = date != null ? DateFormat('hh:mm a').format(date) : '';
+      
+      return {
+        'Customer Name': customer['name'],
+        'Phone': customer['phone'],
+        'Date': dateStr,
+        'Time': timeStr,
+        'Bill No': h['bill_no'],
+        'Amount': h['amount'],
+      };
+    }).toList();
+
+    if (mounted) {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Export Format'),
+          content: const Text('Choose the format to export the data.'),
+          actions: [
+            TextButton(
+              onPressed: () async {
+                Navigator.pop(context);
+                await ExportService.exportToCSV(exportData, '${customer['name']}_export');
+              },
+              child: const Text('CSV'),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.pop(context);
+                await ExportService.exportToExcel(exportData, '${customer['name']}_export');
+              },
+              child: const Text('Excel'),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.pop(context);
+                await ExportService.exportToPDF(exportData, '${customer['name']}_export');
+              },
+              child: const Text('PDF'),
+            ),
+          ],
+        ),
+      );
+    }
   }
 }

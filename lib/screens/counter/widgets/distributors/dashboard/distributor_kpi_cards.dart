@@ -43,10 +43,10 @@ class DistributorKpiCards extends ConsumerWidget {
             spacing: 16,
             runSpacing: 16,
             children: [
-              _buildCard('Total Distributors', '$totalCount', Icons.business, Colors.blue, cardWidth),
-              _buildCard('Active Distributors', '$activeCount', Icons.check_circle, Colors.green, cardWidth),
-              _buildCard('Total Purchases', '₹${totalPurchases.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\\d{1,3})(?=(\\d{3})+(?!\\d))'), (Match m) => '${m[1]},')}', Icons.shopping_bag, Colors.purple, cardWidth),
-              _buildCard('Pending Payments', '₹${pendingPayments.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\\d{1,3})(?=(\\d{3})+(?!\\d))'), (Match m) => '${m[1]},')}', Icons.account_balance_wallet, Colors.orange, cardWidth),
+              _buildCard(context, 'Total Distributors', '$totalCount', Icons.business, Colors.blue, cardWidth),
+              _buildCard(context, 'Active Distributors', '$activeCount', Icons.check_circle, Colors.green, cardWidth),
+              _buildCard(context, 'Total Purchases', '₹${totalPurchases.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\\d{1,3})(?=(\\d{3})+(?!\\d))'), (Match m) => '${m[1]},')}', Icons.shopping_bag, Colors.purple, cardWidth),
+              _buildCard(context, 'Pending Payments', '₹${pendingPayments.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\\d{1,3})(?=(\\d{3})+(?!\\d))'), (Match m) => '${m[1]},')}', Icons.account_balance_wallet, Colors.orange, cardWidth),
             ],
           );
         }
@@ -54,14 +54,14 @@ class DistributorKpiCards extends ConsumerWidget {
     );
   }
 
-  Widget _buildCard(String title, String value, IconData icon, MaterialColor color, double width) {
+  Widget _buildCard(BuildContext context, String title, String value, IconData icon, MaterialColor color, double width) {
     return Container(
       width: width,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: Theme.of(context).dividerColor),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.02),
@@ -87,19 +87,19 @@ class DistributorKpiCards extends ConsumerWidget {
               children: [
                 Text(
                   title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
-                    color: Color(0xFF64748B),
+                    color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B),
                     fontWeight: FontWeight.w500,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   value,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF1E293B),
+                    color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
                   ),
                 ),
               ],

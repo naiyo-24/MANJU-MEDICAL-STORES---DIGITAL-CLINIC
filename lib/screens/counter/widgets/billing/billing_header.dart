@@ -12,9 +12,9 @@ class BillingHeaderWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(bottom: BorderSide(color: Color(0xFFE2E8F0))),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        border: Border(bottom: BorderSide(color: Theme.of(context).dividerColor)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -29,14 +29,14 @@ class BillingHeaderWidget extends StatelessWidget {
                     color: Color(0xFF22C55E),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.receipt_long,
-                    color: Colors.white,
+                    color: Theme.of(context).cardColor,
                     size: 24,
                   ),
                 ),
                 const SizedBox(width: 16),
-                const Expanded(
+                Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -45,14 +45,14 @@ class BillingHeaderWidget extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.w900,
-                          color: Color(0xFF1E293B),
+                          color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
                         ),
                       ),
                       Text(
                         'Create a new invoice, search medicines and add to cart',
                         style: TextStyle(
                           fontSize: 12,
-                          color: Color(0xFF64748B),
+                          color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B),
                         ),
                       ),
                     ],
@@ -67,9 +67,9 @@ class BillingHeaderWidget extends StatelessWidget {
             children: [
               IconButton(
                 onPressed: onRefresh,
-                icon: const Icon(
+                icon: Icon(
                   Icons.refresh,
-                  color: Color(0xFF64748B),
+                  color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B),
                 ),
                 tooltip: 'Refresh',
               ),

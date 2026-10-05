@@ -5,8 +5,40 @@ import '../../../../widgets/rack_dropdown.dart';
 import '../../../../widgets/category_dropdown.dart';
 import '../../../../widgets/distributor_dropdown.dart';
 import '../../../../services/inventory_service.dart';
+import '../../../../../utils/responsive.dart';
 
 class InventoryDialogs {
+  static Widget _buildResponsiveRow(BuildContext context, List<Widget> children) {
+    if (Responsive.isMobile(context)) {
+      final List<Widget> columnChildren = [];
+      for (var child in children) {
+        if (child is Expanded) {
+          columnChildren.add(Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: child.child,
+          ));
+        } else if (child is Spacer) {
+          // ignore
+        } else if (child is SizedBox && child.width != null) {
+          // ignore
+        } else {
+          columnChildren.add(Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: child,
+          ));
+        }
+      }
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: columnChildren,
+      );
+    }
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: children,
+    );
+  }
+
   static void showEditMedicineDialog(BuildContext context, WidgetRef ref, InventoryItem item, Function onSuccess) {
     final nameCtrl = TextEditingController(text: item.name);
     final skuCtrl = TextEditingController(text: item.sku);
@@ -44,21 +76,21 @@ class InventoryDialogs {
           child: Container(
             width: 500,
             padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+              Text(
                 'Edit Medicine',
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF1E293B),
+                  color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
                 ),
               ),
               const SizedBox(height: 16),
-              Row(
-                children: [
+              _buildResponsiveRow(context, [
                   Expanded(
                     flex: 2,
                     child: TextField(
@@ -81,8 +113,7 @@ class InventoryDialogs {
                 ],
               ),
               const SizedBox(height: 8),
-              Row(
-                children: [
+              _buildResponsiveRow(context, [
                   Expanded(
                     flex: 2,
                     child: TextField(
@@ -103,8 +134,7 @@ class InventoryDialogs {
                 ],
               ),
               const SizedBox(height: 8),
-              Row(
-                children: [
+              _buildResponsiveRow(context, [
                   Expanded(
                     child: TextField(
                       controller: buyingPriceCtrl,
@@ -132,8 +162,7 @@ class InventoryDialogs {
                 ],
               ),
               const SizedBox(height: 8),
-              Row(
-                children: [
+              _buildResponsiveRow(context, [
                   Expanded(
                     child: TextField(
                       controller: stockCtrl,
@@ -172,8 +201,7 @@ class InventoryDialogs {
                 ],
               ),
               const SizedBox(height: 8),
-              Row(
-                children: [
+              _buildResponsiveRow(context, [
                   Expanded(
                     child: TextField(
                       controller: batchCtrl,
@@ -208,8 +236,7 @@ class InventoryDialogs {
                 ],
               ),
               const SizedBox(height: 8),
-              Row(
-                children: [
+              _buildResponsiveRow(context, [
                   Expanded(
                     child: TextField(
                       controller: discountCtrl,
@@ -243,8 +270,7 @@ class InventoryDialogs {
                 ],
               ),
               const SizedBox(height: 8),
-              Row(
-                children: [
+              _buildResponsiveRow(context, [
                   Expanded(
                     child: DistributorDropdown(
                       selectedDistributorId: selectedDistributorId,
@@ -322,10 +348,11 @@ class InventoryDialogs {
                 ],
               ),
             ],
-          ),
-        ),
-      ),
-    ),
-    );
+          ), // closes Column
+        ), // closes SingleChildScrollView
+        ), // closes Container
+      ), // closes Dialog
+    ), // closes StatefulBuilder
+    ); // closes showDialog
   }
 }

@@ -30,6 +30,7 @@ class BillingCustomerSection extends StatelessWidget {
   });
 
 Widget _buildCompactField(
+  BuildContext context,
   String label,
   TextEditingController controller, {
   bool isNumber = false,
@@ -41,10 +42,10 @@ Widget _buildCompactField(
     children: [
       Text(
         label,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 10,
           fontWeight: FontWeight.bold,
-          color: Color(0xFF1E293B),
+          color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
         ),
       ),
       const SizedBox(height: 4),
@@ -66,7 +67,7 @@ Widget _buildCompactField(
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(6),
-              borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+              borderSide: BorderSide(color: Theme.of(context).dividerColor),
             ),
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 10,
@@ -142,6 +143,7 @@ Widget _buildCompactField(
                     children: [
                       Expanded(
                         child: _buildCompactField(
+                          context,
                           'Name',
                           customerNameController,
                         ),
@@ -149,6 +151,7 @@ Widget _buildCompactField(
                       const SizedBox(width: 8),
                       Expanded(
                         child: _buildCompactField(
+                          context,
                           'Phone',
                           customerPhoneController,
                           isNumber: true,
@@ -158,6 +161,7 @@ Widget _buildCompactField(
                   ),
                   const SizedBox(height: 8),
                   _buildCompactField(
+                    context,
                     'Location / Address',
                     customerLocationController,
                   ),
@@ -165,11 +169,11 @@ Widget _buildCompactField(
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
+                      Text(
                         'Doctor Name',
                         style: TextStyle(
                           fontSize: 10,
-                          color: Color(0xFF64748B),
+                          color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B),
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -179,7 +183,7 @@ Widget _buildCompactField(
                         padding: const EdgeInsets.symmetric(horizontal: 8),
                         decoration: BoxDecoration(
                           border: Border.all(
-                            color: const Color(0xFFE2E8F0),
+                            color: Theme.of(context).dividerColor,
                           ),
                           borderRadius: BorderRadius.circular(4),
                         ),
@@ -191,9 +195,9 @@ Widget _buildCompactField(
                               Icons.keyboard_arrow_down,
                               size: 14,
                             ),
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 10,
-                              color: Color(0xFF1E293B),
+                              color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
                             ),
                             onChanged: (String? newValue) {
                               if (newValue != null) {
@@ -243,15 +247,15 @@ Widget _buildCompactField(
                           ),
                           decoration: BoxDecoration(
                             border: Border.all(
-                              color: const Color(0xFFE2E8F0),
+                              color: Theme.of(context).dividerColor,
                             ),
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: TextField(
                             controller: newDoctorController,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 10,
-                              color: Color(0xFF1E293B),
+                              color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
                             ),
                             decoration: const InputDecoration(
                               hintText: 'Enter doctor name',

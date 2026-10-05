@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../services/export_service.dart';
 import '../../widgets/custom_pagination.dart';
 import 'package:intl/intl.dart';
 import '../../services/transaction_service.dart';
@@ -117,12 +118,12 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                       ),
                     ),
                     const SizedBox(width: 16),
-                    const Text(
+                    Text(
                       'Add Transaction',
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF1E293B),
+                        color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
                       ),
                     ),
                   ],
@@ -234,6 +235,46 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
   String _fmt(double val) =>
       NumberFormat.currency(symbol: '₹ ', decimalDigits: 2).format(val);
 
+  Future<void> _exportData(String format) async {
+    final exportData = _transactions
+        .map(
+          (t) => {
+            'Date': '${t.date} ${t.time}',
+            'Description': t.description,
+            'Category': t.category,
+            'Type': t.type,
+            'Amount': t.amount,
+            'Running Balance': t.runningBalance,
+            'Payment Mode': t.paymentMode,
+          },
+        )
+        .toList();
+
+    final timestamp = DateTime.now().millisecondsSinceEpoch;
+    final filename = 'accounts_$timestamp';
+
+    try {
+      if (format == 'pdf') {
+        await ExportService.exportToPDF(exportData, filename);
+      } else if (format == 'excel') {
+        await ExportService.exportToExcel(exportData, filename);
+      } else if (format == 'csv') {
+        await ExportService.exportToCSV(exportData, filename);
+      }
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Export successful!')));
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Export failed: $e')));
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final totalRecords = _transactions.length;
@@ -249,7 +290,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
         : <TransactionModel>[];
 
     return Container(
-      color: const Color(0xFFF8FAFC),
+      color: Theme.of(context).scaffoldBackgroundColor,
       padding: const EdgeInsets.all(24.0),
       child: LayoutBuilder(
         builder: (context, constraints) {
@@ -259,11 +300,16 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Header
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Row(
+              SizedBox(
+                width: double.infinity,
+                child: Wrap(
+                  alignment: WrapAlignment.spaceBetween,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: 16,
+                  runSpacing: 16,
+                  children: [
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Container(
@@ -272,23 +318,23 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                             color: const Color(0xFF166534),
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          child: const Icon(
+                          child: Icon(
                             Icons.account_balance_wallet,
-                            color: Colors.white,
+                            color: Theme.of(context).cardColor,
                             size: 24,
                           ),
                         ),
                         const SizedBox(width: 16),
-                        Expanded(
+                        Flexible(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text(
+                              Text(
                                 'Accounts',
                                 style: TextStyle(
                                   fontSize: 24,
                                   fontWeight: FontWeight.bold,
-                                  color: Color(0xFF1E293B),
+                                  color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
                                 ),
                               ),
                               const SizedBox(height: 4),
@@ -296,7 +342,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                                 'Manage income, expenses, payments and financial reports',
                                 style: TextStyle(
                                   fontSize: 14,
-                                  color: Colors.grey[600],
+                                  color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : Colors.grey[600],
                                 ),
                               ),
                             ],
@@ -304,39 +350,123 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                         ),
                       ],
                     ),
-                  ),
-                  const SizedBox(width: 16),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        onPressed: () => _loadTransactions(),
-                        icon: const Icon(
-                          Icons.refresh,
-                          color: Color(0xFF64748B),
-                        ),
-                        tooltip: 'Refresh',
-                      ),
-                      const SizedBox(width: 8),
-                      ElevatedButton.icon(
-                        onPressed: () => _showAddTransactionDialog(),
-                        icon: const Icon(Icons.add, size: 18),
-                        label: const Text('Add Transaction'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF22C55E),
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 20,
-                            vertical: 16,
-                          ),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        PopupMenuButton<String>(
+                          tooltip: 'Export Options',
+                          onSelected: _exportData,
+                          offset: const Offset(0, 50),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          itemBuilder: (BuildContext context) =>
+                              <PopupMenuEntry<String>>[
+                                const PopupMenuItem<String>(
+                                  value: 'pdf',
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        Icons.picture_as_pdf,
+                                        color: Colors.red,
+                                        size: 20,
+                                      ),
+                                      SizedBox(width: 12),
+                                      Text('Export as PDF'),
+                                    ],
+                                  ),
+                                ),
+                                const PopupMenuItem<String>(
+                                  value: 'excel',
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        Icons.table_chart,
+                                        color: Colors.green,
+                                        size: 20,
+                                      ),
+                                      SizedBox(width: 12),
+                                      Text('Export as Excel'),
+                                    ],
+                                  ),
+                                ),
+                                const PopupMenuItem<String>(
+                                  value: 'csv',
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        Icons.list_alt,
+                                        color: Colors.blue,
+                                        size: 20,
+                                      ),
+                                      SizedBox(width: 12),
+                                      Text('Export as CSV'),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 12,
+                            ),
+                            decoration: BoxDecoration(
+                              border: Border.all(
+                                color: Theme.of(context).dividerColor,
+                              ),
+                              borderRadius: BorderRadius.circular(8),
+                              color: Theme.of(context).cardColor,
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.download_rounded,
+                                  size: 20,
+                                  color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF1E293B),
+                                ),
+                                SizedBox(width: 8),
+                                Text(
+                                  'Export',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF1E293B),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                ],
+                        const SizedBox(width: 8),
+                        IconButton(
+                          onPressed: () => _loadTransactions(),
+                          icon: Icon(
+                            Icons.refresh,
+                            color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF1E293B),
+                          ),
+                          tooltip: 'Refresh',
+                        ),
+                        const SizedBox(width: 8),
+                        ElevatedButton.icon(
+                          onPressed: () => _showAddTransactionDialog(),
+                          icon: const Icon(Icons.add, size: 18),
+                          label: const Text('Add Transaction'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF22C55E),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 20,
+                              vertical: 16,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
               const SizedBox(height: 24),
 
@@ -347,7 +477,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                   children: [
                     SizedBox(
                       width: 250,
-                      child: AccountsWidgets.buildStatCard(
+                      child: AccountsWidgets.buildStatCard(context, 
                         'Total Income',
                         _fmt(_totalIncome),
                         Icons.currency_rupee,
@@ -358,7 +488,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                     const SizedBox(width: 16),
                     SizedBox(
                       width: 250,
-                      child: AccountsWidgets.buildStatCard(
+                      child: AccountsWidgets.buildStatCard(context, 
                         'Total Expenses',
                         _fmt(_totalExpenses),
                         Icons.credit_card,
@@ -369,7 +499,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                     const SizedBox(width: 16),
                     SizedBox(
                       width: 250,
-                      child: AccountsWidgets.buildStatCard(
+                      child: AccountsWidgets.buildStatCard(context, 
                         'Net Profit',
                         _fmt(_netProfit),
                         Icons.bar_chart,
@@ -380,7 +510,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                     const SizedBox(width: 16),
                     SizedBox(
                       width: 250,
-                      child: AccountsWidgets.buildStatCard(
+                      child: AccountsWidgets.buildStatCard(context, 
                         'Outstanding Receivables',
                         _fmt(_outstandingReceivables),
                         Icons.people_alt,
@@ -396,7 +526,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
               // Main Content Area
               Container(
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: Theme.of(context).cardColor,
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(
@@ -414,9 +544,9 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                         horizontal: 16,
                         vertical: 8,
                       ),
-                      decoration: const BoxDecoration(
+                      decoration: BoxDecoration(
                         border: Border(
-                          bottom: BorderSide(color: Color(0xFFF1F5F9)),
+                          bottom: BorderSide(color: Theme.of(context).dividerColor),
                         ),
                       ),
                       child: SingleChildScrollView(
@@ -445,8 +575,8 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                                   _tabs[index],
                                   style: TextStyle(
                                     color: _activeTab == index
-                                        ? const Color(0xFF166534)
-                                        : const Color(0xFF64748B),
+                                        ? (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF4ADE80) : const Color(0xFF166534))
+                                        : (Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF1E293B)),
                                     fontWeight: _activeTab == index
                                         ? FontWeight.bold
                                         : FontWeight.normal,
@@ -468,8 +598,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                           runSpacing: 12,
                           crossAxisAlignment: WrapCrossAlignment.center,
                           children: [
-                            AccountsWidgets.buildDynamicDropdown(
-                              _selectedPeriod,
+                            AccountsWidgets.buildDynamicDropdown(context, _selectedPeriod,
                               _periods,
                               (String? newValue) {
                                 if (newValue != null) {
@@ -478,8 +607,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                                 }
                               },
                             ),
-                            AccountsWidgets.buildDynamicDropdown(
-                              _selectedType,
+                            AccountsWidgets.buildDynamicDropdown(context, _selectedType,
                               _types,
                               (String? newValue) {
                                 if (newValue != null) {
@@ -488,8 +616,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                                 }
                               },
                             ),
-                            AccountsWidgets.buildDynamicDropdown(
-                              _selectedCategory,
+                            AccountsWidgets.buildDynamicDropdown(context, _selectedCategory,
                               _categories,
                               (String? newValue) {
                                 if (newValue != null) {
@@ -509,17 +636,17 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                                 ),
                                 decoration: BoxDecoration(
                                   border: Border.all(
-                                    color: const Color(0xFFE2E8F0),
+                                    color: Theme.of(context).dividerColor,
                                   ),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: TextField(
                                   controller: _searchController,
-                                  decoration: const InputDecoration(
+                                  decoration: InputDecoration(
                                     icon: Icon(
                                       Icons.search,
                                       size: 18,
-                                      color: Color(0xFF64748B),
+                                      color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF1E293B),
                                     ),
                                     hintText:
                                         'Search by description, customer, invoice no...',
@@ -547,18 +674,18 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                                 });
                                 _loadTransactions();
                               },
-                              icon: const Icon(
+                              icon: Icon(
                                 Icons.refresh,
                                 size: 16,
-                                color: Color(0xFF1E293B),
+                                color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
                               ),
-                              label: const Text(
+                              label: Text(
                                 'Reset',
-                                style: TextStyle(color: Color(0xFF1E293B)),
+                                style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B)),
                               ),
                               style: OutlinedButton.styleFrom(
-                                side: const BorderSide(
-                                  color: Color(0xFFE2E8F0),
+                                side: BorderSide(
+                                  color: Theme.of(context).dividerColor,
                                 ),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(8),
@@ -586,7 +713,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                                       horizontal: 16,
                                       vertical: 12,
                                     ),
-                                    color: const Color(0xFFF8FAFC),
+                                    color: Theme.of(context).scaffoldBackgroundColor,
                                     child: Row(
                                       children: const [
                                         SizedBox(
@@ -673,7 +800,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                                           ),
                                         ),
                                         SizedBox(
-                                          width: 100,
+                                          width: 120,
                                           child: Text(
                                             'Action',
                                             style: TextStyle(
@@ -696,13 +823,13 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                                           ),
                                         )
                                       : pagedTxns.isEmpty
-                                      ? const Padding(
+                                      ? Padding(
                                           padding: EdgeInsets.all(32),
                                           child: Center(
                                             child: Text(
                                               'No transactions found. Add one to get started!',
                                               style: TextStyle(
-                                                color: Color(0xFF64748B),
+                                                color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF1E293B),
                                               ),
                                             ),
                                           ),
@@ -713,9 +840,9 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                                               const NeverScrollableScrollPhysics(),
                                           itemCount: pagedTxns.length,
                                           separatorBuilder: (context, index) =>
-                                              const Divider(
+                                              Divider(
                                                 height: 1,
-                                                color: Color(0xFFF1F5F9),
+                                                color: Theme.of(context).dividerColor,
                                               ),
                                           itemBuilder: (context, index) {
                                             final txn = pagedTxns[index];
@@ -902,7 +1029,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                                                     ),
                                                   ),
                                                   SizedBox(
-                                                    width: 100,
+                                                    width: 120,
                                                     child: Row(
                                                       mainAxisAlignment:
                                                           MainAxisAlignment
@@ -1019,8 +1146,8 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                             children: [
                               Text(
                                 'Showing ${startIdx + 1} to $endIdx of $totalRecords records',
-                                style: const TextStyle(
-                                  color: Color(0xFF64748B),
+                                style: TextStyle(
+                                  color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF1E293B),
                                   fontSize: 12,
                                 ),
                               ),
@@ -1047,35 +1174,35 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
 
           Widget rightSidebar = Column(
             children: [
-              AccountsWidgets.buildRightCard(
+              AccountsWidgets.buildRightCard(context, 
                 title: 'Account Summary',
                 child: Column(
                   children: [
-                    AccountsWidgets.buildSummaryRow(
+                    AccountsWidgets.buildSummaryRow(context, 
                       Icons.money,
                       'Cash in Hand',
                       _fmt(_cashInHand),
                       const Color(0xFF22C55E),
                     ),
-                    AccountsWidgets.buildSummaryRow(
+                    AccountsWidgets.buildSummaryRow(context, 
                       Icons.account_balance,
                       'Bank Balance',
                       _fmt(_bankBalance),
                       const Color(0xFF3B82F6),
                     ),
-                    AccountsWidgets.buildSummaryRow(
+                    AccountsWidgets.buildSummaryRow(context, 
                       Icons.credit_card,
                       'Total Income',
                       _fmt(_totalIncome),
-                      const Color(0xFF64748B),
+                      const Color(0xFF1E293B),
                     ),
-                    AccountsWidgets.buildSummaryRow(
+                    AccountsWidgets.buildSummaryRow(context, 
                       Icons.credit_score,
                       'Total Expenses',
                       _fmt(_totalExpenses),
                       const Color(0xFFEF4444),
                     ),
-                    AccountsWidgets.buildSummaryRow(
+                    AccountsWidgets.buildSummaryRow(context, 
                       Icons.bar_chart,
                       'Net Profit',
                       _fmt(_netProfit),
@@ -1086,9 +1213,8 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
               ),
 
               const SizedBox(height: 24),
-              AccountsWidgets.buildRightCard(
+              AccountsWidgets.buildRightCard(context, 
                 title: 'Recent Activities',
-                actionText: 'View All',
                 expandChild: false,
                 child: _transactions.isEmpty
                     ? const Center(
@@ -1103,7 +1229,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                         children: _transactions
                             .take(5)
                             .map(
-                              (txn) => AccountsWidgets.buildActivityItem(
+                              (txn) => AccountsWidgets.buildActivityItem(context, 
                                 '${txn.type == 'Income' ? 'Payment received' : 'Payment sent'}: ${txn.category}',
                                 _fmt(txn.amount),
                                 '${txn.date} ${txn.time}',

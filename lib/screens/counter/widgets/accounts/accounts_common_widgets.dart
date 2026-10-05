@@ -7,7 +7,7 @@ class AccountsWidgets {
     return val.toStringAsFixed(val.truncateToDouble() == val ? 0 : 2);
   }
 
-  static Widget buildStatCard(
+  static Widget buildStatCard(BuildContext context, 
     String title,
     String value,
     IconData icon,
@@ -18,7 +18,7 @@ class AccountsWidgets {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -63,10 +63,10 @@ class AccountsWidgets {
           const SizedBox(height: 16),
           Text(
             value,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF1E293B),
+              color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
             ),
           ),
           const SizedBox(height: 4),
@@ -79,15 +79,14 @@ class AccountsWidgets {
     );
   }
 
-  static Widget buildDynamicDropdown(
-    String value,
+  static Widget buildDynamicDropdown(BuildContext context, String value,
     List<String> items,
     ValueChanged<String?> onChanged,
   ) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
       decoration: BoxDecoration(
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: Theme.of(context).dividerColor),
         borderRadius: BorderRadius.circular(8),
       ),
       child: DropdownButtonHideUnderline(
@@ -98,7 +97,7 @@ class AccountsWidgets {
             size: 16,
             color: Color(0xFF64748B),
           ),
-          style: const TextStyle(fontSize: 12, color: Color(0xFF1E293B)),
+          style: TextStyle(fontSize: 12, color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B)),
           items: items.map((String val) {
             return DropdownMenuItem<String>(value: val, child: Text(val));
           }).toList(),
@@ -108,7 +107,7 @@ class AccountsWidgets {
     );
   }
 
-  static Widget buildRightCard({
+  static Widget buildRightCard(BuildContext context, {
     required String title,
     required Widget child,
     String? actionText,
@@ -117,7 +116,7 @@ class AccountsWidgets {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -135,10 +134,10 @@ class AccountsWidgets {
             children: [
               Text(
                 title,
-                style: const TextStyle(
+                style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
-                  color: Color(0xFF1E293B),
+                  color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
                 ),
               ),
               if (actionText != null)
@@ -159,7 +158,7 @@ class AccountsWidgets {
     );
   }
 
-  static Widget buildSummaryRow(
+  static Widget buildSummaryRow(BuildContext context, 
     IconData icon,
     String label,
     String value,
@@ -180,15 +179,18 @@ class AccountsWidgets {
           const SizedBox(width: 12),
           Text(
             label,
-            style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+            style: TextStyle(
+              fontSize: 12, 
+              color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B),
+            ),
           ),
           const Spacer(),
           Text(
             value,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF1E293B),
+              color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
             ),
           ),
         ],
@@ -317,7 +319,7 @@ class AccountsWidgets {
     );
   }
 
-  static Widget buildActivityItem(
+  static Widget buildActivityItem(BuildContext context, 
     String title,
     String amount,
     String time,
@@ -344,9 +346,9 @@ class AccountsWidgets {
               children: [
                 Text(
                   title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
-                    color: Color(0xFF1E293B),
+                    color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -355,17 +357,17 @@ class AccountsWidgets {
                   children: [
                     Text(
                       amount,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF1E293B),
+                        color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
                       ),
                     ),
                     Text(
                       time,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 10,
-                        color: Color(0xFF64748B),
+                        color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B),
                       ),
                     ),
                   ],

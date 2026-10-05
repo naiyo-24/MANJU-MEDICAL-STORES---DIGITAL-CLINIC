@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../themes/app_colors.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -22,6 +23,8 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
       body: Center(
         child: Padding(
@@ -30,14 +33,21 @@ class _SplashScreenState extends State<SplashScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Image.asset(
-                'assets/LOGO.png',
+                isDarkMode ? 'assets/LOGO_DM.png' : 'assets/LOGO.png',
                 height: 150,
                 cacheHeight: 450, // Added to prevent excessive memory usage
                 fit: BoxFit.contain,
               ),
-              const SizedBox(height: 24),
-              const SizedBox(height: 48),
-              const CircularProgressIndicator(color: Colors.green),
+              const SizedBox(height: 60),
+              SizedBox(
+                width: 40,
+                height: 40,
+                child: CircularProgressIndicator(
+                  color: AppColors.primary,
+                  strokeWidth: 3.5,
+                  strokeCap: StrokeCap.round,
+                ),
+              ),
             ],
           ),
         ),

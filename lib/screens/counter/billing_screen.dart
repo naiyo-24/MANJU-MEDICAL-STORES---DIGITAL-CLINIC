@@ -778,9 +778,19 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
 
       // Show the native print dialog for the user to print the final bill immediately!
       if (mounted) {
+        final selectedFormat = ref.read(billingProvider).selectedFormat;
+        PdfPageFormat pageFormat = PdfPageFormat.a4;
+        
+        if (selectedFormat == 'A5') {
+          pageFormat = PdfPageFormat.a5.landscape;
+        } else if (selectedFormat == 'Thermal') {
+          pageFormat = const PdfPageFormat(80 * PdfPageFormat.mm, 300 * PdfPageFormat.mm);
+        }
+
         await Printing.layoutPdf(
           onLayout: (PdfPageFormat format) async => pdfBytes,
           name: 'Bill_$invoiceNo.pdf',
+          format: pageFormat,
         );
       }
 
@@ -949,6 +959,11 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
         isLoose = result;
       }
 
+      if (isLoose && packSize > 1) {
+        double effectivePrice = mrp / packSize;
+        totalAfterDiscount = effectivePrice - (effectivePrice * (discount / 100));
+      }
+
       ref.read(billingProvider.notifier).addItem({
         'inventory_item_id': item['inventory_item_id'],
         'name': item['name'],
@@ -1041,17 +1056,19 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
     List<Map<String, dynamic>> computedFilteredMedicines = allMedicines;
 
     // Removed local search filtering since we will fetch from backend
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
-      color: const Color(0xFFF8FAFC),
+      color: Theme.of(context).scaffoldBackgroundColor,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // Top Header
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              border: Border(bottom: BorderSide(color: Color(0xFFE2E8F0))),
+            decoration: BoxDecoration(
+              color: Theme.of(context).cardColor,
+              border: Border(bottom: BorderSide(color: Theme.of(context).dividerColor)),
             ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1077,19 +1094,19 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
+                            Text(
                               'New Bill',
                               style: TextStyle(
                                 fontSize: 24,
                                 fontWeight: FontWeight.w900,
-                                color: Color(0xFF1E293B),
+                                color: isDark ? Colors.white : const Color(0xFF1E293B),
                               ),
                             ),
-                            const Text(
+                            Text(
                               'Create a new invoice, search medicines and add to cart',
                               style: TextStyle(
                                 fontSize: 12,
-                                color: Color(0xFF64748B),
+                                color: isDark ? Colors.grey[400] : const Color(0xFF64748B),
                               ),
                             ),
                           ],
@@ -1126,9 +1143,9 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                           ),
                         );
                       },
-                      icon: const Icon(
+                      icon: Icon(
                         Icons.refresh,
-                        color: Color(0xFF64748B),
+                        color: isDark ? Colors.grey[400] : const Color(0xFF64748B),
                       ),
                       tooltip: 'Refresh',
                     ),
@@ -1152,7 +1169,7 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                   Widget leftSide = inventoryState.when(
                     data: (items) => BillingLeftPanel(
                       isDesktopWidth: isDesktopWidth,
-                      hasEnoughHeight: hasEnoughHeight,
+                      hasEnoughHeight: isDesktopWidth ? hasEnoughHeight : true,
                       filteredMedicines: computedFilteredMedicines,
                       categories: dynamicCategories,
                       selectedCategoryIndex: ref
@@ -1178,9 +1195,12 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                       },
                       searchController: _medicineSearchController,
                       onSearch: (q) {
-                        ref
-                            .read(billingInventoryProvider.notifier)
-                            .loadInventory(searchQuery: q);
+                        if (_searchDebounce?.isActive ?? false) _searchDebounce!.cancel();
+                        _searchDebounce = Timer(const Duration(milliseconds: 500), () {
+                          ref
+                              .read(billingInventoryProvider.notifier)
+                              .loadInventory(searchQuery: q);
+                        });
                       },
                     ),
                     loading: () => const Center(
@@ -1262,7 +1282,10 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          leftSide,
+                          SizedBox(
+                            height: 500, // Fixed height so it doesn't shrink and overflow when keyboard opens
+                            child: leftSide,
+                          ),
                           const SizedBox(height: 24),
                           rightSide,
                         ],

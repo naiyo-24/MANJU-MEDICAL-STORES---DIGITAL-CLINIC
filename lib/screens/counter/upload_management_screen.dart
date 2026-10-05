@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:file_picker/file_picker.dart';
 import '../../services/inventory_service.dart';
+import '../../services/export_service.dart';
 import '../../providers/counter_providers.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import '../../utils/responsive.dart';
 import '../../widgets/rack_dropdown.dart';
 import '../../widgets/category_dropdown.dart';
 import '../../widgets/distributor_dropdown.dart';
@@ -79,7 +81,7 @@ class _UploadManagementScreenState
               SnackBar(
                 content: Text(
                   message,
-                  style: const TextStyle(color: Colors.white),
+                  style: TextStyle(color: Theme.of(context).cardColor),
                 ),
                 backgroundColor: Colors.green,
               ),
@@ -93,7 +95,7 @@ class _UploadManagementScreenState
           SnackBar(
             content: Text(
               'Upload failed: $e',
-              style: const TextStyle(color: Colors.white),
+              style: TextStyle(color: Theme.of(context).cardColor),
             ),
             backgroundColor: Colors.red,
           ),
@@ -108,34 +110,98 @@ class _UploadManagementScreenState
     }
   }
 
+  void _downloadTemplate() async {
+    final templateData = [
+      {
+        'Name': 'Paracetamol 500mg',
+        'SKU': 'MED-001',
+        'Batch': 'B2024-01',
+        'Stock': 100,
+        'Loose Stock': 10,
+        'Pack Size': 10,
+        'Buying Price (₹)': 40.0,
+        'Unit Price (₹)': 50.0,
+        'GST (%)': 12.0,
+        'Discount (%)': 0.0,
+        'Manufacturer': 'Sun Pharma',
+        'Expiry': '2026-12-31',
+        'Rack': 'R1',
+        'Category': 'Tablets',
+        'Distributor': 'Distributor Name',
+        'HSN Code': '30049099',
+      }
+    ];
+    await ExportService.exportToCSV(templateData, 'inventory_upload_template');
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Template downloaded successfully!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    }
+  }
+
+  Widget _buildResponsiveRow(BuildContext context, List<Widget> children) {
+    if (!Responsive.isDesktop(context)) {
+      final List<Widget> columnChildren = [];
+      for (var child in children) {
+        if (child is Expanded) {
+          columnChildren.add(Padding(
+            padding: EdgeInsets.only(bottom: 16),
+            child: child.child,
+          ));
+        } else if (child is Spacer) {
+          // ignore spacer
+        } else if (child is SizedBox && child.width != null) {
+          // ignore horizontal spacing
+        } else {
+          columnChildren.add(Padding(
+            padding: EdgeInsets.only(bottom: 16),
+            child: child,
+          ));
+        }
+      }
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: columnChildren,
+      );
+    }
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: children,
+    );
+  }
+
   Widget _buildSectionHeader(IconData icon, String title, String subtitle) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
-      padding: const EdgeInsets.only(bottom: 24.0, top: 8.0),
+      padding: EdgeInsets.only(bottom: 24.0, top: 8.0),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: const Color(0xFFE8F5E9),
+              color: Color(0xFFE8F5E9),
               shape: BoxShape.circle,
             ),
-            child: Icon(icon, color: const Color(0xFF22C55E), size: 20),
+            child: Icon(icon, color: Color(0xFF22C55E), size: 20),
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: 12),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 title,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF1E293B),
+                  color: (isDark ? Colors.white : Color(0xFF1E293B)),
                 ),
               ),
               Text(
                 subtitle,
-                style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                style: TextStyle(fontSize: 12, color: (isDark ? Colors.grey.shade400 : Color(0xFF64748B))),
               ),
             ],
           ),
@@ -152,6 +218,7 @@ class _UploadManagementScreenState
     TextEditingController? controller,
     VoidCallback? onTap,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -159,14 +226,14 @@ class _UploadManagementScreenState
           children: [
             Text(
               label,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF1E293B),
+                color: (isDark ? Colors.white : Color(0xFF1E293B)),
               ),
             ),
             if (isRequired)
-              const Text(
+              Text(
                 ' *',
                 style: TextStyle(
                   color: Colors.red,
@@ -176,7 +243,7 @@ class _UploadManagementScreenState
               ),
           ],
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: 8),
         SizedBox(
           height: 40,
           child: TextField(
@@ -185,28 +252,28 @@ class _UploadManagementScreenState
             onTap: onTap,
             decoration: InputDecoration(
               hintText: hint,
-              hintStyle: const TextStyle(
-                color: Color(0xFF94A3B8),
+              hintStyle: TextStyle(
+                color: (isDark ? Colors.grey.shade500 : Color(0xFF94A3B8)),
                 fontSize: 12,
               ),
               suffixIcon: suffixIcon != null
-                  ? Icon(suffixIcon, color: const Color(0xFF64748B), size: 18)
+                  ? Icon(suffixIcon, color: (isDark ? Colors.grey.shade400 : Color(0xFF64748B)), size: 18)
                   : null,
-              contentPadding: const EdgeInsets.symmetric(
+              contentPadding: EdgeInsets.symmetric(
                 horizontal: 16,
                 vertical: 0,
               ),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
-                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                borderSide: BorderSide(color: (isDark ? Colors.grey.shade800 : Color(0xFFE2E8F0))),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
-                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                borderSide: BorderSide(color: (isDark ? Colors.grey.shade800 : Color(0xFFE2E8F0))),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
-                borderSide: const BorderSide(color: Color(0xFF22C55E)),
+                borderSide: BorderSide(color: Color(0xFF22C55E)),
               ),
             ),
           ),
@@ -217,6 +284,7 @@ class _UploadManagementScreenState
 
   // ignore: unused_element
   Widget _buildDropdown(String label, String hint, {bool isRequired = false}) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -224,14 +292,14 @@ class _UploadManagementScreenState
           children: [
             Text(
               label,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF1E293B),
+                color: (isDark ? Colors.white : Color(0xFF1E293B)),
               ),
             ),
             if (isRequired)
-              const Text(
+              Text(
                 ' *',
                 style: TextStyle(
                   color: Colors.red,
@@ -241,12 +309,12 @@ class _UploadManagementScreenState
               ),
           ],
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: 8),
         Container(
           height: 40,
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          padding: EdgeInsets.symmetric(horizontal: 16),
           decoration: BoxDecoration(
-            border: Border.all(color: const Color(0xFFE2E8F0)),
+            border: Border.all(color: (isDark ? Colors.grey.shade800 : Color(0xFFE2E8F0))),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Row(
@@ -254,11 +322,11 @@ class _UploadManagementScreenState
             children: [
               Text(
                 hint,
-                style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 12),
+                style: TextStyle(color: (isDark ? Colors.grey.shade500 : Color(0xFF94A3B8)), fontSize: 12),
               ),
-              const Icon(
+              Icon(
                 Icons.keyboard_arrow_down,
-                color: Color(0xFF64748B),
+                color: (isDark ? Colors.grey.shade400 : Color(0xFF64748B)),
                 size: 18,
               ),
             ],
@@ -270,153 +338,203 @@ class _UploadManagementScreenState
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
-      color: const Color(0xFFF8FAFC),
+      color: isDark ? Theme.of(context).scaffoldBackgroundColor : (isDark ? Colors.grey.shade900 : Color(0xFFF8FAFC)),
       child: Column(
         children: [
           // Header
           Container(
-            padding: const EdgeInsets.all(24),
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              border: Border(bottom: BorderSide(color: Color(0xFFE2E8F0))),
+            padding: EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: Theme.of(context).cardColor,
+              border: Border(bottom: BorderSide(color: (isDark ? Colors.grey.shade800 : Color(0xFFE2E8F0)))),
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    InkWell(
-                      onTap: () => Navigator.pop(context),
-                      child: const Row(
-                        children: [
-                          Icon(
-                            Icons.arrow_back,
-                            color: Color(0xFF1E293B),
-                            size: 18,
-                          ),
-                          SizedBox(width: 8),
-                          Text(
-                            'Back',
-                            style: TextStyle(
-                              color: Color(0xFF1E293B),
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 32),
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: const BoxDecoration(
-                        color: Color(0xFF22C55E),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.medication,
-                        color: Colors.white,
-                        size: 24,
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    const Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Add Medicine',
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.w900,
-                            color: Color(0xFF1E293B),
-                          ),
-                        ),
-                        Text(
-                          'Add a new medicine to your inventory (Master DB)',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Color(0xFF64748B),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(width: 32),
-                    if (_isUploading)
-                      const CircularProgressIndicator(color: Color(0xFF22C55E))
-                    else
+            child: !Responsive.isDesktop(context)
+                ? Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                       Row(
                         children: [
-                          ElevatedButton.icon(
-                            onPressed: _uploadExcel,
-                            icon: const Icon(Icons.upload_file, size: 18),
-                            label: const Text('Bulk Upload (Excel)'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF1E293B),
-                              foregroundColor: Colors.white,
-                              elevation: 0,
+                          InkWell(
+                            onTap: () => Navigator.pop(context),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.arrow_back, color: (isDark ? Colors.white : Color(0xFF1E293B)), size: 18),
+                                SizedBox(width: 4),
+                                Text('Back', style: TextStyle(color: (isDark ? Colors.white : Color(0xFF1E293B)), fontWeight: FontWeight.bold)),
+                              ],
                             ),
                           ),
-                          const SizedBox(width: 8),
-                          Tooltip(
-                            message: 'Refresh Categories and Racks',
-                            child: IconButton(
-                              onPressed: () {
-                                ref.invalidate(categoryProvider);
-                                ref.invalidate(rackProvider);
-                              },
-                              icon: const Icon(Icons.refresh, color: Color(0xFF1E293B)),
+                          SizedBox(width: 12),
+                          Container(
+                            padding: EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: Color(0xFF22C55E),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(Icons.medication, color: Colors.white, size: 20),
+                          ),
+                          SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Add Medicine',
+                                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: (isDark ? Colors.white : Color(0xFF1E293B))),
+                                ),
+                                Text(
+                                  'Add a new medicine to your inventory (Master DB)',
+                                  style: TextStyle(fontSize: 11, color: (isDark ? Colors.grey.shade400 : Color(0xFF64748B))),
+                                ),
+                              ],
                             ),
                           ),
                         ],
                       ),
-                  ],
-                ),
-                Row(
-                  children: [
-                    const Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text(
-                          'Better Care',
-                          style: TextStyle(
-                            color: Color(0xFF22C55E),
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                            fontStyle: FontStyle.italic,
-                          ),
+                      SizedBox(height: 16),
+                      if (_isUploading)
+                        CircularProgressIndicator(color: Color(0xFF22C55E))
+                      else
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            ElevatedButton.icon(
+                              onPressed: _downloadTemplate,
+                              icon: Icon(Icons.download, size: 18),
+                              label: Text('Download Template'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: (isDark ? Colors.grey.shade800 : Color(0xFFF1F5F9)),
+                                foregroundColor: (isDark ? Colors.white : Color(0xFF1E293B)),
+                                elevation: 0,
+                                side: BorderSide(color: (isDark ? Colors.grey.shade800 : Color(0xFFE2E8F0))),
+                              ),
+                            ),
+                            ElevatedButton.icon(
+                              onPressed: _uploadExcel,
+                              icon: Icon(Icons.upload_file, size: 18, color: isDark ? Colors.black : Theme.of(context).cardColor),
+                              label: Text('Bulk Upload (Excel)'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: (isDark ? Colors.white : Color(0xFF1E293B)),
+                                foregroundColor: (isDark ? Colors.black : Theme.of(context).cardColor),
+                                elevation: 0,
+                              ),
+                            ),
+                            Tooltip(
+                              message: 'Refresh Categories and Racks',
+                              child: IconButton(
+                                onPressed: () {
+                                  ref.invalidate(categoryProvider);
+                                  ref.invalidate(rackProvider);
+                                },
+                                icon: Icon(Icons.refresh, color: (isDark ? Colors.white : Color(0xFF1E293B))),
+                              ),
+                            ),
+                          ],
                         ),
-                        Text(
-                          'Brighter Tomorrow',
-                          style: TextStyle(
-                            color: Color(0xFF22C55E),
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                            fontStyle: FontStyle.italic,
+                    ],
+                  )
+                : Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          InkWell(
+                            onTap: () => Navigator.pop(context),
+                            child: Row(
+                              children: [
+                                Icon(Icons.arrow_back, color: (isDark ? Colors.white : Color(0xFF1E293B)), size: 18),
+                                SizedBox(width: 8),
+                                Text('Back', style: TextStyle(color: (isDark ? Colors.white : Color(0xFF1E293B)), fontWeight: FontWeight.bold)),
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(width: 8),
-                    Icon(Icons.eco, color: const Color(0xFF22C55E), size: 24),
-                  ],
-                ),
-              ],
-            ),
+                          SizedBox(width: 32),
+                          Container(
+                            padding: EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Color(0xFF22C55E),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(Icons.medication, color: Colors.white, size: 24),
+                          ),
+                          SizedBox(width: 16),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Add Medicine',
+                                style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: (isDark ? Colors.white : Color(0xFF1E293B))),
+                              ),
+                              Text(
+                                'Add a new medicine to your inventory (Master DB)',
+                                style: TextStyle(fontSize: 12, color: (isDark ? Colors.grey.shade400 : Color(0xFF64748B))),
+                              ),
+                            ],
+                          ),
+                          SizedBox(width: 32),
+                          if (_isUploading)
+                            CircularProgressIndicator(color: Color(0xFF22C55E))
+                          else
+                            Row(
+                              children: [
+                                ElevatedButton.icon(
+                                  onPressed: _downloadTemplate,
+                                  icon: Icon(Icons.download, size: 18),
+                                  label: Text('Download Template'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: (isDark ? Colors.grey.shade800 : Color(0xFFF1F5F9)),
+                                    foregroundColor: (isDark ? Colors.white : Color(0xFF1E293B)),
+                                    elevation: 0,
+                                    side: BorderSide(color: (isDark ? Colors.grey.shade800 : Color(0xFFE2E8F0))),
+                                  ),
+                                ),
+                                SizedBox(width: 8),
+                                ElevatedButton.icon(
+                                  onPressed: _uploadExcel,
+                                  icon: Icon(Icons.upload_file, size: 18, color: isDark ? Colors.black : Theme.of(context).cardColor),
+                                  label: Text('Bulk Upload (Excel)'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: (isDark ? Colors.white : Color(0xFF1E293B)),
+                                    foregroundColor: (isDark ? Colors.black : Theme.of(context).cardColor),
+                                    elevation: 0,
+                                  ),
+                                ),
+                                SizedBox(width: 8),
+                                Tooltip(
+                                  message: 'Refresh Categories and Racks',
+                                  child: IconButton(
+                                    onPressed: () {
+                                      ref.invalidate(categoryProvider);
+                                      ref.invalidate(rackProvider);
+                                    },
+                                    icon: Icon(Icons.refresh, color: (isDark ? Colors.white : Color(0xFF1E293B))),
+                                  ),
+                                ),
+                              ],
+                            ),
+                        ],
+                      ),
+                    ],
+                  ),
           ),
 
           // Form Content
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(32),
+              padding: EdgeInsets.all(32),
               child: Column(
                 children: [
                   // Basic Information Card
                   Container(
-                    padding: const EdgeInsets.all(32),
+                    padding: EdgeInsets.all(32),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: Theme.of(context).cardColor,
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                      border: Border.all(color: (isDark ? Colors.grey.shade800 : Color(0xFFE2E8F0))),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -426,15 +544,12 @@ class _UploadManagementScreenState
                           'Basic Information',
                           'General details about the medicine',
                         ),
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
+                        _buildResponsiveRow(context, [
                             Expanded(
                               flex: 2,
                               child: Column(
                                 children: [
-                                  Row(
-                                    children: [
+                                  _buildResponsiveRow(context, [
                                       Expanded(
                                         child: _buildTextField(
                                           'Medicine Name',
@@ -443,7 +558,7 @@ class _UploadManagementScreenState
                                           controller: _nameCtrl,
                                         ),
                                       ),
-                                      const SizedBox(width: 24),
+                                      SizedBox(width: 24),
                                       Expanded(
                                         child: _buildTextField(
                                           'Manufacturer',
@@ -456,31 +571,31 @@ class _UploadManagementScreenState
                                 ],
                               ),
                             ),
-                            const SizedBox(width: 24),
+                            SizedBox(width: 24),
                             Expanded(
                               flex: 1,
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Text(
+                                  Text(
                                     'Medicine Image',
                                     style: TextStyle(
                                       fontSize: 12,
                                       fontWeight: FontWeight.bold,
-                                      color: Color(0xFF1E293B),
+                                      color: (isDark ? Colors.white : Color(0xFF1E293B)),
                                     ),
                                   ),
-                                  const SizedBox(height: 8),
+                                  SizedBox(height: 8),
                                   InkWell(
                                     onTap: _pickImage,
                                     child: Container(
                                       height: 100,
                                       width: double.infinity,
                                       decoration: BoxDecoration(
-                                        color: const Color(0xFFF8FAFC),
+                                        color: (isDark ? Colors.grey.shade900 : Color(0xFFF8FAFC)),
                                         borderRadius: BorderRadius.circular(8),
                                         border: Border.all(
-                                          color: const Color(0xFFE2E8F0),
+                                          color: (isDark ? Colors.grey.shade800 : Color(0xFFE2E8F0)),
                                         ),
                                       ),
                                       child: _selectedImage != null
@@ -505,19 +620,19 @@ class _UploadManagementScreenState
                                                     ),
                                                     child: Container(
                                                       padding:
-                                                          const EdgeInsets.all(
+                                                          EdgeInsets.all(
                                                             4,
                                                           ),
                                                       decoration:
-                                                          const BoxDecoration(
+                                                          BoxDecoration(
                                                             color:
                                                                 Colors.black54,
                                                             shape:
                                                                 BoxShape.circle,
                                                           ),
-                                                      child: const Icon(
+                                                      child: Icon(
                                                         Icons.close,
-                                                        color: Colors.white,
+                                                        color: Theme.of(context).cardColor,
                                                         size: 16,
                                                       ),
                                                     ),
@@ -525,20 +640,20 @@ class _UploadManagementScreenState
                                                 ),
                                               ],
                                             )
-                                          : const Column(
+                                          : Column(
                                               mainAxisAlignment:
                                                   MainAxisAlignment.center,
                                               children: [
                                                 Icon(
                                                   Icons.add_photo_alternate,
-                                                  color: Color(0xFF94A3B8),
+                                                  color: (isDark ? Colors.grey.shade500 : Color(0xFF94A3B8)),
                                                   size: 32,
                                                 ),
                                                 SizedBox(height: 8),
                                                 Text(
                                                   'Upload Image',
                                                   style: TextStyle(
-                                                    color: Color(0xFF64748B),
+                                                    color: (isDark ? Colors.grey.shade400 : Color(0xFF64748B)),
                                                     fontSize: 12,
                                                   ),
                                                 ),
@@ -551,9 +666,8 @@ class _UploadManagementScreenState
                             ),
                           ],
                         ),
-                        const SizedBox(height: 24),
-                        Row(
-                          children: [
+                        SizedBox(height: 24),
+                        _buildResponsiveRow(context, [
                             Expanded(
                               child: CategoryDropdown(
                                 selectedCategoryId: _selectedCategoryId,
@@ -564,7 +678,7 @@ class _UploadManagementScreenState
                                 },
                               ),
                             ),
-                            const SizedBox(width: 24),
+                            SizedBox(width: 24),
                             Expanded(
                               child: DistributorDropdown(
                                 selectedDistributorId: _selectedDistributorId,
@@ -577,13 +691,13 @@ class _UploadManagementScreenState
                             ),
                           ],
                         ),
-                        // const SizedBox(height: 24),
+                        // SizedBox(height: 24),
                         // Row(
                         //   children: [
                         //     Expanded(child: _buildTextField('Composition', 'e.g. Paracetamol 500mg')),
-                        //     const SizedBox(width: 24),
+                        //     SizedBox(width: 24),
                         //     Expanded(child: _buildTextField('Pack Size', 'e.g. 10 Tablets')),
-                        //     const SizedBox(width: 24),
+                        //     SizedBox(width: 24),
                         //     Expanded(child: _buildDropdown('Dosage Form', 'Select dosage form')),
                         //   ],
                         // ),
@@ -591,15 +705,15 @@ class _UploadManagementScreenState
                     ),
                   ),
 
-                  const SizedBox(height: 24),
+                  SizedBox(height: 24),
 
                   // Pricing & Stock Details Card
                   Container(
-                    padding: const EdgeInsets.all(32),
+                    padding: EdgeInsets.all(32),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: Theme.of(context).cardColor,
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                      border: Border.all(color: (isDark ? Colors.grey.shade800 : Color(0xFFE2E8F0))),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -609,8 +723,7 @@ class _UploadManagementScreenState
                           'Pricing & Stock Details',
                           'Set pricing and stock information',
                         ),
-                        Row(
-                          children: [
+                        _buildResponsiveRow(context, [
                             Expanded(
                               child: _buildTextField(
                                 'Buying Price (₹)',
@@ -619,7 +732,7 @@ class _UploadManagementScreenState
                                 controller: _buyingPriceCtrl,
                               ),
                             ),
-                            const SizedBox(width: 24),
+                            SizedBox(width: 24),
                             Expanded(
                               child: _buildTextField(
                                 'Selling Price/MRP (₹)',
@@ -628,7 +741,7 @@ class _UploadManagementScreenState
                                 controller: _priceCtrl,
                               ),
                             ),
-                            const SizedBox(width: 24),
+                            SizedBox(width: 24),
                             Expanded(
                               child: _buildTextField(
                                 'Initial Stock (Packs/Pieces)',
@@ -637,7 +750,7 @@ class _UploadManagementScreenState
                                 controller: _stockCtrl,
                               ),
                             ),
-                            const SizedBox(width: 24),
+                            SizedBox(width: 24),
                             Expanded(
                               child: _buildTextField(
                                 'Pieces per Pack',
@@ -645,7 +758,7 @@ class _UploadManagementScreenState
                                 controller: _packSizeCtrl,
                               ),
                             ),
-                            const SizedBox(width: 24),
+                            SizedBox(width: 24),
                             Expanded(
                               child: _buildTextField(
                                 'GST (%)',
@@ -655,9 +768,8 @@ class _UploadManagementScreenState
                             ),
                           ],
                         ),
-                        const SizedBox(height: 24),
-                        Row(
-                          children: [
+                        SizedBox(height: 24),
+                        _buildResponsiveRow(context, [
                             Expanded(
                               child: _buildTextField(
                                 'Discount (%)',
@@ -665,7 +777,7 @@ class _UploadManagementScreenState
                                 controller: _discountCtrl,
                               ),
                             ),
-                            const SizedBox(width: 24),
+                            SizedBox(width: 24),
                             Expanded(
                               child: RackDropdown(
                                 selectedRackId: _selectedRackId,
@@ -676,7 +788,7 @@ class _UploadManagementScreenState
                                 },
                               ),
                             ),
-                            const SizedBox(width: 24),
+                            SizedBox(width: 24),
                             Expanded(
                               child: DistributorDropdown(
                                 selectedDistributorId: _selectedDistributorId,
@@ -689,11 +801,10 @@ class _UploadManagementScreenState
                             ),
                           ],
                         ),
-                        const SizedBox(height: 24),
-                        Row(
-                          children: [
+                        SizedBox(height: 24),
+                        _buildResponsiveRow(context, [
                             // Expanded(child: _buildTextField('Minimum Stock Alert', '0')),
-                            // const SizedBox(width: 24),
+                            // SizedBox(width: 24),
                             Expanded(
                               child: _buildTextField(
                                 'Batch Number',
@@ -701,7 +812,7 @@ class _UploadManagementScreenState
                                 controller: _batchCtrl,
                               ),
                             ),
-                            const SizedBox(width: 24),
+                            SizedBox(width: 24),
                             Expanded(
                               child: _buildTextField(
                                 'Expiry Date',
@@ -725,8 +836,8 @@ class _UploadManagementScreenState
                                 },
                               ),
                             ),
-                            const Spacer(),
-                            const SizedBox(width: 24),
+                            Spacer(),
+                            SizedBox(width: 24),
                             Expanded(
                               child: _buildTextField(
                                 'HSN Code',
@@ -740,15 +851,15 @@ class _UploadManagementScreenState
                     ),
                   ),
 
-                  const SizedBox(height: 24),
+                  SizedBox(height: 24),
 
                   // Additional Information Card
                   Container(
-                    padding: const EdgeInsets.all(32),
+                    padding: EdgeInsets.all(32),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: Theme.of(context).cardColor,
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                      border: Border.all(color: (isDark ? Colors.grey.shade800 : Color(0xFFE2E8F0))),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -758,9 +869,7 @@ class _UploadManagementScreenState
                           'Additional Information',
                           'Optional details',
                         ),
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
+                        _buildResponsiveRow(context, [
                             Expanded(
                               flex: 1,
                               child: _buildTextField(
@@ -770,27 +879,27 @@ class _UploadManagementScreenState
                                 controller: _skuCtrl,
                               ),
                             ),
-                            const Spacer(),
-                            // const SizedBox(width: 24),
+                            Spacer(),
+                            // SizedBox(width: 24),
                             // Expanded(
                             //   flex: 1,
                             //   child: _buildTextField('Storage Instructions', 'e.g. Keep in a cool, dry place'),
                             // ),
-                            // const SizedBox(width: 24),
+                            // SizedBox(width: 24),
                             // Expanded(
                             //   flex: 1,
                             //   child: Column(
                             //     crossAxisAlignment: CrossAxisAlignment.start,
                             //     children: [
-                            //       const Text('Notes', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
-                            //       const SizedBox(height: 8),
+                            //       Text('Notes', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: (isDark ? Colors.white : Color(0xFF1E293B)))),
+                            //       SizedBox(height: 8),
                             //       TextField(
                             //         maxLines: 3,
                             //         decoration: InputDecoration(
                             //           hintText: 'Additional notes (optional)',
-                            //           hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 12),
-                            //           border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
-                            //           enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+                            //           hintStyle: TextStyle(color: (isDark ? Colors.grey.shade500 : Color(0xFF94A3B8)), fontSize: 12),
+                            //           border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: (isDark ? Colors.grey.shade800 : Color(0xFFE2E8F0)))),
+                            //           enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: (isDark ? Colors.grey.shade800 : Color(0xFFE2E8F0)))),
                             //         ),
                             //       ),
                             //     ],
@@ -808,10 +917,10 @@ class _UploadManagementScreenState
 
           // Bottom Action Bar
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              border: Border(top: BorderSide(color: Color(0xFFE2E8F0))),
+            padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+            decoration: BoxDecoration(
+              color: Theme.of(context).cardColor,
+              border: Border(top: BorderSide(color: (isDark ? Colors.grey.shade800 : Color(0xFFE2E8F0)))),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.end,
@@ -819,24 +928,24 @@ class _UploadManagementScreenState
                 OutlinedButton(
                   onPressed: () => Navigator.pop(context),
                   style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
+                    padding: EdgeInsets.symmetric(
                       horizontal: 32,
                       vertical: 16,
                     ),
-                    side: const BorderSide(color: Color(0xFFE2E8F0)),
+                    side: BorderSide(color: (isDark ? Colors.grey.shade800 : Color(0xFFE2E8F0))),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  child: const Text(
+                  child: Text(
                     'Cancel',
                     style: TextStyle(
-                      color: Color(0xFF1E293B),
+                      color: (isDark ? Colors.white : Color(0xFF1E293B)),
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
-                const SizedBox(width: 16),
+                SizedBox(width: 16),
                 ElevatedButton.icon(
                   onPressed: () async {
                     if (_nameCtrl.text.isEmpty ||
@@ -844,10 +953,10 @@ class _UploadManagementScreenState
                         _stockCtrl.text.isEmpty ||
                         _expiryCtrl.text.isEmpty) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
+                        SnackBar(
                           content: Text(
                             'Please fill all required fields.',
-                            style: TextStyle(color: Colors.white),
+                            style: TextStyle(color: Theme.of(context).cardColor),
                           ),
                           backgroundColor: Colors.red,
                         ),
@@ -872,7 +981,7 @@ class _UploadManagementScreenState
                               SnackBar(
                                 content: Text(
                                   'Failed to upload image: $e',
-                                  style: const TextStyle(color: Colors.white),
+                                  style: TextStyle(color: Theme.of(context).cardColor),
                                 ),
                                 backgroundColor: Colors.red,
                               ),
@@ -913,10 +1022,10 @@ class _UploadManagementScreenState
                       if (context.mounted) {
                         ref.invalidate(inventoryProvider);
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
+                          SnackBar(
                             content: Text(
                               'Medicine added successfully!',
-                              style: TextStyle(color: Colors.white),
+                              style: TextStyle(color: Theme.of(context).cardColor),
                             ),
                             backgroundColor: Colors.green,
                           ),
@@ -929,7 +1038,7 @@ class _UploadManagementScreenState
                           SnackBar(
                             content: Text(
                               e.toString().replaceAll('Exception: ', ''),
-                              style: const TextStyle(color: Colors.white),
+                              style: TextStyle(color: Theme.of(context).cardColor),
                             ),
                             backgroundColor: Colors.red,
                           ),
@@ -941,16 +1050,16 @@ class _UploadManagementScreenState
                       }
                     }
                   },
-                  icon: const Icon(Icons.save, size: 18),
-                  label: const Text(
+                  icon: Icon(Icons.save, size: 18),
+                  label: Text(
                     'Save Medicine',
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF22C55E),
-                    foregroundColor: Colors.white,
+                    backgroundColor: Color(0xFF22C55E),
+                    foregroundColor: (isDark ? Colors.black : Theme.of(context).cardColor),
                     elevation: 0,
-                    padding: const EdgeInsets.symmetric(
+                    padding: EdgeInsets.symmetric(
                       horizontal: 32,
                       vertical: 16,
                     ),

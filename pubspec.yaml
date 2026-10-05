@@ -51,11 +51,13 @@ dependencies:
   pretty_dio_logger: ^1.4.0
   path_provider: ^2.1.6
   url_launcher: ^6.3.2
+  share_plus: ^12.0.2
+  linked_scroll_controller: ^0.2.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-
+  flutter_native_splash: ^2.4.1
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
   # activated in the `analysis_options.yaml` file located at the root of your
@@ -107,15 +109,26 @@ flutter:
   # see https://flutter.dev/to/font-from-package
 
 flutter_launcher_icons:
-  image_path: "assets/LOGO.png"
+  image_path: "assets/icon.png"
+  android: true
+  ios: true
   web:
     generate: true
-    image_path: "assets/LOGO.png"
+    image_path: "assets/icon.png"
     background_color: "#ffffff"
     theme_color: "#0175C2"
   windows:
     generate: true
-    image_path: "assets/LOGO.png"
+    image_path: "assets/icon.png"
   macos:
     generate: true
-    image_path: "assets/LOGO.png"
+    image_path: "assets/icon.png"
+
+flutter_native_splash:
+  color: "#ffffff"
+  image: "assets/LOGO.png"
+  color_dark: "#1E293B"
+  image_dark: "assets/LOGO_DM.png"
+  android: true
+  ios: true
+  web: false
