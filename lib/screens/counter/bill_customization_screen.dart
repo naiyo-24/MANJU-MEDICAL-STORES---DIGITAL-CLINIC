@@ -36,6 +36,7 @@ class _BillCustomizationScreenState
   final TextEditingController _landlineCtrl = TextEditingController();
   final TextEditingController _emailCtrl = TextEditingController();
   final TextEditingController _gstCtrl = TextEditingController();
+  final TextEditingController _drugLicenceCtrl = TextEditingController();
 
   final TextEditingController _bankNameCtrl = TextEditingController();
   final TextEditingController _branchNameCtrl = TextEditingController();
@@ -83,6 +84,7 @@ class _BillCustomizationScreenState
       _landlineCtrl.text = settings['landline'] ?? '';
       _emailCtrl.text = settings['email'] ?? '';
       _gstCtrl.text = settings['gst_number'] ?? '';
+      _drugLicenceCtrl.text = settings['drug_licence'] ?? '';
 
       _bankNameCtrl.text = settings['bank_name'] ?? '';
       _branchNameCtrl.text = settings['branch_name'] ?? '';
@@ -134,6 +136,7 @@ class _BillCustomizationScreenState
         'landline': _landlineCtrl.text,
         'email': _emailCtrl.text,
         'gst_number': _gstCtrl.text,
+        'drug_licence': _drugLicenceCtrl.text,
         'bank_name': _bankNameCtrl.text,
         'branch_name': _branchNameCtrl.text,
         'ac_holder_name': _acHolderCtrl.text,
@@ -276,6 +279,7 @@ class _BillCustomizationScreenState
         landline: _landlineCtrl.text,
         email: _emailCtrl.text,
         gstNumber: _gstCtrl.text,
+        drugLicence: _drugLicenceCtrl.text,
         bankName: _bankNameCtrl.text,
         branchName: _branchNameCtrl.text,
         acHolderName: _acHolderCtrl.text,
@@ -559,6 +563,16 @@ class _BillCustomizationScreenState
                                     'GST Number',
                                     _gstCtrl,
                                     maxLength: 15,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: _buildTextField(
+                                    'Drug Licence',
+                                    _drugLicenceCtrl,
                                   ),
                                 ),
                               ],

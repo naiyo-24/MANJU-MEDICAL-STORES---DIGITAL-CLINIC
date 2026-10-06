@@ -44,6 +44,7 @@ class _BillingLeftPanelState extends ConsumerState<BillingLeftPanel> {
   late final LinkedScrollControllerGroup _verticalControllers;
   late final ScrollController _headController;
   late final ScrollController _bodyController;
+  late final ScrollController _horizontalController;
 
   @override
   void initState() {
@@ -51,12 +52,14 @@ class _BillingLeftPanelState extends ConsumerState<BillingLeftPanel> {
     _verticalControllers = LinkedScrollControllerGroup();
     _headController = _verticalControllers.addAndGet();
     _bodyController = _verticalControllers.addAndGet();
+    _horizontalController = ScrollController();
   }
 
   @override
   void dispose() {
     _headController.dispose();
     _bodyController.dispose();
+    _horizontalController.dispose();
     super.dispose();
   }
 
@@ -272,10 +275,14 @@ class _BillingLeftPanelState extends ConsumerState<BillingLeftPanel> {
                     
                     // SCROLLABLE RIGHT COLUMNS
                     Expanded(
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: SizedBox(
-                          width: widget.isDesktopWidth ? 1000 : 700, // Fixed width for scrollable area
+                      child: Scrollbar(
+                        controller: _horizontalController,
+                        thumbVisibility: true,
+                        child: SingleChildScrollView(
+                          controller: _horizontalController,
+                          scrollDirection: Axis.horizontal,
+                          child: SizedBox(
+                            width: widget.isDesktopWidth ? 1000 : 700, // Fixed width for scrollable area
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
@@ -388,6 +395,7 @@ class _BillingLeftPanelState extends ConsumerState<BillingLeftPanel> {
                           ),
                         ),
                       ),
+                    ),
                     ),
                   ],
                 );

@@ -18,6 +18,7 @@ class _EditDistributorDialogState extends ConsumerState<EditDistributorDialog> {
   late final TextEditingController _phoneController;
   late final TextEditingController _emailController;
   late final TextEditingController _gstinController;
+  late final TextEditingController _addressController;
   late final TextEditingController _notesController;
 
   bool _isLoading = false;
@@ -30,6 +31,7 @@ class _EditDistributorDialogState extends ConsumerState<EditDistributorDialog> {
     _phoneController = TextEditingController(text: widget.distributor['phone'] ?? '');
     _emailController = TextEditingController(text: widget.distributor['email'] ?? '');
     _gstinController = TextEditingController(text: widget.distributor['gstin'] ?? '');
+    _addressController = TextEditingController(text: widget.distributor['address'] ?? '');
     _notesController = TextEditingController(text: widget.distributor['notes'] ?? '');
   }
 
@@ -40,6 +42,7 @@ class _EditDistributorDialogState extends ConsumerState<EditDistributorDialog> {
     _phoneController.dispose();
     _emailController.dispose();
     _gstinController.dispose();
+    _addressController.dispose();
     _notesController.dispose();
     super.dispose();
   }
@@ -57,6 +60,7 @@ class _EditDistributorDialogState extends ConsumerState<EditDistributorDialog> {
         'phone': _phoneController.text.trim(),
         'email': _emailController.text.trim(),
         'gstin': _gstinController.text.trim(),
+        'address': _addressController.text.trim(),
         'notes': _notesController.text.trim(),
       });
       
@@ -119,6 +123,12 @@ class _EditDistributorDialogState extends ConsumerState<EditDistributorDialog> {
                   controller: _gstinController,
                   decoration: const InputDecoration(labelText: 'GSTIN (Optional)', border: OutlineInputBorder()),
                   textCapitalization: TextCapitalization.characters,
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _addressController,
+                  decoration: const InputDecoration(labelText: 'Address (Optional)', border: OutlineInputBorder()),
+                  maxLines: 2,
                 ),
                 const SizedBox(height: 16),
                 TextFormField(

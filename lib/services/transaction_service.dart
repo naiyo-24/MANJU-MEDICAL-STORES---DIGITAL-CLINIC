@@ -95,8 +95,7 @@ class TransactionService {
   }) async {
     try {
       final actualShopId = shopId ?? await InventoryService.getShopId();
-      final queryParams = <String, dynamic>{'skip': skip, 'limit': limit, 'tenant_id': actualShopId};
-      if (shopId != null) queryParams['shop_id'] = shopId;
+      final queryParams = <String, dynamic>{'skip': skip, 'limit': limit, 'tenant_id': actualShopId, 'shop_id': actualShopId};
       
       final response = await ApiClient().dio.get(
         '/api/transactions',

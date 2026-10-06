@@ -58,6 +58,8 @@ class DistributorDetailScreen extends ConsumerWidget {
                           Text('Phone: ${distributor['phone'] ?? 'N/A'}', style: const TextStyle(color: Color(0xFF64748B))),
                           const SizedBox(height: 4),
                           Text('Email: ${distributor['email'] ?? 'N/A'}', style: const TextStyle(color: Color(0xFF64748B))),
+                          const SizedBox(height: 4),
+                          Text('Address: ${distributor['address'] ?? 'N/A'}', style: const TextStyle(color: Color(0xFF64748B))),
                         ],
                       ),
                     ),

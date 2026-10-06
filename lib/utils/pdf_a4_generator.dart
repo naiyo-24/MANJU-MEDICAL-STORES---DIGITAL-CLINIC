@@ -27,6 +27,7 @@ class PdfA4Generator {
     required String landline,
     required String email,
     required String shopGstNo,
+    required String drugLicence,
     required String bankName,
     required String branchName,
     required String acHolder,
@@ -109,6 +110,14 @@ class PdfA4Generator {
                             fontWeight: pw.FontWeight.bold,
                           ),
                         ),
+                        if (drugLicence.isNotEmpty)
+                          pw.Text(
+                            'D.L. No.: $drugLicence',
+                            style: pw.TextStyle(
+                              fontSize: format == 'A4' ? 10 : 8,
+                              fontWeight: pw.FontWeight.bold,
+                            ),
+                          ),
                       ],
                     ),
                   ),
