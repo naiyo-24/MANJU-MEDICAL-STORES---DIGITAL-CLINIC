@@ -17,6 +17,7 @@ class _AddDistributorDialogState extends ConsumerState<AddDistributorDialog> {
   final _phoneController = TextEditingController();
   final _emailController = TextEditingController();
   final _gstinController = TextEditingController();
+  final _addressController = TextEditingController();
   final _notesController = TextEditingController();
 
   bool _isLoading = false;
@@ -28,6 +29,7 @@ class _AddDistributorDialogState extends ConsumerState<AddDistributorDialog> {
     _phoneController.dispose();
     _emailController.dispose();
     _gstinController.dispose();
+    _addressController.dispose();
     _notesController.dispose();
     super.dispose();
   }
@@ -45,6 +47,7 @@ class _AddDistributorDialogState extends ConsumerState<AddDistributorDialog> {
         'phone': _phoneController.text.trim(),
         'email': _emailController.text.trim(),
         'gstin': _gstinController.text.trim(),
+        'address': _addressController.text.trim(),
         'notes': _notesController.text.trim(),
       });
       
@@ -107,6 +110,12 @@ class _AddDistributorDialogState extends ConsumerState<AddDistributorDialog> {
                   controller: _gstinController,
                   decoration: const InputDecoration(labelText: 'GSTIN (Optional)', border: OutlineInputBorder()),
                   textCapitalization: TextCapitalization.characters,
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _addressController,
+                  decoration: const InputDecoration(labelText: 'Address (Optional)', border: OutlineInputBorder()),
+                  maxLines: 2,
                 ),
                 const SizedBox(height: 16),
                 TextFormField(

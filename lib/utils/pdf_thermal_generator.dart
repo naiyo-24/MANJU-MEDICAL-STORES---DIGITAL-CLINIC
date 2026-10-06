@@ -20,6 +20,7 @@ class PdfThermalGenerator {
     required String address,
     required String phone,
     required String shopGstNo,
+    required String drugLicence,
     pw.ImageProvider? logoImage,
     pw.ImageProvider? qrImage,
     DateTime? billingDate,
@@ -65,6 +66,15 @@ class PdfThermalGenerator {
                 ),
                 textAlign: pw.TextAlign.center,
               ),
+              if (drugLicence.isNotEmpty)
+                pw.Text(
+                  'D.L. No.: $drugLicence',
+                  style: pw.TextStyle(
+                    fontSize: 8,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
+                  textAlign: pw.TextAlign.center,
+                ),
               pw.SizedBox(height: 5),
               pw.Divider(thickness: 1, borderStyle: pw.BorderStyle.dashed),
               pw.SizedBox(height: 5),

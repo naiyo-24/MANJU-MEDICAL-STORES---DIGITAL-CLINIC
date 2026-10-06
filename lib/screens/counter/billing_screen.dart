@@ -825,11 +825,17 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
 
 
   void _increaseQty(int index) {
-    final stock = _currentBill[index]['stock'];
-    final currentQty = _currentBill[index]['qty'];
-    final itemName = _currentBill[index]['name'];
+    final item = _currentBill[index];
+    final packStock = item['stock'] ?? 0;
+    final looseStock = item['loose_stock'] ?? 0;
+    final packSize = item['pack_size'] ?? 1;
+    final isLoose = item['is_loose'] ?? false;
+    final currentQty = item['qty'] ?? 0;
+    final itemName = item['name'];
 
-    if (stock != null && currentQty >= stock) {
+    final int availableLimit = isLoose ? (packStock * packSize) + looseStock : packStock;
+
+    if (currentQty >= availableLimit) {
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
@@ -838,7 +844,7 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
             style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red),
           ),
           content: Text(
-            'Cannot add more $itemName. Only $stock available in stock.',
+            'Cannot add more $itemName. Only $availableLimit ${isLoose ? "pieces" : "packs"} available in stock.',
           ),
           actions: [
             TextButton(
@@ -853,7 +859,7 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
 
     ref
         .read(billingProvider.notifier)
-        .updateItemQuantity(index, _currentBill[index]['qty'] + 1);
+        .updateItemQuantity(index, currentQty + 1);
   }
 
   void _decreaseQty(int index) {
@@ -862,6 +868,43 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
           .read(billingProvider.notifier)
           .updateItemQuantity(index, _currentBill[index]['qty'] - 1);
     }
+  }
+
+  void _toggleLoose(int index) {
+    final item = _currentBill[index];
+    final packStock = item['stock'] ?? 0;
+    final looseStock = item['loose_stock'] ?? 0;
+    final packSize = item['pack_size'] ?? 1;
+    final isLoose = item['is_loose'] ?? false;
+    final currentQty = item['qty'] ?? 0;
+    final itemName = item['name'];
+
+    final bool newIsLoose = !isLoose;
+    final int availableLimit = newIsLoose ? (packStock * packSize) + looseStock : packStock;
+
+    if (currentQty > availableLimit) {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text(
+            'Stock Limit Reached',
+            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red),
+          ),
+          content: Text(
+            'Cannot switch to ${newIsLoose ? "loose pieces" : "full packs"}. You have $currentQty in your cart, but only $availableLimit ${newIsLoose ? "pieces" : "packs"} available in stock.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+
+    ref.read(billingProvider.notifier).toggleItemLoose(index);
   }
 
   void _removeItem(int index) {
@@ -1239,9 +1282,7 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                     onUpdateItemDiscount: (index, disc) {
                       ref.read(billingProvider.notifier).updateItemDiscount(index, disc);
                     },
-                    onToggleLoose: (index) {
-                      ref.read(billingProvider.notifier).toggleItemLoose(index);
-                    },
+                    onToggleLoose: _toggleLoose,
                     onSaveCustomerToDb: _saveCustomerToDb,
                     onSaveDraft: _saveDraft,
                     onShowDraftsDialog: _showDraftsDialog,
