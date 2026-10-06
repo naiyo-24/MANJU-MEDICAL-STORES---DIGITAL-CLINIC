@@ -314,14 +314,34 @@ The application is built on a strict **Clean Layered Architecture**. This ensure
 ### Data Flow Diagram
 
 ```mermaid
-graph TD
-    UI["🖥️ Presentation Layer<br/>(Screens, Widgets)"] -->|User Action / Watch| State["🔄 State Layer<br/>(Riverpod Notifiers)"]
-    State -->|Calls API| Service["🌐 Service Layer<br/>(Dio API Services)"]
-    Service -->|Network Request| Backend[/"FastAPI Backend"/]
-    Backend -->|JSON Response| Service
-    Service -->|Parses via DTO| Models["📦 Models Layer<br/>(Dart Data Classes)"]
-    Models -->|Returns Typed Data| State
-    State -->|Updates State| UI
+flowchart TD
+    subgraph Frontend ["📱 Flutter Frontend (Client-Side)"]
+        direction TB
+        UI["🖥️ UI Layer<br/>(POS Screen)"]
+        State["🔄 State Layer<br/>(Riverpod Notifier)"]
+        Service["🌐 Service Layer<br/>(Dio ApiClient)"]
+        Models["📦 Models Layer<br/>(Dart DTOs)"]
+    end
+
+    subgraph Backend ["☁️ FastAPI Backend (Server-Side)"]
+        direction TB
+        Router["📡 FastAPI Router<br/>(Endpoints)"]
+        Auth["🔑 Middleware<br/>(JWT & Tenant_ID Check)"]
+        DB[("🐘 PostgreSQL DB<br/>(SQLAlchemy)")]
+    end
+
+    %% The Flow
+    UI -- "1. User Scans Barcode" --> State
+    State -- "2. fetchItem()" --> Service
+    Service -- "3. GET /inventory?shop_id=1" --> Router
+    Router -- "4. Validates Token" --> Auth
+    Auth -- "5. Authorized" --> DB
+    DB -- "6. Executes Query" --> DB
+    DB -- "7. Raw JSON" --> Router
+    Router -- "8. 200 OK Response" --> Service
+    Service -- "9. .fromJson()" --> Models
+    Models -- "10. Type-safe InventoryItem" --> State
+    State -- "11. Updates Cart State" --> UI
 ```
 
 ### Layered Architecture Explained
