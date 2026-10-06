@@ -315,11 +315,11 @@ The application is built on a strict **Clean Layered Architecture**. This ensure
 
 ```mermaid
 graph TD
-    UI[🖥️ Presentation Layer<br/>(Screens, Widgets)] -->|User Action / Watch| State[🔄 State Layer<br/>(Riverpod Notifiers)]
-    State -->|Calls API| Service[🌐 Service Layer<br/>(Dio API Services)]
-    Service -->|Network Request| Backend[(FastAPI Backend)]
+    UI["🖥️ Presentation Layer<br/>(Screens, Widgets)"] -->|User Action / Watch| State["🔄 State Layer<br/>(Riverpod Notifiers)"]
+    State -->|Calls API| Service["🌐 Service Layer<br/>(Dio API Services)"]
+    Service -->|Network Request| Backend[/"FastAPI Backend"/]
     Backend -->|JSON Response| Service
-    Service -->|Parses via DTO| Models[📦 Models Layer<br/>(Dart Data Classes)]
+    Service -->|Parses via DTO| Models["📦 Models Layer<br/>(Dart Data Classes)"]
     Models -->|Returns Typed Data| State
     State -->|Updates State| UI
 ```
