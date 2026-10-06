@@ -1,5 +1,4 @@
 <div align="center">
-  <img src="assets/images/logo.png" alt="SirfBill Logo" width="200"/>
   <h1>SirfBill POS - Manju Medical Stores & Digital Clinic</h1>
 </div>
 
