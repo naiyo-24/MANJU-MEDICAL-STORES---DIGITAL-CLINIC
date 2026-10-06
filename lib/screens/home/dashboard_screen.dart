@@ -235,11 +235,17 @@ class DashboardScreen extends ConsumerWidget {
         backgroundColor: isDark
             ? const Color(0xFF0F172A)
             : const Color(
-                0xFFF1F5F9,
-              ), // Clean light slate background instead of green
+                0xFFE6F4F1, // Soft Medical Mint
+              ),
         body: SafeArea(
-          child: LayoutBuilder(
-            builder: (context, constraints) {
+          child: CustomPaint(
+            painter: _DotGridPainter(
+              color: isDark
+                  ? Colors.white.withValues(alpha: 0.05)
+                  : const Color(0xFFB5DCD1),
+            ),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
               final isWeb = constraints.maxWidth > 800;
 
               return SingleChildScrollView(
@@ -282,7 +288,7 @@ class DashboardScreen extends ConsumerWidget {
                           vertical: 24.0,
                         ),
                         child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             Center(
                               child: Image.asset(
@@ -298,53 +304,59 @@ class DashboardScreen extends ConsumerWidget {
                                 ),
                               ),
                             ),
-                            const SizedBox(height: 16),
 
-                            Text(
-                              'WELCOME BACK!',
-                              style: TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 1.5,
-                                color: isDark
-                                    ? const Color(0xFF94A3B8)
-                                    : const Color(0xFF64748B),
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            RichText(
-                              text: TextSpan(
+                            const SizedBox(height: 24),
+                            Center(
+                              child: Text(
+                                'WELCOME BACK!',
                                 style: TextStyle(
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.w900,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 1.5,
                                   color: isDark
-                                      ? Colors.white
-                                      : const Color(0xFF1E293B),
+                                      ? const Color(0xFF94A3B8)
+                                      : const Color(0xFF64748B),
                                 ),
-                                children: const [
-                                  TextSpan(text: 'Select a '),
-                                  TextSpan(
-                                    text: 'Module',
-                                    style: TextStyle(
-                                      color: Color(0xFF166534),
-                                    ),
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Center(
+                              child: RichText(
+                                text: TextSpan(
+                                  style: TextStyle(
+                                    fontSize: 28,
+                                    fontWeight: FontWeight.w900,
+                                    color: isDark
+                                        ? Colors.white
+                                        : const Color(0xFF1E293B),
                                   ),
-                                ],
+                                  children: const [
+                                    TextSpan(text: 'Select a '),
+                                    TextSpan(
+                                      text: 'Module',
+                                      style: TextStyle(
+                                        color: Color(0xFF166534),
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'Choose a module to continue and manage your services',
-                              textAlign: TextAlign.start,
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: isDark
-                                    ? const Color(0xFF94A3B8)
-                                    : const Color(0xFF64748B),
+                            const SizedBox(height: 8),
+                            Center(
+                              child: Text(
+                                'Choose a module to continue and manage your services',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: isDark
+                                      ? const Color(0xFF94A3B8)
+                                      : const Color(0xFF64748B),
+                                ),
                               ),
                             ),
-                            const SizedBox(height: 16),
+                            const SizedBox(height: 32),
 
                             // Cards
                             if (isWeb)
@@ -494,8 +506,36 @@ class DashboardScreen extends ConsumerWidget {
               );
             },
           ),
-        ),
-      ),
-    );
+          ), // CustomPaint
+        ), // SafeArea
+      ), // Scaffold
+    ); // PopScope
+  }
+}
+
+class _DotGridPainter extends CustomPainter {
+  final Color color;
+
+  _DotGridPainter({required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.fill;
+
+    const double spacing = 20.0;
+    const double radius = 1.0;
+
+    for (double x = 0; x < size.width; x += spacing) {
+      for (double y = 0; y < size.height; y += spacing) {
+        canvas.drawCircle(Offset(x, y), radius, paint);
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _DotGridPainter oldDelegate) {
+    return oldDelegate.color != color;
   }
 }
