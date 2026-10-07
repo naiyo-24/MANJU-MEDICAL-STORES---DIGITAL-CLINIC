@@ -140,7 +140,7 @@ To bypass this caching issue entirely, we inject the API URL directly into the c
 
 ```bash
 # Build the web app for production
-flutter build web --dart-define=API_BASE_URL=https://sirfapi.yourdomain.com
+flutter build web --dart-define=API_BASE_URL=https://api.example.com
 ```
 
 ### How the Code Handles It
@@ -682,7 +682,7 @@ Browsers heavily cache Flutter Web `main.dart.js` and static asset files (like `
 - **Fix**: You must pass the API URL at compile time using Dart Defines. This forces the Flutter engine to bake the URL into the binary, bypassing the browser's static asset cache.
 ```bash
 # Correct way to build for production web
-flutter build web --dart-define=API_BASE_URL=https://sirfapi.vwings247.me
+flutter build web --dart-define=API_BASE_URL=https://your-production-api.com
 ```
 
 ### 2. "Already Exists" Database Errors

@@ -40,7 +40,7 @@ class _RoleLoginScreenState extends State<RoleLoginScreen> {
       bool isValidRole = true;
       String errorMsg = '';
       
-      if (widget.roleName == 'Counter' && !userId.contains('counter')) {
+      if (widget.roleName == 'Billing Counter' && !userId.contains('counter')) {
         isValidRole = false;
         errorMsg = 'Unauthorized: Only Counter admins can access this module.';
       } else if (widget.roleName == 'CRM' && !userId.contains('crm')) {
@@ -349,8 +349,8 @@ class _RoleLoginScreenState extends State<RoleLoginScreen> {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      widget.roleName == 'Counter'
-                          ? 'Manage your pharmacy, billing, inventory\nand daily operations with ease.'
+                      widget.roleName == 'Billing Counter'
+                          ? 'Manage your sales, billing, inventory\nand daily operations with ease.'
                           : widget.roleName == 'Lab Test'
                           ? 'Manage your lab test bookings, reports\nand patient records effortlessly.'
                           : 'Manage patients, follow-ups and\ncustomer relationships efficiently.',
@@ -361,9 +361,9 @@ class _RoleLoginScreenState extends State<RoleLoginScreen> {
                       ),
                     ),
                     const SizedBox(height: 24),
-                    if (widget.roleName == 'Counter') ...[
+                    if (widget.roleName == 'Billing Counter') ...[
                       _buildFeatureItem(
-                        Icons.medication,
+                        Icons.receipt_long,
                         'Faster Billing',
                         'Serve customers quickly',
                       ),
