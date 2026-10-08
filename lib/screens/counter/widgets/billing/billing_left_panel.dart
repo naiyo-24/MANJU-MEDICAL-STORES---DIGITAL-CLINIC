@@ -213,10 +213,14 @@ class _BillingLeftPanelState extends ConsumerState<BillingLeftPanel> {
             widget.hasEnoughHeight,
             LayoutBuilder(
               builder: (context, tableConstraints) {
-                return Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                return Column(
                   children: [
-                    // FIXED LEFT COLUMN (Medicine Name)
+                    _buildConditionalExpanded(
+                      widget.hasEnoughHeight,
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // FIXED LEFT COLUMN (Medicine Name)
                     Container(
                       width: widget.isDesktopWidth ? 200 : 120,
                       decoration: BoxDecoration(
@@ -248,7 +252,7 @@ class _BillingLeftPanelState extends ConsumerState<BillingLeftPanel> {
                               separatorBuilder: (context, index) => Divider(height: 1, color: Theme.of(context).dividerColor),
                               itemBuilder: (context, index) {
                                 if (index == widget.filteredMedicines.length) {
-                                  return const SizedBox(height: 68); // Match the Load More button height
+                                  return const SizedBox(height: 16);
                                 }
                                 final item = widget.filteredMedicines[index];
                                 return Container(
@@ -316,19 +320,7 @@ class _BillingLeftPanelState extends ConsumerState<BillingLeftPanel> {
                                   separatorBuilder: (context, index) => Divider(height: 1, color: Theme.of(context).dividerColor),
                                   itemBuilder: (context, index) {
                                     if (index == widget.filteredMedicines.length) {
-                                      if (widget.hasMore) {
-                                        return Container(
-                                          height: 68,
-                                          padding: const EdgeInsets.all(16.0),
-                                          child: Center(
-                                            child: OutlinedButton(
-                                              onPressed: widget.onLoadMore,
-                                              child: const Text('Load More'),
-                                            ),
-                                          ),
-                                        );
-                                      }
-                                      return const SizedBox(height: 68);
+                                      return const SizedBox(height: 16);
                                     }
                                     final item = widget.filteredMedicines[index];
                                     return Container(
@@ -398,10 +390,31 @@ class _BillingLeftPanelState extends ConsumerState<BillingLeftPanel> {
                         ),
                       ),
                     ),
-                   ),
-                  ],
-                );
-              },
+                    ),
+                   ],
+                  ),
+                ),
+                if (widget.hasMore)
+                  Container(
+                    padding: const EdgeInsets.symmetric(vertical: 16.0),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).scaffoldBackgroundColor,
+                      border: Border(
+                        top: BorderSide(
+                          color: Theme.of(context).dividerColor,
+                        ),
+                      ),
+                    ),
+                    child: Center(
+                      child: OutlinedButton(
+                        onPressed: widget.onLoadMore,
+                        child: const Text('Load More'),
+                      ),
+                    ),
+                  ),
+              ],
+            );
+          },
             ),
           ),
         ],

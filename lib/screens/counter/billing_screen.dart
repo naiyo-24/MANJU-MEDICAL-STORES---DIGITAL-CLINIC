@@ -1274,16 +1274,34 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                         Expanded(flex: 9, child: rightSide),
                       ],
                     );
-                    return hasEnoughHeight
-                        ? content
-                        : SingleChildScrollView(child: content);
+                    
+                    Widget wrapper = content;
+                    if (!hasEnoughHeight) {
+                      wrapper = SingleChildScrollView(
+                        scrollDirection: Axis.vertical,
+                        child: SizedBox(
+                          height: 850,
+                          child: wrapper,
+                        ),
+                      );
+                    }
+                    if (constraints.maxWidth < 700) {
+                      wrapper = SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: SizedBox(
+                          width: 700,
+                          child: wrapper,
+                        ),
+                      );
+                    }
+                    return wrapper;
                   } else {
-                    return SingleChildScrollView(
+                    Widget wrapper = SingleChildScrollView(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           SizedBox(
-                            height: 500, // Fixed height so it doesn't shrink and overflow when keyboard opens
+                            height: 600, // Fixed height so it doesn't shrink and overflow when keyboard opens
                             child: leftSide,
                           ),
                           const SizedBox(height: 24),
@@ -1291,6 +1309,17 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                         ],
                       ),
                     );
+                    
+                    if (constraints.maxWidth < 400) {
+                      wrapper = SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: SizedBox(
+                          width: 400,
+                          child: wrapper,
+                        ),
+                      );
+                    }
+                    return wrapper;
                   }
                 },
               ),
