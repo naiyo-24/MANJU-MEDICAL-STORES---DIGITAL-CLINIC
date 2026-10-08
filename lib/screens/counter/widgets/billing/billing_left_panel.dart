@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
 import 'package:linked_scroll_controller/linked_scroll_controller.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -272,8 +273,16 @@ class _BillingLeftPanelState extends ConsumerState<BillingLeftPanel> {
                     
                     // SCROLLABLE RIGHT COLUMNS
                     Expanded(
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
+                      child: ScrollConfiguration(
+                        behavior: ScrollConfiguration.of(context).copyWith(
+                          dragDevices: {
+                            PointerDeviceKind.touch,
+                            PointerDeviceKind.mouse,
+                            PointerDeviceKind.trackpad,
+                          },
+                        ),
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
                         child: SizedBox(
                           width: widget.isDesktopWidth ? 1000 : 700, // Fixed width for scrollable area
                           child: Column(
@@ -389,6 +398,7 @@ class _BillingLeftPanelState extends ConsumerState<BillingLeftPanel> {
                         ),
                       ),
                     ),
+                   ),
                   ],
                 );
               },

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../notifiers/billing_notifier.dart';
 import '../../../../../utils/format_utils.dart';
@@ -28,8 +29,16 @@ class BillingCartTable extends StatelessWidget {
     return       // Bill Table
       LayoutBuilder(
         builder: (context, tableConstraints) {
-          return SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
+          return ScrollConfiguration(
+            behavior: ScrollConfiguration.of(context).copyWith(
+              dragDevices: {
+                PointerDeviceKind.touch,
+                PointerDeviceKind.mouse,
+                PointerDeviceKind.trackpad,
+              },
+            ),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
             child: ConstrainedBox(
               constraints: BoxConstraints(
                 minWidth: 500,
@@ -378,6 +387,7 @@ class BillingCartTable extends StatelessWidget {
                 ],
               ),
             ),
+           ),
           );
         },
       );
