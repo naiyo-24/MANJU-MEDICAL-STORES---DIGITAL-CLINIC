@@ -146,8 +146,10 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                           ],
                         ),
                       ),
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        crossAxisAlignment: WrapCrossAlignment.center,
                         children: [
                           IconButton(
                             onPressed: () => ref
@@ -375,8 +377,7 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                                             width: isDesktop
                                                 ? (constraints.maxWidth * 0.25 -
                                                       12)
-                                                : (constraints.maxWidth - 20) /
-                                                      2,
+                                                : constraints.maxWidth,
                                             child: DropdownButtonFormField<String>(
                                               decoration: InputDecoration(
                                                 border: OutlineInputBorder(
@@ -426,8 +427,7 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                                             width: isDesktop
                                                 ? (constraints.maxWidth * 0.25 -
                                                       12)
-                                                : (constraints.maxWidth - 20) /
-                                                      2,
+                                                : constraints.maxWidth,
                                             child: DropdownButtonFormField<String>(
                                               decoration: InputDecoration(
                                                 border: OutlineInputBorder(
@@ -508,6 +508,27 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
 
                                 LayoutBuilder(
                                   builder: (context, constraints) {
+                                    bool isDesktopTable = constraints.maxWidth > 800;
+                                    if (!isDesktopTable) {
+                                      return pagedCustomers.isEmpty
+                                          ? const Padding(
+                                              padding: EdgeInsets.all(32),
+                                              child: Center(
+                                                child: Text(
+                                                  'No customers found',
+                                                  style: TextStyle(color: AppColors.textSecondary),
+                                                ),
+                                              ),
+                                            )
+                                          : ListView.builder(
+                                              shrinkWrap: true,
+                                              physics: const NeverScrollableScrollPhysics(),
+                                              itemCount: pagedCustomers.length,
+                                              itemBuilder: (context, index) {
+                                                return _buildMobileCustomerCard(pagedCustomers[index], index);
+                                              },
+                                            );
+                                    }
                                     return SingleChildScrollView(
                                       scrollDirection: Axis.horizontal,
                                       child: ConstrainedBox(
@@ -683,9 +704,11 @@ padding: EdgeInsets.all(32),
                                 if (totalRecords > 0)
                                   Padding(
                                     padding: const EdgeInsets.all(16.0),
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
+                                    child: Wrap(
+                                      alignment: WrapAlignment.spaceBetween,
+                                      crossAxisAlignment: WrapCrossAlignment.center,
+                                      spacing: 16,
+                                      runSpacing: 16,
                                       children: [
                                         Text(
                                           'Showing ${startIdx + 1} to $endIdx of $totalRecords customers',
@@ -970,6 +993,172 @@ Icon(
         }
       }
     }
+  }
+
+  Widget _buildMobileCustomerCard(Map<String, dynamic> customer, int index) {
+    final isSelected = _selectedCustomer?['id'] == customer['id'];
+
+    return InkWell(
+      onTap: () {
+        setState(() {
+          _selectedCustomer = customer;
+          _activeCustomerTab = 0;
+        });
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isSelected 
+              ? (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF166534) : AppColors.primaryLight) 
+              : Theme.of(context).cardColor,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected ? AppColors.primaryDark : Theme.of(context).dividerColor,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Top Row: Avatar & Details + Status
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 20,
+                        backgroundColor: _getAvatarColor(customer['initials']),
+                        child: Text(
+                          customer['initials'],
+                          style: TextStyle(
+                            color: _getAvatarTextColor(customer['initials']),
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              customer['name'],
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              customer['id'],
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: (Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : AppColors.textSecondary),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                _buildStatusChip(customer['status']),
+              ],
+            ),
+            const SizedBox(height: 16),
+            const Divider(),
+            const SizedBox(height: 12),
+            
+            // Info grid
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(Icons.phone_outlined, size: 16, color: AppColors.textSecondary),
+                          const SizedBox(width: 8),
+                          Text(customer['phone'], style: const TextStyle(fontSize: 14)),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Icon(Icons.location_city_outlined, size: 16, color: AppColors.textSecondary),
+                          const SizedBox(width: 8),
+                          Text(customer['city'], style: const TextStyle(fontSize: 14)),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(Icons.shopping_bag_outlined, size: 16, color: AppColors.textSecondary),
+                          const SizedBox(width: 8),
+                          Text('₹ ${customer['totalPurchases'].toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Icon(Icons.receipt_long_outlined, size: 16, color: AppColors.textSecondary),
+                          const SizedBox(width: 8),
+                          Text('${customer['bills']} bills', style: const TextStyle(fontSize: 14)),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            
+            // Actions
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                OutlinedButton.icon(
+                  onPressed: () {
+                    setState(() {
+                      _selectedCustomer = customer;
+                      _activeCustomerTab = 0;
+                    });
+                  },
+                  icon: const Icon(Icons.visibility, size: 16),
+                  label: const Text('View Details'),
+                ),
+                const SizedBox(width: 12),
+                IconButton(
+                  onPressed: () => _deleteCustomer(customer['full_id']),
+                  icon: const Icon(Icons.delete_outline, color: Colors.red),
+                  style: IconButton.styleFrom(
+                    backgroundColor: Colors.red.withOpacity(0.1),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _buildStatusChip(String status) {
