@@ -450,8 +450,8 @@ class _ShopManagementScreenState extends State<ShopManagementScreen> {
                       spacing: 16,
                       runSpacing: 16,
                       children: [
-                        SizedBox(
-                          width: 300,
+                        ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 300),
                           child: TextField(
                             onChanged: (val) =>
                                 setState(() => _searchQuery = val),
