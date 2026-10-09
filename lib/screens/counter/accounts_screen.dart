@@ -235,6 +235,144 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
   String _fmt(double val) =>
       NumberFormat.currency(symbol: '₹ ', decimalDigits: 2).format(val);
 
+  Widget _buildMobileTransactionCard(dynamic txn, int displayIndex) {
+    final isIncome = txn.type == 'Income';
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12, left: 16, right: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Theme.of(context).dividerColor,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Top row: Type, Category, Date
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: isIncome ? const Color(0xFFDCFCE7) : const Color(0xFFFEE2E2),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      isIncome ? Icons.call_received : Icons.call_made,
+                      size: 12,
+                      color: isIncome ? const Color(0xFF166534) : const Color(0xFFB91C1C),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      txn.type,
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: isIncome ? const Color(0xFF166534) : const Color(0xFFB91C1C),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(txn.date, style: const TextStyle(fontSize: 12)),
+                  Text(txn.time, style: const TextStyle(fontSize: 11, color: Color(0xFF64748B))),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            txn.category,
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            txn.description,
+            style: const TextStyle(color: Color(0xFF64748B), fontSize: 14),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 12),
+          const Divider(),
+          const SizedBox(height: 12),
+          // Bottom row: Amount & Balance
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(isIncome ? 'Credit' : 'Debit', style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+                  const SizedBox(height: 4),
+                  Text(
+                    _fmt(txn.amount),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: isIncome ? const Color(0xFF166534) : const Color(0xFFB91C1C),
+                    ),
+                  ),
+                ],
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  const Text('Balance', style: TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+                  const SizedBox(height: 4),
+                  Text(
+                    _fmt(txn.runningBalance),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.remove_red_eye_outlined, size: 20),
+                color: const Color(0xFF64748B),
+                onPressed: () {
+                  // View details
+                },
+              ),
+              IconButton(
+                icon: const Icon(Icons.delete_outline, size: 20, color: Colors.red),
+                style: IconButton.styleFrom(backgroundColor: Colors.red.withOpacity(0.1)),
+                onPressed: () {
+                  // Delete
+                },
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+
   Future<void> _exportData(String format) async {
     final exportData = _transactions
         .map(
@@ -350,8 +488,10 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                         ),
                       ],
                     ),
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
                         PopupMenuButton<String>(
                           tooltip: 'Export Options',
@@ -471,55 +611,57 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
               const SizedBox(height: 24),
 
               // Summary Cards
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: [
-                    SizedBox(
-                      width: 250,
-                      child: AccountsWidgets.buildStatCard(context, 
-                        'Total Income',
-                        _fmt(_totalIncome),
-                        Icons.currency_rupee,
-                        const Color(0xFFDCFCE7),
-                        const Color(0xFF166534),
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  bool isMobile = constraints.maxWidth < 600;
+                  double cardWidth = isMobile ? (constraints.maxWidth - 16) / 2 : 250;
+                  return Wrap(
+                    spacing: 16,
+                    runSpacing: 16,
+                    children: [
+                      SizedBox(
+                        width: cardWidth,
+                        child: AccountsWidgets.buildStatCard(context, 
+                          'Total Income',
+                          _fmt(_totalIncome),
+                          Icons.currency_rupee,
+                          const Color(0xFFDCFCE7),
+                          const Color(0xFF166534),
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 16),
-                    SizedBox(
-                      width: 250,
-                      child: AccountsWidgets.buildStatCard(context, 
-                        'Total Expenses',
-                        _fmt(_totalExpenses),
-                        Icons.credit_card,
-                        const Color(0xFFFEE2E2),
-                        const Color(0xFFB91C1C),
+                      SizedBox(
+                        width: cardWidth,
+                        child: AccountsWidgets.buildStatCard(context, 
+                          'Total Expenses',
+                          _fmt(_totalExpenses),
+                          Icons.credit_card,
+                          const Color(0xFFFEE2E2),
+                          const Color(0xFFB91C1C),
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 16),
-                    SizedBox(
-                      width: 250,
-                      child: AccountsWidgets.buildStatCard(context, 
-                        'Net Profit',
-                        _fmt(_netProfit),
-                        Icons.bar_chart,
-                        const Color(0xFFE0F2FE),
-                        const Color(0xFF0369A1),
+                      SizedBox(
+                        width: cardWidth,
+                        child: AccountsWidgets.buildStatCard(context, 
+                          'Net Profit',
+                          _fmt(_netProfit),
+                          Icons.bar_chart,
+                          const Color(0xFFE0F2FE),
+                          const Color(0xFF0369A1),
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 16),
-                    SizedBox(
-                      width: 250,
-                      child: AccountsWidgets.buildStatCard(context, 
-                        'Outstanding Receivables',
-                        _fmt(_outstandingReceivables),
-                        Icons.people_alt,
-                        const Color(0xFFF3E8FF),
-                        const Color(0xFF7E22CE),
+                      SizedBox(
+                        width: cardWidth,
+                        child: AccountsWidgets.buildStatCard(context, 
+                          'Outstanding Receivables',
+                          _fmt(_outstandingReceivables),
+                          Icons.people_alt,
+                          const Color(0xFFF3E8FF),
+                          const Color(0xFF7E22CE),
+                        ),
                       ),
-                    ),
-                  ],
-                ),
+                    ],
+                  );
+                }
               ),
               const SizedBox(height: 24),
 
@@ -593,44 +735,59 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                       // Filters
                       Padding(
                         padding: const EdgeInsets.all(16.0),
-                        child: Wrap(
-                          spacing: 12,
-                          runSpacing: 12,
-                          crossAxisAlignment: WrapCrossAlignment.center,
-                          children: [
-                            AccountsWidgets.buildDynamicDropdown(context, _selectedPeriod,
-                              _periods,
-                              (String? newValue) {
-                                if (newValue != null) {
-                                  setState(() => _selectedPeriod = newValue);
-                                  _loadTransactions();
-                                }
-                              },
-                            ),
-                            AccountsWidgets.buildDynamicDropdown(context, _selectedType,
-                              _types,
-                              (String? newValue) {
-                                if (newValue != null) {
-                                  setState(() => _selectedType = newValue);
-                                  _loadTransactions();
-                                }
-                              },
-                            ),
-                            AccountsWidgets.buildDynamicDropdown(context, _selectedCategory,
-                              _categories,
-                              (String? newValue) {
-                                if (newValue != null) {
-                                  setState(() => _selectedCategory = newValue);
-                                  _loadTransactions();
-                                }
-                              },
-                            ),
-                            ConstrainedBox(
-                              constraints: const BoxConstraints(
-                                maxWidth: 350,
-                                minWidth: 200,
-                              ),
-                              child: Container(
+                        child: LayoutBuilder(
+                          builder: (context, constraints) {
+                            bool isMobile = constraints.maxWidth < 600;
+                            double dropdownWidth = isMobile ? constraints.maxWidth : 160;
+                            double searchWidth = isMobile ? constraints.maxWidth : 350;
+                            
+                            return Wrap(
+                              spacing: 12,
+                              runSpacing: 12,
+                              crossAxisAlignment: WrapCrossAlignment.center,
+                              children: [
+                                SizedBox(
+                                  width: dropdownWidth,
+                                  child: AccountsWidgets.buildDynamicDropdown(context, _selectedPeriod,
+                                    _periods,
+                                    (String? newValue) {
+                                      if (newValue != null) {
+                                        setState(() => _selectedPeriod = newValue);
+                                        _loadTransactions();
+                                      }
+                                    },
+                                  ),
+                                ),
+                                SizedBox(
+                                  width: dropdownWidth,
+                                  child: AccountsWidgets.buildDynamicDropdown(context, _selectedType,
+                                    _types,
+                                    (String? newValue) {
+                                      if (newValue != null) {
+                                        setState(() => _selectedType = newValue);
+                                        _loadTransactions();
+                                      }
+                                    },
+                                  ),
+                                ),
+                                SizedBox(
+                                  width: dropdownWidth,
+                                  child: AccountsWidgets.buildDynamicDropdown(context, _selectedCategory,
+                                    _categories,
+                                    (String? newValue) {
+                                      if (newValue != null) {
+                                        setState(() => _selectedCategory = newValue);
+                                        _loadTransactions();
+                                      }
+                                    },
+                                  ),
+                                ),
+                                ConstrainedBox(
+                                  constraints: BoxConstraints(
+                                    maxWidth: searchWidth,
+                                    minWidth: 200,
+                                  ),
+                                  child: Container(
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 12,
                                 ),
@@ -663,44 +820,68 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                                 ),
                               ),
                             ),
-                            OutlinedButton.icon(
-                              onPressed: () {
-                                setState(() {
-                                  _selectedPeriod = 'All Time';
-                                  _selectedType = 'All Types';
-                                  _selectedCategory = 'All Categories';
-                                  _searchController.clear();
-                                  _searchQuery = '';
-                                });
-                                _loadTransactions();
-                              },
-                              icon: Icon(
-                                Icons.refresh,
-                                size: 16,
-                                color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
-                              ),
-                              label: Text(
-                                'Reset',
-                                style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B)),
-                              ),
-                              style: OutlinedButton.styleFrom(
-                                side: BorderSide(
-                                  color: Theme.of(context).dividerColor,
+                                OutlinedButton.icon(
+                                  onPressed: () {
+                                    setState(() {
+                                      _selectedPeriod = 'All Time';
+                                      _selectedType = 'All Types';
+                                      _selectedCategory = 'All Categories';
+                                      _searchController.clear();
+                                      _searchQuery = '';
+                                    });
+                                    _loadTransactions();
+                                  },
+                                  icon: Icon(
+                                    Icons.refresh,
+                                    size: 16,
+                                    color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
+                                  ),
+                                  label: Text(
+                                    'Reset',
+                                    style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B)),
+                                  ),
+                                  style: OutlinedButton.styleFrom(
+                                    side: BorderSide(
+                                      color: Theme.of(context).dividerColor,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                  ),
                                 ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                              ),
-                            ),
-                          ],
+                              ],
+                            );
+                          }
                         ),
                       ),
 
                       LayoutBuilder(
                         builder: (context, constraints) {
-                          final tableWidth = constraints.maxWidth > 800
-                              ? constraints.maxWidth
-                              : 800.0;
+                          bool isMobile = constraints.maxWidth <= 800;
+                          
+                          if (isMobile) {
+                            if (pagedTxns.isEmpty) {
+                              return const Padding(
+                                padding: EdgeInsets.all(32),
+                                child: Center(
+                                  child: Text(
+                                    'No transactions found',
+                                    style: TextStyle(color: Color(0xFF94A3B8)),
+                                  ),
+                                ),
+                              );
+                            }
+                            return ListView.builder(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              itemCount: pagedTxns.length,
+                              itemBuilder: (context, index) {
+                                return _buildMobileTransactionCard(pagedTxns[index], startIdx + index + 1);
+                              },
+                            );
+                          }
+
+                          final tableWidth = constraints.maxWidth;
                           return SingleChildScrollView(
                             scrollDirection: Axis.horizontal,
                             child: SizedBox(
@@ -1259,9 +1440,9 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
             return SingleChildScrollView(
               child: Column(
                 children: [
-                  leftColumn,
-                  const SizedBox(height: 24),
                   rightSidebar,
+                  const SizedBox(height: 24),
+                  leftColumn,
                 ],
               ),
             );

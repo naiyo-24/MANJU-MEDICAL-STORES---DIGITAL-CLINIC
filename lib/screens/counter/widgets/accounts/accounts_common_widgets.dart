@@ -91,6 +91,7 @@ class AccountsWidgets {
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
+          isExpanded: true,
           value: value,
           icon: const Icon(
             Icons.keyboard_arrow_down,
