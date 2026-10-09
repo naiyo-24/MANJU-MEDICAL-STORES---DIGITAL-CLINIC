@@ -242,7 +242,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
             borderRadius: BorderRadius.circular(12),
           ),
           child: SizedBox(
-            width: 800,
+            width: MediaQuery.of(context).size.width > 850 ? 800 : MediaQuery.of(context).size.width * 0.9,
             height: MediaQuery.of(context).size.height * 0.9,
             child: Column(
               children: [
@@ -646,7 +646,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
 
         return Container(
           color: Colors.transparent,
-          padding: const EdgeInsets.all(32.0),
+          padding: EdgeInsets.all(MediaQuery.of(context).size.width > 800 ? 32.0 : 16.0),
           child: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -874,68 +874,56 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                     }
                   }
 
-                  return SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
+                  double cardWidth = isDesktop 
+                      ? (constraints.maxWidth - 48) / 4 
+                      : (constraints.maxWidth - 16) / 2;
+
+                  return isDesktop 
+                  ? Row(
                       children: [
                         SizedBox(
-                          width: isDesktop
-                              ? (constraints.maxWidth - 48) / 4
-                              : 250,
-                          child: _buildStatCard(
-                            '₹${totalRevenue.toStringAsFixed(2)}',
-                            'Total Revenue',
-                            Theme.of(context).brightness == Brightness.dark ? const Color(0xFF052E16) : const Color(0xFFDCFCE7),
-                            Theme.of(context).brightness == Brightness.dark ? Colors.green[400]! : const Color(0xFF166534),
-                            Icons.currency_rupee,
-                            '',
-                          ),
+                          width: cardWidth,
+                          child: _buildStatCard('₹${totalRevenue.toStringAsFixed(2)}', 'Total Revenue', Theme.of(context).brightness == Brightness.dark ? const Color(0xFF052E16) : const Color(0xFFDCFCE7), Theme.of(context).brightness == Brightness.dark ? Colors.green[400]! : const Color(0xFF166534), Icons.currency_rupee, ''),
                         ),
                         const SizedBox(width: 16),
                         SizedBox(
-                          width: isDesktop
-                              ? (constraints.maxWidth - 48) / 4
-                              : 250,
-                          child: _buildStatCard(
-                            '$totalInvoices',
-                            'Total Invoices',
-                            Theme.of(context).brightness == Brightness.dark ? const Color(0xFF082F49) : const Color(0xFFE0F2FE),
-                            Theme.of(context).brightness == Brightness.dark ? Colors.blue[400]! : const Color(0xFF0369A1),
-                            Icons.receipt_long,
-                            '',
-                          ),
+                          width: cardWidth,
+                          child: _buildStatCard('$totalInvoices', 'Total Invoices', Theme.of(context).brightness == Brightness.dark ? const Color(0xFF082F49) : const Color(0xFFE0F2FE), Theme.of(context).brightness == Brightness.dark ? Colors.blue[400]! : const Color(0xFF0369A1), Icons.receipt_long, ''),
                         ),
                         const SizedBox(width: 16),
                         SizedBox(
-                          width: isDesktop
-                              ? (constraints.maxWidth - 48) / 4
-                              : 250,
-                          child: _buildStatCard(
-                            '₹${totalReturns.toStringAsFixed(2)}',
-                            'Total Returns',
-                            Theme.of(context).brightness == Brightness.dark ? const Color(0xFF450A0A) : const Color(0xFFFEE2E2),
-                            Theme.of(context).brightness == Brightness.dark ? Colors.red[400]! : Colors.red,
-                            Icons.keyboard_return,
-                            '',
-                          ),
+                          width: cardWidth,
+                          child: _buildStatCard('₹${totalReturns.toStringAsFixed(2)}', 'Total Returns', Theme.of(context).brightness == Brightness.dark ? const Color(0xFF450A0A) : const Color(0xFFFEE2E2), Theme.of(context).brightness == Brightness.dark ? Colors.red[400]! : Colors.red, Icons.keyboard_return, ''),
                         ),
                         const SizedBox(width: 16),
                         SizedBox(
-                          width: isDesktop
-                              ? (constraints.maxWidth - 48) / 4
-                              : 250,
-                          child: _buildStatCard(
-                            '₹${cashInHand.toStringAsFixed(2)}',
-                            'Cash in Hand',
-                            Theme.of(context).brightness == Brightness.dark ? const Color(0xFF3B0764) : const Color(0xFFF3E8FF),
-                            Theme.of(context).brightness == Brightness.dark ? Colors.purple[400]! : const Color(0xFF7E22CE),
-                            Icons.account_balance_wallet,
-                            '',
-                          ),
+                          width: cardWidth,
+                          child: _buildStatCard('₹${cashInHand.toStringAsFixed(2)}', 'Cash in Hand', Theme.of(context).brightness == Brightness.dark ? const Color(0xFF3B0764) : const Color(0xFFF3E8FF), Theme.of(context).brightness == Brightness.dark ? Colors.purple[400]! : const Color(0xFF7E22CE), Icons.account_balance_wallet, ''),
                         ),
                       ],
-                    ),
-                  );
+                    )
+                  : Wrap(
+                      spacing: 16,
+                      runSpacing: 16,
+                      children: [
+                        SizedBox(
+                          width: cardWidth,
+                          child: _buildStatCard('₹${totalRevenue.toStringAsFixed(2)}', 'Total Revenue', Theme.of(context).brightness == Brightness.dark ? const Color(0xFF052E16) : const Color(0xFFDCFCE7), Theme.of(context).brightness == Brightness.dark ? Colors.green[400]! : const Color(0xFF166534), Icons.currency_rupee, ''),
+                        ),
+                        SizedBox(
+                          width: cardWidth,
+                          child: _buildStatCard('$totalInvoices', 'Total Invoices', Theme.of(context).brightness == Brightness.dark ? const Color(0xFF082F49) : const Color(0xFFE0F2FE), Theme.of(context).brightness == Brightness.dark ? Colors.blue[400]! : const Color(0xFF0369A1), Icons.receipt_long, ''),
+                        ),
+                        SizedBox(
+                          width: cardWidth,
+                          child: _buildStatCard('₹${totalReturns.toStringAsFixed(2)}', 'Total Returns', Theme.of(context).brightness == Brightness.dark ? const Color(0xFF450A0A) : const Color(0xFFFEE2E2), Theme.of(context).brightness == Brightness.dark ? Colors.red[400]! : Colors.red, Icons.keyboard_return, ''),
+                        ),
+                        SizedBox(
+                          width: cardWidth,
+                          child: _buildStatCard('₹${cashInHand.toStringAsFixed(2)}', 'Cash in Hand', Theme.of(context).brightness == Brightness.dark ? const Color(0xFF3B0764) : const Color(0xFFF3E8FF), Theme.of(context).brightness == Brightness.dark ? Colors.purple[400]! : const Color(0xFF7E22CE), Icons.account_balance_wallet, ''),
+                        ),
+                      ],
+                    );
                 },
               ),
               const SizedBox(height: 24),
@@ -1091,167 +1079,98 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                             ),
                           ],
                         )
-                      : SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Date Range',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.bold,
-                                      color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
+                      : Wrap(
+                          spacing: 12,
+                          runSpacing: 12,
+                          crossAxisAlignment: WrapCrossAlignment.end,
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Date Range',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Container(
+                                  width: constraints.maxWidth,
+                                  decoration: BoxDecoration(
+                                    color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white,
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(
+                                      color: Theme.of(context).dividerColor,
                                     ),
                                   ),
-                                  const SizedBox(height: 8),
-                                  Container(
-                                    height: 40,
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 4,
-                                      vertical: 4,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white,
-                                      borderRadius: BorderRadius.circular(8),
-                                      border: Border.all(
-                                        color: Theme.of(context).dividerColor,
-                                      ),
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        _buildDateRangeBtn('Today', false),
-                                        _buildDateRangeBtn('This Week', false),
-                                        _buildDateRangeBtn('This Month', false),
-                                        _buildDateRangeBtn('This Year', false),
-                                        VerticalDivider(
-                                          width: 16,
-                                          color: Theme.of(context).dividerColor,
-                                        ),
-                                        _buildDateRangeBtn(
-                                          'Custom Range',
-                                          true,
-                                        ),
-                                      ],
-                                    ),
+                                  child: Wrap(
+                                    children: [
+                                      _buildDateRangeBtn('Today', false),
+                                      _buildDateRangeBtn('This Week', false),
+                                      _buildDateRangeBtn('This Month', false),
+                                      _buildDateRangeBtn('This Year', false),
+                                      _buildDateRangeBtn('Custom Range', true),
+                                    ],
                                   ),
-                                ],
-                              ),
-                              const SizedBox(width: 16),
-                              _buildDropdownFilter(
+                                ),
+                              ],
+                            ),
+                            SizedBox(
+                              width: (constraints.maxWidth - 12) / 2,
+                              child: _buildDropdownFilter(
                                 'Transaction Type',
-                                [
-                                  'All',
-                                  'Sale',
-                                  'Return',
-                                  'Adjustment',
-                                  'Purchase',
-                                ],
+                                ['All', 'Sale', 'Return', 'Adjustment', 'Purchase'],
                                 _selectedType,
-                                (v) => setState(() {
-                                  _selectedType = v!;
-                                  _currentPage = 1;
-                                }),
+                                (v) => setState(() { _selectedType = v!; _currentPage = 1; }),
                               ),
-                              const SizedBox(width: 16),
-                              _buildDropdownFilter(
+                            ),
+                            SizedBox(
+                              width: (constraints.maxWidth - 12) / 2,
+                              child: _buildDropdownFilter(
                                 'Payment Mode',
                                 ['All', 'Cash', 'UPI', 'Card', 'Bank Transfer'],
                                 _selectedPaymentMode,
-                                (v) => setState(() {
-                                  _selectedPaymentMode = v!;
-                                  _currentPage = 1;
-                                }),
+                                (v) => setState(() { _selectedPaymentMode = v!; _currentPage = 1; }),
                               ),
-                              const SizedBox(width: 16),
-                              SizedBox(
-                                width: 300,
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const Text(
-                                      '',
-                                      style: TextStyle(fontSize: 12),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Container(
-                                      height: 40,
-                                      decoration: BoxDecoration(
-                                        color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white,
-                                        borderRadius: BorderRadius.circular(8),
-                                        border: Border.all(
-                                          color: Theme.of(context).dividerColor,
-                                        ),
-                                      ),
-                                      child: TextField(
-                                        onChanged: (val) =>
-                                            setState(() => _searchQuery = val),
-                                        style: const TextStyle(fontSize: 13),
-                                        decoration: const InputDecoration(
-                                          hintText:
-                                              'Search by bill no, customer name, phone...',
-                                          hintStyle: TextStyle(
-                                            color: Color(0xFF94A3B8),
-                                            fontSize: 13,
-                                          ),
-                                          prefixIcon: Icon(
-                                            Icons.search,
-                                            color: Color(0xFF94A3B8),
-                                            size: 18,
-                                          ),
-                                          border: InputBorder.none,
-                                          contentPadding: EdgeInsets.symmetric(
-                                            vertical: 12,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
+                            ),
+                            SizedBox(
+                              width: constraints.maxWidth,
+                              child: Container(
+                                height: 40,
+                                decoration: BoxDecoration(
+                                  color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white,
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(color: Theme.of(context).dividerColor),
+                                ),
+                                child: TextField(
+                                  onChanged: (val) => setState(() => _searchQuery = val),
+                                  style: const TextStyle(fontSize: 13),
+                                  decoration: const InputDecoration(
+                                    hintText: 'Search by bill no, customer name, phone...',
+                                    hintStyle: TextStyle(color: Color(0xFF94A3B8), fontSize: 13),
+                                    prefixIcon: Icon(Icons.search, color: Color(0xFF94A3B8), size: 18),
+                                    border: InputBorder.none,
+                                    contentPadding: EdgeInsets.symmetric(vertical: 12),
+                                  ),
                                 ),
                               ),
-                              const SizedBox(width: 16),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text(
-                                    '',
-                                    style: TextStyle(fontSize: 12),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  OutlinedButton.icon(
-                                    onPressed: _resetFilters,
-                                    icon: Icon(
-                                      Icons.clear,
-                                      color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
-                                      size: 16,
-                                    ),
-                                    label: Text(
-                                      'Reset Filters',
-                                      style: TextStyle(
-                                        color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    style: OutlinedButton.styleFrom(
-                                      side: BorderSide(
-                                        color: Theme.of(context).dividerColor,
-                                      ),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                      minimumSize: const Size(0, 40),
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 16,
-                                      ),
-                                    ),
-                                  ),
-                                ],
+                            ),
+                            SizedBox(
+                              width: constraints.maxWidth,
+                              child: OutlinedButton.icon(
+                                onPressed: _resetFilters,
+                                icon: Icon(Icons.clear, color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B), size: 16),
+                                label: Text('Reset Filters', style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B), fontWeight: FontWeight.bold)),
+                                style: OutlinedButton.styleFrom(
+                                  side: BorderSide(color: Theme.of(context).dividerColor),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                  minimumSize: const Size(0, 40),
+                                ),
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         );
                 },
               ),
@@ -1260,6 +1179,66 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
               // Data Table
               LayoutBuilder(
                 builder: (context, constraints) {
+                  bool isMobile = constraints.maxWidth < 800;
+                  
+                  if (isMobile) {
+                    return Column(
+                      children: [
+                        filtered.isEmpty
+                            ? const Padding(
+                                padding: EdgeInsets.all(32.0),
+                                child: Center(
+                                  child: Text('No history found'),
+                                ),
+                              )
+                            : ListView.builder(
+                                shrinkWrap: true,
+                                physics: const NeverScrollableScrollPhysics(),
+                                itemCount: pagedTransactions.length,
+                                itemBuilder: (context, index) {
+                                  return _buildMobileTransactionCard(
+                                      pagedTransactions[index], startIdx + index + 1);
+                                },
+                              ),
+                        // Mobile Pagination
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          decoration: BoxDecoration(
+                            border: Border(
+                              top: BorderSide(color: Theme.of(context).dividerColor),
+                            ),
+                          ),
+                          child: Wrap(
+                            alignment: WrapAlignment.center,
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            spacing: 16,
+                            runSpacing: 16,
+                            children: [
+                              Text(
+                                'Showing ${totalRecords == 0 ? 0 : startIdx + 1} to $endIdx of $totalRecords records',
+                                style: TextStyle(
+                                  color: Theme.of(context).brightness == Brightness.dark
+                                      ? Colors.grey[400]
+                                      : const Color(0xFF64748B),
+                                  fontSize: 12,
+                                ),
+                              ),
+                              CustomPagination(
+                                currentPage: _currentPage,
+                                totalPages: totalPages,
+                                onPageChanged: (page) {
+                                  setState(() {
+                                    _currentPage = page;
+                                  });
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    );
+                  }
+
                   return SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
                       child: ConstrainedBox(
@@ -1766,6 +1745,231 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
           ),
         ));
       },
+    );
+  }
+  Widget _buildMobileTransactionCard(Map<String, dynamic> tx, int index) {
+    final isNegative = tx['amount'] < 0;
+    final amountStr = tx['amount'] == 0 ? '-' : tx['amount'].toStringAsFixed(2);
+    
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Theme.of(context).dividerColor),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 12,
+                      backgroundColor: Theme.of(context).brightness == Brightness.dark ? Colors.grey[800] : Colors.grey[200],
+                      child: Text(
+                        '$index',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          tx['refNo'],
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                            color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
+                          ),
+                        ),
+                        Text(
+                          '${tx['date']} • ${tx['time']}',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                Text(
+                  amountStr,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    color: isNegative ? Colors.red : (Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Divider(height: 1, color: Theme.of(context).dividerColor),
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Customer',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[500] : const Color(0xFF94A3B8),
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        tx['customerName'],
+                        style: TextStyle(
+                          fontWeight: FontWeight.w500,
+                          fontSize: 13,
+                          color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
+                        ),
+                      ),
+                      if (tx['customerPhone'].isNotEmpty) ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          tx['customerPhone'],
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Details',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[500] : const Color(0xFF94A3B8),
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Row(
+                        children: [
+                          _buildTypePill(tx['type']),
+                          const SizedBox(width: 4),
+                          _buildPaymentModePill(tx['paymentMode']),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '${tx['items']} ${tx['items'] == 1 ? 'item' : 'items'}',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Divider(height: 1, color: Theme.of(context).dividerColor),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      width: 8,
+                      height: 8,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFF22C55E),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      tx['status'],
+                      style: const TextStyle(
+                        color: Color(0xFF166534),
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+                Row(
+                  children: [
+                    OutlinedButton.icon(
+                      onPressed: () {
+                        if (tx['originalBill'] != null) {
+                          _viewBill(tx['originalBill']);
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Detailed view not available for synced backend bills yet.'),
+                            ),
+                          );
+                        }
+                      },
+                      icon: Icon(Icons.visibility, size: 14, color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B)),
+                      label: Text(
+                        'View',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
+                        ),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        minimumSize: const Size(0, 32),
+                        side: BorderSide(color: Theme.of(context).dividerColor),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    OutlinedButton.icon(
+                      onPressed: () {},
+                      icon: Image.asset(
+                        'assets/whatsapp.png',
+                        height: 14,
+                        errorBuilder: (c, e, s) => const Icon(Icons.chat, size: 14, color: Color(0xFF22C55E)),
+                      ),
+                      label: const Text(
+                        'Send',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Color(0xFF166534),
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        minimumSize: const Size(0, 32),
+                        backgroundColor: const Color(0xFFDCFCE7),
+                        side: const BorderSide(color: Color(0xFF22C55E)),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
