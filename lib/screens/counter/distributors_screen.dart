@@ -5,9 +5,6 @@ import 'widgets/distributors/add_distributor_dialog.dart';
 import 'widgets/distributors/dashboard/distributor_kpi_cards.dart';
 import 'widgets/distributors/dashboard/distributor_charts.dart';
 import 'widgets/distributors/dashboard/distributor_list_view.dart';
-import 'distributor_detail_screen.dart';
-import 'add_purchase_bill_screen.dart';
-import 'package:go_router/go_router.dart';
 import '../../services/export_service.dart';
 
 class DistributorsScreen extends ConsumerStatefulWidget {
@@ -45,13 +42,28 @@ class _DistributorsScreenState extends ConsumerState<DistributorsScreen> {
               runSpacing: 16,
               spacing: 16,
               children: [
-                Text(
-                  'Distributors',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
-                  ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'Distributors',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    IconButton(
+                      icon: const Icon(Icons.refresh, size: 22),
+                      tooltip: 'Refresh',
+                      color: Theme.of(context).brightness == Brightness.dark ? Colors.white70 : const Color(0xFF1E293B),
+                      onPressed: () {
+                        ref.invalidate(distributorsProvider);
+                        ref.invalidate(purchaseBillsProvider);
+                      },
+                    ),
+                  ],
                 ),
                 Wrap(
                   spacing: 12,
@@ -161,6 +173,7 @@ class _DistributorsScreenState extends ConsumerState<DistributorsScreen> {
             const SizedBox(height: 24),
             Expanded(
               child: distributorsAsync.when(
+                skipLoadingOnReload: false,
                 data: (distributors) {
                   if (distributors.isEmpty) {
                     return Center(

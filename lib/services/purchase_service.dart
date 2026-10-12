@@ -26,10 +26,13 @@ class PurchaseService {
   Future<List<dynamic>> getPurchaseBills() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final shopId = prefs.getString('shop_id');
+      final shopId = prefs.getString('selected_shop_id') ?? prefs.getString('shop_id');
       final response = await _apiClient.dio.get(
         '/api/admin/purchases/',
-        queryParameters: shopId != null ? {'shop_id': shopId} : {},
+        queryParameters: {
+          if (shopId != null && shopId.isNotEmpty) 'shop_id': shopId,
+          '_t': DateTime.now().millisecondsSinceEpoch,
+        },
       );
       if (response.statusCode == 200) {
         return response.data as List<dynamic>;

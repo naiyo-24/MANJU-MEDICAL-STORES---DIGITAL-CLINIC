@@ -1,4 +1,3 @@
-import 'dart:convert';
 import '../config/api_client.dart';
 import 'inventory_service.dart';
 
@@ -9,7 +8,10 @@ class DistributorService {
   Future<List<dynamic>> getDistributors({String? search}) async {
     try {
       final shopId = await InventoryService.getShopId();
-      final queryParams = <String, dynamic>{'shop_id': shopId};
+      final queryParams = <String, dynamic>{
+        'shop_id': shopId,
+        '_t': DateTime.now().millisecondsSinceEpoch,
+      };
       if (search != null && search.isNotEmpty) {
         queryParams['search'] = search;
       }
@@ -79,7 +81,10 @@ class DistributorService {
   // Get distributor analytics
   Future<Map<String, dynamic>> getDistributorAnalytics(String id) async {
     try {
-      final response = await _apiClient.dio.get('/api/admin/distributors/$id/analytics');
+      final response = await _apiClient.dio.get(
+        '/api/admin/distributors/$id/analytics',
+        queryParameters: {'_t': DateTime.now().millisecondsSinceEpoch},
+      );
       if (response.statusCode == 200) {
         return response.data as Map<String, dynamic>;
       }

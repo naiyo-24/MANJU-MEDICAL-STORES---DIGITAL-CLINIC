@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../providers/distributor_provider.dart';
 import '../../providers/counter_providers.dart';
-import 'add_purchase_bill_screen.dart';
 import 'package:go_router/go_router.dart';
 
 class DistributorDetailScreen extends ConsumerWidget {
@@ -21,6 +20,17 @@ class DistributorDetailScreen extends ConsumerWidget {
         backgroundColor: Colors.white,
         foregroundColor: const Color(0xFF1E293B),
         elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            tooltip: 'Refresh',
+            onPressed: () {
+              ref.invalidate(purchaseBillsProvider);
+              ref.invalidate(distributorAnalyticsProvider(distributor['id']));
+            },
+          ),
+          const SizedBox(width: 8),
+        ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
           child: Container(color: const Color(0xFFE2E8F0), height: 1),
@@ -189,6 +199,7 @@ class DistributorDetailScreen extends ConsumerWidget {
                 final billsAsync = ref.watch(purchaseBillsProvider);
                 
                 return billsAsync.when(
+                  skipLoadingOnReload: false,
                   data: (bills) {
                     final distBills = bills.where((b) => b['distributor_id'] == distributor['id']).toList();
                     // Sort descending by date
@@ -271,10 +282,12 @@ class DistributorDetailScreen extends ConsumerWidget {
     final items = (bill['items'] as List<dynamic>?) ?? [];
     final inventoryList = ref.read(inventoryProvider).value ?? [];
     
+    bool isPaying = false;
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Row(
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text('Invoice: ${bill['invoice_no'] ?? 'N/A'}'),
@@ -362,34 +375,50 @@ class DistributorDetailScreen extends ConsumerWidget {
           if (bill['payment_status'] != 'PAID')
             ElevatedButton(
               style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF166534)),
-              onPressed: () async {
-                try {
-                  // Call service to pay bill
-                  final svc = ref.read(purchaseServiceProvider);
-                  await svc.markBillAsPaid(bill['id']);
-                  
-                  // Refresh the UI
-                  ref.invalidate(purchaseBillsProvider);
-                  ref.invalidate(accountsProvider);
-                  ref.invalidate(historyProvider);
-                  
-                  if (context.mounted) {
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Bill marked as PAID!'), backgroundColor: Colors.green),
-                    );
-                  }
-                } catch (e) {
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
-                    );
-                  }
-                }
-              },
-              child: const Text('Mark as Paid', style: TextStyle(color: Colors.white)),
+              onPressed: isPaying
+                  ? null
+                  : () async {
+                      setDialogState(() {
+                        isPaying = true;
+                      });
+                      try {
+                        // Call service to pay bill
+                        final svc = ref.read(purchaseServiceProvider);
+                        await svc.markBillAsPaid(bill['id']);
+                        
+                        // Refresh the UI immediately
+                        ref.invalidate(purchaseBillsProvider);
+                        ref.invalidate(distributorAnalyticsProvider(distributor['id']));
+                        ref.invalidate(accountsProvider);
+                        ref.invalidate(historyProvider);
+                        
+                        if (context.mounted) {
+                          Navigator.pop(context);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Bill marked as PAID!'), backgroundColor: Colors.green),
+                          );
+                        }
+                      } catch (e) {
+                        if (context.mounted) {
+                          setDialogState(() {
+                            isPaying = false;
+                          });
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+                          );
+                        }
+                      }
+                    },
+              child: isPaying
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                    )
+                  : const Text('Mark as Paid', style: TextStyle(color: Colors.white)),
             ),
         ],
+      ),
       ),
     );
   }

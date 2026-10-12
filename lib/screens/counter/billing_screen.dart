@@ -1169,7 +1169,7 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                   Widget leftSide = inventoryState.when(
                     data: (items) => BillingLeftPanel(
                       isDesktopWidth: isDesktopWidth,
-                      hasEnoughHeight: isDesktopWidth ? hasEnoughHeight : true,
+                      hasEnoughHeight: true,
                       filteredMedicines: computedFilteredMedicines,
                       categories: dynamicCategories,
                       selectedCategoryIndex: ref
@@ -1225,7 +1225,7 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                   );
 
                   Widget rightSide = BillingRightPanel(
-                    hasEnoughHeight: hasEnoughHeight,
+                    hasEnoughHeight: isDesktopWidth,
                     discountController: _discountController,
                     customerNameController: _customerNameController,
                     customerPhoneController: _customerPhoneController,
