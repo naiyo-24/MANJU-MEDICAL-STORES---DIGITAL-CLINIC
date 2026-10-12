@@ -258,6 +258,7 @@ class _BillingLeftPanelState extends ConsumerState<BillingLeftPanel> {
                                 }
                                 final item = widget.filteredMedicines[index];
                                 return Container(
+                                  key: ValueKey('billing_left_${item['inventory_item_id']}_${item['stock']}'),
                                   height: 48, // Fixed height to guarantee sync
                                   padding: EdgeInsets.symmetric(horizontal: widget.isDesktopWidth ? 16 : 8, vertical: 0),
                                   alignment: Alignment.centerLeft,
@@ -328,6 +329,7 @@ class _BillingLeftPanelState extends ConsumerState<BillingLeftPanel> {
                                     }
                                     final item = widget.filteredMedicines[index];
                                     return Container(
+                                      key: ValueKey('billing_right_${item['inventory_item_id']}_${item['stock']}'),
                                       height: 48, // Fixed height to guarantee sync
                                       padding: EdgeInsets.symmetric(horizontal: widget.isDesktopWidth ? 16 : 8, vertical: 0),
                                       child: Row(

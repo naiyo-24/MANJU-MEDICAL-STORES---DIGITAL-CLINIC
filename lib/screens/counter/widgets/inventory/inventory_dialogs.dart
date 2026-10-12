@@ -5,6 +5,7 @@ import '../../../../widgets/rack_dropdown.dart';
 import '../../../../widgets/category_dropdown.dart';
 import '../../../../widgets/distributor_dropdown.dart';
 import '../../../../services/inventory_service.dart';
+import '../../../../providers/counter_providers.dart';
 import '../../../../../utils/responsive.dart';
 
 class InventoryDialogs {
@@ -324,6 +325,9 @@ class InventoryDialogs {
                               backgroundColor: Colors.green,
                             ),
                           );
+                          // Refresh both providers directly with fresh network calls
+                          ref.read(inventoryProvider.notifier).loadInventory();
+                          ref.read(billingInventoryProvider.notifier).loadInventory();
                           onSuccess();
                         }
                       } catch (e) {

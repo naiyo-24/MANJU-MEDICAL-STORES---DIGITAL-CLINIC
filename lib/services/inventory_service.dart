@@ -175,6 +175,7 @@ class InventoryService {
           if (distributorId != null && distributorId.isNotEmpty) 'distributor_id': distributorId,
           'skip': skip,
           'limit': limit,
+          '_t': DateTime.now().millisecondsSinceEpoch,
         },
       );
 

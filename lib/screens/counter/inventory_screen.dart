@@ -853,6 +853,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                                           }
                                           final medicine = sortedItems[index];
                                           return InventoryRowLeftWidget(
+                                            key: ValueKey('left_${medicine.id}_${medicine.stockQuantity}_${medicine.looseStock}'),
                                             medicine: medicine,
                                             onTap: () =>
                                                 _showEditMedicineDialog(
@@ -1027,6 +1028,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                                                   .name;
 
                                               return InventoryRowRightWidget(
+                                                key: ValueKey('right_${medicine.id}_${medicine.stockQuantity}_${medicine.looseStock}'),
                                                 medicine: medicine,
                                                 rackName: rackName,
                                                 categoryName: categoryName,
