@@ -182,11 +182,21 @@ class PdfGenerator {
         ? gstNumber!
         : '';
 
-    final String bankName = shopSettings?['bank_name'] ?? 'State Bank of India';
-    final String branchName = shopSettings?['branch_name'] ?? 'Main Branch';
-    final String acHolder = shopSettings?['ac_holder_name'] ?? shopName;
-    final String acNumber = shopSettings?['ac_number'] ?? '123456789012';
-    final String ifsc = shopSettings?['ifsc_code'] ?? 'SBIN0000123';
+    final String bankName = (shopSettings?['bank_name']?.toString().trim().isNotEmpty == true)
+        ? shopSettings!['bank_name'].toString().trim()
+        : 'NA';
+    final String branchName = (shopSettings?['branch_name']?.toString().trim().isNotEmpty == true)
+        ? shopSettings!['branch_name'].toString().trim()
+        : 'NA';
+    final String acHolder = (shopSettings?['ac_holder_name']?.toString().trim().isNotEmpty == true)
+        ? shopSettings!['ac_holder_name'].toString().trim()
+        : 'NA';
+    final String acNumber = (shopSettings?['ac_number']?.toString().trim().isNotEmpty == true)
+        ? shopSettings!['ac_number'].toString().trim()
+        : 'NA';
+    final String ifsc = (shopSettings?['ifsc_code']?.toString().trim().isNotEmpty == true)
+        ? shopSettings!['ifsc_code'].toString().trim()
+        : 'NA';
 
     final String term1 =
         shopSettings?['terms_1'] ??
@@ -245,6 +255,11 @@ class PdfGenerator {
         phone: phone,
         email: email,
         shopGstNo: shopGstNo,
+        bankName: bankName,
+        branchName: branchName,
+        acHolder: acHolder,
+        acNumber: acNumber,
+        ifsc: ifsc,
         term1: term1,
         term2: term2,
         term3: term3,

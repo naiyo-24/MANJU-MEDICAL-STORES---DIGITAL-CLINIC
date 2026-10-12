@@ -32,6 +32,11 @@ class PdfA5Generator {
     required String phone,
     required String email,
     required String shopGstNo,
+    String? bankName,
+    String? branchName,
+    String? acHolder,
+    String? acNumber,
+    String? ifsc,
     required String term1,
     required String term2,
     required String term3,
@@ -98,6 +103,11 @@ class PdfA5Generator {
                     roundOff: roundOff,
                     paymentMethod: paymentMethod,
                     qrImage: qrImage,
+                    bankName: bankName,
+                    branchName: branchName,
+                    acHolder: acHolder,
+                    acNumber: acNumber,
+                    ifsc: ifsc,
                     primaryGreen: primaryGreen,
                   ),
 
@@ -407,8 +417,19 @@ class PdfA5Generator {
     required double roundOff,
     String? paymentMethod,
     pw.ImageProvider? qrImage,
+    String? bankName,
+    String? branchName,
+    String? acHolder,
+    String? acNumber,
+    String? ifsc,
     required PdfColor primaryGreen,
   }) {
+    String formatVal(String? val) {
+      if (val == null) return 'NA';
+      final trimmed = val.trim();
+      return trimmed.isNotEmpty ? trimmed : 'NA';
+    }
+
     return pw.Column(
       mainAxisSize: pw.MainAxisSize.min,
       children: [
@@ -435,11 +456,11 @@ class PdfA5Generator {
                       crossAxisAlignment: pw.CrossAxisAlignment.start,
                       children: [
                         pw.Text('Bank Details', style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold, color: primaryGreen)),
-                        pw.Text('Bank: Bank Of India', style: const pw.TextStyle(fontSize: 7)),
-                        pw.Text('Branch: Singur', style: const pw.TextStyle(fontSize: 7)),
-                        pw.Text('A/C Name: Manju Medical Stores', style: const pw.TextStyle(fontSize: 7)),
-                        pw.Text('A/C No: 401310110007089', style: const pw.TextStyle(fontSize: 7)),
-                        pw.Text('IFSC: BKID0004013', style: const pw.TextStyle(fontSize: 7)),
+                        pw.Text('Bank: ${formatVal(bankName)}', style: const pw.TextStyle(fontSize: 7)),
+                        pw.Text('Branch: ${formatVal(branchName)}', style: const pw.TextStyle(fontSize: 7)),
+                        pw.Text('A/C Name: ${formatVal(acHolder)}', style: const pw.TextStyle(fontSize: 7)),
+                        pw.Text('A/C No: ${formatVal(acNumber)}', style: const pw.TextStyle(fontSize: 7)),
+                        pw.Text('IFSC: ${formatVal(ifsc)}', style: const pw.TextStyle(fontSize: 7)),
                       ],
                     ),
                   ),
