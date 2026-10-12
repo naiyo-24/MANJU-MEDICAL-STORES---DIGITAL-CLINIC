@@ -836,6 +836,8 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                                     ),
                                     Expanded(
                                       child: ListView.separated(
+                                        key: const ValueKey('inventory_head_list'),
+                                        primary: false,
                                         controller: _headController,
                                         itemCount: sortedItems.length + 1,
                                         separatorBuilder: (context, index) =>
@@ -983,6 +985,8 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                                         ),
                                         Expanded(
                                           child: ListView.separated(
+                                            key: const ValueKey('inventory_body_list'),
+                                            primary: false,
                                             controller: _bodyController,
                                             itemCount: sortedItems.length + 1,
                                             separatorBuilder:

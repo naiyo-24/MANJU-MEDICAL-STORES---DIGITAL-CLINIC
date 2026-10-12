@@ -245,6 +245,8 @@ class _BillingLeftPanelState extends ConsumerState<BillingLeftPanel> {
                           _buildConditionalExpanded(
                             widget.hasEnoughHeight,
                             ListView.separated(
+                              key: const ValueKey('billing_head_list'),
+                              primary: false,
                               controller: _headController,
                               shrinkWrap: !widget.hasEnoughHeight,
                               physics: widget.hasEnoughHeight ? const AlwaysScrollableScrollPhysics() : const NeverScrollableScrollPhysics(),
@@ -313,6 +315,8 @@ class _BillingLeftPanelState extends ConsumerState<BillingLeftPanel> {
                               _buildConditionalExpanded(
                                 widget.hasEnoughHeight,
                                 ListView.separated(
+                                  key: const ValueKey('billing_body_list'),
+                                  primary: false,
                                   controller: _bodyController,
                                   shrinkWrap: !widget.hasEnoughHeight,
                                   physics: widget.hasEnoughHeight ? const AlwaysScrollableScrollPhysics() : const NeverScrollableScrollPhysics(),
