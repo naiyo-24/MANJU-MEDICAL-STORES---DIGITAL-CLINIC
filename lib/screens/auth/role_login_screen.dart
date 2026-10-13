@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../services/auth_service.dart';
+import '../../utils/responsive.dart';
 
 class RoleLoginScreen extends StatefulWidget {
   final String roleName;
@@ -123,8 +124,9 @@ class _RoleLoginScreenState extends State<RoleLoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-    final isWeb = size.width > 900;
+    final isDesktop = Responsive.isDesktop(context);
+    final isTablet = Responsive.isTablet(context);
+    final isWide = isDesktop || isTablet;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     
     final scaffoldBg = isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC);
@@ -141,11 +143,11 @@ class _RoleLoginScreenState extends State<RoleLoginScreen> {
           child: ShaderMask(
             shaderCallback: (rect) {
               return LinearGradient(
-                begin: isWeb ? Alignment.centerLeft : Alignment.topCenter,
-                end: isWeb ? Alignment.centerRight : Alignment.bottomCenter,
+                begin: isWide ? Alignment.centerLeft : Alignment.topCenter,
+                end: isWide ? Alignment.centerRight : Alignment.bottomCenter,
                 colors: [
                   shaderColor, 
-                  shaderColor.withValues(alpha: isWeb ? 0.2 : 0.5)
+                  shaderColor.withValues(alpha: isWide ? 0.2 : 0.5)
                 ],
                 stops: const [0.4, 1.0],
               ).createShader(rect);
@@ -164,10 +166,10 @@ class _RoleLoginScreenState extends State<RoleLoginScreen> {
           child: Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                begin: isWeb ? Alignment.centerLeft : Alignment.topCenter,
-                end: isWeb ? Alignment.centerRight : Alignment.bottomCenter,
+                begin: isWide ? Alignment.centerLeft : Alignment.topCenter,
+                end: isWide ? Alignment.centerRight : Alignment.bottomCenter,
                 colors: [
-                  scaffoldBg.withValues(alpha: isWeb ? 0.95 : 0.85),
+                  scaffoldBg.withValues(alpha: isWide ? 0.95 : 0.85),
                   scaffoldBg.withValues(alpha: 0.6),
                 ],
               ),
@@ -177,71 +179,75 @@ class _RoleLoginScreenState extends State<RoleLoginScreen> {
         // Foreground UI
         Scaffold(
           backgroundColor: Colors.transparent,
-          body: LayoutBuilder(
-            builder: (context, constraints) {
-              return SingleChildScrollView(
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                  child: IntrinsicHeight(
-                    child: Column(
-                      children: [
-                        // Custom Top Bar
-                        Container(
-                          color: widget.themeColor,
-                          padding: EdgeInsets.only(
-                            top: MediaQuery.of(context).padding.top + 4,
-                            bottom: 8,
-                            left: 24,
-                            right: 24,
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              TextButton.icon(
-                                onPressed: () => Navigator.pop(context),
-                                icon: const Icon(
-                                  Icons.arrow_back,
-                                  color: Colors.white,
-                                  size: 18,
-                                ),
-                                label: const Text(
-                                  'Back',
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                              ),
-                              Text(
-                                '${widget.roleName} Login',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
-                                ),
-                              ),
-                              if (isWeb)
-                                const Text(
-                                  'SirfBill Bill Karo, Befikar Raho',
-                                  style: TextStyle(color: Colors.white70, fontSize: 12),
-                                )
-                              else
-                                const SizedBox(width: 60), // Balance the row
-                            ],
-                          ),
+          body: SafeArea(
+            child: Column(
+              children: [
+                // Custom Top Bar
+                Container(
+                  color: widget.themeColor,
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 8,
+                    horizontal: 16,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      TextButton.icon(
+                        onPressed: () => Navigator.pop(context),
+                        icon: const Icon(
+                          Icons.arrow_back,
+                          color: Colors.white,
+                          size: 18,
                         ),
+                        label: const Text(
+                          'Back',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ),
+                      Text(
+                        '${widget.roleName} Login',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                      if (isWide)
+                        const Text(
+                          'SirfBill Bill Karo, Befikar Raho',
+                          style: TextStyle(color: Colors.white70, fontSize: 12),
+                        )
+                      else
+                        const SizedBox(width: 60), // Balance the row
+                    ],
+                  ),
+                ),
 
-                        Expanded(child: isWeb ? _buildWebLayout() : _buildMobileLayout()),
+                // Main Content (Scrollable & Responsive)
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: Responsive.horizontalPadding(context),
+                      vertical: 16.0,
+                    ),
+                    child: Center(
+                      child: isWide ? _buildWebLayout(isTablet) : _buildMobileLayout(),
+                    ),
+                  ),
+                ),
 
-                        // Footer
-                        Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: isWeb ? 48 : 24,
-                            vertical: 16,
-                          ),
-                          child: isWeb
-                              ? Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    const Text(
-                                      '© 2026 SirfBill Bill Karo, Befikar Raho. All rights reserved.',
+                // Footer
+                Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: isWide ? 48 : 24,
+                    vertical: 12,
+                  ),
+                  child: isWide
+                      ? Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text(
+                              '© 2026 SirfBill Bill Karo, Befikar Raho. All rights reserved.',
                                       style: TextStyle(
                                         color: Color(0xFF94A3B8),
                                         fontSize: 12,
@@ -289,13 +295,9 @@ class _RoleLoginScreenState extends State<RoleLoginScreen> {
                                     ),
                                   ],
                                 ),
-                        ),
-                      ],
-                    ),
-                  ),
                 ),
-              );
-            },
+              ],
+            ),
           ),
         ), // Closes Scaffold
       ],
@@ -395,27 +397,31 @@ class _RoleLoginScreenState extends State<RoleLoginScreen> {
     );
   }
 
-  Widget _buildWebLayout() {
+  Widget _buildWebLayout(bool isTablet) {
     return Center(
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 1200),
+        constraints: BoxConstraints(maxWidth: isTablet ? 950 : 1200),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 64.0, vertical: 16.0),
+          padding: EdgeInsets.symmetric(
+            horizontal: isTablet ? 24.0 : 64.0,
+            vertical: 16.0,
+          ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               // Left Content
               Expanded(
-                flex: 1,
+                flex: isTablet ? 5 : 6,
                 child: _buildWelcomeInfo(),
               ),
+              const SizedBox(width: 32),
               // Right Login Card
               Expanded(
-                flex: 1,
+                flex: isTablet ? 5 : 5,
                 child: Align(
                   alignment: Alignment.center,
                   child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 400),
+                    constraints: const BoxConstraints(maxWidth: 420),
                     child: _buildLoginCard(),
                   ),
                 ),

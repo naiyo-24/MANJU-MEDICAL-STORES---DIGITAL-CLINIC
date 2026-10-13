@@ -5,10 +5,6 @@ import 'package:file_saver/file_saver.dart';
 import 'package:excel/excel.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'dart:io';
-import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:path_provider/path_provider.dart';
-import 'package:share_plus/share_plus.dart';
 import 'shop_settings_service.dart';
 import '../config/api_constants.dart';
 
@@ -75,7 +71,7 @@ class ExportService {
   ]) async {
     final pdf = pw.Document();
 
-    if (shopDetails == null) {
+    if (shopDetails == null || shopDetails.isEmpty) {
       try {
         shopDetails = await ShopSettingsService.getSettings();
       } catch (e) {
@@ -93,16 +89,32 @@ class ExportService {
 
       // Load the logo image
       pw.ImageProvider logoImage;
-      if (shopDetails?['logo_url'] != null && shopDetails!['logo_url'].toString().isNotEmpty) {
+      if (shopDetails?['logo_url'] != null && shopDetails!['logo_url'].toString().trim().isNotEmpty) {
         try {
-          final logoUrl = shopDetails['logo_url'].toString().startsWith('http') 
-              ? shopDetails['logo_url'] 
-              : '${ApiConstants.baseUrl}${shopDetails['logo_url']}';
+          final rawUrl = shopDetails['logo_url'].toString().trim();
+          final logoUrl = rawUrl.startsWith('http') 
+              ? rawUrl 
+              : '${ApiConstants.baseUrl}$rawUrl';
+          
+          final encodedUrl = Uri.encodeFull(logoUrl);
+          final cacheBusterUrl = encodedUrl.contains('?')
+              ? '$encodedUrl&_t=${DateTime.now().millisecondsSinceEpoch}'
+              : '$encodedUrl?_t=${DateTime.now().millisecondsSinceEpoch}';
+
           final response = await Dio().get(
-            logoUrl,
-            options: Options(responseType: ResponseType.bytes),
+            cacheBusterUrl,
+            options: Options(
+              responseType: ResponseType.bytes,
+              headers: {'Cache-Control': 'no-cache'},
+            ),
           );
-          logoImage = pw.MemoryImage(Uint8List.fromList(response.data));
+
+          if (response.statusCode == 200 && response.data != null) {
+            logoImage = pw.MemoryImage(Uint8List.fromList(List<int>.from(response.data)));
+          } else {
+            final logoBytes = await rootBundle.load('assets/LOGO.png');
+            logoImage = pw.MemoryImage(logoBytes.buffer.asUint8List());
+          }
         } catch (e) {
           final logoBytes = await rootBundle.load('assets/LOGO.png');
           logoImage = pw.MemoryImage(logoBytes.buffer.asUint8List());
