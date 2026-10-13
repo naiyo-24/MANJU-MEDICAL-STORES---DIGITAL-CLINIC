@@ -9,9 +9,6 @@ import '../../services/shop_settings_service.dart';
 import '../../utils/responsive.dart';
 import '../../utils/pdf_generator.dart';
 import '../../config/api_constants.dart';
-import 'package:dio/dio.dart';
-import '../../config/api_client.dart';
-import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/counter_providers.dart';
 
@@ -181,16 +178,12 @@ class _BillCustomizationScreenState
           url = await ShopSettingsService.uploadLogo(bytes, filename);
           setState(() {
             _logoUrl = url;
-            _cachedLogoBytes = bytes;
-            _cachedLogoUrl = url;
           });
           PdfGenerator.clearImageCache();
         } else {
           url = await ShopSettingsService.uploadQr(bytes, filename);
           setState(() {
             _qrUrl = url;
-            _cachedQrBytes = bytes;
-            _cachedQrUrl = url;
           });
           PdfGenerator.clearImageCache();
         }
@@ -206,13 +199,6 @@ class _BillCustomizationScreenState
       }
     }
   }
-
-  // Local cache for images
-  static Uint8List? _cachedDefaultLogo;
-  static Uint8List? _cachedLogoBytes;
-  static String? _cachedLogoUrl;
-  static Uint8List? _cachedQrBytes;
-  static String? _cachedQrUrl;
 
   Future<void> _generatePreviewPdf() async {
     setState(() {
@@ -234,65 +220,7 @@ class _BillCustomizationScreenState
       ),
     );
 
-    // Fetch images asynchronously without blocking UI thread
-    Uint8List? finalLogoBytes;
-    Uint8List? finalQrBytes;
-
     try {
-      if (_logoUrl != null && _logoUrl!.trim().isNotEmpty) {
-        if (_cachedLogoUrl == _logoUrl && _cachedLogoBytes != null) {
-          finalLogoBytes = _cachedLogoBytes;
-        } else {
-          final encodedUrl = Uri.encodeFull(_logoUrl!.trim());
-          final cacheBusterUrl = encodedUrl.contains('?')
-              ? '$encodedUrl&_t=${DateTime.now().millisecondsSinceEpoch}'
-              : '$encodedUrl?_t=${DateTime.now().millisecondsSinceEpoch}';
-
-          final res = await ApiClient().dio.get(
-            cacheBusterUrl,
-            options: Options(
-              responseType: ResponseType.bytes,
-              headers: {'Cache-Control': 'no-cache'},
-            ),
-          );
-          if (res.statusCode == 200 && res.data != null) {
-            _cachedLogoBytes = Uint8List.fromList(List<int>.from(res.data));
-            _cachedLogoUrl = _logoUrl;
-            finalLogoBytes = _cachedLogoBytes;
-          }
-        }
-      } else {
-        if (_cachedDefaultLogo == null) {
-          final ByteData bytes = await rootBundle.load('assets/LOGO.png');
-          _cachedDefaultLogo = bytes.buffer.asUint8List();
-        }
-        finalLogoBytes = _cachedDefaultLogo;
-      }
-
-      if (_qrUrl != null && _qrUrl!.trim().isNotEmpty) {
-        if (_cachedQrUrl == _qrUrl && _cachedQrBytes != null) {
-          finalQrBytes = _cachedQrBytes;
-        } else {
-          final encodedUrl = Uri.encodeFull(_qrUrl!.trim());
-          final cacheBusterUrl = encodedUrl.contains('?')
-              ? '$encodedUrl&_t=${DateTime.now().millisecondsSinceEpoch}'
-              : '$encodedUrl?_t=${DateTime.now().millisecondsSinceEpoch}';
-
-          final res = await ApiClient().dio.get(
-            cacheBusterUrl,
-            options: Options(
-              responseType: ResponseType.bytes,
-              headers: {'Cache-Control': 'no-cache'},
-            ),
-          );
-          if (res.statusCode == 200 && res.data != null) {
-            _cachedQrBytes = Uint8List.fromList(List<int>.from(res.data));
-            _cachedQrUrl = _qrUrl;
-            finalQrBytes = _cachedQrBytes;
-          }
-        }
-      }
-
       final settings = ShopSettings(
         shopName: _shopNameCtrl.text,
         tagline: _taglineCtrl.text,
@@ -353,38 +281,23 @@ class _BillCustomizationScreenState
         ),
       ].map((e) => e.toMap()).toList();
 
-      final args = {
-        'items': dummyItems,
-        'subtotal': 170.0,
-        'discount': 0.0,
-        'tax': 20.4,
-        'grandTotal': 190.4,
-        'invoiceNumber': 'PREVIEW-001',
-        'customerName': 'John Doe',
-        'customerPhone': '9876543210',
-        'customerLocation': 'Mumbai',
-        'doctorName': 'Dr. Smith',
-        'format': _previewFormat,
-        'shopSettings': settings.toMap(),
-        'logoBytes': finalLogoBytes,
-        'qrBytes': finalQrBytes,
-      };
+      final shopSettingsMap = settings.toMap();
+      shopSettingsMap['logo_url'] = _logoUrl;
+      shopSettingsMap['qr_url'] = _qrUrl;
 
       final bytes = await PdfGenerator.generateBill(
-        items: args['items'] as List<Map<String, dynamic>>,
-        subtotal: args['subtotal'] as double,
-        discount: args['discount'] as double,
-        tax: args['tax'] as double,
-        grandTotal: args['grandTotal'] as double,
-        invoiceNumber: args['invoiceNumber'] as String,
-        customerName: args['customerName'] as String,
-        customerPhone: args['customerPhone'] as String,
-        customerLocation: args['customerLocation'] as String,
-        doctorName: args['doctorName'] as String,
-        format: args['format'] as String,
-        shopSettings: args['shopSettings'] as Map<String, dynamic>,
-        logoBytes: args['logoBytes'] as Uint8List?,
-        qrBytes: args['qrBytes'] as Uint8List?,
+        items: dummyItems,
+        subtotal: 170.0,
+        discount: 0.0,
+        tax: 20.4,
+        grandTotal: 190.4,
+        invoiceNumber: 'PREVIEW-001',
+        customerName: 'John Doe',
+        customerPhone: '9876543210',
+        customerLocation: 'Mumbai',
+        doctorName: 'Dr. Smith',
+        format: _previewFormat,
+        shopSettings: shopSettingsMap,
       );
 
       if (mounted) {
@@ -460,6 +373,14 @@ class _BillCustomizationScreenState
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<AsyncValue<Map<String, dynamic>>>(settingsProvider, (previous, next) {
+      next.whenData((settings) {
+        if (!_isSaving) {
+          _populateFields(settings);
+        }
+      });
+    });
+
     final settingsAsync = ref.watch(settingsProvider);
     if (settingsAsync.isLoading) {
       return const Center(child: CircularProgressIndicator());
