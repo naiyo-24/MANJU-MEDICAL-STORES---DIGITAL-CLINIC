@@ -1584,7 +1584,7 @@ Icon(
                                 final amt =
                                     (h['amount'] as num?)?.toDouble() ?? 0.0;
                                 return InkWell(
-                                  onTap: () {
+                                  onTap: () async {
                                     final dt = date ?? DateTime.now();
                                     final itemsList =
                                         (h['items_detail'] as List?)
@@ -1628,10 +1628,22 @@ Icon(
                                       items: itemsList,
                                       createdAt: dt,
                                     );
+                                    Map<String, dynamic> settings =
+                                        ref.read(settingsProvider).value ?? {};
+                                    if (settings.isEmpty) {
+                                      try {
+                                        settings = await ref.read(settingsProvider.future);
+                                      } catch (_) {
+                                        settings = {};
+                                      }
+                                    }
+
+                                    if (!context.mounted) return;
+
                                     showViewBillDialog(
                                       context,
                                       bill,
-                                      ref.read(settingsProvider).value ?? {},
+                                      settings,
                                     );
                                   },
                                   child: Padding(
