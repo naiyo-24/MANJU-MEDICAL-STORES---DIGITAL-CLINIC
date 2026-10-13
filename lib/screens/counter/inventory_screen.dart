@@ -13,9 +13,6 @@ import '../../services/rack_service.dart';
 import '../../services/category_service.dart';
 import '../../widgets/custom_date_range_picker.dart';
 import 'package:intl/intl.dart';
-import '../../widgets/rack_dropdown.dart';
-import '../../widgets/category_dropdown.dart';
-import '../../widgets/distributor_dropdown.dart';
 
 class InventoryScreen extends ConsumerStatefulWidget {
   const InventoryScreen({super.key});
@@ -317,9 +314,6 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
       color: Theme.of(context).scaffoldBackgroundColor,
       child: LayoutBuilder(
         builder: (context, screenConstraints) {
-          bool isScreenShort =
-              screenConstraints.maxHeight < 850 ||
-              screenConstraints.maxWidth < 1000;
           final isDesktopWidth = screenConstraints.maxWidth >= 1000;
           Widget content = Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
