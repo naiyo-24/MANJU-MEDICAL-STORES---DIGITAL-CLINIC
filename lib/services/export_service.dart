@@ -142,21 +142,28 @@ class ExportService {
                         crossAxisAlignment: pw.CrossAxisAlignment.start,
                         children: [
                           pw.Text(
-                            shopDetails?['name']?.toString() ?? 'Shop Directory Report',
+                            shopDetails?['name']?.toString() ??
+                                shopDetails?['shop_name']?.toString() ??
+                                'Shop Directory Report',
                             style: pw.TextStyle(
                               fontSize: 22,
                               fontWeight: pw.FontWeight.bold,
                               color: PdfColors.green700,
                             ),
                           ),
-                          if (shopDetails?['location'] != null || shopDetails?['city'] != null)
+                          if (shopDetails?['location'] != null ||
+                              shopDetails?['address'] != null ||
+                              shopDetails?['city'] != null)
                             pw.Text(
-                              [shopDetails?['location'], shopDetails?['city']].where((e) => e != null && e.toString().isNotEmpty).join(', '),
+                              [
+                                shopDetails?['location'] ?? shopDetails?['address'],
+                                shopDetails?['city']
+                              ].where((e) => e != null && e.toString().isNotEmpty).join(', '),
                               style: pw.TextStyle(fontSize: 12, color: PdfColors.grey700),
                             ),
-                          if (shopDetails?['contact'] != null)
+                          if (shopDetails?['contact'] != null || shopDetails?['phone'] != null)
                             pw.Text(
-                              'Phone: ${shopDetails?['contact']}',
+                              'Phone: ${shopDetails?['contact'] ?? shopDetails?['phone']}',
                               style: pw.TextStyle(fontSize: 12, color: PdfColors.grey700),
                             ),
                           if (shopDetails?['email'] != null)
@@ -164,9 +171,9 @@ class ExportService {
                               'Email: ${shopDetails?['email']}',
                               style: pw.TextStyle(fontSize: 12, color: PdfColors.grey700),
                             ),
-                          if (shopDetails?['gstin'] != null)
+                          if (shopDetails?['gstin'] != null || shopDetails?['gst_number'] != null)
                             pw.Text(
-                              'GSTIN: ${shopDetails?['gstin']}',
+                              'GSTIN: ${shopDetails?['gstin'] ?? shopDetails?['gst_number']}',
                               style: pw.TextStyle(fontSize: 12, color: PdfColors.grey700),
                             ),
                         ],

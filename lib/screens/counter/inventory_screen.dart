@@ -199,7 +199,8 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
         }).toList() ??
         [];
 
-    final settings = ref.read(settingsProvider).value ?? {};
+    final settings = ref.read(settingsProvider).value ??
+        await ref.read(settingsProvider.future).catchError((_) => <String, dynamic>{});
     final shopDetails = {
       'name': settings['shop_name'] ?? 'MANJU MEDICAL STORES',
       'location': settings['address'],

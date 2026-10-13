@@ -391,9 +391,12 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
     final timestamp = DateTime.now().millisecondsSinceEpoch;
     final filename = 'accounts_$timestamp';
 
+    final settings = ref.read(settingsProvider).value ??
+        await ref.read(settingsProvider.future).catchError((_) => <String, dynamic>{});
+
     try {
       if (format == 'pdf') {
-        await ExportService.exportToPDF(exportData, filename);
+        await ExportService.exportToPDF(exportData, filename, settings);
       } else if (format == 'excel') {
         await ExportService.exportToExcel(exportData, filename);
       } else if (format == 'csv') {

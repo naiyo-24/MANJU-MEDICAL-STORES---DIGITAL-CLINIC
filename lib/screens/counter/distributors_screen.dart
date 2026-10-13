@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../providers/counter_providers.dart';
 import '../../providers/distributor_provider.dart';
 import 'widgets/distributors/add_distributor_dialog.dart';
 import 'widgets/distributors/dashboard/distributor_kpi_cards.dart';
@@ -83,12 +84,15 @@ class _DistributorsScreenState extends ConsumerState<DistributorsScreen> {
                         }).toList();
 
                         final timestamp = DateTime.now().millisecondsSinceEpoch;
+                        final settings = ref.read(settingsProvider).value ??
+                            await ref.read(settingsProvider.future).catchError((_) => <String, dynamic>{});
+
                         if (value == 'csv') {
                           await ExportService.exportToCSV(dataToExport, 'Distributors_$timestamp');
                         } else if (value == 'excel') {
                           await ExportService.exportToExcel(dataToExport, 'Distributors_$timestamp');
                         } else if (value == 'pdf') {
-                          await ExportService.exportToPDF(dataToExport, 'Distributors_$timestamp');
+                          await ExportService.exportToPDF(dataToExport, 'Distributors_$timestamp', settings);
                         }
                       },
                       offset: const Offset(0, 40),

@@ -1,18 +1,20 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../providers/counter_providers.dart';
 import '../../services/shop_service.dart';
 import '../../services/export_service.dart';
 import 'widgets/shop/shop_summary_cards.dart';
 import 'widgets/shop/shop_table.dart';
 
-class ShopManagementScreen extends StatefulWidget {
+class ShopManagementScreen extends ConsumerStatefulWidget {
   const ShopManagementScreen({super.key});
 
   @override
-  State<ShopManagementScreen> createState() => _ShopManagementScreenState();
+  ConsumerState<ShopManagementScreen> createState() => _ShopManagementScreenState();
 }
 
-class _ShopManagementScreenState extends State<ShopManagementScreen> {
+class _ShopManagementScreenState extends ConsumerState<ShopManagementScreen> {
   List<Shop> _shops = [];
   bool _isLoading = true;
   String _searchQuery = '';
@@ -74,9 +76,12 @@ class _ShopManagementScreenState extends State<ShopManagementScreen> {
     final timestamp = DateTime.now().millisecondsSinceEpoch;
     final filename = 'shops_$timestamp';
 
+    final settings = ref.read(settingsProvider).value ??
+        await ref.read(settingsProvider.future).catchError((_) => <String, dynamic>{});
+
     try {
       if (format == 'pdf') {
-        await ExportService.exportToPDF(exportData, filename);
+        await ExportService.exportToPDF(exportData, filename, settings);
       } else if (format == 'excel') {
         await ExportService.exportToExcel(exportData, filename);
       } else if (format == 'csv') {
