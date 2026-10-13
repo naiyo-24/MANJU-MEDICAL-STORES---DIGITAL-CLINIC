@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../../models/settings_models.dart';
@@ -180,10 +179,20 @@ class _BillCustomizationScreenState
         String url;
         if (isLogo) {
           url = await ShopSettingsService.uploadLogo(bytes, filename);
-          setState(() => _logoUrl = url);
+          setState(() {
+            _logoUrl = url;
+            _cachedLogoBytes = bytes;
+            _cachedLogoUrl = url;
+          });
+          PdfGenerator.clearImageCache();
         } else {
           url = await ShopSettingsService.uploadQr(bytes, filename);
-          setState(() => _qrUrl = url);
+          setState(() {
+            _qrUrl = url;
+            _cachedQrBytes = bytes;
+            _cachedQrUrl = url;
+          });
+          PdfGenerator.clearImageCache();
         }
       } catch (e) {
         if (mounted) {
@@ -230,16 +239,24 @@ class _BillCustomizationScreenState
     Uint8List? finalQrBytes;
 
     try {
-      if (_logoUrl != null && _logoUrl!.isNotEmpty) {
+      if (_logoUrl != null && _logoUrl!.trim().isNotEmpty) {
         if (_cachedLogoUrl == _logoUrl && _cachedLogoBytes != null) {
           finalLogoBytes = _cachedLogoBytes;
         } else {
+          final encodedUrl = Uri.encodeFull(_logoUrl!.trim());
+          final cacheBusterUrl = encodedUrl.contains('?')
+              ? '$encodedUrl&_t=${DateTime.now().millisecondsSinceEpoch}'
+              : '$encodedUrl?_t=${DateTime.now().millisecondsSinceEpoch}';
+
           final res = await ApiClient().dio.get(
-            _logoUrl!,
-            options: Options(responseType: ResponseType.bytes),
+            cacheBusterUrl,
+            options: Options(
+              responseType: ResponseType.bytes,
+              headers: {'Cache-Control': 'no-cache'},
+            ),
           );
-          if (res.statusCode == 200) {
-            _cachedLogoBytes = res.data;
+          if (res.statusCode == 200 && res.data != null) {
+            _cachedLogoBytes = Uint8List.fromList(List<int>.from(res.data));
             _cachedLogoUrl = _logoUrl;
             finalLogoBytes = _cachedLogoBytes;
           }
@@ -252,16 +269,24 @@ class _BillCustomizationScreenState
         finalLogoBytes = _cachedDefaultLogo;
       }
 
-      if (_qrUrl != null && _qrUrl!.isNotEmpty) {
+      if (_qrUrl != null && _qrUrl!.trim().isNotEmpty) {
         if (_cachedQrUrl == _qrUrl && _cachedQrBytes != null) {
           finalQrBytes = _cachedQrBytes;
         } else {
+          final encodedUrl = Uri.encodeFull(_qrUrl!.trim());
+          final cacheBusterUrl = encodedUrl.contains('?')
+              ? '$encodedUrl&_t=${DateTime.now().millisecondsSinceEpoch}'
+              : '$encodedUrl?_t=${DateTime.now().millisecondsSinceEpoch}';
+
           final res = await ApiClient().dio.get(
-            _qrUrl!,
-            options: Options(responseType: ResponseType.bytes),
+            cacheBusterUrl,
+            options: Options(
+              responseType: ResponseType.bytes,
+              headers: {'Cache-Control': 'no-cache'},
+            ),
           );
-          if (res.statusCode == 200) {
-            _cachedQrBytes = res.data;
+          if (res.statusCode == 200 && res.data != null) {
+            _cachedQrBytes = Uint8List.fromList(List<int>.from(res.data));
             _cachedQrUrl = _qrUrl;
             finalQrBytes = _cachedQrBytes;
           }
