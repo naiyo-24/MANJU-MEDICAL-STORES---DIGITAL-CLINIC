@@ -208,6 +208,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                           "amount": double.tryParse(amountCtrl.text) ?? 0.0,
                           "transaction_type": typeCtrl.text.toUpperCase(),
                           "description": descriptionCtrl.text,
+                          "payment_mode": paymentModeCtrl.text,
                         };
 
                         await TransactionService.saveTransaction(payload);
