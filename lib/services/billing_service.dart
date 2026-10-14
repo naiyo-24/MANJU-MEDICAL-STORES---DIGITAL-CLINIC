@@ -74,6 +74,7 @@ class BillingService {
         queryParameters: {
           'shop_id': shopId,
           'limit': 1000,
+          '_t': DateTime.now().millisecondsSinceEpoch,
         },
       );
 
