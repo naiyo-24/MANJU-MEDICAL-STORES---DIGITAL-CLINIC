@@ -756,6 +756,9 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
           items: List.from(_currentBill),
           createdAt: DateTime.now(),
           format: ref.read(billingProvider).selectedFormat,
+          shopSettings: currentSettings != null
+              ? Map<String, dynamic>.from(currentSettings)
+              : null,
         ),
       );
 

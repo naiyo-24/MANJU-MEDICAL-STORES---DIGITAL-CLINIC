@@ -218,17 +218,22 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
   }
 
   void _viewBill(SavedBill bill) async {
-    // Ensure settings are loaded BEFORE opening dialog
+    // Prioritize snapshot shop settings stored at the time the bill was created
     Map<String, dynamic> shopSettings = {};
-    final settingsAsync = ref.read(settingsProvider);
-    if (settingsAsync.value != null) {
-      shopSettings = settingsAsync.value!;
+    if (bill.shopSettings != null && bill.shopSettings!.isNotEmpty) {
+      shopSettings = bill.shopSettings!;
     } else {
-      // Force load settings if not yet loaded
-      try {
-        shopSettings = await ref.read(settingsProvider.future);
-      } catch (_) {
-        shopSettings = {};
+      // Fallback to loaded live settings if historical snapshot is not present
+      final settingsAsync = ref.read(settingsProvider);
+      if (settingsAsync.value != null) {
+        shopSettings = settingsAsync.value!;
+      } else {
+        // Force load settings if not yet loaded
+        try {
+          shopSettings = await ref.read(settingsProvider.future);
+        } catch (_) {
+          shopSettings = {};
+        }
       }
     }
 

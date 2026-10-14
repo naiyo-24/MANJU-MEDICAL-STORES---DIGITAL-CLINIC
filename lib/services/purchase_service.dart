@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../config/api_client.dart';
 
@@ -44,9 +43,12 @@ class PurchaseService {
     }
   }
   // Mark a purchase bill as PAID
-  Future<void> markBillAsPaid(String billId) async {
+  Future<void> markBillAsPaid(String billId, {String paymentMethod = 'CASH'}) async {
     try {
-      final response = await _apiClient.dio.patch('/api/admin/purchases/$billId/pay');
+      final response = await _apiClient.dio.patch(
+        '/api/admin/purchases/$billId/pay',
+        data: {'payment_method': paymentMethod},
+      );
       if (response.statusCode != 200) {
         throw Exception('Failed to mark bill as paid');
       }

@@ -283,6 +283,12 @@ class DistributorDetailScreen extends ConsumerWidget {
     final inventoryList = ref.read(inventoryProvider).value ?? [];
     
     bool isPaying = false;
+    String selectedPaymentMethod = (bill['payment_method']?.toString().toUpperCase() == 'ONLINE' ||
+            bill['payment_method']?.toString().toUpperCase() == 'UPI' ||
+            bill['payment_method']?.toString().toUpperCase() == 'BANK')
+        ? 'ONLINE'
+        : 'CASH';
+
     showDialog(
       context: context,
       builder: (context) => StatefulBuilder(
@@ -372,7 +378,40 @@ class DistributorDetailScreen extends ConsumerWidget {
               }
             },
           ),
-          if (bill['payment_status'] != 'PAID')
+          if (bill['payment_status'] != 'PAID') ...[
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+              decoration: BoxDecoration(
+                border: Border.all(color: const Color(0xFFCBD5E1)),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: DropdownButtonHideUnderline(
+                child: DropdownButton<String>(
+                  value: selectedPaymentMethod,
+                  dropdownColor: Colors.white,
+                  items: const [
+                    DropdownMenuItem(
+                      value: 'CASH',
+                      child: Text('Cash Account', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                    ),
+                    DropdownMenuItem(
+                      value: 'ONLINE',
+                      child: Text('Bank / UPI', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                    ),
+                  ],
+                  onChanged: isPaying
+                      ? null
+                      : (val) {
+                          if (val != null) {
+                            setDialogState(() {
+                              selectedPaymentMethod = val;
+                            });
+                          }
+                        },
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
             ElevatedButton(
               style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF166534)),
               onPressed: isPaying
@@ -382,9 +421,12 @@ class DistributorDetailScreen extends ConsumerWidget {
                         isPaying = true;
                       });
                       try {
-                        // Call service to pay bill
+                        // Call service to pay bill with chosen payment method
                         final svc = ref.read(purchaseServiceProvider);
-                        await svc.markBillAsPaid(bill['id']);
+                        await svc.markBillAsPaid(
+                          bill['id'],
+                          paymentMethod: selectedPaymentMethod,
+                        );
                         
                         // Refresh the UI immediately
                         ref.invalidate(purchaseBillsProvider);
@@ -395,7 +437,10 @@ class DistributorDetailScreen extends ConsumerWidget {
                         if (context.mounted) {
                           Navigator.pop(context);
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Bill marked as PAID!'), backgroundColor: Colors.green),
+                            SnackBar(
+                              content: Text('Bill marked as PAID via $selectedPaymentMethod!'),
+                              backgroundColor: Colors.green,
+                            ),
                           );
                         }
                       } catch (e) {
@@ -417,6 +462,7 @@ class DistributorDetailScreen extends ConsumerWidget {
                     )
                   : const Text('Mark as Paid', style: TextStyle(color: Colors.white)),
             ),
+          ],
         ],
       ),
       ),

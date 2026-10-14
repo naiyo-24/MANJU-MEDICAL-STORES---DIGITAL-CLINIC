@@ -1626,6 +1626,13 @@ Icon(
                                       grandTotal: grandTotalVal,
                                       items: itemsList,
                                       createdAt: dt,
+                                      shopSettings: h['shop_details'] != null
+                                          ? Map<String, dynamic>.from(h['shop_details'])
+                                          : (h['shop_settings'] != null
+                                              ? Map<String, dynamic>.from(h['shop_settings'])
+                                              : (h['shopSettings'] != null
+                                                  ? Map<String, dynamic>.from(h['shopSettings'])
+                                                  : null)),
                                     );
                                     Map<String, dynamic> settings =
                                         ref.read(settingsProvider).value ?? {};
