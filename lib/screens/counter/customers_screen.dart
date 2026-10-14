@@ -1895,7 +1895,9 @@ Icon(
             TextButton(
               onPressed: () async {
                 Navigator.pop(context);
-                await ExportService.exportToPDF(exportData, '${customer['name']}_export');
+                final settings = ref.read(settingsProvider).value ??
+                    await ref.read(settingsProvider.future).catchError((_) => <String, dynamic>{});
+                await ExportService.exportToPDF(exportData, '${customer['name']}_export', settings);
               },
               child: const Text('PDF'),
             ),

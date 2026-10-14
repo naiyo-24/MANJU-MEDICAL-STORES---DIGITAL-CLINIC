@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../providers/distributor_provider.dart';
 import '../../providers/counter_providers.dart';
+import '../../config/api_constants.dart';
 import 'package:go_router/go_router.dart';
 
 class DistributorDetailScreen extends ConsumerWidget {
@@ -371,7 +372,7 @@ class DistributorDetailScreen extends ConsumerWidget {
             onPressed: () async {
               final billId = bill['id'];
               if (billId != null) {
-                final url = Uri.parse('http://192.168.0.159:8000/api/admin/purchases/$billId/pdf');
+                final url = Uri.parse('${ApiConstants.baseUrl}/api/admin/purchases/$billId/pdf');
                 if (await canLaunchUrl(url)) {
                   await launchUrl(url, mode: LaunchMode.externalApplication);
                 }

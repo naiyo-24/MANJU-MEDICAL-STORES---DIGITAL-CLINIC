@@ -6,6 +6,7 @@ import '../../providers/counter_providers.dart';
 import '../../services/purchase_service.dart';
 import '../../services/inventory_service.dart';
 import '../../providers/distributor_provider.dart';
+import '../../config/api_constants.dart';
 
 class AddPurchaseBillScreen extends ConsumerStatefulWidget {
   final Map<String, dynamic> distributor;
@@ -158,7 +159,7 @@ class _AddPurchaseBillScreenState extends ConsumerState<AddPurchaseBillScreen> {
                 icon: const Icon(Icons.print),
                 label: const Text('Generate Bill (PDF)'),
                 onPressed: () async {
-                  final url = Uri.parse('http://192.168.0.159:8000/api/admin/purchases/$billId/pdf');
+                  final url = Uri.parse('${ApiConstants.baseUrl}/api/admin/purchases/$billId/pdf');
                   if (await canLaunchUrl(url)) {
                     await launchUrl(url, mode: LaunchMode.externalApplication);
                   }
