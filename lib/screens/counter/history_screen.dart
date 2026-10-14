@@ -5,7 +5,6 @@ import 'dart:typed_data';
 import 'package:excel/excel.dart' hide Border;
 import 'package:file_saver/file_saver.dart';
 import 'package:pdf/pdf.dart';
-import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import '../../widgets/custom_date_range_picker.dart';
 import '../../widgets/custom_pagination.dart';
@@ -171,7 +170,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
     var fileBytes = excel.save();
     if (fileBytes != null) {
       try {
-        final path = await FileSaver.instance.saveAs(
+        await FileSaver.instance.saveAs(
           name: 'History_Report_${DateTime.now().millisecondsSinceEpoch}',
           bytes: Uint8List.fromList(fileBytes),
           fileExtension: 'xlsx',
@@ -213,7 +212,9 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
       }).toList();
 
       final timestamp = DateTime.now().millisecondsSinceEpoch;
-      await ExportService.exportToPDF(dataToExport, 'History_Report_$timestamp');
+      final settings = ref.read(settingsProvider).value ??
+          await ref.read(settingsProvider.future).catchError((_) => <String, dynamic>{});
+      await ExportService.exportToPDF(dataToExport, 'History_Report_$timestamp', settings);
   }
 
   void _viewBill(SavedBill bill) async {
