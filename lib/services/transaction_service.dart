@@ -61,8 +61,9 @@ class TransactionModel {
       category: categoryName,
       description: json['description'] ?? '',
       amount: (json['amount'] ?? 0.0).toDouble(),
-      paymentMode:
-          'Cash', // Defaulting as backend doesn't seem to store it explicitly unless we use accounts
+      paymentMode: json['payment_mode'] != null && json['payment_mode'].toString().isNotEmpty
+          ? json['payment_mode'].toString()
+          : 'Cash',
     );
   }
 }
