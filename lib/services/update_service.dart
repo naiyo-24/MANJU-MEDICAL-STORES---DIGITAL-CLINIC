@@ -52,9 +52,9 @@ class UpdateService {
   final String manifestUrl;
   final String updaterExecutableName;
 
-  /// Default GitHub repository manifest URL for SirfBill / Manju Medical Stores
+  /// Default GitHub repository manifest URL for SirfBill
   static const String defaultManifestUrl =
-      'https://raw.githubusercontent.com/naiyo-24/MANJU-MEDICAL-STORES---DIGITAL-CLINIC/main/release/latest.json';
+      'https://github.com/naiyo-24/MANJU-MEDICAL-STORES---DIGITAL-CLINIC/releases/latest/download/latest.json';
 
   /// Fetches the manifest, parses versions, and returns UpdateManifest if an update is available.
   Future<UpdateManifest?> checkForUpdate() async {
