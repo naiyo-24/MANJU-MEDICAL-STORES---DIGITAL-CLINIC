@@ -613,6 +613,13 @@ Customer assistance is provided through official support channels:
                         ),
                         onPressed: () async {
                           Navigator.pop(context);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Checking for SirfBill updates...'),
+                              duration: Duration(seconds: 2),
+                              backgroundColor: Color(0xFF1E293B),
+                            ),
+                          );
                           final updateInfo = await WindowsAutoUpdater.checkForUpdate();
                           if (context.mounted) {
                             if (updateInfo != null) {
