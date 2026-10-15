@@ -67,9 +67,14 @@ class UpdateService {
       throw Exception('HTTPS update URL required.');
     }
 
-    final response = await http.get(uri).timeout(const Duration(seconds: 20));
+    // GitHub /releases/latest/download/ redirects with 302 to github-production-release-asset-6ece33...
+    // http.get by default follows redirects, but we ensure headers and status are checked
+    final request = http.Request('GET', uri)..followRedirects = true;
+    final streamedResponse = await request.send().timeout(const Duration(seconds: 20));
+    final response = await http.Response.fromStream(streamedResponse);
 
     if (response.statusCode != 200) {
+      debugPrint('[UpdateService] Update check failed: HTTP ${response.statusCode} from $uri');
       throw Exception('Update check failed: HTTP ${response.statusCode}');
     }
 
@@ -83,7 +88,10 @@ class UpdateService {
     final current = Version.parse(cleanCurrentVersion);
     final latest = Version.parse(cleanLatestVersion);
 
+    debugPrint('[UpdateService] Current app version: $current | Latest available: $latest');
+
     if (latest <= current) {
+      debugPrint('[UpdateService] App is up to date.');
       return null;
     }
 

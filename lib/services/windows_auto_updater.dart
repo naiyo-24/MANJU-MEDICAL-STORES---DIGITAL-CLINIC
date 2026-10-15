@@ -41,10 +41,8 @@ class WindowsAutoUpdater {
         sha256: manifest.sha256,
         manifest: manifest,
       );
-    } catch (e) {
-      if (kDebugMode) {
-        print('[WindowsAutoUpdater] Error checking for updates: $e');
-      }
+    } catch (e, stack) {
+      debugPrint('[WindowsAutoUpdater] Error checking for updates: $e\n$stack');
       return null;
     }
   }
