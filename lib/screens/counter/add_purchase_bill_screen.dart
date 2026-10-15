@@ -22,6 +22,7 @@ class _AddPurchaseBillScreenState extends ConsumerState<AddPurchaseBillScreen> {
   final _searchCtrl = TextEditingController();
   final _invoiceCtrl = TextEditingController();
   String _paymentStatus = 'UNPAID';
+  String _paymentMethod = 'CASH';
   double _amountPaid = 0.0;
   double _globalDiscount = 0.0;
 
@@ -111,6 +112,7 @@ class _AddPurchaseBillScreenState extends ConsumerState<AddPurchaseBillScreen> {
         'distributor_id': widget.distributor['id'],
         'invoice_no': _invoiceCtrl.text.isNotEmpty ? _invoiceCtrl.text : null,
         'payment_status': _paymentStatus,
+        'payment_method': _paymentMethod,
         'bill_date': DateTime.now().toIso8601String().split('T')[0],
         'total_amount': totalAmount,
         'subtotal': _subtotal,
@@ -739,6 +741,29 @@ class _AddPurchaseBillScreenState extends ConsumerState<AddPurchaseBillScreen> {
                   ),
                 ],
               ),
+              if (_paymentStatus != 'UNPAID') ...[
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text('Payment Mode: ', style: TextStyle(fontWeight: FontWeight.bold)),
+                    const SizedBox(width: 8),
+                    DropdownButton<String>(
+                      value: _paymentMethod,
+                      items: const [
+                        DropdownMenuItem(value: 'CASH', child: Text('Cash Account')),
+                        DropdownMenuItem(value: 'ONLINE', child: Text('Bank / UPI')),
+                      ],
+                      onChanged: (v) {
+                        if (v != null) {
+                          setState(() {
+                            _paymentMethod = v;
+                          });
+                        }
+                      },
+                    ),
+                  ],
+                ),
+              ],
               if (_paymentStatus == 'PARTIAL') Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
