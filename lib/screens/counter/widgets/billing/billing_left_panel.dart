@@ -3,10 +3,8 @@ import 'package:flutter/gestures.dart';
 import 'package:linked_scroll_controller/linked_scroll_controller.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../providers/billing_provider.dart';
 import '../../../../providers/counter_providers.dart';
 import '../../../../../utils/format_utils.dart';
-import 'billing_dialogs.dart';
 
 class BillingLeftPanel extends ConsumerStatefulWidget {
   final bool isDesktopWidth;
@@ -104,11 +102,9 @@ class _BillingLeftPanelState extends ConsumerState<BillingLeftPanel> {
 
   @override
   Widget build(BuildContext context) {
-    final racksAsync = ref.watch(rackProvider);
-    final racks = racksAsync.value ?? [];
+    ref.watch(rackProvider);
     
-    final categoriesAsync = ref.watch(categoryProvider);
-    final allCategories = categoriesAsync.value ?? [];
+    ref.watch(categoryProvider);
 
     return Container(
       decoration: BoxDecoration(

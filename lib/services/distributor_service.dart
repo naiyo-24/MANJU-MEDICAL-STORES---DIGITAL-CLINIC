@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 import '../config/api_client.dart';
 import 'inventory_service.dart';
 
@@ -26,7 +28,9 @@ class DistributorService {
       }
       throw Exception('Failed to load distributors: ${response.statusCode}');
     } catch (e) {
-      print('Error fetching distributors: $e');
+      if (kDebugMode) {
+        print('Error fetching distributors: $e');
+      }
       rethrow;
     }
   }
@@ -46,7 +50,9 @@ class DistributorService {
       }
       throw Exception('Failed to add distributor: ${response.statusCode}');
     } catch (e) {
-      print('Error adding distributor: $e');
+      if (kDebugMode) {
+        print('Error adding distributor: $e');
+      }
       rethrow;
     }
   }
@@ -63,7 +69,9 @@ class DistributorService {
       }
       throw Exception('Failed to update distributor: ${response.statusCode}');
     } catch (e) {
-      print('Error updating distributor: $e');
+      if (kDebugMode) {
+        print('Error updating distributor: $e');
+      }
       rethrow;
     }
   }
@@ -76,7 +84,9 @@ class DistributorService {
         throw Exception('Failed to delete distributor: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error deleting distributor: $e');
+      if (kDebugMode) {
+        print('Error deleting distributor: $e');
+      }
       rethrow;
     }
   }
@@ -93,7 +103,9 @@ class DistributorService {
       }
       throw Exception('Failed to load distributor analytics: ${response.statusCode}');
     } catch (e) {
-      print('Error fetching analytics: $e');
+      if (kDebugMode) {
+        print('Error fetching analytics: $e');
+      }
       rethrow;
     }
   }

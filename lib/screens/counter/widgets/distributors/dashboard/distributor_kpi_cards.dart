@@ -36,8 +36,10 @@ class DistributorKpiCards extends ConsumerWidget {
           final isTablet = constraints.maxWidth < 1100 && constraints.maxWidth >= 600;
           
           double cardWidth = constraints.maxWidth; // Mobile
-          if (isTablet) cardWidth = (constraints.maxWidth - 16) / 2;
-          else if (!isMobile) cardWidth = (constraints.maxWidth - 48) / 4;
+          if (isTablet) {
+            cardWidth = (constraints.maxWidth - 16) / 2;
+          // ignore: curly_braces_in_flow_control_structures
+          } else if (!isMobile) cardWidth = (constraints.maxWidth - 48) / 4;
 
           return Wrap(
             spacing: 16,

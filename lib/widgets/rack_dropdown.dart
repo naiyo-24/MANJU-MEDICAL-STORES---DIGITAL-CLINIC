@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../services/rack_service.dart';
 import '../providers/counter_providers.dart';
 
 class RackDropdown extends ConsumerStatefulWidget {
@@ -61,10 +60,12 @@ class _RackDropdownState extends ConsumerState<RackDropdown> {
                 );
                 if (mounted) {
                   widget.onChanged(newRack?.id);
+                  // ignore: use_build_context_synchronously
                   Navigator.pop(context);
                 }
               } catch (e) {
                 if (mounted) {
+                  // ignore: use_build_context_synchronously
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text('Failed to add rack: $e'), backgroundColor: Colors.red),
                   );
@@ -94,7 +95,7 @@ class _RackDropdownState extends ConsumerState<RackDropdown> {
 
         return DropdownButtonFormField<String>(
               isExpanded: true,
-              value: safeValue,
+              initialValue: safeValue,
               decoration: InputDecoration(
                 labelText: 'Rack / Location',
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
@@ -137,10 +138,13 @@ class _RackDropdownState extends ConsumerState<RackDropdown> {
                                 if (widget.selectedRackId == rack.id) {
                                   widget.onChanged(null);
                                 }
+                                // ignore: use_build_context_synchronously
                                 if (mounted) Navigator.pop(context);
                               } catch (e) {
                                 if (mounted) {
+                                  // ignore: use_build_context_synchronously
                                   Navigator.pop(context);
+                                  // ignore: use_build_context_synchronously
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(content: Text('Failed to delete rack: $e'), backgroundColor: Colors.red),
                                   );

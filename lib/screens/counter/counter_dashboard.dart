@@ -7,8 +7,9 @@ import 'dart:async';
 import 'package:flutter/services.dart';
 import '../../services/auth_service.dart';
 import '../../providers/counter_providers.dart';
-import '../../providers/distributor_provider.dart';
 import '../../providers/theme_provider.dart';
+import 'widgets/about/about_us_dialog.dart';
+import '../../services/windows_auto_updater.dart';
 
 class CounterDashboard extends ConsumerStatefulWidget {
   final StatefulNavigationShell navigationShell;
@@ -23,7 +24,6 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
   DateTime _currentTime = DateTime.now();
   Timer? _timer;
   bool _isSidebarExpanded = true;
-  Timer? _syncTimer;
 
   @override
   void initState() {
@@ -37,6 +37,19 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
     });
 
     HardwareKeyboard.instance.addHandler(_handleKeyEvent);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkAutomaticUpdates();
+    });
+  }
+
+  Future<void> _checkAutomaticUpdates() async {
+    try {
+      final updateInfo = await WindowsAutoUpdater.checkForUpdate();
+      if (mounted && updateInfo != null) {
+        WindowsAutoUpdater.showUpdateDialog(context, updateInfo);
+      }
+    } catch (_) {}
   }
 
   @override
@@ -376,7 +389,6 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
     final borderColor = isDark
         ? const Color(0xFF334155)
         : const Color(0xFFE2E8F0);
-    final iconColor = isDark ? Colors.white : const Color(0xFF1E293B);
 
     return Container(
       height: 100,
@@ -472,14 +484,13 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
                                 surface:
                                     Colors.white, // Dialog background color
                               ),
-                              dialogBackgroundColor: Colors.white,
                               textButtonTheme: TextButtonThemeData(
                                 style: TextButton.styleFrom(
                                   foregroundColor: const Color(
                                     0xFF166534,
                                   ), // Button text color
                                 ),
-                              ),
+                              ), dialogTheme: DialogThemeData(backgroundColor: Colors.white),
                             ),
                             child: child!,
                           );
@@ -552,6 +563,7 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
                       if (value == 'logout') {
                         await AuthService.logout();
                         if (context.mounted) {
+                          // ignore: use_build_context_synchronously
                           context.go('/dashboard');
                           ref.invalidate(categoryProvider);
                           ref.invalidate(rackProvider);
@@ -881,6 +893,87 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
                         ),
                       ),
 
+                      // About Us Item
+                      Tooltip(
+                        message: isExpanded ? '' : 'About Us',
+                        child: InkWell(
+                          onTap: () => AboutUsDialog.show(context),
+                          borderRadius: BorderRadius.circular(12),
+                          child: Container(
+                            width: isDesktop
+                                ? (isExpanded ? 228 : 48)
+                                : double.infinity,
+                            margin: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 4,
+                            ),
+                            padding: EdgeInsets.symmetric(
+                              horizontal: isExpanded ? 16 : 0,
+                              vertical: 12,
+                            ),
+                            child: AnimatedCrossFade(
+                              duration: const Duration(milliseconds: 200),
+                              crossFadeState: isExpanded
+                                  ? CrossFadeState.showFirst
+                                  : CrossFadeState.showSecond,
+                              alignment: Alignment.centerLeft,
+                              firstChild: isDesktop
+                                  ? SingleChildScrollView(
+                                      scrollDirection: Axis.horizontal,
+                                      physics: const NeverScrollableScrollPhysics(),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.start,
+                                        children: [
+                                          Icon(
+                                            Icons.info_outline_rounded,
+                                            color: subtitleColor,
+                                            size: 20,
+                                          ),
+                                          const SizedBox(width: 12),
+                                          Text(
+                                            'About Us',
+                                            style: TextStyle(
+                                              color: subtitleColor,
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 14,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    )
+                                  : Row(
+                                      children: [
+                                        Icon(
+                                          Icons.info_outline_rounded,
+                                          color: subtitleColor,
+                                          size: 20,
+                                        ),
+                                        const SizedBox(width: 12),
+                                        Expanded(
+                                          child: Text(
+                                            'About Us',
+                                            style: TextStyle(
+                                              color: subtitleColor,
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 14,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                              secondChild: Center(
+                                child: Icon(
+                                  Icons.info_outline_rounded,
+                                  color: subtitleColor,
+                                  size: 20,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+
                       Tooltip(
                         message: isExpanded ? '' : 'Logout',
                         child: InkWell(
@@ -888,6 +981,7 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
                             await AuthService.logout();
                             if (context.mounted) {
                               // Go back to the module selection screen FIRST
+                              // ignore: use_build_context_synchronously
                               context.go('/dashboard');
                               // Then invalidate providers so they don't refetch with a missing token
                               ref.invalidate(categoryProvider);

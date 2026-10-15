@@ -1,0 +1,98 @@
+name: Build and Release Windows App with Auto-Update
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Setup Flutter SDK
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build Standalone Updater
+        working-directory: updater
+        run: |
+          dotnet publish Updater.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true
+
+      - name: Build Flutter Windows Desktop
+        run: flutter build windows --release
+
+      - name: Copy Updater into Flutter Release Bundle
+        run: |
+          Copy-Item -Path "updater/bin/Release/net8.0/win-x64/publish/updater.exe" -Destination "build/windows/x64/runner/Release/updater.exe" -Force
+
+      - name: Package Update Zip (Runtime + Executable + Updater)
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path "dist"
+          Compress-Archive -Path "build/windows/x64/runner/Release/*" -DestinationPath "dist/app-update-windows-x64.zip" -Force
+
+      - name: Install Inno Setup
+        run: choco install innosetup --yes --no-progress
+
+      - name: Build Inno Setup Installer
+        run: |
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer/setup.iss
+
+      - name: Copy Installer to dist
+        shell: pwsh
+        run: |
+          Copy-Item -Path "build/installer/SirfBill_Setup_x64.exe" -Destination "dist/SirfBill_Setup_x64.exe" -Force
+
+      - name: Generate Update Manifest (latest.json)
+        shell: pwsh
+        run: |
+          $tag = if ($env:GITHUB_REF -like "refs/tags/*") { $env:GITHUB_REF.Substring(10) } else { "v1.0.0" }
+          $cleanVersion = $tag.TrimStart("v")
+          
+          # Compute SHA-256 hash of the zip package
+          $sha256 = (Get-FileHash -Path "dist/app-update-windows-x64.zip" -Algorithm SHA256).Hash.ToLower()
+          
+          $repo = $env:GITHUB_REPOSITORY
+          $downloadUrl = "https://github.com/$repo/releases/download/$tag/app-update-windows-x64.zip"
+          
+          $manifest = @{
+            product_id    = "manju_medical"
+            platform      = "windows-x64"
+            channel       = "stable"
+            version       = $cleanVersion
+            mandatory     = $false
+            release_notes = "Release $tag: Performance improvements and updates."
+            package_url   = $downloadUrl
+            sha256        = $sha256
+          } | ConvertTo-Json -Depth 5
+          
+          $manifest | Set-Content -Path "dist/latest.json" -Encoding utf8
+          Write-Host "Generated Manifest:"
+          Get-Content "dist/latest.json"
+
+      - name: Create GitHub Release and Upload Assets
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: |
+            dist/app-update-windows-x64.zip
+            dist/SirfBill_Setup_x64.exe
+            dist/latest.json
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../services/rack_service.dart';
 
@@ -12,7 +13,9 @@ class RackNotifier extends AsyncNotifier<List<Rack>> {
     try {
       return await RackService.getRacks();
     } catch (e, st) {
-      print('RackNotifier Error: $e\n$st');
+      if (kDebugMode) {
+        print('RackNotifier Error: $e\n$st');
+      }
       return [];
     }
   }
@@ -28,7 +31,7 @@ class RackNotifier extends AsyncNotifier<List<Rack>> {
       }
       return newRack;
     } catch (e) {
-      throw e;
+      rethrow;
     }
   }
 
@@ -46,7 +49,7 @@ class RackNotifier extends AsyncNotifier<List<Rack>> {
         );
       }
     } catch (e) {
-      throw e;
+      rethrow;
     }
   }
 }

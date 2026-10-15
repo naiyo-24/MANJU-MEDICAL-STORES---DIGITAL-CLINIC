@@ -7,7 +7,6 @@ import '../../services/purchase_service.dart';
 import '../../config/api_constants.dart';
 import '../../services/inventory_service.dart';
 import '../../providers/distributor_provider.dart';
-import '../../config/api_constants.dart';
 
 class AddPurchaseBillScreen extends ConsumerStatefulWidget {
   final Map<String, dynamic> distributor;
@@ -207,7 +206,7 @@ class _AddPurchaseBillScreenState extends ConsumerState<AddPurchaseBillScreen> {
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) {
           final isDark = Theme.of(context).brightness == Brightness.dark;
-          final inputDec = (String label) => InputDecoration(
+          InputDecoration inputDec(String label) => InputDecoration(
             labelText: label,
             filled: true,
             fillColor: isDark ? Colors.grey.shade900 : Colors.grey.shade50,
@@ -224,6 +223,7 @@ class _AddPurchaseBillScreenState extends ConsumerState<AddPurchaseBillScreen> {
               width: 850,
               constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.9),
               decoration: BoxDecoration(
+                // ignore: deprecated_member_use
                 color: Theme.of(context).dialogBackgroundColor,
                 borderRadius: BorderRadius.circular(24),
                 boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 20, offset: Offset(0, 10))],
@@ -281,7 +281,7 @@ class _AddPurchaseBillScreenState extends ConsumerState<AddPurchaseBillScreen> {
                             width: 370,
                             child: DropdownButtonFormField<String>(
                               decoration: inputDec('Category'),
-                              value: selectedCategoryId,
+                              initialValue: selectedCategoryId,
                               items: cList.map((c) => DropdownMenuItem(value: c.id, child: Text(c.name))).toList(),
                               onChanged: (v) => setDialogState(() => selectedCategoryId = v),
                             ),
@@ -290,7 +290,7 @@ class _AddPurchaseBillScreenState extends ConsumerState<AddPurchaseBillScreen> {
                             width: 370,
                             child: DropdownButtonFormField<String>(
                               decoration: inputDec('Rack / Location'),
-                              value: selectedRackId,
+                              initialValue: selectedRackId,
                               items: rList.map((r) => DropdownMenuItem(value: r.id, child: Text(r.rackNumber))).toList(),
                               onChanged: (v) => setDialogState(() => selectedRackId = v),
                             ),
@@ -451,7 +451,7 @@ class _AddPurchaseBillScreenState extends ConsumerState<AddPurchaseBillScreen> {
                   icon: const Icon(Icons.refresh),
                   tooltip: 'Refresh Medicines',
                   style: IconButton.styleFrom(
-                    backgroundColor: isDark ? Colors.green.shade900.withOpacity(0.3) : Colors.green.shade50,
+                    backgroundColor: isDark ? Colors.green.shade900.withValues(alpha: 0.3) : Colors.green.shade50,
                     foregroundColor: isDark ? Colors.greenAccent : const Color(0xFF166534),
                   ),
                 ),
@@ -461,7 +461,7 @@ class _AddPurchaseBillScreenState extends ConsumerState<AddPurchaseBillScreen> {
             SwitchListTile(
               title: const Text('Show only items from this distributor', style: TextStyle(fontSize: 14)),
               value: _filterByDistributor,
-              activeColor: const Color(0xFF166534),
+              activeThumbColor: const Color(0xFF166534),
               contentPadding: EdgeInsets.zero,
               onChanged: (val) {
                 setState(() => _filterByDistributor = val);
@@ -649,7 +649,7 @@ class _AddPurchaseBillScreenState extends ConsumerState<AddPurchaseBillScreen> {
                             ],
                           ),
                           loading: () => const SizedBox.shrink(),
-                          error: (_, __) => const SizedBox.shrink(),
+                          error: (_, _) => const SizedBox.shrink(),
                         ),
                         categories.when(
                           data: (cList) => Row(
@@ -665,7 +665,7 @@ class _AddPurchaseBillScreenState extends ConsumerState<AddPurchaseBillScreen> {
                             ],
                           ),
                           loading: () => const SizedBox.shrink(),
-                          error: (_, __) => const SizedBox.shrink(),
+                          error: (_, _) => const SizedBox.shrink(),
                         ),
                       ],
                     ),

@@ -172,9 +172,9 @@ class _RoleLoginScreenState extends State<RoleLoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isDesktop = Responsive.isDesktop(context);
-    final isTablet = Responsive.isTablet(context);
-    final isWide = isDesktop || isTablet;
+    final width = MediaQuery.sizeOf(context).width;
+    final isWide = width >= 850;
+    final isTablet = width >= 600 && width < 850;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     
     final scaffoldBg = isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC);
@@ -271,16 +271,25 @@ class _RoleLoginScreenState extends State<RoleLoginScreen> {
                   ),
                 ),
 
-                // Main Content (Scrollable & Responsive)
+                // Main Content (Scrollable & Responsive, Vertically Centered)
                 Expanded(
-                  child: SingleChildScrollView(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: Responsive.horizontalPadding(context),
-                      vertical: 16.0,
-                    ),
-                    child: Center(
-                      child: isWide ? _buildWebLayout(isTablet) : _buildMobileLayout(),
-                    ),
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      return SingleChildScrollView(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: Responsive.horizontalPadding(context),
+                          vertical: 16.0,
+                        ),
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(
+                            minHeight: constraints.maxHeight - 32.0, // Account for vertical padding
+                          ),
+                          child: Center(
+                            child: isWide ? _buildWebLayout(isTablet) : _buildMobileLayout(),
+                          ),
+                        ),
+                      );
+                    },
                   ),
                 ),
 
@@ -352,46 +361,60 @@ class _RoleLoginScreenState extends State<RoleLoginScreen> {
     ); // Closes Stack
   }
 
-  Widget _buildWelcomeInfo() {
+  Widget _buildWelcomeInfo({bool isCompact = false}) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final subtitleColor = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
 
+    final titleFontSize = isCompact ? 30.0 : 40.0;
+    final welcomeFontSize = isCompact ? 18.0 : 22.0;
+    final descFontSize = isCompact ? 14.0 : 15.0;
+    final logoHeight = isCompact ? 60.0 : 75.0;
+    final vSpacing = isCompact ? 14.0 : 20.0;
+
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: isCompact ? CrossAxisAlignment.center : CrossAxisAlignment.start,
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Image.asset(
           isDark ? 'assets/LOGO_DM.png' : 'assets/LOGO.png',
-          height: 80,
+          height: logoHeight,
           cacheHeight: 250,
         ),
-        const SizedBox(height: 24),
+        SizedBox(height: vSpacing),
         Text(
           'Welcome to',
-          style: TextStyle(fontSize: 24, color: subtitleColor),
+          textAlign: isCompact ? TextAlign.center : TextAlign.start,
+          style: TextStyle(
+            fontSize: welcomeFontSize,
+            fontWeight: FontWeight.w500,
+            color: subtitleColor,
+          ),
         ),
         Text(
           '${widget.roleName} Module',
+          textAlign: isCompact ? TextAlign.center : TextAlign.start,
           style: TextStyle(
-            fontSize: 42,
+            fontSize: titleFontSize,
             fontWeight: FontWeight.w900,
             color: widget.themeColor,
+            height: 1.15,
           ),
         ),
-        const SizedBox(height: 16),
+        SizedBox(height: vSpacing * 0.7),
         Text(
           widget.roleName == 'Counter'
               ? 'Manage your pharmacy, billing, inventory\nand daily operations with ease.'
               : widget.roleName == 'Lab Test'
               ? 'Manage your lab test bookings, reports\nand patient records effortlessly.'
               : 'Manage patients, follow-ups and\ncustomer relationships efficiently.',
+          textAlign: isCompact ? TextAlign.center : TextAlign.start,
           style: TextStyle(
-            fontSize: 16,
+            fontSize: descFontSize,
             color: subtitleColor,
             height: 1.5,
           ),
         ),
-        const SizedBox(height: 24),
+        SizedBox(height: vSpacing),
         if (widget.roleName == 'Counter') ...[
           _buildFeatureItem(
             Icons.medication,
@@ -447,55 +470,54 @@ class _RoleLoginScreenState extends State<RoleLoginScreen> {
 
   Widget _buildWebLayout(bool isTablet) {
     return Center(
-      child: ConstrainedBox(
-        constraints: BoxConstraints(maxWidth: isTablet ? 950 : 1200),
-        child: Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: isTablet ? 24.0 : 64.0,
-            vertical: 16.0,
-          ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              // Left Content
-              Expanded(
-                flex: isTablet ? 5 : 6,
-                child: _buildWelcomeInfo(),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final availableWidth = constraints.maxWidth;
+          final isCompactWeb = availableWidth < 960;
+
+          return ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 1180),
+            child: Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: isCompactWeb ? 20.0 : (isTablet ? 32.0 : 48.0),
+                vertical: 16.0,
               ),
-              const SizedBox(width: 32),
-              // Right Login Card
-              Expanded(
-                flex: isTablet ? 5 : 5,
-                child: Align(
-                  alignment: Alignment.center,
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 420),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  // Left Content
+                  Expanded(
+                    flex: isCompactWeb ? 5 : 6,
+                    child: Center(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 500),
+                        child: _buildWelcomeInfo(isCompact: isCompactWeb),
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: isCompactWeb ? 32 : 56),
+                  // Right Login Card
+                  SizedBox(
+                    width: isCompactWeb ? 370 : 420,
                     child: _buildLoginCard(),
                   ),
-                ),
+                ],
               ),
-            ],
-          ), // Closes Row
-        ), // Closes Padding
-      ), // Closes ConstrainedBox
-    ); // Closes Center
+            ),
+          );
+        },
+      ),
+    );
   }
 
   Widget _buildMobileLayout() {
     return Center(
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 450),
+        constraints: const BoxConstraints(maxWidth: 420),
         child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _buildWelcomeInfo(),
-              const SizedBox(height: 48),
-              _buildLoginCard(),
-            ],
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+          child: _buildLoginCard(),
         ),
       ),
     );
@@ -656,13 +678,16 @@ class _RoleLoginScreenState extends State<RoleLoginScreen> {
               children: [
                 Icon(
                   Icons.verified_user_outlined,
-                  size: 16,
+                  size: 15,
                   color: Color(0xFF64748B),
                 ),
-                SizedBox(width: 8),
-                Text(
-                  'Secure Access. Authorized Personnel Only.',
-                  style: TextStyle(color: Color(0xFF64748B), fontSize: 12),
+                SizedBox(width: 6),
+                Flexible(
+                  child: Text(
+                    'Secure Access. Authorized Personnel Only.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Color(0xFF64748B), fontSize: 11),
+                  ),
                 ),
               ],
             ),

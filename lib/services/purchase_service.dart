@@ -1,4 +1,5 @@
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/foundation.dart';
+
 import '../config/api_client.dart';
 import 'inventory_service.dart';
 
@@ -19,7 +20,9 @@ class PurchaseService {
       }
       throw Exception('Failed to create purchase bill: ${response.statusCode} - ${response.data}');
     } catch (e) {
-      print('Error creating purchase bill: $e');
+      if (kDebugMode) {
+        print('Error creating purchase bill: $e');
+      }
       rethrow;
     }
   }
@@ -41,7 +44,9 @@ class PurchaseService {
       }
       return [];
     } catch (e) {
-      print('Error fetching purchase bills: $e');
+      if (kDebugMode) {
+        print('Error fetching purchase bills: $e');
+      }
       return [];
     }
   }
@@ -57,7 +62,9 @@ class PurchaseService {
         throw Exception('Failed to mark bill as paid');
       }
     } catch (e) {
-      print('Error paying bill: $e');
+      if (kDebugMode) {
+        print('Error paying bill: $e');
+      }
       rethrow;
     }
   }

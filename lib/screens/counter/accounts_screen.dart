@@ -250,7 +250,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
@@ -361,7 +361,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
               ),
               IconButton(
                 icon: const Icon(Icons.delete_outline, size: 20, color: Colors.red),
-                style: IconButton.styleFrom(backgroundColor: Colors.red.withOpacity(0.1)),
+                style: IconButton.styleFrom(backgroundColor: Colors.red.withValues(alpha: 0.1)),
                 onPressed: () {
                   // Delete
                 },

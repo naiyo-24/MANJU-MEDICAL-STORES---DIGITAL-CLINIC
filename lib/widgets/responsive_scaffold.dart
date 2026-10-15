@@ -51,7 +51,7 @@ class ResponsiveScaffold extends StatelessWidget {
       body: SafeArea(
         child: Row(
           children: [
-            if (desktopSidebar != null) desktopSidebar!,
+            ?desktopSidebar,
 
             Expanded(
               child: body,

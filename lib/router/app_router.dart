@@ -56,7 +56,6 @@ final goRouter = GoRouter(
     final isLoggedIn = token != null && token.isNotEmpty;
     
     final isLoginRoute = state.matchedLocation == '/role_login' || state.matchedLocation == '/splash' || state.matchedLocation == '/dashboard';
-    final isDashboard = state.matchedLocation == '/dashboard';
 
     // If not logged in and not on login/dashboard/splash, redirect to dashboard
     if (!isLoggedIn && !isLoginRoute) {

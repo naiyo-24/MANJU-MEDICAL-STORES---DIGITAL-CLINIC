@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../services/category_service.dart';
 import '../providers/counter_providers.dart';
 
 class CategoryDropdown extends ConsumerStatefulWidget {
@@ -61,10 +60,12 @@ class _CategoryDropdownState extends ConsumerState<CategoryDropdown> {
                 );
                 if (mounted) {
                   widget.onChanged(newCategory?.id);
+                  // ignore: use_build_context_synchronously
                   Navigator.pop(context);
                 }
               } catch (e) {
                 if (mounted) {
+                  // ignore: use_build_context_synchronously
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text('Failed to add category: $e'), backgroundColor: Colors.red),
                   );
@@ -94,7 +95,7 @@ class _CategoryDropdownState extends ConsumerState<CategoryDropdown> {
 
         return DropdownButtonFormField<String>(
               isExpanded: true,
-              value: safeValue,
+              initialValue: safeValue,
               decoration: InputDecoration(
                 labelText: 'Category',
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
@@ -137,10 +138,13 @@ class _CategoryDropdownState extends ConsumerState<CategoryDropdown> {
                                 if (widget.selectedCategoryId == cat.id) {
                                   widget.onChanged(null);
                                 }
+                                // ignore: use_build_context_synchronously
                                 if (mounted) Navigator.pop(context);
                               } catch (e) {
                                 if (mounted) {
+                                  // ignore: use_build_context_synchronously
                                   Navigator.pop(context);
+                                  // ignore: use_build_context_synchronously
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(content: Text('Failed to delete category: $e'), backgroundColor: Colors.red),
                                   );

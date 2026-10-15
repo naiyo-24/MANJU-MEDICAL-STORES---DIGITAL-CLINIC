@@ -176,8 +176,10 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
           fileExtension: 'xlsx',
           mimeType: MimeType.microsoftExcel,
         );
+        // ignore: use_build_context_synchronously
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Excel report saved successfully to your device!')));
       } catch (e) {
+        // ignore: use_build_context_synchronously
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error saving: $e')));
       }
     }

@@ -32,6 +32,7 @@ class PdfA5Generator {
     required String phone,
     required String email,
     required String shopGstNo,
+    required String drugLicence,
     String? bankName,
     String? branchName,
     String? acHolder,

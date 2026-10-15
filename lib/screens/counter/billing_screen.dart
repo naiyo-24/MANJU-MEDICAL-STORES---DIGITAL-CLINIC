@@ -35,7 +35,6 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
 
   // Modifiable Data for Current Bill
 
-  int _selectedCategoryIndex = 0;
 
   final TextEditingController _discountController = TextEditingController();
 
@@ -54,10 +53,7 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
   final TextEditingController _newDoctorController = TextEditingController();
 
   List<Doctor> _doctorsList = [];
-  String? _selectedDoctorId;
-  String _selectedDoctorName = 'Walk-in';
 
-  DateTime _currentTime = DateTime.now();
   Timer? _timer;
   Timer? _searchDebounce;
   // Format is now handled by billingProvider
@@ -85,7 +81,6 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
   void _startClock() {
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       setState(() {
-        _currentTime = DateTime.now();
       });
     });
   }
@@ -131,35 +126,7 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
     super.dispose();
   }
 
-  String _formatDate(DateTime date) {
-    const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ];
-    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    String dayName = days[date.weekday - 1];
-    String monthName = months[date.month - 1];
-    return '$dayName, ${date.day} $monthName ${date.year}';
-  }
 
-  String _formatTime(DateTime date) {
-    int hour = date.hour;
-    String period = hour >= 12 ? 'PM' : 'AM';
-    hour = hour % 12;
-    if (hour == 0) hour = 12;
-    String minute = date.minute.toString().padLeft(2, '0');
-    return '$hour:$minute $period';
-  }
 
   Future<void> _saveDraft() async {
     if (_currentBill.isEmpty) {
@@ -388,18 +355,12 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                                         orElse: () => null,
                                       );
                                   if (matchedDoctor != null) {
-                                    _selectedDoctorId = matchedDoctor.id;
-                                    _selectedDoctorName = matchedDoctor.name;
                                     _newDoctorController.clear();
                                   } else if (draft.doctorName.isNotEmpty &&
                                       draft.doctorName != 'Walk-in') {
-                                    _selectedDoctorId = 'new';
-                                    _selectedDoctorName = 'New Doctor';
                                     _newDoctorController.text =
                                         draft.doctorName;
                                   } else {
-                                    _selectedDoctorId = 'walk-in';
-                                    _selectedDoctorName = 'Walk-in';
                                     _newDoctorController.clear();
                                   }
                                   ref
@@ -882,7 +843,6 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
     final packSize = item['pack_size'] ?? 1;
     final isLoose = item['is_loose'] ?? false;
     final currentQty = item['qty'] ?? 0;
-    final itemName = item['name'];
 
     final bool newIsLoose = !isLoose;
     final int availableLimit = newIsLoose ? (packStock * packSize) + looseStock : packStock;
@@ -926,9 +886,6 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
       _discountController.clear();
       _newDoctorController.clear();
       _savedCustomerId = null;
-      _selectedDoctorId = null;
-      _selectedDoctorName = 'Walk-in';
-      _selectedCategoryIndex = 0;
     });
     ref.read(billingProvider.notifier).updateDiscount(0.0, false);
     
@@ -1038,6 +995,7 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
         'is_loose': isLoose,
         'id': item['inventory_item_id'],
       });
+      // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Added ${item['name'].toString().split(' - Item')[0]} to cart'),

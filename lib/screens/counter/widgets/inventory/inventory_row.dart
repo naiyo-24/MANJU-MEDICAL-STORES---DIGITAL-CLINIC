@@ -195,7 +195,7 @@ class InventoryRowRightWidget extends StatelessWidget {
             Expanded(
               flex: 100,
               child: Text(
-                '₹${medicine.buyingPrice?.toStringAsFixed(2) ?? '0.00'}',
+                '₹${medicine.buyingPrice.toStringAsFixed(2)}',
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B), fontSize: 12),
