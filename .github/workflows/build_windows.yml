@@ -78,7 +78,7 @@ jobs:
           $downloadUrl = "https://github.com/$repo/releases/download/$tag/app-update-windows-x64.zip"
           
           $manifest = @{
-            product_id    = "manju_medical"
+            product_id    = "SirfBill"
             platform      = "windows-x64"
             channel       = "stable"
             version       = $cleanVersion

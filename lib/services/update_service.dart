@@ -31,7 +31,7 @@ class UpdateManifest {
 
   factory UpdateManifest.fromJson(Map<String, dynamic> json) {
     return UpdateManifest(
-      productId: json['product_id'] as String? ?? 'manju_medical',
+      productId: json['product_id'] as String? ?? 'SirfBill',
       platform: json['platform'] as String? ?? 'windows-x64',
       channel: json['channel'] as String? ?? 'stable',
       version: json['version'] as String,
