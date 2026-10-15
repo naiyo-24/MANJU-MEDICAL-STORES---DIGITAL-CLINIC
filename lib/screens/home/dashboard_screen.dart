@@ -282,7 +282,9 @@ class DashboardScreen extends ConsumerWidget {
                       ),
 
                       // Main Content
-                      Padding(
+                      Transform.translate(
+                        offset: const Offset(0, -40), // Shift slightly upwards
+                        child: Padding(
                         padding: EdgeInsets.symmetric(
                           horizontal: isWeb ? 64.0 : 24.0,
                           vertical: 24.0,
@@ -295,7 +297,7 @@ class DashboardScreen extends ConsumerWidget {
                                 isDark
                                     ? 'assets/LOGO_DM.png'
                                     : 'assets/LOGO.png',
-                                height: isWeb ? 100 : 80,
+                                height: isWeb ? 180 : 120,
                                 fit: BoxFit.contain,
                                 errorBuilder: (_, __, ___) => const Icon(
                                   Icons.local_hospital,
@@ -367,7 +369,7 @@ class DashboardScreen extends ConsumerWidget {
                                   Expanded(
                                     child: _buildDashboardCard(
                                       context: context,
-                                      title: 'Counter',
+                                      title: 'Billing Counter',
                                       description:
                                           'Manage sales, billing, inventory.',
                                       icon: Icons.point_of_sale_rounded,
@@ -421,7 +423,7 @@ class DashboardScreen extends ConsumerWidget {
                                 children: [
                                   _buildDashboardCard(
                                     context: context,
-                                    title: 'Counter',
+                                    title: 'Billing Counter',
                                     description:
                                         'Manage sales, billing, inventory.',
                                     icon: Icons.point_of_sale_rounded,
@@ -460,6 +462,7 @@ class DashboardScreen extends ConsumerWidget {
                           ],
                         ),
                       ),
+                      ), // Close Transform.translate
 
                       // Footer
                       Container(

@@ -1,5 +1,6 @@
 import '../config/api_client.dart';
 import 'package:intl/intl.dart';
+import 'inventory_service.dart';
 
 class TransactionModel {
   final String id;
@@ -11,6 +12,7 @@ class TransactionModel {
   final double amount;
   final String paymentMode;
   double runningBalance = 0.0; // Initialized to prevent null errors
+  final String? tenantId;
 
   TransactionModel({
     required this.id,
@@ -22,6 +24,7 @@ class TransactionModel {
     required this.amount,
     required this.paymentMode,
     this.runningBalance = 0.0,
+    this.tenantId,
   });
 
   factory TransactionModel.fromJson(Map<String, dynamic> json) {
@@ -53,7 +56,7 @@ class TransactionModel {
       txnType = 'Transfer';
     }
 
-    return TransactionModel(
+      return TransactionModel(
       id: json['id'] ?? '',
       date: parsedDate,
       time: parsedTime,
@@ -64,6 +67,7 @@ class TransactionModel {
       paymentMode: json['payment_mode'] != null && json['payment_mode'].toString().isNotEmpty
           ? json['payment_mode'].toString()
           : 'Cash',
+      tenantId: json['tenant_id'],
     );
   }
 }
@@ -71,6 +75,8 @@ class TransactionModel {
 class TransactionService {
   static Future<void> saveTransaction(Map<String, dynamic> payload) async {
     try {
+      final shopId = await InventoryService.getShopId();
+      payload['tenant_id'] = shopId;
       final response = await ApiClient().dio.post(
         '/api/transactions',
         data: payload,
@@ -89,8 +95,8 @@ class TransactionService {
     String? shopId,
   }) async {
     try {
-      final queryParams = <String, dynamic>{'skip': skip, 'limit': limit};
-      if (shopId != null) queryParams['shop_id'] = shopId;
+      final actualShopId = shopId ?? await InventoryService.getShopId();
+      final queryParams = <String, dynamic>{'skip': skip, 'limit': limit, 'tenant_id': actualShopId, 'shop_id': actualShopId};
       
       final response = await ApiClient().dio.get(
         '/api/transactions',

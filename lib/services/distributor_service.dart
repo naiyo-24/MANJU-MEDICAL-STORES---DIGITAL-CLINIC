@@ -8,10 +8,12 @@ class DistributorService {
   Future<List<dynamic>> getDistributors({String? search}) async {
     try {
       final shopId = await InventoryService.getShopId();
-      final queryParams = <String, dynamic>{
-        'shop_id': shopId,
-        '_t': DateTime.now().millisecondsSinceEpoch,
-      };
+          final queryParams = <String, dynamic>{
+          'shop_id': shopId,
+          'tenant_id': shopId,
+          '_t': DateTime.now().millisecondsSinceEpoch,
+        };
+
       if (search != null && search.isNotEmpty) {
         queryParams['search'] = search;
       }
@@ -34,6 +36,7 @@ class DistributorService {
     try {
       final shopId = await InventoryService.getShopId();
       data['shop_id'] = shopId;
+      data['tenant_id'] = shopId;
       final response = await _apiClient.dio.post(
         '/api/admin/distributors/',
         data: data,

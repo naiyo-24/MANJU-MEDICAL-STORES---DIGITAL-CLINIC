@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../providers/distributor_provider.dart';
 import '../../providers/counter_providers.dart';
+import 'add_purchase_bill_screen.dart';
 import '../../config/api_constants.dart';
 import 'package:go_router/go_router.dart';
 
@@ -69,6 +70,8 @@ class DistributorDetailScreen extends ConsumerWidget {
                           Text('Phone: ${distributor['phone'] ?? 'N/A'}', style: const TextStyle(color: Color(0xFF64748B))),
                           const SizedBox(height: 4),
                           Text('Email: ${distributor['email'] ?? 'N/A'}', style: const TextStyle(color: Color(0xFF64748B))),
+                          const SizedBox(height: 4),
+                          Text('Address: ${distributor['address'] ?? 'N/A'}', style: const TextStyle(color: Color(0xFF64748B))),
                         ],
                       ),
                     ),

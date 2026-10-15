@@ -75,6 +75,7 @@ class PdfA5Generator {
                   phone: phone,
                   email: email,
                   shopGstNo: shopGstNo,
+                  drugLicence: drugLicence,
                   invoiceNumber: invoiceNumber,
                   customerName: customerName,
                   customerPhone: customerPhone,
@@ -146,6 +147,7 @@ class PdfA5Generator {
     required String phone,
     required String email,
     required String shopGstNo,
+    required String drugLicence,
     required String invoiceNumber,
     required String customerName,
     String? customerPhone,
@@ -209,6 +211,14 @@ class PdfA5Generator {
                       fontWeight: pw.FontWeight.bold,
                     ),
                   ),
+                  if (drugLicence.isNotEmpty)
+                    pw.Text(
+                      'D.L. No.: $drugLicence',
+                      style: pw.TextStyle(
+                        fontSize: 8,
+                        fontWeight: pw.FontWeight.bold,
+                      ),
+                    ),
                 ],
               ),
             ),

@@ -1,5 +1,6 @@
 import 'package:shared_preferences/shared_preferences.dart';
 import '../config/api_client.dart';
+import 'inventory_service.dart';
 
 class PurchaseService {
   final ApiClient _apiClient = ApiClient();
@@ -7,6 +8,8 @@ class PurchaseService {
   // Create a purchase bill
   Future<Map<String, dynamic>> createPurchaseBill(Map<String, dynamic> data) async {
     try {
+      final shopId = await InventoryService.getShopId();
+      data['tenant_id'] = shopId;
       final response = await _apiClient.dio.post(
         '/api/admin/purchases/',
         data: data,
@@ -24,12 +27,12 @@ class PurchaseService {
   // Fetch purchase bills
   Future<List<dynamic>> getPurchaseBills() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final shopId = prefs.getString('selected_shop_id') ?? prefs.getString('shop_id');
+      final shopId = await InventoryService.getShopId();
       final response = await _apiClient.dio.get(
         '/api/admin/purchases/',
         queryParameters: {
-          if (shopId != null && shopId.isNotEmpty) 'shop_id': shopId,
+          if (shopId.isNotEmpty) 'shop_id': shopId,
+          if (shopId.isNotEmpty) 'tenant_id': shopId,
           '_t': DateTime.now().millisecondsSinceEpoch,
         },
       );
@@ -42,6 +45,7 @@ class PurchaseService {
       return [];
     }
   }
+
   // Mark a purchase bill as PAID
   Future<void> markBillAsPaid(String billId, {String paymentMethod = 'CASH'}) async {
     try {

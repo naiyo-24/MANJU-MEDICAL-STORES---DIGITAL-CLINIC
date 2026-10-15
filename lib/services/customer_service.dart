@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import '../config/api_client.dart';
 import '../models/counter_models.dart';
+import 'inventory_service.dart';
 export '../models/counter_models.dart';
 
 class CustomerService {
@@ -9,9 +10,11 @@ class CustomerService {
     // If the customer exists by phone, the backend handles it or we could use PATCH if id is present.
     // We'll use POST /api/users/create.
     try {
+      final shopId = await InventoryService.getShopId();
       final response = await ApiClient().dio.post(
         '/api/users/create',
         data: {
+          'tenant_id': shopId,
           'name': customer.name,
           'phone': customer.phone,
           'email': customer.email.isNotEmpty ? customer.email : null,
@@ -38,9 +41,11 @@ class CustomerService {
   }
 
   static Future<void> updateCustomer(Customer customer) async {
+    final shopId = await InventoryService.getShopId();
     final response = await ApiClient().dio.patch(
       '/api/users/${customer.id}',
       data: {
+        'tenant_id': shopId,
         'name': customer.name,
         'phone': customer.phone,
         'email': customer.email.isNotEmpty ? customer.email : null,
@@ -55,7 +60,8 @@ class CustomerService {
   }
 
   static Future<List<Customer>> getCustomers() async {
-    final response = await ApiClient().dio.get('/api/users');
+    final shopId = await InventoryService.getShopId();
+    final response = await ApiClient().dio.get('/api/users', queryParameters: {'tenant_id': shopId});
 
     if (response.statusCode == 200) {
       final List<dynamic> data = response.data;

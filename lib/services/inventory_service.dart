@@ -5,6 +5,7 @@ import '../config/api_client.dart';
 
 class InventoryItem {
   final String id;
+  final String? tenantId;
   final String name;
   final String sku;
   final String manufacturer;
@@ -29,6 +30,7 @@ class InventoryItem {
 
   InventoryItem({
     required this.id,
+    this.tenantId,
     required this.name,
     required this.sku,
     required this.manufacturer,
@@ -55,6 +57,7 @@ class InventoryItem {
   factory InventoryItem.fromJson(Map<String, dynamic> json) {
     return InventoryItem(
       id: json['id'] ?? '',
+      tenantId: json['tenant_id'],
       name: json['name'] ?? 'Unknown',
       sku: json['sku'] ?? '',
       manufacturer: json['manufacturer'] ?? '',
@@ -84,6 +87,7 @@ class InventoryItem {
   Map<String, dynamic> toMap() {
     return {
       'id': id,
+      'tenant_id': tenantId,
       'name': name,
       'sku': sku,
       'manufacturer': manufacturer,
