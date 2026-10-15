@@ -1,3 +1,4 @@
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../utils/responsive.dart';
@@ -48,7 +49,7 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
       },
       onExitRequested: () async {
         await AuthService.logout();
-        return AppExitResponse.exit;
+        return ui.AppExitResponse.exit;
       },
     );
 
