@@ -10,6 +10,7 @@ import '../../providers/counter_providers.dart';
 import '../../providers/theme_provider.dart';
 import 'widgets/about/about_us_dialog.dart';
 import '../../services/windows_auto_updater.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 class CounterDashboard extends ConsumerStatefulWidget {
   final StatefulNavigationShell navigationShell;
@@ -25,6 +26,8 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
   Timer? _timer;
   bool _isSidebarExpanded = true;
 
+  late final AppLifecycleListener _lifecycleListener;
+
   @override
   void initState() {
     super.initState();
@@ -38,12 +41,28 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
 
     HardwareKeyboard.instance.addHandler(_handleKeyEvent);
 
+    // If user closes or exits the app, logout session so next launch requires login
+    _lifecycleListener = AppLifecycleListener(
+      onDetach: () {
+        AuthService.logout();
+      },
+      onExitRequested: () async {
+        await AuthService.logout();
+        return AppExitResponse.exit;
+      },
+    );
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkAutomaticUpdates();
     });
   }
 
+  static bool _hasCheckedUpdateThisSession = false;
+
   Future<void> _checkAutomaticUpdates() async {
+    if (_hasCheckedUpdateThisSession) return;
+    _hasCheckedUpdateThisSession = true;
+
     try {
       final updateInfo = await WindowsAutoUpdater.checkForUpdate();
       if (mounted && updateInfo != null) {
@@ -55,6 +74,7 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
   @override
   void dispose() {
     _timer?.cancel();
+    _lifecycleListener.dispose();
     HardwareKeyboard.instance.removeHandler(_handleKeyEvent);
     super.dispose();
   }
@@ -1195,9 +1215,64 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
               Padding(
                 padding: EdgeInsets.all(isExpanded ? 24.0 : 16.0),
                 child: Center(
-                  child: Text(
-                    isExpanded ? 'Version 1.0.0' : 'v1',
-                    style: TextStyle(fontSize: 10, color: subtitleColor),
+                  child: FutureBuilder<PackageInfo>(
+                    future: PackageInfo.fromPlatform(),
+                    builder: (context, snapshot) {
+                      final version = snapshot.hasData
+                          ? snapshot.data!.version
+                          : '1.0.4';
+                      return InkWell(
+                        onTap: () async {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Checking for updates...'),
+                              duration: Duration(seconds: 2),
+                              backgroundColor: Color(0xFF1E293B),
+                            ),
+                          );
+                          final updateInfo =
+                              await WindowsAutoUpdater.checkForUpdate();
+                          if (context.mounted) {
+                            if (updateInfo != null) {
+                              WindowsAutoUpdater.showUpdateDialog(
+                                  context, updateInfo);
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                      'SirfBill is already up to date!'),
+                                  backgroundColor: Color(0xFF166534),
+                                ),
+                              );
+                            }
+                          }
+                        },
+                        borderRadius: BorderRadius.circular(8),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 6, vertical: 4),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.verified_rounded,
+                                size: 12,
+                                color: subtitleColor,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                isExpanded ? 'Version $version' : 'v$version',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w600,
+                                  color: subtitleColor,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
                   ),
                 ),
               ),
