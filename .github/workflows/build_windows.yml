@@ -28,6 +28,11 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      - name: Create .env file for build
+        shell: pwsh
+        run: |
+          "API_BASE_URL=https://sirfapi.vwings247.me" | Set-Content -Path ".env" -Encoding utf8
+
       - name: Build Standalone Updater
         working-directory: updater
         run: |
