@@ -4,7 +4,7 @@
 #define MyAppName "SirfBill"
 #define MyAppVersion "1.0.0"
 #define MyAppPublisher "SirfBill Healthcare Technologies"
-#define MyAppURL "https://github.com/sayar2121/MANJU-MEDICAL-STORES---DIGITAL-CLINIC"
+#define MyAppURL "https://github.com/naiyo-24/MANJU-MEDICAL-STORES---DIGITAL-CLINIC"
 #define MyAppExeName "manju_medical.exe"
 
 [Setup]
