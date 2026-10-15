@@ -469,25 +469,33 @@ class PdfA4Generator {
                               crossAxisAlignment: pw.CrossAxisAlignment.start,
                               children: [
                                 pw.Expanded(
-                                  child: pw.Column(
-                                    crossAxisAlignment: pw.CrossAxisAlignment.start,
-                                    children: [
-                                      pw.Text(
-                                        'Bank Details',
-                                        style: pw.TextStyle(
-                                          fontSize: format == 'A4' ? 10 : 8,
-                                          fontWeight: pw.FontWeight.bold,
-                                          color: primaryGreen,
+                                  child: () {
+                                    String formatVal(String? val) {
+                                      if (val == null) return 'NA';
+                                      final trimmed = val.trim();
+                                      return trimmed.isNotEmpty ? trimmed : 'NA';
+                                    }
+
+                                    return pw.Column(
+                                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                                      children: [
+                                        pw.Text(
+                                          'Bank Details',
+                                          style: pw.TextStyle(
+                                            fontSize: format == 'A4' ? 10 : 8,
+                                            fontWeight: pw.FontWeight.bold,
+                                            color: primaryGreen,
+                                          ),
                                         ),
-                                      ),
-                                      pw.SizedBox(height: 2),
-                                      pw.Text('Bank: $bankName', style: pw.TextStyle(fontSize: format == 'A4' ? 8 : 7)),
-                                      pw.Text('Branch: $branchName', style: pw.TextStyle(fontSize: format == 'A4' ? 8 : 7)),
-                                      pw.Text('A/C Name: $acHolder', style: pw.TextStyle(fontSize: format == 'A4' ? 8 : 7)),
-                                      pw.Text('A/C No: $acNumber', style: pw.TextStyle(fontSize: format == 'A4' ? 8 : 7)),
-                                      pw.Text('IFSC: $ifsc', style: pw.TextStyle(fontSize: format == 'A4' ? 8 : 7)),
-                                    ],
-                                  ),
+                                        pw.SizedBox(height: 2),
+                                        pw.Text('Bank: ${formatVal(bankName)}', style: pw.TextStyle(fontSize: format == 'A4' ? 8 : 7)),
+                                        pw.Text('Branch: ${formatVal(branchName)}', style: pw.TextStyle(fontSize: format == 'A4' ? 8 : 7)),
+                                        pw.Text('A/C Name: ${formatVal(acHolder)}', style: pw.TextStyle(fontSize: format == 'A4' ? 8 : 7)),
+                                        pw.Text('A/C No: ${formatVal(acNumber)}', style: pw.TextStyle(fontSize: format == 'A4' ? 8 : 7)),
+                                        pw.Text('IFSC: ${formatVal(ifsc)}', style: pw.TextStyle(fontSize: format == 'A4' ? 8 : 7)),
+                                      ],
+                                    );
+                                  }(),
                                 ),
                                 if (qrImage != null)
                                   pw.Container(

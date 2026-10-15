@@ -1,4 +1,4 @@
-import 'dart:typed_data';
+import 'package:flutter/foundation.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:flutter/services.dart' show rootBundle;
@@ -41,20 +41,51 @@ class PdfGenerator {
   static String? _cachedQrUrl;
 
   static String? getCachedLogoUrl() => _cachedLogoUrl;
-  
-  static Future<void> preloadLogo(String url) async {
-    if (url.isEmpty || url == _cachedLogoUrl) return;
+  static String? getCachedQrUrl() => _cachedQrUrl;
+
+  /// Clear in-memory cached image bytes and URLs so fresh images are re-fetched.
+  static void clearImageCache() {
+    _cachedLogoBytes = null;
+    _cachedLogoUrl = null;
+    _cachedQrBytes = null;
+    _cachedQrUrl = null;
+  }
+
+  /// Safely downloads image bytes from a URL with URI encoding, byte conversion,
+  /// and cache-busting to bypass stale browser HTTP caches.
+  static Future<Uint8List?> _fetchImageBytes(String rawUrl) async {
+    final trimmed = rawUrl.trim();
+    if (trimmed.isEmpty) return null;
     try {
+      final encodedUrl = Uri.encodeFull(trimmed);
+      final cacheBusterUrl = encodedUrl.contains('?')
+          ? '$encodedUrl&_t=${DateTime.now().millisecondsSinceEpoch}'
+          : '$encodedUrl?_t=${DateTime.now().millisecondsSinceEpoch}';
+
       final res = await ApiClient().dio.get(
-        url,
-        options: Options(responseType: ResponseType.bytes),
+        cacheBusterUrl,
+        options: Options(
+          responseType: ResponseType.bytes,
+          headers: {'Cache-Control': 'no-cache'},
+        ),
       );
-      if (res.statusCode == 200) {
-        _cachedLogoBytes = res.data;
-        _cachedLogoUrl = url;
+
+      if (res.statusCode == 200 && res.data != null) {
+        return Uint8List.fromList(List<int>.from(res.data));
       }
     } catch (e) {
-      // Ignore
+      debugPrint('PdfGenerator: Failed to fetch image bytes from $rawUrl: $e');
+    }
+    return null;
+  }
+  
+  static Future<void> preloadLogo(String url) async {
+    final trimmed = url.trim();
+    if (trimmed.isEmpty || trimmed == _cachedLogoUrl) return;
+    final bytes = await _fetchImageBytes(trimmed);
+    if (bytes != null) {
+      _cachedLogoBytes = bytes;
+      _cachedLogoUrl = trimmed;
     }
   }
 
@@ -62,22 +93,14 @@ class PdfGenerator {
     _cachedFont ??= await PdfGoogleFonts.robotoRegular();
     _cachedFontBold ??= await PdfGoogleFonts.robotoBold();
   }
-
-  static String? getCachedQrUrl() => _cachedQrUrl;
   
   static Future<void> preloadQr(String url) async {
-    if (url.isEmpty || url == _cachedQrUrl) return;
-    try {
-      final res = await ApiClient().dio.get(
-        url,
-        options: Options(responseType: ResponseType.bytes),
-      );
-      if (res.statusCode == 200) {
-        _cachedQrBytes = res.data;
-        _cachedQrUrl = url;
-      }
-    } catch (e) {
-      // Ignore
+    final trimmed = url.trim();
+    if (trimmed.isEmpty || trimmed == _cachedQrUrl) return;
+    final bytes = await _fetchImageBytes(trimmed);
+    if (bytes != null) {
+      _cachedQrBytes = bytes;
+      _cachedQrUrl = trimmed;
     }
   }
 
@@ -111,23 +134,16 @@ class PdfGenerator {
     if (logoBytes != null) {
       logoImage = pw.MemoryImage(logoBytes);
     } else if (shopSettings?['logo_url'] != null &&
-        shopSettings!['logo_url'].toString().isNotEmpty) {
-      String url = shopSettings['logo_url'];
+        shopSettings!['logo_url'].toString().trim().isNotEmpty) {
+      String url = shopSettings['logo_url'].toString().trim();
       if (_cachedLogoUrl == url && _cachedLogoBytes != null) {
         logoImage = pw.MemoryImage(_cachedLogoBytes!);
       } else {
-        try {
-          final res = await ApiClient().dio.get(
-            url,
-            options: Options(responseType: ResponseType.bytes),
-          );
-          if (res.statusCode == 200) {
-            _cachedLogoBytes = res.data;
-            _cachedLogoUrl = url;
-            logoImage = pw.MemoryImage(_cachedLogoBytes!);
-          }
-        } catch (e) {
-          // Fallback to local
+        final bytes = await _fetchImageBytes(url);
+        if (bytes != null) {
+          _cachedLogoBytes = bytes;
+          _cachedLogoUrl = url;
+          logoImage = pw.MemoryImage(bytes);
         }
       }
     }
@@ -148,23 +164,16 @@ class PdfGenerator {
     if (qrBytes != null) {
       qrImage = pw.MemoryImage(qrBytes);
     } else if (shopSettings?['qr_url'] != null &&
-        shopSettings!['qr_url'].toString().isNotEmpty) {
-      String url = shopSettings['qr_url'];
+        shopSettings!['qr_url'].toString().trim().isNotEmpty) {
+      String url = shopSettings['qr_url'].toString().trim();
       if (_cachedQrUrl == url && _cachedQrBytes != null) {
         qrImage = pw.MemoryImage(_cachedQrBytes!);
       } else {
-        try {
-          final res = await ApiClient().dio.get(
-            url,
-            options: Options(responseType: ResponseType.bytes),
-          );
-          if (res.statusCode == 200) {
-            _cachedQrBytes = res.data;
-            _cachedQrUrl = url;
-            qrImage = pw.MemoryImage(_cachedQrBytes!);
-          }
-        } catch (e) {
-          // Fallback
+        final bytes = await _fetchImageBytes(url);
+        if (bytes != null) {
+          _cachedQrBytes = bytes;
+          _cachedQrUrl = url;
+          qrImage = pw.MemoryImage(bytes);
         }
       }
     }
@@ -183,11 +192,21 @@ class PdfGenerator {
         ? gstNumber!
         : '';
 
-    final String bankName = shopSettings?['bank_name'] ?? 'State Bank of India';
-    final String branchName = shopSettings?['branch_name'] ?? 'Main Branch';
-    final String acHolder = shopSettings?['ac_holder_name'] ?? shopName;
-    final String acNumber = shopSettings?['ac_number'] ?? '123456789012';
-    final String ifsc = shopSettings?['ifsc_code'] ?? 'SBIN0000123';
+    final String bankName = (shopSettings?['bank_name']?.toString().trim().isNotEmpty == true)
+        ? shopSettings!['bank_name'].toString().trim()
+        : 'NA';
+    final String branchName = (shopSettings?['branch_name']?.toString().trim().isNotEmpty == true)
+        ? shopSettings!['branch_name'].toString().trim()
+        : 'NA';
+    final String acHolder = (shopSettings?['ac_holder_name']?.toString().trim().isNotEmpty == true)
+        ? shopSettings!['ac_holder_name'].toString().trim()
+        : 'NA';
+    final String acNumber = (shopSettings?['ac_number']?.toString().trim().isNotEmpty == true)
+        ? shopSettings!['ac_number'].toString().trim()
+        : 'NA';
+    final String ifsc = (shopSettings?['ifsc_code']?.toString().trim().isNotEmpty == true)
+        ? shopSettings!['ifsc_code'].toString().trim()
+        : 'NA';
 
     final String term1 =
         shopSettings?['terms_1'] ??

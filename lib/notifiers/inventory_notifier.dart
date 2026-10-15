@@ -34,9 +34,8 @@ class InventoryNotifier extends AsyncNotifier<List<InventoryItem>> {
     _lastCategoryId = categoryId;
     _lastDistributorId = distributorId;
 
-    // Removed state = const AsyncValue.loading(); to prevent UI unmounting during search
-    state = await AsyncValue.guard(
-      () => _fetchInventory(
+    try {
+      final items = await _fetchInventory(
         searchQuery: searchQuery,
         startDate: startDate,
         endDate: endDate,
@@ -44,8 +43,11 @@ class InventoryNotifier extends AsyncNotifier<List<InventoryItem>> {
         distributorId: distributorId,
         skip: _currentSkip,
         limit: _limit,
-      ),
-    );
+      );
+      state = AsyncData(List<InventoryItem>.from(items));
+    } catch (e, st) {
+      state = AsyncError(e, st);
+    }
   }
 
   Future<void> loadMore() async {

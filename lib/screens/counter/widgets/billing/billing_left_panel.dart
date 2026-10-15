@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
 import 'package:linked_scroll_controller/linked_scroll_controller.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -215,10 +216,14 @@ class _BillingLeftPanelState extends ConsumerState<BillingLeftPanel> {
             widget.hasEnoughHeight,
             LayoutBuilder(
               builder: (context, tableConstraints) {
-                return Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                return Column(
                   children: [
-                    // FIXED LEFT COLUMN (Medicine Name)
+                    _buildConditionalExpanded(
+                      widget.hasEnoughHeight,
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // FIXED LEFT COLUMN (Medicine Name)
                     Container(
                       width: widget.isDesktopWidth ? 200 : 120,
                       decoration: BoxDecoration(
@@ -243,6 +248,8 @@ class _BillingLeftPanelState extends ConsumerState<BillingLeftPanel> {
                           _buildConditionalExpanded(
                             widget.hasEnoughHeight,
                             ListView.separated(
+                              key: const ValueKey('billing_head_list'),
+                              primary: false,
                               controller: _headController,
                               shrinkWrap: !widget.hasEnoughHeight,
                               physics: widget.hasEnoughHeight ? const AlwaysScrollableScrollPhysics() : const NeverScrollableScrollPhysics(),
@@ -250,10 +257,11 @@ class _BillingLeftPanelState extends ConsumerState<BillingLeftPanel> {
                               separatorBuilder: (context, index) => Divider(height: 1, color: Theme.of(context).dividerColor),
                               itemBuilder: (context, index) {
                                 if (index == widget.filteredMedicines.length) {
-                                  return const SizedBox(height: 68); // Match the Load More button height
+                                  return const SizedBox(height: 16);
                                 }
                                 final item = widget.filteredMedicines[index];
                                 return Container(
+                                  key: ValueKey('billing_left_${item['inventory_item_id']}_${item['stock']}'),
                                   height: 48, // Fixed height to guarantee sync
                                   padding: EdgeInsets.symmetric(horizontal: widget.isDesktopWidth ? 16 : 8, vertical: 0),
                                   alignment: Alignment.centerLeft,
@@ -275,14 +283,18 @@ class _BillingLeftPanelState extends ConsumerState<BillingLeftPanel> {
                     
                     // SCROLLABLE RIGHT COLUMNS
                     Expanded(
-                      child: Scrollbar(
-                        controller: _horizontalController,
-                        thumbVisibility: true,
+                      child: ScrollConfiguration(
+                        behavior: ScrollConfiguration.of(context).copyWith(
+                          dragDevices: {
+                            PointerDeviceKind.touch,
+                            PointerDeviceKind.mouse,
+                            PointerDeviceKind.trackpad,
+                          },
+                        ),
                         child: SingleChildScrollView(
-                          controller: _horizontalController,
                           scrollDirection: Axis.horizontal,
-                          child: SizedBox(
-                            width: widget.isDesktopWidth ? 1000 : 700, // Fixed width for scrollable area
+                        child: SizedBox(
+                          width: widget.isDesktopWidth ? 1000 : 700, // Fixed width for scrollable area
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
@@ -307,6 +319,8 @@ class _BillingLeftPanelState extends ConsumerState<BillingLeftPanel> {
                               _buildConditionalExpanded(
                                 widget.hasEnoughHeight,
                                 ListView.separated(
+                                  key: const ValueKey('billing_body_list'),
+                                  primary: false,
                                   controller: _bodyController,
                                   shrinkWrap: !widget.hasEnoughHeight,
                                   physics: widget.hasEnoughHeight ? const AlwaysScrollableScrollPhysics() : const NeverScrollableScrollPhysics(),
@@ -314,22 +328,11 @@ class _BillingLeftPanelState extends ConsumerState<BillingLeftPanel> {
                                   separatorBuilder: (context, index) => Divider(height: 1, color: Theme.of(context).dividerColor),
                                   itemBuilder: (context, index) {
                                     if (index == widget.filteredMedicines.length) {
-                                      if (widget.hasMore) {
-                                        return Container(
-                                          height: 68,
-                                          padding: const EdgeInsets.all(16.0),
-                                          child: Center(
-                                            child: OutlinedButton(
-                                              onPressed: widget.onLoadMore,
-                                              child: const Text('Load More'),
-                                            ),
-                                          ),
-                                        );
-                                      }
-                                      return const SizedBox(height: 68);
+                                      return const SizedBox(height: 16);
                                     }
                                     final item = widget.filteredMedicines[index];
                                     return Container(
+                                      key: ValueKey('billing_right_${item['inventory_item_id']}_${item['stock']}'),
                                       height: 48, // Fixed height to guarantee sync
                                       padding: EdgeInsets.symmetric(horizontal: widget.isDesktopWidth ? 16 : 8, vertical: 0),
                                       child: Row(
@@ -397,9 +400,30 @@ class _BillingLeftPanelState extends ConsumerState<BillingLeftPanel> {
                       ),
                     ),
                     ),
-                  ],
-                );
-              },
+                   ],
+                  ),
+                ),
+                if (widget.hasMore)
+                  Container(
+                    padding: const EdgeInsets.symmetric(vertical: 16.0),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).scaffoldBackgroundColor,
+                      border: Border(
+                        top: BorderSide(
+                          color: Theme.of(context).dividerColor,
+                        ),
+                      ),
+                    ),
+                    child: Center(
+                      child: OutlinedButton(
+                        onPressed: widget.onLoadMore,
+                        child: const Text('Load More'),
+                      ),
+                    ),
+                  ),
+              ],
+            );
+          },
             ),
           ),
         ],

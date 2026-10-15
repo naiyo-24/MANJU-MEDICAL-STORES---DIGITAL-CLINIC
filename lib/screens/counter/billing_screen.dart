@@ -10,7 +10,6 @@ import '../../services/doctor_service.dart';
 import '../../services/draft_service.dart';
 import '../../services/billing_history_service.dart';
 import '../../utils/pdf_generator.dart';
-import '../../services/shop_settings_service.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/billing_provider.dart';
@@ -93,21 +92,22 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
 
   Future<void> _fetchShopSettings() async {
     try {
-      _shopSettings = await ShopSettingsService.getSettings();
+      final settings = await ref.read(settingsProvider.future);
+      if (mounted) {
+        setState(() {
+          _shopSettings = settings;
+        });
+      }
       // Pre-warm the PDF logo, QR code, and fonts cache to speed up the first bill generation
       PdfGenerator.preloadFonts();
       
       if (_shopSettings?['logo_url'] != null) {
-        String url = _shopSettings!['logo_url'];
-        if (PdfGenerator.getCachedLogoUrl() != url) {
-           PdfGenerator.preloadLogo(url);
-        }
+        String url = _shopSettings!['logo_url'].toString();
+        PdfGenerator.preloadLogo(url);
       }
       if (_shopSettings?['qr_url'] != null) {
-        String url = _shopSettings!['qr_url'];
-        if (PdfGenerator.getCachedQrUrl() != url) {
-           PdfGenerator.preloadQr(url);
-        }
+        String url = _shopSettings!['qr_url'].toString();
+        PdfGenerator.preloadQr(url);
       }
     } catch (e) {
       debugPrint('Error fetching shop settings: $e');
@@ -453,8 +453,9 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
       return;
     }
 
+    final currentSettings = ref.read(settingsProvider).value ?? _shopSettings;
     String baseInvoice =
-        _shopSettings?['shop_name']
+        currentSettings?['shop_name']
             ?.toString()
             .replaceAll(' ', '')
             .toUpperCase() ??
@@ -478,7 +479,7 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
           : 'Walk-in Customer',
       customerPhone: _customerPhoneController.text,
       customerLocation: _customerLocationController.text,
-      shopSettings: _shopSettings,
+      shopSettings: currentSettings,
       doctorName: ref.read(billingProvider).selectedDoctorId == 'new'
           ? _newDoctorController.text
           : ref.read(billingProvider).selectedDoctorName,
@@ -653,8 +654,9 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
         }
       }
 
+      final currentSettings = ref.read(settingsProvider).value ?? _shopSettings;
       String baseInvoice =
-          _shopSettings?['shop_name']
+          currentSettings?['shop_name']
               ?.toString()
               .replaceAll(' ', '')
               .toUpperCase() ??
@@ -705,7 +707,7 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
             : 'Walk-in Customer',
         customerPhone: _customerPhoneController.text,
         customerLocation: _customerLocationController.text,
-        shopSettings: _shopSettings,
+        shopSettings: currentSettings,
         doctorName: ref.read(billingProvider).selectedDoctorId == 'new'
             ? _newDoctorController.text
             : ref.read(billingProvider).selectedDoctorName,
@@ -754,6 +756,9 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
           items: List.from(_currentBill),
           createdAt: DateTime.now(),
           format: ref.read(billingProvider).selectedFormat,
+          shopSettings: currentSettings != null
+              ? Map<String, dynamic>.from(currentSettings)
+              : null,
         ),
       );
 
@@ -1048,6 +1053,22 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<AsyncValue<Map<String, dynamic>>>(settingsProvider, (previous, next) {
+      next.whenData((settings) {
+        if (mounted) {
+          setState(() {
+            _shopSettings = settings;
+          });
+        }
+        if (settings['logo_url'] != null) {
+          PdfGenerator.preloadLogo(settings['logo_url'].toString());
+        }
+        if (settings['qr_url'] != null) {
+          PdfGenerator.preloadQr(settings['qr_url'].toString());
+        }
+      });
+    });
+
     final inventoryState = ref.watch(billingInventoryProvider);
     final allMedicines = inventoryState.when(
       data: (items) {
@@ -1212,7 +1233,7 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                   Widget leftSide = inventoryState.when(
                     data: (items) => BillingLeftPanel(
                       isDesktopWidth: isDesktopWidth,
-                      hasEnoughHeight: isDesktopWidth ? hasEnoughHeight : true,
+                      hasEnoughHeight: true,
                       filteredMedicines: computedFilteredMedicines,
                       categories: dynamicCategories,
                       selectedCategoryIndex: ref
@@ -1268,7 +1289,7 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                   );
 
                   Widget rightSide = BillingRightPanel(
-                    hasEnoughHeight: hasEnoughHeight,
+                    hasEnoughHeight: isDesktopWidth,
                     discountController: _discountController,
                     customerNameController: _customerNameController,
                     customerPhoneController: _customerPhoneController,
@@ -1315,16 +1336,34 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                         Expanded(flex: 9, child: rightSide),
                       ],
                     );
-                    return hasEnoughHeight
-                        ? content
-                        : SingleChildScrollView(child: content);
+                    
+                    Widget wrapper = content;
+                    if (!hasEnoughHeight) {
+                      wrapper = SingleChildScrollView(
+                        scrollDirection: Axis.vertical,
+                        child: SizedBox(
+                          height: 850,
+                          child: wrapper,
+                        ),
+                      );
+                    }
+                    if (constraints.maxWidth < 700) {
+                      wrapper = SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: SizedBox(
+                          width: 700,
+                          child: wrapper,
+                        ),
+                      );
+                    }
+                    return wrapper;
                   } else {
-                    return SingleChildScrollView(
+                    Widget wrapper = SingleChildScrollView(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           SizedBox(
-                            height: 500, // Fixed height so it doesn't shrink and overflow when keyboard opens
+                            height: 600, // Fixed height so it doesn't shrink and overflow when keyboard opens
                             child: leftSide,
                           ),
                           const SizedBox(height: 24),
@@ -1332,6 +1371,17 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                         ],
                       ),
                     );
+                    
+                    if (constraints.maxWidth < 400) {
+                      wrapper = SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: SizedBox(
+                          width: 400,
+                          child: wrapper,
+                        ),
+                      );
+                    }
+                    return wrapper;
                   }
                 },
               ),

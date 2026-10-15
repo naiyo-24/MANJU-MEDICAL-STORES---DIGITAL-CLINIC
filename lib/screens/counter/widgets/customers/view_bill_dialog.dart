@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../../../themes/app_colors.dart';
 
 import 'package:printing/printing.dart';
 import 'package:pdf/pdf.dart';
@@ -7,6 +6,10 @@ import '../../../../utils/pdf_generator.dart';
 import '../../../../models/counter_models.dart';
 
 void showViewBillDialog(BuildContext context, SavedBill bill, Map<String, dynamic> shopSettings) {
+  final effectiveSettings = (bill.shopSettings != null && bill.shopSettings!.isNotEmpty)
+      ? bill.shopSettings!
+      : shopSettings;
+
   showDialog(
     context: context,
     builder: (context) {
@@ -61,7 +64,7 @@ void showViewBillDialog(BuildContext context, SavedBill bill, Map<String, dynami
                       gstNumber: bill.customerGstin,
                       doctorName: bill.doctorName,
                       paymentMethod: bill.paymentMode,
-                      shopSettings: shopSettings,
+                      shopSettings: effectiveSettings,
                       format: bill.format,
                       billingDate: bill.createdAt,
                     );

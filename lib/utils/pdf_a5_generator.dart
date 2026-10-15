@@ -32,12 +32,11 @@ class PdfA5Generator {
     required String phone,
     required String email,
     required String shopGstNo,
-    required String drugLicence,
-    required String bankName,
-    required String branchName,
-    required String acHolder,
-    required String acNumber,
-    required String ifsc,
+    String? bankName,
+    String? branchName,
+    String? acHolder,
+    String? acNumber,
+    String? ifsc,
     required String term1,
     required String term2,
     required String term3,
@@ -428,13 +427,19 @@ class PdfA5Generator {
     required double roundOff,
     String? paymentMethod,
     pw.ImageProvider? qrImage,
-    required String bankName,
-    required String branchName,
-    required String acHolder,
-    required String acNumber,
-    required String ifsc,
+    String? bankName,
+    String? branchName,
+    String? acHolder,
+    String? acNumber,
+    String? ifsc,
     required PdfColor primaryGreen,
   }) {
+    String formatVal(String? val) {
+      if (val == null) return 'NA';
+      final trimmed = val.trim();
+      return trimmed.isNotEmpty ? trimmed : 'NA';
+    }
+
     return pw.Column(
       mainAxisSize: pw.MainAxisSize.min,
       children: [
@@ -461,11 +466,11 @@ class PdfA5Generator {
                       crossAxisAlignment: pw.CrossAxisAlignment.start,
                       children: [
                         pw.Text('Bank Details', style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold, color: primaryGreen)),
-                        pw.Text('Bank: $bankName', style: const pw.TextStyle(fontSize: 7)),
-                        pw.Text('Branch: $branchName', style: const pw.TextStyle(fontSize: 7)),
-                        pw.Text('A/C Name: $acHolder', style: const pw.TextStyle(fontSize: 7)),
-                        pw.Text('A/C No: $acNumber', style: const pw.TextStyle(fontSize: 7)),
-                        pw.Text('IFSC: $ifsc', style: const pw.TextStyle(fontSize: 7)),
+                        pw.Text('Bank: ${formatVal(bankName)}', style: const pw.TextStyle(fontSize: 7)),
+                        pw.Text('Branch: ${formatVal(branchName)}', style: const pw.TextStyle(fontSize: 7)),
+                        pw.Text('A/C Name: ${formatVal(acHolder)}', style: const pw.TextStyle(fontSize: 7)),
+                        pw.Text('A/C No: ${formatVal(acNumber)}', style: const pw.TextStyle(fontSize: 7)),
+                        pw.Text('IFSC: ${formatVal(ifsc)}', style: const pw.TextStyle(fontSize: 7)),
                       ],
                     ),
                   ),

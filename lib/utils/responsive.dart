@@ -1,37 +1,72 @@
 import 'package:flutter/material.dart';
 
-class Responsive extends StatelessWidget {
-  final Widget mobile;
-  final Widget? tablet;
-  final Widget desktop;
+class Responsive {
+  Responsive._();
 
-  const Responsive({
-    super.key,
-    required this.mobile,
-    this.tablet,
-    required this.desktop,
-  });
+  static double width(BuildContext context) {
+    return MediaQuery.sizeOf(context).width;
+  }
 
-  static bool isMobile(BuildContext context) =>
-      MediaQuery.of(context).size.width < 850;
+  static double height(BuildContext context) {
+    return MediaQuery.sizeOf(context).height;
+  }
 
-  static bool isTablet(BuildContext context) =>
-      MediaQuery.of(context).size.width >= 850 &&
-      MediaQuery.of(context).size.width < 1100;
+  static bool isMobile(BuildContext context) {
+    return width(context) < 600;
+  }
 
-  static bool isDesktop(BuildContext context) =>
-      MediaQuery.of(context).size.width >= 1100;
+  static bool isTablet(BuildContext context) {
+    final w = width(context);
 
-  @override
-  Widget build(BuildContext context) {
-    final Size size = MediaQuery.of(context).size;
-    if (size.width >= 1100) {
-      return desktop;
-    } else if (size.width >= 850 && tablet != null) {
-      return tablet!;
-    } else {
-      return mobile;
+    return w >= 600 && w < 1024;
+  }
+
+  static bool isDesktop(BuildContext context) {
+    return width(context) >= 1024;
+  }
+
+  static bool isLargeDesktop(BuildContext context) {
+    return width(context) >= 1440;
+  }
+
+  static bool isMobileOrTablet(BuildContext context) {
+    return width(context) < 1024;
+  }
+
+  static bool isTabletOrDesktop(BuildContext context) {
+    return width(context) >= 600;
+  }
+
+  static double horizontalPadding(BuildContext context) {
+    final w = width(context);
+
+    if (w < 600) {
+      return 12;
     }
+
+    if (w < 1024) {
+      return 20;
+    }
+
+    if (w < 1440) {
+      return 28;
+    }
+
+    return 40;
+  }
+
+  static double spacing(BuildContext context) {
+    final w = width(context);
+
+    if (w < 600) {
+      return 12;
+    }
+
+    if (w < 1024) {
+      return 16;
+    }
+
+    return 20;
   }
 }
 

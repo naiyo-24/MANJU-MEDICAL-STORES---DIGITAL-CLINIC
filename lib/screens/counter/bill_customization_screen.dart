@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../../models/settings_models.dart';
@@ -10,9 +9,6 @@ import '../../services/shop_settings_service.dart';
 import '../../utils/responsive.dart';
 import '../../utils/pdf_generator.dart';
 import '../../config/api_constants.dart';
-import 'package:dio/dio.dart';
-import '../../config/api_client.dart';
-import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/counter_providers.dart';
 
@@ -183,10 +179,16 @@ class _BillCustomizationScreenState
         String url;
         if (isLogo) {
           url = await ShopSettingsService.uploadLogo(bytes, filename);
-          setState(() => _logoUrl = url);
+          setState(() {
+            _logoUrl = url;
+          });
+          PdfGenerator.clearImageCache();
         } else {
           url = await ShopSettingsService.uploadQr(bytes, filename);
-          setState(() => _qrUrl = url);
+          setState(() {
+            _qrUrl = url;
+          });
+          PdfGenerator.clearImageCache();
         }
       } catch (e) {
         if (mounted) {
@@ -200,13 +202,6 @@ class _BillCustomizationScreenState
       }
     }
   }
-
-  // Local cache for images
-  static Uint8List? _cachedDefaultLogo;
-  static Uint8List? _cachedLogoBytes;
-  static String? _cachedLogoUrl;
-  static Uint8List? _cachedQrBytes;
-  static String? _cachedQrUrl;
 
   Future<void> _generatePreviewPdf() async {
     setState(() {
@@ -228,49 +223,7 @@ class _BillCustomizationScreenState
       ),
     );
 
-    // Fetch images asynchronously without blocking UI thread
-    Uint8List? finalLogoBytes;
-    Uint8List? finalQrBytes;
-
     try {
-      if (_logoUrl != null && _logoUrl!.isNotEmpty) {
-        if (_cachedLogoUrl == _logoUrl && _cachedLogoBytes != null) {
-          finalLogoBytes = _cachedLogoBytes;
-        } else {
-          final res = await ApiClient().dio.get(
-            _logoUrl!,
-            options: Options(responseType: ResponseType.bytes),
-          );
-          if (res.statusCode == 200) {
-            _cachedLogoBytes = res.data;
-            _cachedLogoUrl = _logoUrl;
-            finalLogoBytes = _cachedLogoBytes;
-          }
-        }
-      } else {
-        if (_cachedDefaultLogo == null) {
-          final ByteData bytes = await rootBundle.load('assets/LOGO.png');
-          _cachedDefaultLogo = bytes.buffer.asUint8List();
-        }
-        finalLogoBytes = _cachedDefaultLogo;
-      }
-
-      if (_qrUrl != null && _qrUrl!.isNotEmpty) {
-        if (_cachedQrUrl == _qrUrl && _cachedQrBytes != null) {
-          finalQrBytes = _cachedQrBytes;
-        } else {
-          final res = await ApiClient().dio.get(
-            _qrUrl!,
-            options: Options(responseType: ResponseType.bytes),
-          );
-          if (res.statusCode == 200) {
-            _cachedQrBytes = res.data;
-            _cachedQrUrl = _qrUrl;
-            finalQrBytes = _cachedQrBytes;
-          }
-        }
-      }
-
       final settings = ShopSettings(
         shopName: _shopNameCtrl.text,
         tagline: _taglineCtrl.text,
@@ -332,38 +285,23 @@ class _BillCustomizationScreenState
         ),
       ].map((e) => e.toMap()).toList();
 
-      final args = {
-        'items': dummyItems,
-        'subtotal': 170.0,
-        'discount': 0.0,
-        'tax': 20.4,
-        'grandTotal': 190.4,
-        'invoiceNumber': 'PREVIEW-001',
-        'customerName': 'John Doe',
-        'customerPhone': '9876543210',
-        'customerLocation': 'Mumbai',
-        'doctorName': 'Dr. Smith',
-        'format': _previewFormat,
-        'shopSettings': settings.toMap(),
-        'logoBytes': finalLogoBytes,
-        'qrBytes': finalQrBytes,
-      };
+      final shopSettingsMap = settings.toMap();
+      shopSettingsMap['logo_url'] = _logoUrl;
+      shopSettingsMap['qr_url'] = _qrUrl;
 
       final bytes = await PdfGenerator.generateBill(
-        items: args['items'] as List<Map<String, dynamic>>,
-        subtotal: args['subtotal'] as double,
-        discount: args['discount'] as double,
-        tax: args['tax'] as double,
-        grandTotal: args['grandTotal'] as double,
-        invoiceNumber: args['invoiceNumber'] as String,
-        customerName: args['customerName'] as String,
-        customerPhone: args['customerPhone'] as String,
-        customerLocation: args['customerLocation'] as String,
-        doctorName: args['doctorName'] as String,
-        format: args['format'] as String,
-        shopSettings: args['shopSettings'] as Map<String, dynamic>,
-        logoBytes: args['logoBytes'] as Uint8List?,
-        qrBytes: args['qrBytes'] as Uint8List?,
+        items: dummyItems,
+        subtotal: 170.0,
+        discount: 0.0,
+        tax: 20.4,
+        grandTotal: 190.4,
+        invoiceNumber: 'PREVIEW-001',
+        customerName: 'John Doe',
+        customerPhone: '9876543210',
+        customerLocation: 'Mumbai',
+        doctorName: 'Dr. Smith',
+        format: _previewFormat,
+        shopSettings: shopSettingsMap,
       );
 
       if (mounted) {
@@ -439,6 +377,14 @@ class _BillCustomizationScreenState
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<AsyncValue<Map<String, dynamic>>>(settingsProvider, (previous, next) {
+      next.whenData((settings) {
+        if (!_isSaving) {
+          _populateFields(settings);
+        }
+      });
+    });
+
     final settingsAsync = ref.watch(settingsProvider);
     if (settingsAsync.isLoading) {
       return const Center(child: CircularProgressIndicator());

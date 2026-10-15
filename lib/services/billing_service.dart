@@ -76,6 +76,7 @@ class BillingService {
           'shop_id': shopId,
           'tenant_id': shopId,
           'limit': 1000,
+          '_t': DateTime.now().millisecondsSinceEpoch,
         },
       );
 

@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../config/api_client.dart';
 import 'inventory_service.dart';
@@ -31,7 +30,11 @@ class PurchaseService {
       final shopId = await InventoryService.getShopId();
       final response = await _apiClient.dio.get(
         '/api/admin/purchases/',
-        queryParameters: {'shop_id': shopId, 'tenant_id': shopId},
+        queryParameters: {
+          if (shopId.isNotEmpty) 'shop_id': shopId,
+          if (shopId.isNotEmpty) 'tenant_id': shopId,
+          '_t': DateTime.now().millisecondsSinceEpoch,
+        },
       );
       if (response.statusCode == 200) {
         return response.data as List<dynamic>;
@@ -42,10 +45,14 @@ class PurchaseService {
       return [];
     }
   }
+
   // Mark a purchase bill as PAID
-  Future<void> markBillAsPaid(String billId) async {
+  Future<void> markBillAsPaid(String billId, {String paymentMethod = 'CASH'}) async {
     try {
-      final response = await _apiClient.dio.patch('/api/admin/purchases/$billId/pay');
+      final response = await _apiClient.dio.patch(
+        '/api/admin/purchases/$billId/pay',
+        data: {'payment_method': paymentMethod},
+      );
       if (response.statusCode != 200) {
         throw Exception('Failed to mark bill as paid');
       }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../notifiers/billing_notifier.dart';
 import '../../../../../utils/format_utils.dart';
@@ -47,12 +48,15 @@ class _BillingCartTableState extends State<BillingCartTable> {
     return       // Bill Table
       LayoutBuilder(
         builder: (context, tableConstraints) {
-          return Scrollbar(
-            controller: _scrollController,
-            thumbVisibility: true,
-            thickness: 8,
+          return ScrollConfiguration(
+            behavior: ScrollConfiguration.of(context).copyWith(
+              dragDevices: {
+                PointerDeviceKind.touch,
+                PointerDeviceKind.mouse,
+                PointerDeviceKind.trackpad,
+              },
+            ),
             child: SingleChildScrollView(
-              controller: _scrollController,
               scrollDirection: Axis.horizontal,
             child: ConstrainedBox(
               constraints: BoxConstraints(
@@ -402,7 +406,7 @@ class _BillingCartTableState extends State<BillingCartTable> {
                 ],
               ),
             ),
-            ),
+           ),
           );
         },
       );

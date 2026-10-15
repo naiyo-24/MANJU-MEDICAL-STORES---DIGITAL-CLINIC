@@ -106,6 +106,13 @@ class HistoryNotifier extends AsyncNotifier<HistoryState> {
           grandTotal: grandTotalVal,
           items: itemsList,
           createdAt: dt,
+          shopSettings: item['shop_details'] != null
+              ? Map<String, dynamic>.from(item['shop_details'])
+              : (item['shop_settings'] != null
+                  ? Map<String, dynamic>.from(item['shop_settings'])
+                  : (item['shopSettings'] != null
+                      ? Map<String, dynamic>.from(item['shopSettings'])
+                      : null)),
         ),
       };
     }).toList();

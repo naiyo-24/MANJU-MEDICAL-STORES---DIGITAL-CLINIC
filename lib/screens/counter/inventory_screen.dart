@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:linked_scroll_controller/linked_scroll_controller.dart';
 import 'widgets/inventory/inventory_dialogs.dart';
@@ -12,9 +13,6 @@ import '../../services/rack_service.dart';
 import '../../services/category_service.dart';
 import '../../widgets/custom_date_range_picker.dart';
 import 'package:intl/intl.dart';
-import '../../widgets/rack_dropdown.dart';
-import '../../widgets/category_dropdown.dart';
-import '../../widgets/distributor_dropdown.dart';
 
 class InventoryScreen extends ConsumerStatefulWidget {
   const InventoryScreen({super.key});
@@ -200,7 +198,8 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
         }).toList() ??
         [];
 
-    final settings = ref.read(settingsProvider).value ?? {};
+    final settings = ref.read(settingsProvider).value ??
+        await ref.read(settingsProvider.future).catchError((_) => <String, dynamic>{});
     final shopDetails = {
       'name': settings['shop_name'] ?? 'MANJU MEDICAL STORES',
       'location': settings['address'],
@@ -296,11 +295,6 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
     );
   }
 
-  Widget _buildConditionalWrapper(bool isShort, Widget child) {
-    return isShort
-        ? SizedBox(height: 800, child: child)
-        : Expanded(child: child);
-  }
 
   @override
   void dispose() {
@@ -323,9 +317,6 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
       color: Theme.of(context).scaffoldBackgroundColor,
       child: LayoutBuilder(
         builder: (context, screenConstraints) {
-          bool isScreenShort =
-              screenConstraints.maxHeight < 850 ||
-              screenConstraints.maxWidth < 1000;
           final isDesktopWidth = screenConstraints.maxWidth >= 1000;
           Widget content = Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -721,9 +712,8 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
               ),
 
               // List Content
-              _buildConditionalWrapper(
-                isScreenShort,
-                Padding(
+              Expanded(
+                child: Padding(
                   padding: const EdgeInsets.all(32.0),
                   child: Container(
                     decoration: BoxDecoration(
@@ -818,8 +808,11 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                             return _sortAscending ? cmp : -cmp;
                           });
 
-                          return Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                          return Column(
+                            children: [
+                              Expanded(
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               // FIXED LEFT COLUMN
                               SizedBox(
@@ -841,6 +834,8 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                                     ),
                                     Expanded(
                                       child: ListView.separated(
+                                        key: const ValueKey('inventory_head_list'),
+                                        primary: false,
                                         controller: _headController,
                                         itemCount: sortedItems.length + 1,
                                         separatorBuilder: (context, index) =>
@@ -851,11 +846,12 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                                         itemBuilder: (context, index) {
                                           if (index == sortedItems.length) {
                                             return const SizedBox(
-                                              height: 80,
-                                            ); // match right side height
+                                              height: 16,
+                                            );
                                           }
                                           final medicine = sortedItems[index];
                                           return InventoryRowLeftWidget(
+                                            key: ValueKey('left_${medicine.id}_${medicine.stockQuantity}_${medicine.looseStock}'),
                                             medicine: medicine,
                                             onTap: () =>
                                                 _showEditMedicineDialog(
@@ -985,6 +981,8 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                                         ),
                                         Expanded(
                                           child: ListView.separated(
+                                            key: const ValueKey('inventory_body_list'),
+                                            primary: false,
                                             controller: _bodyController,
                                             itemCount: sortedItems.length + 1,
                                             separatorBuilder:
@@ -995,34 +993,8 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                                                     ),
                                             itemBuilder: (context, index) {
                                               if (index == sortedItems.length) {
-                                                if (ref
-                                                    .read(
-                                                      inventoryProvider
-                                                          .notifier,
-                                                    )
-                                                    .hasMore) {
-                                                  return Padding(
-                                                    padding:
-                                                        const EdgeInsets.all(
-                                                          16.0,
-                                                        ),
-                                                    child: Center(
-                                                      child: OutlinedButton(
-                                                        onPressed: () => ref
-                                                            .read(
-                                                              inventoryProvider
-                                                                  .notifier,
-                                                            )
-                                                            .loadMore(),
-                                                        child: const Text(
-                                                          'Load More',
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  );
-                                                }
                                                 return const SizedBox(
-                                                  height: 80,
+                                                  height: 16,
                                                 );
                                               }
 
@@ -1051,6 +1023,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                                                   .name;
 
                                               return InventoryRowRightWidget(
+                                                key: ValueKey('right_${medicine.id}_${medicine.stockQuantity}_${medicine.looseStock}'),
                                                 medicine: medicine,
                                                 rackName: rackName,
                                                 categoryName: categoryName,
@@ -1078,7 +1051,30 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                                 ),
                               ),
                             ],
-                          );
+                          ),
+                        ),
+                        if (ref.read(inventoryProvider.notifier).hasMore)
+                          Container(
+                            padding: const EdgeInsets.symmetric(vertical: 16.0),
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).scaffoldBackgroundColor,
+                              border: Border(
+                                top: BorderSide(
+                                  color: Theme.of(context).dividerColor,
+                                ),
+                              ),
+                            ),
+                            child: Center(
+                              child: OutlinedButton(
+                                onPressed: () => ref
+                                    .read(inventoryProvider.notifier)
+                                    .loadMore(),
+                                child: const Text('Load More'),
+                              ),
+                            ),
+                          ),
+                      ],
+                    );
                         },
                       ),
                     ),
@@ -1088,9 +1084,29 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
             ],
           );
 
-          return isScreenShort
-              ? SingleChildScrollView(child: content)
-              : content;
+          Widget wrapper = content;
+          
+          if (screenConstraints.maxHeight < 850) {
+            wrapper = SingleChildScrollView(
+              scrollDirection: Axis.vertical,
+              child: SizedBox(
+                height: 850,
+                child: wrapper,
+              ),
+            );
+          }
+          
+          if (screenConstraints.maxWidth < 600) {
+            wrapper = SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: SizedBox(
+                width: screenConstraints.maxWidth < 600 ? 600 : screenConstraints.maxWidth,
+                child: wrapper,
+              ),
+            );
+          }
+          
+          return wrapper;
         },
       ),
     );

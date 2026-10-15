@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../services/auth_service.dart';
+import '../../utils/responsive.dart';
 
 class RoleLoginScreen extends StatefulWidget {
   final String roleName;
@@ -171,8 +172,9 @@ class _RoleLoginScreenState extends State<RoleLoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-    final isWeb = size.width > 900;
+    final isDesktop = Responsive.isDesktop(context);
+    final isTablet = Responsive.isTablet(context);
+    final isWide = isDesktop || isTablet;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     
     final scaffoldBg = isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC);
@@ -189,9 +191,12 @@ class _RoleLoginScreenState extends State<RoleLoginScreen> {
           child: ShaderMask(
             shaderCallback: (rect) {
               return LinearGradient(
-                begin: Alignment.centerLeft,
-                end: Alignment.centerRight,
-                colors: [shaderColor, shaderColor.withValues(alpha: 0.2)],
+                begin: isWide ? Alignment.centerLeft : Alignment.topCenter,
+                end: isWide ? Alignment.centerRight : Alignment.bottomCenter,
+                colors: [
+                  shaderColor, 
+                  shaderColor.withValues(alpha: isWide ? 0.2 : 0.5)
+                ],
                 stops: const [0.4, 1.0],
               ).createShader(rect);
             },
@@ -209,10 +214,10 @@ class _RoleLoginScreenState extends State<RoleLoginScreen> {
           child: Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                begin: Alignment.centerLeft,
-                end: Alignment.centerRight,
+                begin: isWide ? Alignment.centerLeft : Alignment.topCenter,
+                end: isWide ? Alignment.centerRight : Alignment.bottomCenter,
                 colors: [
-                  scaffoldBg.withValues(alpha: 0.95),
+                  scaffoldBg.withValues(alpha: isWide ? 0.95 : 0.85),
                   scaffoldBg.withValues(alpha: 0.6),
                 ],
               ),
@@ -222,205 +227,249 @@ class _RoleLoginScreenState extends State<RoleLoginScreen> {
         // Foreground UI
         Scaffold(
           backgroundColor: Colors.transparent,
-          body: Column(
-            children: [
-              // Custom Top Bar
-              Container(
-                color: widget.themeColor,
-                padding: EdgeInsets.only(
-                  top: MediaQuery.of(context).padding.top + 4,
-                  bottom: 8,
-                  left: 24,
-                  right: 24,
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    TextButton.icon(
-                      onPressed: () => Navigator.pop(context),
-                      icon: const Icon(
-                        Icons.arrow_back,
-                        color: Colors.white,
-                        size: 18,
-                      ),
-                      label: const Text(
-                        'Back',
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ),
-                    Text(
-                      '${widget.roleName} Login',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
-                    if (isWeb)
-                      const Text(
-                        'SirfBill Bill Karo, Befikar Raho',
-                        style: TextStyle(color: Colors.white70, fontSize: 12),
-                      )
-                    else
-                      const SizedBox(width: 60), // Balance the row
-                  ],
-                ),
-              ),
-
-              Expanded(child: isWeb ? _buildWebLayout() : _buildMobileLayout()),
-
-              // Footer
-              if (isWeb)
+          body: SafeArea(
+            child: Column(
+              children: [
+                // Custom Top Bar
                 Container(
+                  color: widget.themeColor,
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 48,
-                    vertical: 16,
+                    vertical: 8,
+                    horizontal: 16,
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
-                        '© 2026 SirfBill Bill Karo, Befikar Raho. All rights reserved.',
-                        style: TextStyle(
-                          color: Color(0xFF94A3B8),
-                          fontSize: 12,
+                      TextButton.icon(
+                        onPressed: () => Navigator.pop(context),
+                        icon: const Icon(
+                          Icons.arrow_back,
+                          color: Colors.white,
+                          size: 18,
+                        ),
+                        label: const Text(
+                          'Back',
+                          style: TextStyle(color: Colors.white),
                         ),
                       ),
-                      Row(
-                        children: [
-                          const Text(
-                            'Together for a Healthier Tomorrow',
-                            style: TextStyle(
-                              color: Color(0xFF94A3B8),
-                              fontSize: 12,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Icon(Icons.eco, size: 14, color: widget.themeColor),
-                        ],
+                      Text(
+                        '${widget.roleName} Login',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
                       ),
+                      if (isWide)
+                        const Text(
+                          'SirfBill Bill Karo, Befikar Raho',
+                          style: TextStyle(color: Colors.white70, fontSize: 12),
+                        )
+                      else
+                        const SizedBox(width: 60), // Balance the row
                     ],
                   ),
                 ),
-            ],
-          ), // Closes Column
+
+                // Main Content (Scrollable & Responsive)
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: Responsive.horizontalPadding(context),
+                      vertical: 16.0,
+                    ),
+                    child: Center(
+                      child: isWide ? _buildWebLayout(isTablet) : _buildMobileLayout(),
+                    ),
+                  ),
+                ),
+
+                // Footer
+                Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: isWide ? 48 : 24,
+                    vertical: 12,
+                  ),
+                  child: isWide
+                      ? Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text(
+                              '© 2026 SirfBill Bill Karo, Befikar Raho. All rights reserved.',
+                                      style: TextStyle(
+                                        color: Color(0xFF94A3B8),
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                    Row(
+                                      children: [
+                                        const Text(
+                                          'Together for a Healthier Tomorrow',
+                                          style: TextStyle(
+                                            color: Color(0xFF94A3B8),
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Icon(Icons.eco, size: 14, color: widget.themeColor),
+                                      ],
+                                    ),
+                                  ],
+                                )
+                              : Column(
+                                  children: [
+                                    const Text(
+                                      '© 2026 SirfBill Bill Karo, Befikar Raho. All rights reserved.',
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        color: Color(0xFF94A3B8),
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        const Text(
+                                          'Together for a Healthier Tomorrow',
+                                          style: TextStyle(
+                                            color: Color(0xFF94A3B8),
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Icon(Icons.eco, size: 14, color: widget.themeColor),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                ),
+              ],
+            ),
+          ),
         ), // Closes Scaffold
       ],
     ); // Closes Stack
   }
 
-  Widget _buildWebLayout() {
+  Widget _buildWelcomeInfo() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final subtitleColor = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
 
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Image.asset(
+          isDark ? 'assets/LOGO_DM.png' : 'assets/LOGO.png',
+          height: 80,
+          cacheHeight: 250,
+        ),
+        const SizedBox(height: 24),
+        Text(
+          'Welcome to',
+          style: TextStyle(fontSize: 24, color: subtitleColor),
+        ),
+        Text(
+          '${widget.roleName} Module',
+          style: TextStyle(
+            fontSize: 42,
+            fontWeight: FontWeight.w900,
+            color: widget.themeColor,
+          ),
+        ),
+        const SizedBox(height: 16),
+        Text(
+          widget.roleName == 'Counter'
+              ? 'Manage your pharmacy, billing, inventory\nand daily operations with ease.'
+              : widget.roleName == 'Lab Test'
+              ? 'Manage your lab test bookings, reports\nand patient records effortlessly.'
+              : 'Manage patients, follow-ups and\ncustomer relationships efficiently.',
+          style: TextStyle(
+            fontSize: 16,
+            color: subtitleColor,
+            height: 1.5,
+          ),
+        ),
+        const SizedBox(height: 24),
+        if (widget.roleName == 'Counter') ...[
+          _buildFeatureItem(
+            Icons.medication,
+            'Faster Billing',
+            'Serve customers quickly',
+          ),
+          _buildFeatureItem(
+            Icons.inventory,
+            'Inventory Management',
+            'Keep stock in control',
+          ),
+          _buildFeatureItem(
+            Icons.security,
+            'Reliable & Secure',
+            'Your data is always safe',
+          ),
+        ] else if (widget.roleName == 'Lab Test') ...[
+          _buildFeatureItem(
+            Icons.science,
+            'Easy Booking',
+            'Schedule lab tests quickly',
+          ),
+          _buildFeatureItem(
+            Icons.assignment,
+            'Report Management',
+            'Access and manage reports',
+          ),
+          _buildFeatureItem(
+            Icons.people,
+            'Patient Support',
+            'Keep records organized',
+          ),
+        ] else ...[
+          _buildFeatureItem(
+            Icons.folder_shared,
+            'Patient Management',
+            'Keep patient records organized',
+          ),
+          _buildFeatureItem(
+            Icons.notifications_active,
+            'Smart Follow-ups',
+            'Never miss an important follow-up',
+          ),
+          _buildFeatureItem(
+            Icons.handshake,
+            'Better Relationships',
+            'Build stronger customer connections',
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildWebLayout(bool isTablet) {
     return Center(
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 1200),
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 64.0, vertical: 16.0),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
+        constraints: BoxConstraints(maxWidth: isTablet ? 950 : 1200),
+        child: Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: isTablet ? 24.0 : 64.0,
+            vertical: 16.0,
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
               // Left Content
               Expanded(
-                flex: 1,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Image.asset(
-                      isDark ? 'assets/LOGO_DM.png' : 'assets/LOGO.png',
-                      height: 80,
-                      cacheHeight: 250,
-                    ),
-                    const SizedBox(height: 24),
-                    Text(
-                      'Welcome to',
-                      style: TextStyle(fontSize: 24, color: subtitleColor),
-                    ),
-                    Text(
-                      '${widget.roleName} Module',
-                      style: TextStyle(
-                        fontSize: 42,
-                        fontWeight: FontWeight.w900,
-                        color: widget.themeColor,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      widget.roleName == 'Billing Counter'
-                          ? 'Manage your sales, billing, inventory\nand daily operations with ease.'
-                          : widget.roleName == 'Lab Test'
-                          ? 'Manage your lab test bookings, reports\nand patient records effortlessly.'
-                          : 'Manage patients, follow-ups and\ncustomer relationships efficiently.',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: subtitleColor,
-                        height: 1.5,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    if (widget.roleName == 'Billing Counter') ...[
-                      _buildFeatureItem(
-                        Icons.receipt_long,
-                        'Faster Billing',
-                        'Serve customers quickly',
-                      ),
-                      _buildFeatureItem(
-                        Icons.inventory,
-                        'Inventory Management',
-                        'Keep stock in control',
-                      ),
-                      _buildFeatureItem(
-                        Icons.security,
-                        'Reliable & Secure',
-                        'Your data is always safe',
-                      ),
-                    ] else if (widget.roleName == 'Lab Test') ...[
-                      _buildFeatureItem(
-                        Icons.science,
-                        'Easy Booking',
-                        'Schedule lab tests quickly',
-                      ),
-                      _buildFeatureItem(
-                        Icons.assignment,
-                        'Report Management',
-                        'Access and manage reports',
-                      ),
-                      _buildFeatureItem(
-                        Icons.people,
-                        'Patient Support',
-                        'Keep records organized',
-                      ),
-                    ] else ...[
-                      _buildFeatureItem(
-                        Icons.folder_shared,
-                        'Patient Management',
-                        'Keep patient records organized',
-                      ),
-                      _buildFeatureItem(
-                        Icons.notifications_active,
-                        'Smart Follow-ups',
-                        'Never miss an important follow-up',
-                      ),
-                      _buildFeatureItem(
-                        Icons.handshake,
-                        'Better Relationships',
-                        'Build stronger customer connections',
-                      ),
-                    ],
-                  ],
-                ),
+                flex: isTablet ? 5 : 6,
+                child: _buildWelcomeInfo(),
               ),
-
+              const SizedBox(width: 32),
               // Right Login Card
               Expanded(
-                flex: 1,
+                flex: isTablet ? 5 : 5,
                 child: Align(
                   alignment: Alignment.center,
                   child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 400),
+                    constraints: const BoxConstraints(maxWidth: 420),
                     child: _buildLoginCard(),
                   ),
                 ),
@@ -428,34 +477,29 @@ class _RoleLoginScreenState extends State<RoleLoginScreen> {
             ],
           ), // Closes Row
         ), // Closes Padding
-      ), // Closes SingleChildScrollView
-    ), // Closes ConstrainedBox
-  ); // Closes Center
-}
+      ), // Closes ConstrainedBox
+    ); // Closes Center
+  }
 
   Widget _buildMobileLayout() {
     return Center(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 450),
-        child: SingleChildScrollView(
+        child: Padding(
           padding: const EdgeInsets.all(24.0),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const SizedBox(height: 16),
-              Image.asset(
-                Theme.of(context).brightness == Brightness.dark ? 'assets/LOGO_DM.png' : 'assets/LOGO.png',
-                height: 60,
-                fit: BoxFit.contain,
-              ),
-              const SizedBox(height: 32),
-              _buildLoginCard()
+              _buildWelcomeInfo(),
+              const SizedBox(height: 48),
+              _buildLoginCard(),
             ],
           ),
         ),
       ),
     );
   }
-
   Widget _buildLoginCard() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cardColor = isDark ? const Color(0xFF1E293B) : Colors.white;
