@@ -170,7 +170,7 @@ class _AboutUsDialogState extends State<AboutUsDialog> {
                                   builder: (context, snapshot) {
                                     final version = snapshot.hasData
                                         ? snapshot.data!.version
-                                        : '1.0.10';
+                                        : '1.0.11';
                                     return Container(
                                       padding: const EdgeInsets.symmetric(
                                           horizontal: 8, vertical: 2),
