@@ -3,7 +3,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../services/windows_auto_updater.dart';
 
-class AboutUsDialog extends StatelessWidget {
+class AboutUsDialog extends StatefulWidget {
   const AboutUsDialog({super.key});
 
   static Future<void> show(BuildContext context) {
@@ -12,6 +12,16 @@ class AboutUsDialog extends StatelessWidget {
       builder: (ctx) => const AboutUsDialog(),
     );
   }
+
+  @override
+  State<AboutUsDialog> createState() => _AboutUsDialogState();
+}
+
+class _AboutUsDialogState extends State<AboutUsDialog> {
+  bool _isCheckingUpdate = false;
+  String? _updateStatusMessage;
+  bool _isUpToDate = false;
+  bool _hasUpdateError = false;
 
   Future<void> _launchUrl(String url) async {
     final uri = Uri.parse(url);
@@ -160,7 +170,7 @@ class AboutUsDialog extends StatelessWidget {
                                   builder: (context, snapshot) {
                                     final version = snapshot.hasData
                                         ? snapshot.data!.version
-                                        : '1.0.7';
+                                        : '1.0.8';
                                     return Container(
                                       padding: const EdgeInsets.symmetric(
                                           horizontal: 8, vertical: 2),
@@ -590,63 +600,146 @@ Customer assistance is provided through official support channels:
                 color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
                 border: Border(top: BorderSide(color: borderColor)),
               ),
-              child: Wrap(
-                alignment: WrapAlignment.spaceBetween,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                spacing: 12,
-                runSpacing: 10,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Text(
-                    '© 2026 NAIYO24 PVT. LTD. All rights reserved.',
-                    style: TextStyle(fontSize: 11, color: subtitleColor),
-                  ),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      TextButton.icon(
-                        icon: const Icon(Icons.system_update_rounded, size: 16),
-                        label: const Text('Check for Updates'),
-                        style: TextButton.styleFrom(
-                          foregroundColor: primaryGreen,
-                          textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  if (_updateStatusMessage != null) ...[
+                    Container(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: _isUpToDate
+                            ? primaryGreen.withValues(alpha: 0.1)
+                            : (_hasUpdateError
+                                ? Colors.red.withValues(alpha: 0.1)
+                                : const Color(0xFF0284C7).withValues(alpha: 0.1)),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: _isUpToDate
+                              ? primaryGreen.withValues(alpha: 0.3)
+                              : (_hasUpdateError
+                                  ? Colors.red.withValues(alpha: 0.3)
+                                  : const Color(0xFF0284C7).withValues(alpha: 0.3)),
                         ),
-                        onPressed: () async {
-                          Navigator.pop(context);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Checking for SirfBill updates...'),
-                              duration: Duration(seconds: 2),
-                              backgroundColor: Color(0xFF1E293B),
-                            ),
-                          );
-                          final updateInfo = await WindowsAutoUpdater.checkForUpdate();
-                          if (context.mounted) {
-                            if (updateInfo != null) {
-                              WindowsAutoUpdater.showUpdateDialog(context, updateInfo);
-                            } else {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('You are using the latest version of SirfBill!'),
-                                  backgroundColor: primaryGreen,
-                                ),
-                              );
-                            }
-                          }
-                        },
                       ),
-                      const SizedBox(width: 8),
-                      ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: primaryGreen,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
+                      child: Row(
+                        children: [
+                          Icon(
+                            _isUpToDate
+                                ? Icons.check_circle_rounded
+                                : (_hasUpdateError
+                                    ? Icons.error_outline_rounded
+                                    : Icons.info_outline_rounded),
+                            size: 18,
+                            color: _isUpToDate
+                                ? primaryGreen
+                                : (_hasUpdateError ? Colors.red : const Color(0xFF0284C7)),
                           ),
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                        ),
-                        onPressed: () => Navigator.pop(context),
-                        child: const Text('Close'),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              _updateStatusMessage!,
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: _isUpToDate
+                                    ? primaryGreen
+                                    : (_hasUpdateError
+                                        ? Colors.red
+                                        : (isDark ? Colors.lightBlue[200] : const Color(0xFF0369A1))),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                  Wrap(
+                    alignment: WrapAlignment.spaceBetween,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    spacing: 12,
+                    runSpacing: 10,
+                    children: [
+                      Text(
+                        '© 2026 NAIYO24 PVT. LTD. All rights reserved.',
+                        style: TextStyle(fontSize: 11, color: subtitleColor),
+                      ),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          TextButton.icon(
+                            icon: _isCheckingUpdate
+                                ? const SizedBox(
+                                    width: 14,
+                                    height: 14,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      valueColor: AlwaysStoppedAnimation<Color>(primaryGreen),
+                                    ),
+                                  )
+                                : const Icon(Icons.system_update_rounded, size: 16),
+                            label: Text(_isCheckingUpdate ? 'Checking...' : 'Check for Updates'),
+                            style: TextButton.styleFrom(
+                              foregroundColor: primaryGreen,
+                              textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                            ),
+                            onPressed: _isCheckingUpdate
+                                ? null
+                                : () async {
+                                    setState(() {
+                                      _isCheckingUpdate = true;
+                                      _updateStatusMessage = 'Connecting to server and checking for updates...';
+                                      _isUpToDate = false;
+                                      _hasUpdateError = false;
+                                    });
+
+                                    try {
+                                      final updateInfo = await WindowsAutoUpdater.checkForUpdate();
+                                      if (!mounted) return;
+
+                                      if (updateInfo != null) {
+                                        setState(() {
+                                          _isCheckingUpdate = false;
+                                          _updateStatusMessage = 'New update available: v${updateInfo.version}!';
+                                          _isUpToDate = false;
+                                        });
+                                        if (mounted) {
+                                          // ignore: use_build_context_synchronously
+                                          WindowsAutoUpdater.showUpdateDialog(context, updateInfo);
+                                        }
+                                      } else {
+                                        setState(() {
+                                          _isCheckingUpdate = false;
+                                          _updateStatusMessage = 'SirfBill is already up to date! (Latest version installed)';
+                                          _isUpToDate = true;
+                                        });
+                                      }
+                                    } catch (e) {
+                                      if (!mounted) return;
+                                      setState(() {
+                                        _isCheckingUpdate = false;
+                                        _updateStatusMessage = 'Failed to check updates. Please verify your connection.';
+                                        _hasUpdateError = true;
+                                      });
+                                    }
+                                  },
+                          ),
+                          const SizedBox(width: 8),
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: primaryGreen,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                            ),
+                            onPressed: () => Navigator.pop(context),
+                            child: const Text('Close'),
+                          ),
+                        ],
                       ),
                     ],
                   ),
