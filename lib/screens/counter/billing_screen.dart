@@ -599,6 +599,11 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                             : ref.read(billingProvider).selectedFormat == 'A5'
                                 ? PdfPageFormat.a5.landscape
                                 : PdfPageFormat.a4,
+                        pageFormats: {
+                          'A5 Landscape': PdfPageFormat.a5.landscape,
+                          'A4': PdfPageFormat.a4,
+                          'Thermal': const PdfPageFormat(80 * PdfPageFormat.mm, 300 * PdfPageFormat.mm),
+                        },
                       ),
                     ),
                   ],
