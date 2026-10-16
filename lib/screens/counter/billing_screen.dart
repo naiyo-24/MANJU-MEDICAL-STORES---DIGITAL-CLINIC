@@ -11,6 +11,7 @@ import '../../services/draft_service.dart';
 import '../../services/billing_history_service.dart';
 import '../../utils/pdf_generator.dart';
 import '../../utils/docx_generator.dart';
+import '../../utils/excel_invoice_generator.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/billing_provider.dart';
@@ -568,6 +569,62 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                                       ScaffoldMessenger.of(context).showSnackBar(
                                         SnackBar(
                                           content: Text('Failed to download Word document: $e'),
+                                          backgroundColor: Colors.red,
+                                        ),
+                                      );
+                                    }
+                                  }
+                                },
+                              ),
+                              OutlinedButton.icon(
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: const Color(0xFF166534),
+                                  side: const BorderSide(color: Color(0xFF166534)),
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                ),
+                                icon: const Icon(Icons.table_chart_outlined, size: 18),
+                                label: const Text('Download Excel (.xlsx)', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                                onPressed: () async {
+                                  try {
+                                    final excelBytes = ExcelInvoiceGenerator.generateInvoiceExcel(
+                                      items: _currentBill,
+                                      subtotal: _subtotal,
+                                      discount: _discountAmount,
+                                      tax: _gstAmount,
+                                      grandTotal: _grandTotal,
+                                      invoiceNumber: invoiceNo,
+                                      customerName: _customerNameController.text.isNotEmpty
+                                          ? _customerNameController.text
+                                          : 'Walk-in Customer',
+                                      customerPhone: _customerPhoneController.text,
+                                      customerLocation: _customerLocationController.text,
+                                      gstNumber: ref.read(billingProvider).gstNumber,
+                                      doctorName: ref.read(billingProvider).selectedDoctorId == 'new'
+                                          ? _newDoctorController.text
+                                          : ref.read(billingProvider).selectedDoctorName,
+                                      paymentMethod: ref.read(billingProvider).paymentMethod,
+                                      shopSettings: currentSettings,
+                                      billingDate: DateTime.now(),
+                                    );
+                                    await FileSaver.instance.saveFile(
+                                      name: 'Bill_$invoiceNo',
+                                      bytes: excelBytes,
+                                      fileExtension: 'xlsx',
+                                      mimeType: MimeType.microsoftExcel,
+                                    );
+                                    if (context.mounted) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(
+                                          content: Text('Excel spreadsheet downloaded successfully!'),
+                                          backgroundColor: Colors.green,
+                                        ),
+                                      );
+                                    }
+                                  } catch (e) {
+                                    if (context.mounted) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text('Failed to download Excel spreadsheet: $e'),
                                           backgroundColor: Colors.red,
                                         ),
                                       );

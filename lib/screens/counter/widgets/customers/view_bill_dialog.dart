@@ -5,6 +5,7 @@ import 'package:pdf/pdf.dart';
 import 'package:file_saver/file_saver.dart';
 import '../../../../utils/pdf_generator.dart';
 import '../../../../utils/docx_generator.dart';
+import '../../../../utils/excel_invoice_generator.dart';
 import '../../../../models/counter_models.dart';
 
 void showViewBillDialog(BuildContext context, SavedBill bill, Map<String, dynamic> shopSettings) {
@@ -92,6 +93,58 @@ void showViewBillDialog(BuildContext context, SavedBill bill, Map<String, dynami
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
                                     content: Text('Failed to download Word document: $e'),
+                                    backgroundColor: Colors.red,
+                                  ),
+                                );
+                              }
+                            }
+                          },
+                        ),
+                        OutlinedButton.icon(
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: const Color(0xFF166534),
+                            side: const BorderSide(color: Color(0xFF166534)),
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          ),
+                          icon: const Icon(Icons.table_chart_outlined, size: 18),
+                          label: const Text('Download Excel (.xlsx)', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                          onPressed: () async {
+                            try {
+                              final excelBytes = ExcelInvoiceGenerator.generateInvoiceExcel(
+                                items: bill.items,
+                                subtotal: bill.subtotal,
+                                discount: bill.discount,
+                                tax: bill.tax,
+                                grandTotal: bill.grandTotal,
+                                invoiceNumber: bill.invoiceNo,
+                                customerName: bill.customerName,
+                                customerPhone: bill.customerPhone,
+                                customerLocation: bill.customerLocation,
+                                gstNumber: bill.customerGstin,
+                                doctorName: bill.doctorName,
+                                paymentMethod: bill.paymentMode,
+                                shopSettings: effectiveSettings,
+                                billingDate: bill.createdAt,
+                              );
+                              await FileSaver.instance.saveFile(
+                                name: 'Bill_${bill.invoiceNo}',
+                                bytes: excelBytes,
+                                fileExtension: 'xlsx',
+                                mimeType: MimeType.microsoftExcel,
+                              );
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Excel spreadsheet downloaded successfully!'),
+                                    backgroundColor: Colors.green,
+                                  ),
+                                );
+                              }
+                            } catch (e) {
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('Failed to download Excel spreadsheet: $e'),
                                     backgroundColor: Colors.red,
                                   ),
                                 );
