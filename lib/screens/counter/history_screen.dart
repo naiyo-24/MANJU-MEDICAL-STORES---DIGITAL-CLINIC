@@ -292,6 +292,9 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                             label: const Text('Download Word (.docx)', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
                             onPressed: () async {
                               try {
+                                final logoBytes = await PdfGenerator.resolveLogoBytes(shopSettings);
+                                final qrBytes = await PdfGenerator.resolveQrBytes(shopSettings);
+
                                 final docxBytes = DocxGenerator.generateInvoiceDocx(
                                   items: bill.items,
                                   subtotal: bill.subtotal,
@@ -307,8 +310,8 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                                   paymentMethod: bill.paymentMode,
                                   shopSettings: shopSettings,
                                   billingDate: bill.createdAt,
-                                  logoBytes: PdfGenerator.getCachedLogoBytes(),
-                                  qrBytes: PdfGenerator.getCachedQrBytes(),
+                                  logoBytes: logoBytes,
+                                  qrBytes: qrBytes,
                                 );
                                 await FileSaver.instance.saveFile(
                                   name: 'Bill_${bill.invoiceNo}',

@@ -528,6 +528,9 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                                 label: const Text('Download Word (.docx)', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
                                 onPressed: () async {
                                   try {
+                                    final logoBytes = await PdfGenerator.resolveLogoBytes(currentSettings);
+                                    final qrBytes = await PdfGenerator.resolveQrBytes(currentSettings);
+
                                     final docxBytes = DocxGenerator.generateInvoiceDocx(
                                       items: _currentBill,
                                       subtotal: _subtotal,
@@ -547,8 +550,8 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                                       paymentMethod: ref.read(billingProvider).paymentMethod,
                                       shopSettings: currentSettings,
                                       billingDate: DateTime.now(),
-                                      logoBytes: PdfGenerator.getCachedLogoBytes(),
-                                      qrBytes: PdfGenerator.getCachedQrBytes(),
+                                      logoBytes: logoBytes,
+                                      qrBytes: qrBytes,
                                     );
                                     await FileSaver.instance.saveFile(
                                       name: 'Bill_$invoiceNo',

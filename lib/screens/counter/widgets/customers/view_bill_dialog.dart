@@ -56,6 +56,9 @@ void showViewBillDialog(BuildContext context, SavedBill bill, Map<String, dynami
                           label: const Text('Download Word (.docx)', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
                           onPressed: () async {
                             try {
+                              final logoBytes = await PdfGenerator.resolveLogoBytes(effectiveSettings);
+                              final qrBytes = await PdfGenerator.resolveQrBytes(effectiveSettings);
+
                               final docxBytes = DocxGenerator.generateInvoiceDocx(
                                 items: bill.items,
                                 subtotal: bill.subtotal,
@@ -71,8 +74,8 @@ void showViewBillDialog(BuildContext context, SavedBill bill, Map<String, dynami
                                 paymentMethod: bill.paymentMode,
                                 shopSettings: effectiveSettings,
                                 billingDate: bill.createdAt,
-                                logoBytes: PdfGenerator.getCachedLogoBytes(),
-                                qrBytes: PdfGenerator.getCachedQrBytes(),
+                                logoBytes: logoBytes,
+                                qrBytes: qrBytes,
                               );
                               await FileSaver.instance.saveFile(
                                 name: 'Bill_${bill.invoiceNo}',
