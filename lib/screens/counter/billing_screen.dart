@@ -586,7 +586,7 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                     const Divider(height: 1),
                     Expanded(
                       child: PdfPreview(
-                        key: UniqueKey(), // Force fresh render to fix Flutter Web iframe bug
+                        key: ValueKey('billing_pdf_preview_$invoiceNo'),
                         build: (format) => snapshot.data!,
                         allowPrinting: true,
                         allowSharing: false,
