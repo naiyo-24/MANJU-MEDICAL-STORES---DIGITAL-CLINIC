@@ -10,6 +10,7 @@ import '../../services/doctor_service.dart';
 import '../../services/draft_service.dart';
 import '../../services/billing_history_service.dart';
 import '../../utils/pdf_generator.dart';
+import '../../utils/docx_generator.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/billing_provider.dart';
@@ -514,9 +515,70 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                               color: Color(0xFF1E293B),
                             ),
                           ),
-                          IconButton(
-                            icon: const Icon(Icons.close),
-                            onPressed: () => Navigator.pop(context),
+                          Row(
+                            children: [
+                              OutlinedButton.icon(
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: const Color(0xFF166534),
+                                  side: const BorderSide(color: Color(0xFF166534)),
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                ),
+                                icon: const Icon(Icons.description_outlined, size: 18),
+                                label: const Text('Download Word (.docx)', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                                onPressed: () async {
+                                  try {
+                                    final docxBytes = DocxGenerator.generateInvoiceDocx(
+                                      items: _currentBill,
+                                      subtotal: _subtotal,
+                                      discount: _discountAmount,
+                                      tax: _gstAmount,
+                                      grandTotal: _grandTotal,
+                                      invoiceNumber: invoiceNo,
+                                      customerName: _customerNameController.text.isNotEmpty
+                                          ? _customerNameController.text
+                                          : 'Walk-in Customer',
+                                      customerPhone: _customerPhoneController.text,
+                                      customerLocation: _customerLocationController.text,
+                                      gstNumber: ref.read(billingProvider).gstNumber,
+                                      doctorName: ref.read(billingProvider).selectedDoctorId == 'new'
+                                          ? _newDoctorController.text
+                                          : ref.read(billingProvider).selectedDoctorName,
+                                      paymentMethod: ref.read(billingProvider).paymentMethod,
+                                      shopSettings: currentSettings,
+                                      billingDate: DateTime.now(),
+                                    );
+                                    await FileSaver.instance.saveFile(
+                                      name: 'Bill_$invoiceNo',
+                                      bytes: docxBytes,
+                                      fileExtension: 'docx',
+                                      mimeType: MimeType.microsoftWord,
+                                    );
+                                    if (context.mounted) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(
+                                          content: Text('Word document downloaded successfully!'),
+                                          backgroundColor: Colors.green,
+                                        ),
+                                      );
+                                    }
+                                  } catch (e) {
+                                    if (context.mounted) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text('Failed to download Word document: $e'),
+                                          backgroundColor: Colors.red,
+                                        ),
+                                      );
+                                    }
+                                  }
+                                },
+                              ),
+                              const SizedBox(width: 8),
+                              IconButton(
+                                icon: const Icon(Icons.close),
+                                onPressed: () => Navigator.pop(context),
+                              ),
+                            ],
                           ),
                         ],
                       ),
