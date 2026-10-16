@@ -3,7 +3,7 @@
 
 #define MyAppName "SirfBill"
 #define MyAppVersion "1.0.0"
-#define MyAppPublisher "SirfBill Healthcare Technologies"
+#define MyAppPublisher "NAIYO24 PVT. LTD."
 #define MyAppURL "https://github.com/naiyo-24/MANJU-MEDICAL-STORES---DIGITAL-CLINIC"
 #define MyAppExeName "SirfBill.exe"
 

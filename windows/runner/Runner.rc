@@ -89,11 +89,11 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "SirfBill" "\0"
+            VALUE "CompanyName", "Naiyo24" "\0"
             VALUE "FileDescription", "SirfBill" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
             VALUE "InternalName", "SirfBill" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2026 SirfBill. All rights reserved." "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2026 NAIYO24 PVT. LTD. All rights reserved." "\0"
             VALUE "OriginalFilename", "SirfBill.exe" "\0"
             VALUE "ProductName", "SirfBill" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
