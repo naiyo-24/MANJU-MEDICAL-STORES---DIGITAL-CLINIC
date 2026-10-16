@@ -70,6 +70,8 @@ void showViewBillDialog(BuildContext context, SavedBill bill, Map<String, dynami
                                 paymentMethod: bill.paymentMode,
                                 shopSettings: effectiveSettings,
                                 billingDate: bill.createdAt,
+                                logoBytes: PdfGenerator.getCachedLogoBytes(),
+                                qrBytes: PdfGenerator.getCachedQrBytes(),
                               );
                               await FileSaver.instance.saveFile(
                                 name: 'Bill_${bill.invoiceNo}',

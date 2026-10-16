@@ -42,6 +42,8 @@ class PdfGenerator {
 
   static String? getCachedLogoUrl() => _cachedLogoUrl;
   static String? getCachedQrUrl() => _cachedQrUrl;
+  static Uint8List? getCachedLogoBytes() => _cachedLogoBytes ?? _cachedDefaultLogo;
+  static Uint8List? getCachedQrBytes() => _cachedQrBytes;
 
   /// Clear in-memory cached image bytes and URLs so fresh images are re-fetched.
   static void clearImageCache() {

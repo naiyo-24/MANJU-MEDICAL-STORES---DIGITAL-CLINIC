@@ -6,7 +6,8 @@ import 'package:manju_medical/utils/format_utils.dart';
 
 /// Generates valid, clean Microsoft Word (.docx) documents replicating the exact
 /// A5 Landscape Bill layout (Headers, Customer Box, Product Table, Bank Details,
-/// GST Breakdown, Totals Box, Terms & Conditions, and Signatory).
+/// GST Breakdown, Totals Box, Terms & Conditions, and Signatory), including embedded
+/// Logo and QR code images.
 class DocxGenerator {
   /// Generates a .docx file as raw bytes for a billing invoice.
   static Uint8List generateInvoiceDocx({
@@ -24,14 +25,20 @@ class DocxGenerator {
     String? paymentMethod,
     Map<String, dynamic>? shopSettings,
     DateTime? billingDate,
+    Uint8List? logoBytes,
+    Uint8List? qrBytes,
   }) {
     final archive = Archive();
 
+    final bool hasLogo = logoBytes != null && logoBytes.isNotEmpty;
+    final bool hasQr = qrBytes != null && qrBytes.isNotEmpty;
+
     // 1. [Content_Types].xml
-    const contentTypesXml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\r\n'
+    final contentTypesXml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\r\n'
         '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">\r\n'
         '  <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>\r\n'
         '  <Default Extension="xml" ContentType="application/xml"/>\r\n'
+        '  <Default Extension="png" ContentType="image/png"/>\r\n'
         '  <Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>\r\n'
         '  <Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/>\r\n'
         '</Types>';
@@ -47,12 +54,27 @@ class DocxGenerator {
     archive.addFile(ArchiveFile('_rels/.rels', rootRelsBytes.length, rootRelsBytes));
 
     // 3. word/_rels/document.xml.rels
-    const docRelsXml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\r\n'
+    final docRelsBuf = StringBuffer();
+    docRelsBuf.write('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\r\n'
         '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">\r\n'
-        '  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>\r\n'
-        '</Relationships>';
-    final docRelsBytes = utf8.encode(docRelsXml);
+        '  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>\r\n');
+    if (hasLogo) {
+      docRelsBuf.write('  <Relationship Id="rIdLogo" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="media/logo.png"/>\r\n');
+    }
+    if (hasQr) {
+      docRelsBuf.write('  <Relationship Id="rIdQr" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="media/qr.png"/>\r\n');
+    }
+    docRelsBuf.write('</Relationships>');
+    final docRelsBytes = utf8.encode(docRelsBuf.toString());
     archive.addFile(ArchiveFile('word/_rels/document.xml.rels', docRelsBytes.length, docRelsBytes));
+
+    // Add media files to archive
+    if (hasLogo) {
+      archive.addFile(ArchiveFile('word/media/logo.png', logoBytes.length, logoBytes));
+    }
+    if (hasQr) {
+      archive.addFile(ArchiveFile('word/media/qr.png', qrBytes.length, qrBytes));
+    }
 
     // 4. word/styles.xml
     const stylesXml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\r\n'
@@ -91,6 +113,8 @@ class DocxGenerator {
       paymentMethod: paymentMethod,
       shopSettings: shopSettings,
       billingDate: billingDate,
+      hasLogo: hasLogo,
+      hasQr: hasQr,
     );
     final documentBytes = utf8.encode(documentXml);
     archive.addFile(ArchiveFile('word/document.xml', documentBytes.length, documentBytes));
@@ -130,6 +154,8 @@ class DocxGenerator {
     String? paymentMethod,
     Map<String, dynamic>? shopSettings,
     DateTime? billingDate,
+    required bool hasLogo,
+    required bool hasQr,
   }) {
     final String shopName = _escapeXml(shopSettings?['shop_name'] ?? 'MANJU MEDICAL STORES & DIGITAL CLINIC');
     final String tagline = _escapeXml(shopSettings?['tagline'] ?? '');
@@ -156,40 +182,53 @@ class DocxGenerator {
     double roundedTotal = grandTotal.roundToDouble();
     double roundOff = roundedTotal - grandTotal;
 
-    // A5 Landscape printable width in DXA:
-    // Page: 11906 (height in portrait, width in landscape) = 16838 width in DXA
-    // Left/Right margin: 500 dxa each (~9mm) -> Usable width = 15838 dxa. Let's use 15800 dxa.
     const int totalWidth = 15800;
 
     final buffer = StringBuffer();
     buffer.write('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\r\n');
-    buffer.write('<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">\r\n');
+    buffer.write('<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" '
+        'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" '
+        'xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" '
+        'xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" '
+        'xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture">\r\n');
     buffer.write('  <w:body>\r\n');
 
     // ==========================================
-    // 1. TOP HEADER (Shop on Left, TAX INVOICE on Right)
+    // 1. TOP HEADER (Logo + Shop info on Left, TAX INVOICE on Right)
     // ==========================================
     buffer.write('    <w:tbl>\r\n');
     buffer.write('      <w:tblPr>\r\n');
     buffer.write('        <w:tblW w:w="$totalWidth" w:type="dxa"/>\r\n');
     buffer.write('        <w:tblLayout w:type="fixed"/>\r\n');
     buffer.write('        <w:tblBorders>\r\n');
-    buffer.write('          <w:top w:val="none"/>\r\n');
-    buffer.write('          <w:bottom w:val="none"/>\r\n');
-    buffer.write('          <w:left w:val="none"/>\r\n');
-    buffer.write('          <w:right w:val="none"/>\r\n');
-    buffer.write('          <w:insideH w:val="none"/>\r\n');
-    buffer.write('          <w:insideV w:val="none"/>\r\n');
+    buffer.write('          <w:top w:val="none"/><w:bottom w:val="none"/><w:left w:val="none"/><w:right w:val="none"/><w:insideH w:val="none"/><w:insideV w:val="none"/>\r\n');
     buffer.write('        </w:tblBorders>\r\n');
     buffer.write('      </w:tblPr>\r\n');
     buffer.write('      <w:tblGrid>\r\n');
-    buffer.write('        <w:gridCol w:w="11000"/>\r\n');
+    if (hasLogo) {
+      buffer.write('        <w:gridCol w:w="1200"/>\r\n');
+      buffer.write('        <w:gridCol w:w="9800"/>\r\n');
+    } else {
+      buffer.write('        <w:gridCol w:w="11000"/>\r\n');
+    }
     buffer.write('        <w:gridCol w:w="4800"/>\r\n');
     buffer.write('      </w:tblGrid>\r\n');
     buffer.write('      <w:tr>\r\n');
-    // Left column: Shop info
+
+    // Optional Logo Cell
+    if (hasLogo) {
+      buffer.write('        <w:tc>\r\n');
+      buffer.write('          <w:tcPr><w:tcW w:w="1200" w:type="dxa"/><w:vAlign w:val="center"/></w:tcPr>\r\n');
+      buffer.write('          <w:p><w:pPr><w:jc w:val="center"/></w:pPr>\r\n');
+      buffer.write(_buildDrawingXml('rIdLogo', 450000, 450000, 'Logo', 1)); // ~47x47px
+      buffer.write('          </w:p>\r\n');
+      buffer.write('        </w:tc>\r\n');
+    }
+
+    // Shop Info Cell
+    int shopInfoColWidth = hasLogo ? 9800 : 11000;
     buffer.write('        <w:tc>\r\n');
-    buffer.write('          <w:tcPr><w:tcW w:w="11000" w:type="dxa"/></w:tcPr>\r\n');
+    buffer.write('          <w:tcPr><w:tcW w:w="$shopInfoColWidth" w:type="dxa"/></w:tcPr>\r\n');
     buffer.write('          <w:p><w:r><w:rPr><w:b/><w:sz w:val="24"/><w:color w:val="166534"/></w:rPr><w:t>$shopName</w:t></w:r></w:p>\r\n');
     if (tagline.isNotEmpty) {
       buffer.write('          <w:p><w:r><w:rPr><w:sz w:val="14"/><w:color w:val="64748B"/></w:rPr><w:t>$tagline</w:t></w:r></w:p>\r\n');
@@ -212,6 +251,7 @@ class DocxGenerator {
       buffer.write('          <w:p><w:r><w:rPr><w:b/><w:sz w:val="15"/></w:rPr><w:t>$regParts</w:t></w:r></w:p>\r\n');
     }
     buffer.write('        </w:tc>\r\n');
+
     // Right column: Tax Invoice info
     buffer.write('        <w:tc>\r\n');
     buffer.write('          <w:tcPr><w:tcW w:w="4800" w:type="dxa"/></w:tcPr>\r\n');
@@ -267,7 +307,6 @@ class DocxGenerator {
 
     // ==========================================
     // 3. MAIN PRODUCT TABLE (11 columns matching A5 Landscape PDF)
-    // S.No(700) Item Name(4600) Batch(1600) Expiry(1500) HSN(1100) Qty(1000) MRP(1100) Disc%(1000) CGST%(1000) SGST%(1000) Total(1200) = 15800 dxa
     // ==========================================
     const colWidths = [700, 4600, 1600, 1500, 1100, 1000, 1100, 1000, 1000, 1000, 1200];
 
@@ -290,7 +329,7 @@ class DocxGenerator {
     }
     buffer.write('      </w:tblGrid>\r\n');
 
-    // Header row (Green background with White text)
+    // Header row
     buffer.write('      <w:tr>\r\n');
     buffer.write(_buildTableHeaderCell('S.No', colWidths[0], 'center'));
     buffer.write(_buildTableHeaderCell('Item Name', colWidths[1], 'center'));
@@ -337,8 +376,7 @@ class DocxGenerator {
     buffer.write('    <w:p><w:pPr><w:spacing w:after="80"/></w:pPr></w:p>\r\n');
 
     // ==========================================
-    // 4. TOTALS & SUMMARY BOX (4 Columns matching PDF: Bank Details, QR Box, GST Summary, Totals)
-    // 4400 + 2000 + 4400 + 5000 = 15800 dxa
+    // 4. TOTALS & SUMMARY BOX (4 Columns matching PDF)
     // ==========================================
     buffer.write('    <w:tbl>\r\n');
     buffer.write('      <w:tblPr>\r\n');
@@ -372,11 +410,17 @@ class DocxGenerator {
     buffer.write('          <w:p><w:r><w:rPr><w:sz w:val="14"/></w:rPr><w:t>IFSC: $ifsc</w:t></w:r></w:p>\r\n');
     buffer.write('        </w:tc>\r\n');
 
-    // Col 2: UPI / QR Code placeholder
+    // Col 2: UPI / QR Code (Real image if available)
     buffer.write('        <w:tc>\r\n');
-    buffer.write('          <w:tcPr><w:tcW w:w="2000" w:type="dxa"/><w:vAlign w:val="center"/><w:tcMar><w:top w:w="60" w:type="dxa"/><w:left w:w="60" w:type="dxa"/><w:bottom w:w="60" w:type="dxa"/><w:right w:w="60" w:type="dxa"/></w:tcMar></w:tcPr>\r\n');
-    buffer.write('          <w:p><w:pPr><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:b/><w:sz w:val="14"/><w:color w:val="166534"/></w:rPr><w:t>SCAN &amp; PAY</w:t></w:r></w:p>\r\n');
-    buffer.write('          <w:p><w:pPr><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:sz w:val="13"/><w:color w:val="64748B"/></w:rPr><w:t>UPI Payment</w:t></w:r></w:p>\r\n');
+    buffer.write('          <w:tcPr><w:tcW w:w="2000" w:type="dxa"/><w:vAlign w:val="center"/><w:tcMar><w:top w:w="40" w:type="dxa"/><w:left w:w="40" w:type="dxa"/><w:bottom w:w="40" w:type="dxa"/><w:right w:w="40" w:type="dxa"/></w:tcMar></w:tcPr>\r\n');
+    if (hasQr) {
+      buffer.write('          <w:p><w:pPr><w:jc w:val="center"/></w:pPr>\r\n');
+      buffer.write(_buildDrawingXml('rIdQr', 650000, 650000, 'QR Code', 2)); // ~68x68px
+      buffer.write('          </w:p>\r\n');
+    } else {
+      buffer.write('          <w:p><w:pPr><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:b/><w:sz w:val="14"/><w:color w:val="166534"/></w:rPr><w:t>SCAN &amp; PAY</w:t></w:r></w:p>\r\n');
+      buffer.write('          <w:p><w:pPr><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:sz w:val="13"/><w:color w:val="64748B"/></w:rPr><w:t>UPI Payment</w:t></w:r></w:p>\r\n');
+    }
     buffer.write('        </w:tc>\r\n');
 
     // Col 3: GST Summary
@@ -406,8 +450,7 @@ class DocxGenerator {
     buffer.write('    <w:p><w:pPr><w:spacing w:after="80"/></w:pPr></w:p>\r\n');
 
     // ==========================================
-    // 5. TERMS & CONDITIONS AND AUTHORIZED SIGNATORY (Matching A5 PDF bottom box)
-    // 11000 + 4800 = 15800 dxa
+    // 5. TERMS & CONDITIONS AND AUTHORIZED SIGNATORY
     // ==========================================
     buffer.write('    <w:tbl>\r\n');
     buffer.write('      <w:tblPr>\r\n');
@@ -461,6 +504,35 @@ class DocxGenerator {
     buffer.write('</w:document>\r\n');
 
     return buffer.toString();
+  }
+
+  static String _buildDrawingXml(String rId, int cx, int cy, String name, int id) {
+    return '<w:r>'
+        '<w:drawing>'
+        '<wp:inline distT="0" distB="0" distL="0" distR="0">'
+        '<wp:extent cx="$cx" cy="$cy"/>'
+        '<wp:docPr id="$id" name="$name"/>'
+        '<a:graphic>'
+        '<a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture">'
+        '<pic:pic>'
+        '<pic:nvPicPr>'
+        '<pic:cNvPr id="$id" name="$name"/>'
+        '<pic:cNvPicPr/>'
+        '</pic:nvPicPr>'
+        '<pic:blipFill>'
+        '<a:blip r:embed="$rId"/>'
+        '<a:stretch><a:fillRect/></a:stretch>'
+        '</pic:blipFill>'
+        '<pic:spPr>'
+        '<a:xfrm><a:off x="0" y="0"/><a:ext cx="$cx" cy="$cy"/></a:xfrm>'
+        '<a:prstGeom prst="rect"><a:avLst/></a:prstGeom>'
+        '</pic:spPr>'
+        '</pic:pic>'
+        '</a:graphicData>'
+        '</a:graphic>'
+        '</wp:inline>'
+        '</w:drawing>'
+        '</w:r>';
   }
 
   static String _buildTableHeaderCell(String text, int widthDxa, String align) {

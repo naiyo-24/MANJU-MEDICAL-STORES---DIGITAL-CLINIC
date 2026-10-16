@@ -546,6 +546,8 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                                       paymentMethod: ref.read(billingProvider).paymentMethod,
                                       shopSettings: currentSettings,
                                       billingDate: DateTime.now(),
+                                      logoBytes: PdfGenerator.getCachedLogoBytes(),
+                                      qrBytes: PdfGenerator.getCachedQrBytes(),
                                     );
                                     await FileSaver.instance.saveFile(
                                       name: 'Bill_$invoiceNo',

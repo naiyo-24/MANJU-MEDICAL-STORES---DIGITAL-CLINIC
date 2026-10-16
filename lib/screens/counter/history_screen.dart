@@ -306,6 +306,8 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                                   paymentMethod: bill.paymentMode,
                                   shopSettings: shopSettings,
                                   billingDate: bill.createdAt,
+                                  logoBytes: PdfGenerator.getCachedLogoBytes(),
+                                  qrBytes: PdfGenerator.getCachedQrBytes(),
                                 );
                                 await FileSaver.instance.saveFile(
                                   name: 'Bill_${bill.invoiceNo}',
