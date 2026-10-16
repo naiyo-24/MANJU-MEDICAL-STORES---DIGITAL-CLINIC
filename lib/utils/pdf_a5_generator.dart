@@ -64,7 +64,10 @@ class PdfA5Generator {
       pdf.addPage(
         pw.Page(
           pageFormat: PdfPageFormat.a5.landscape,
-          margin: const pw.EdgeInsets.all(8),
+          margin: const pw.EdgeInsets.symmetric(
+            horizontal: 6 * PdfPageFormat.mm,
+            vertical: 4 * PdfPageFormat.mm,
+          ),
           build: (pw.Context context) {
             return pw.Column(
               crossAxisAlignment: pw.CrossAxisAlignment.start,
