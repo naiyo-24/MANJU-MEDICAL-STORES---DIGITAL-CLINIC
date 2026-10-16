@@ -56,55 +56,101 @@ class UpdateService {
   static const String defaultManifestUrl =
       'https://github.com/naiyo-24/MANJU-MEDICAL-STORES---DIGITAL-CLINIC/releases/latest/download/latest.json';
 
-  /// Fetches the manifest, parses versions, and returns UpdateManifest if an update is available.
+  /// Fetches releases and returns UpdateManifest if a higher semver version is available.
   Future<UpdateManifest?> checkForUpdate() async {
     if (kIsWeb || !Platform.isWindows) {
       return null;
     }
 
-    final uri = Uri.parse(manifestUrl);
-    if (uri.scheme != 'https') {
-      throw Exception('HTTPS update URL required.');
-    }
-
-    // GitHub /releases/latest/download/ redirects with 302 to github-production-release-asset-6ece33...
-    // http.get by default follows redirects, but we ensure headers and status are checked
-    final request = http.Request('GET', uri)..followRedirects = true;
-    final streamedResponse = await request.send().timeout(const Duration(seconds: 20));
-    final response = await http.Response.fromStream(streamedResponse);
-
-    if (response.statusCode != 200) {
-      debugPrint('[UpdateService] Update check failed: HTTP ${response.statusCode} from $uri');
-      throw Exception('Update check failed: HTTP ${response.statusCode}');
-    }
-
-    final data = jsonDecode(response.body) as Map<String, dynamic>;
-    final manifest = UpdateManifest.fromJson(data);
-
     final info = await PackageInfo.fromPlatform();
     final cleanCurrentVersion = info.version.split('+').first;
-    final cleanLatestVersion = manifest.version.split('+').first;
-
     final current = Version.parse(cleanCurrentVersion);
-    final latest = Version.parse(cleanLatestVersion);
 
-    debugPrint('[UpdateService] Current app version: $current | Latest available: $latest');
+    UpdateManifest? highestManifest;
+    Version highestVersion = current;
 
-    if (latest <= current) {
+    try {
+      // 1. First attempt: Query GitHub API for all releases to accurately find highest semver
+      final apiUri = Uri.parse(
+        'https://api.github.com/repos/naiyo-24/MANJU-MEDICAL-STORES---DIGITAL-CLINIC/releases',
+      );
+      final apiResp = await http.get(apiUri, headers: {
+        'Accept': 'application/vnd.github.v3+json',
+        'User-Agent': 'SirfBill-Desktop-App',
+      }).timeout(const Duration(seconds: 15));
+
+      if (apiResp.statusCode == 200) {
+        final List<dynamic> releases = jsonDecode(apiResp.body);
+        for (final release in releases) {
+          if (release['draft'] == true || release['prerelease'] == true) {
+            continue;
+          }
+          final tagName = (release['tag_name'] as String? ?? '').replaceFirst('v', '').trim();
+          try {
+            final releaseVer = Version.parse(tagName.split('+').first);
+            if (releaseVer > highestVersion) {
+              final assets = release['assets'] as List<dynamic>? ?? [];
+              final latestJsonAsset = assets.firstWhere(
+                (a) => a['name'] == 'latest.json',
+                orElse: () => null,
+              );
+              if (latestJsonAsset != null) {
+                final manifestDownloadUrl = latestJsonAsset['browser_download_url'] as String;
+                final manifestResp = await http.get(Uri.parse(manifestDownloadUrl)).timeout(const Duration(seconds: 15));
+                if (manifestResp.statusCode == 200) {
+                  final data = jsonDecode(manifestResp.body) as Map<String, dynamic>;
+                  final manifest = UpdateManifest.fromJson(data);
+                  final manifestVer = Version.parse(manifest.version.split('+').first);
+                  if (manifestVer > highestVersion) {
+                    highestVersion = manifestVer;
+                    highestManifest = manifest;
+                  }
+                }
+              }
+            }
+          } catch (_) {}
+        }
+      }
+    } catch (e) {
+      debugPrint('[UpdateService] GitHub releases API query failed: $e, falling back to direct URL.');
+    }
+
+    // 2. Fallback: Check defaultManifestUrl directly if GitHub API was unavailable or rate-limited
+    if (highestManifest == null) {
+      try {
+        final uri = Uri.parse(manifestUrl);
+        final request = http.Request('GET', uri)..followRedirects = true;
+        final streamedResponse = await request.send().timeout(const Duration(seconds: 20));
+        final response = await http.Response.fromStream(streamedResponse);
+
+        if (response.statusCode == 200) {
+          final data = jsonDecode(response.body) as Map<String, dynamic>;
+          final manifest = UpdateManifest.fromJson(data);
+          final cleanLatestVersion = manifest.version.split('+').first;
+          final latest = Version.parse(cleanLatestVersion);
+
+          if (latest > highestVersion) {
+            highestVersion = latest;
+            highestManifest = manifest;
+          }
+        }
+      } catch (e) {
+        debugPrint('[UpdateService] Fallback manifest check failed: $e');
+      }
+    }
+
+    debugPrint('[UpdateService] Installed version: $current | Highest detected: $highestVersion');
+
+    if (highestManifest == null || highestVersion <= current) {
       debugPrint('[UpdateService] App is up to date.');
       return null;
     }
 
-    final packageUri = Uri.parse(manifest.packageUrl);
-    if (packageUri.scheme != 'https') {
-      throw Exception('Invalid package URL: HTTPS scheme required.');
-    }
-
-    if (!RegExp(r'^[a-fA-F0-9]{64}$').hasMatch(manifest.sha256)) {
+    if (!RegExp(r'^[a-fA-F0-9]{64}$').hasMatch(highestManifest.sha256)) {
       throw Exception('Invalid SHA-256 value in update manifest.');
     }
 
-    return manifest;
+    return highestManifest;
   }
 
   /// Downloads the update package with download progress stream/callback and verifies SHA-256 hash.
