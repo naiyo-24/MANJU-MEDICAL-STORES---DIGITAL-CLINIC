@@ -1214,15 +1214,19 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
               ),
 
               Padding(
-                padding: EdgeInsets.all(isExpanded ? 24.0 : 16.0),
-                child: Center(
-                  child: FutureBuilder<PackageInfo>(
-                    future: PackageInfo.fromPlatform(),
-                    builder: (context, snapshot) {
-                      final version = snapshot.hasData
-                          ? snapshot.data!.version
-                          : '1.0.4';
-                      return InkWell(
+                padding: EdgeInsets.symmetric(
+                  horizontal: isExpanded ? 16.0 : 8.0,
+                  vertical: 12.0,
+                ),
+                child: FutureBuilder<PackageInfo>(
+                  future: PackageInfo.fromPlatform(),
+                  builder: (context, snapshot) {
+                    final version = snapshot.hasData
+                        ? snapshot.data!.version
+                        : '1.0.6';
+                    return Material(
+                      color: Colors.transparent,
+                      child: InkWell(
                         onTap: () async {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
@@ -1240,41 +1244,81 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
                             } else {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
-                                  content: Text(
-                                      'SirfBill is already up to date!'),
+                                  content: Text('SirfBill is already up to date!'),
                                   backgroundColor: Color(0xFF166534),
                                 ),
                               );
                             }
                           }
                         },
-                        borderRadius: BorderRadius.circular(8),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 6, vertical: 4),
+                        borderRadius: BorderRadius.circular(10),
+                        child: Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: isExpanded ? 12 : 6,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? const Color(0xFF1E293B)
+                                : const Color(0xFFF1F5F9),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                              color: isDark
+                                  ? const Color(0xFF334155)
+                                  : const Color(0xFFE2E8F0),
+                            ),
+                          ),
                           child: Row(
-                            mainAxisSize: MainAxisSize.min,
+                            mainAxisAlignment: isExpanded
+                                ? MainAxisAlignment.spaceBetween
+                                : MainAxisAlignment.center,
                             children: [
-                              Icon(
-                                Icons.verified_rounded,
-                                size: 12,
-                                color: subtitleColor,
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(
+                                    Icons.system_update_rounded,
+                                    size: 14,
+                                    color: Color(0xFF166534),
+                                  ),
+                                  if (isExpanded) ...[
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      'v$version',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                        color: isDark
+                                            ? Colors.white
+                                            : const Color(0xFF1E293B),
+                                      ),
+                                    ),
+                                  ],
+                                ],
                               ),
-                              const SizedBox(width: 4),
-                              Text(
-                                isExpanded ? 'Version $version' : 'v$version',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w600,
-                                  color: subtitleColor,
+                              if (isExpanded)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF166534).withValues(alpha: 0.1),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: const Text(
+                                    'Check',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF166534),
+                                    ),
+                                  ),
                                 ),
-                              ),
                             ],
                           ),
                         ),
-                      );
-                    },
-                  ),
+                      ),
+                    );
+                  },
                 ),
               ),
             ],

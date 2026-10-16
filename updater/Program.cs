@@ -181,7 +181,25 @@ namespace AppUpdater
                     continue;
                 }
 
-                File.Copy(file, destFile, true);
+                // Copy with retry in case file lock takes a split second to release
+                bool copied = false;
+                for (int attempt = 0; attempt < 10; attempt++)
+                {
+                    try
+                    {
+                        File.Copy(file, destFile, true);
+                        copied = true;
+                        break;
+                    }
+                    catch (IOException)
+                    {
+                        Thread.Sleep(300);
+                    }
+                }
+                if (!copied)
+                {
+                    File.Copy(file, destFile, true);
+                }
             }
 
             foreach (var dir in Directory.GetDirectories(source))

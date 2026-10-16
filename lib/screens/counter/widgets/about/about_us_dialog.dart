@@ -160,7 +160,7 @@ class AboutUsDialog extends StatelessWidget {
                                   builder: (context, snapshot) {
                                     final version = snapshot.hasData
                                         ? snapshot.data!.version
-                                        : '1.0.3';
+                                        : '1.0.6';
                                     return Container(
                                       padding: const EdgeInsets.symmetric(
                                           horizontal: 8, vertical: 2),
