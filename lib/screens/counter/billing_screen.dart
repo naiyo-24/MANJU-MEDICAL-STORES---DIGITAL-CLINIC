@@ -12,6 +12,7 @@ import '../../services/billing_history_service.dart';
 import '../../utils/pdf_generator.dart';
 import '../../utils/docx_generator.dart';
 import '../../utils/excel_invoice_generator.dart';
+import '../../utils/file_download_helper.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/billing_provider.dart';
@@ -553,19 +554,32 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                                       logoBytes: logoBytes,
                                       qrBytes: qrBytes,
                                     );
-                                    await FileSaver.instance.saveFile(
+                                    final result = await FileDownloadHelper.saveFile(
                                       name: 'Bill_$invoiceNo',
                                       bytes: docxBytes,
                                       fileExtension: 'docx',
                                       mimeType: MimeType.microsoftWord,
+                                      dialogTitle: 'Save Word Invoice',
                                     );
                                     if (context.mounted) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(
-                                          content: Text('Word document downloaded successfully!'),
-                                          backgroundColor: Colors.green,
-                                        ),
-                                      );
+                                      if (result.success) {
+                                        final locationMsg = result.savedPath != null
+                                            ? ' Saved to: ${result.savedPath}'
+                                            : '';
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(
+                                            content: Text('Word document downloaded successfully!$locationMsg'),
+                                            backgroundColor: Colors.green,
+                                          ),
+                                        );
+                                      } else {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(
+                                            content: Text('Failed to save Word document: ${result.errorMessage ?? "Unknown error"}'),
+                                            backgroundColor: Colors.red,
+                                          ),
+                                        );
+                                      }
                                     }
                                   } catch (e) {
                                     if (context.mounted) {
@@ -609,19 +623,32 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                                       shopSettings: currentSettings,
                                       billingDate: DateTime.now(),
                                     );
-                                    await FileSaver.instance.saveFile(
+                                    final result = await FileDownloadHelper.saveFile(
                                       name: 'Bill_$invoiceNo',
                                       bytes: excelBytes,
                                       fileExtension: 'xlsx',
                                       mimeType: MimeType.microsoftExcel,
+                                      dialogTitle: 'Save Excel Invoice',
                                     );
                                     if (context.mounted) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(
-                                          content: Text('Excel spreadsheet downloaded successfully!'),
-                                          backgroundColor: Colors.green,
-                                        ),
-                                      );
+                                      if (result.success) {
+                                        final locationMsg = result.savedPath != null
+                                            ? ' Saved to: ${result.savedPath}'
+                                            : '';
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(
+                                            content: Text('Excel spreadsheet downloaded successfully!$locationMsg'),
+                                            backgroundColor: Colors.green,
+                                          ),
+                                        );
+                                      } else {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(
+                                            content: Text('Failed to save Excel spreadsheet: ${result.errorMessage ?? "Unknown error"}'),
+                                            backgroundColor: Colors.red,
+                                          ),
+                                        );
+                                      }
                                     }
                                   } catch (e) {
                                     if (context.mounted) {
@@ -806,11 +833,12 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
         format: ref.read(billingProvider).selectedFormat,
       );
 
-      await FileSaver.instance.saveFile(
+      await FileDownloadHelper.saveFile(
         name: 'Bill_$invoiceNo',
         bytes: pdfBytes,
         fileExtension: 'pdf',
         mimeType: MimeType.pdf,
+        dialogTitle: 'Save Bill PDF',
       );
 
       if (mounted) {

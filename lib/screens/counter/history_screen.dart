@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/counter_providers.dart';
@@ -12,6 +14,7 @@ import '../../services/billing_history_service.dart';
 import '../../utils/pdf_generator.dart';
 import '../../utils/docx_generator.dart';
 import '../../utils/excel_invoice_generator.dart';
+import '../../utils/file_download_helper.dart';
 import '../../services/export_service.dart';
 
 class HistoryScreen extends ConsumerStatefulWidget {
@@ -172,17 +175,25 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
     var fileBytes = excel.save();
     if (fileBytes != null) {
       try {
-        await FileSaver.instance.saveAs(
+        final result = await FileDownloadHelper.saveFile(
           name: 'History_Report_${DateTime.now().millisecondsSinceEpoch}',
           bytes: Uint8List.fromList(fileBytes),
           fileExtension: 'xlsx',
           mimeType: MimeType.microsoftExcel,
+          dialogTitle: 'Save History Report',
         );
+        // ignore: duplicate_ignore
         // ignore: use_build_context_synchronously
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Excel report saved successfully to your device!')));
+        if (result.success) {
+          final locationMsg = result.savedPath != null ? ' Saved to: ${result.savedPath}' : '';
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Excel report saved successfully!$locationMsg'), backgroundColor: Colors.green));
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error saving: ${result.errorMessage ?? "Unknown error"}'), backgroundColor: Colors.red));
+        }
       } catch (e) {
+        // ignore: duplicate_ignore
         // ignore: use_build_context_synchronously
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error saving: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error saving: $e'), backgroundColor: Colors.red));
       }
     }
   }
@@ -313,19 +324,32 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                                   logoBytes: logoBytes,
                                   qrBytes: qrBytes,
                                 );
-                                await FileSaver.instance.saveFile(
+                                final result = await FileDownloadHelper.saveFile(
                                   name: 'Bill_${bill.invoiceNo}',
                                   bytes: docxBytes,
                                   fileExtension: 'docx',
                                   mimeType: MimeType.microsoftWord,
+                                  dialogTitle: 'Save Word Invoice',
                                 );
                                 if (context.mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text('Word document downloaded successfully!'),
-                                      backgroundColor: Colors.green,
-                                    ),
-                                  );
+                                  if (result.success) {
+                                    final locationMsg = result.savedPath != null
+                                        ? ' Saved to: ${result.savedPath}'
+                                        : '';
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text('Word document downloaded successfully!$locationMsg'),
+                                        backgroundColor: Colors.green,
+                                      ),
+                                    );
+                                  } else {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text('Failed to save Word document: ${result.errorMessage ?? "Unknown error"}'),
+                                        backgroundColor: Colors.red,
+                                      ),
+                                    );
+                                  }
                                 }
                               } catch (e) {
                                 if (context.mounted) {
@@ -365,19 +389,32 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                                   shopSettings: shopSettings,
                                   billingDate: bill.createdAt,
                                 );
-                                await FileSaver.instance.saveFile(
+                                final result = await FileDownloadHelper.saveFile(
                                   name: 'Bill_${bill.invoiceNo}',
                                   bytes: excelBytes,
                                   fileExtension: 'xlsx',
                                   mimeType: MimeType.microsoftExcel,
+                                  dialogTitle: 'Save Excel Invoice',
                                 );
                                 if (context.mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text('Excel spreadsheet downloaded successfully!'),
-                                      backgroundColor: Colors.green,
-                                    ),
-                                  );
+                                  if (result.success) {
+                                    final locationMsg = result.savedPath != null
+                                        ? ' Saved to: ${result.savedPath}'
+                                        : '';
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text('Excel spreadsheet downloaded successfully!$locationMsg'),
+                                        backgroundColor: Colors.green,
+                                      ),
+                                    );
+                                  } else {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text('Failed to save Excel spreadsheet: ${result.errorMessage ?? "Unknown error"}'),
+                                        backgroundColor: Colors.red,
+                                      ),
+                                    );
+                                  }
                                 }
                               } catch (e) {
                                 if (context.mounted) {

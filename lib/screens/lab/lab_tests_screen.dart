@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../utils/responsive.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:file_saver/file_saver.dart';
+import '../../utils/file_download_helper.dart';
 import 'package:excel/excel.dart' hide Border;
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -290,14 +291,24 @@ class _LabTestsScreenState extends ConsumerState<LabTestsScreen> {
           '${test.id},${test.testCode},${test.name},${test.category},${test.price},${test.sampleType},${test.reportingTime},${test.isActive ? 'Active' : 'Inactive'}\n';
     }
     final bytes = utf8.encode(csv);
-    await FileSaver.instance.saveFile(
-      name: 'lab_tests_export.csv',
+    final result = await FileDownloadHelper.saveFile(
+      name: 'lab_tests_export',
       bytes: bytes,
+      fileExtension: 'csv',
+      mimeType: MimeType.csv,
+      dialogTitle: 'Export Lab Tests CSV',
     );
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('CSV exported successfully!')),
-      );
+      if (result.success) {
+        final loc = result.savedPath != null ? ' Saved to: ${result.savedPath}' : '';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('CSV exported successfully!$loc'), backgroundColor: Colors.green),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to export CSV: ${result.errorMessage ?? "Unknown error"}'), backgroundColor: Colors.red),
+        );
+      }
     }
   }
 
@@ -330,14 +341,24 @@ class _LabTestsScreenState extends ConsumerState<LabTestsScreen> {
 
     final bytes = excel.encode();
     if (bytes != null) {
-      await FileSaver.instance.saveFile(
-        name: 'lab_tests_export.xlsx',
+      final result = await FileDownloadHelper.saveFile(
+        name: 'lab_tests_export',
         bytes: Uint8List.fromList(bytes),
+        fileExtension: 'xlsx',
+        mimeType: MimeType.microsoftExcel,
+        dialogTitle: 'Export Lab Tests Excel',
       );
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Excel exported successfully!')),
-        );
+        if (result.success) {
+          final loc = result.savedPath != null ? ' Saved to: ${result.savedPath}' : '';
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Excel exported successfully!$loc'), backgroundColor: Colors.green),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to export Excel: ${result.errorMessage ?? "Unknown error"}'), backgroundColor: Colors.red),
+          );
+        }
       }
     }
   }
@@ -381,14 +402,24 @@ class _LabTestsScreenState extends ConsumerState<LabTestsScreen> {
     );
 
     final bytes = await pdf.save();
-    await FileSaver.instance.saveFile(
-      name: 'lab_tests_export.pdf',
+    final result = await FileDownloadHelper.saveFile(
+      name: 'lab_tests_export',
       bytes: bytes,
+      fileExtension: 'pdf',
+      mimeType: MimeType.pdf,
+      dialogTitle: 'Export Lab Tests PDF',
     );
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('PDF exported successfully!')),
-      );
+      if (result.success) {
+        final loc = result.savedPath != null ? ' Saved to: ${result.savedPath}' : '';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('PDF exported successfully!$loc'), backgroundColor: Colors.green),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to export PDF: ${result.errorMessage ?? "Unknown error"}'), backgroundColor: Colors.red),
+        );
+      }
     }
   }
 

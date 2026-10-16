@@ -6,6 +6,7 @@ import 'package:file_saver/file_saver.dart';
 import '../../../../utils/pdf_generator.dart';
 import '../../../../utils/docx_generator.dart';
 import '../../../../utils/excel_invoice_generator.dart';
+import '../../../../utils/file_download_helper.dart';
 import '../../../../models/counter_models.dart';
 
 void showViewBillDialog(BuildContext context, SavedBill bill, Map<String, dynamic> shopSettings) {
@@ -77,19 +78,32 @@ void showViewBillDialog(BuildContext context, SavedBill bill, Map<String, dynami
                                 logoBytes: logoBytes,
                                 qrBytes: qrBytes,
                               );
-                              await FileSaver.instance.saveFile(
+                              final result = await FileDownloadHelper.saveFile(
                                 name: 'Bill_${bill.invoiceNo}',
                                 bytes: docxBytes,
                                 fileExtension: 'docx',
                                 mimeType: MimeType.microsoftWord,
+                                dialogTitle: 'Save Word Invoice',
                               );
                               if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Word document downloaded successfully!'),
-                                    backgroundColor: Colors.green,
-                                  ),
-                                );
+                                if (result.success) {
+                                  final locationMsg = result.savedPath != null
+                                      ? ' Saved to: ${result.savedPath}'
+                                      : '';
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text('Word document downloaded successfully!$locationMsg'),
+                                      backgroundColor: Colors.green,
+                                    ),
+                                  );
+                                } else {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text('Failed to save Word document: ${result.errorMessage ?? "Unknown error"}'),
+                                      backgroundColor: Colors.red,
+                                    ),
+                                  );
+                                }
                               }
                             } catch (e) {
                               if (context.mounted) {
@@ -129,19 +143,32 @@ void showViewBillDialog(BuildContext context, SavedBill bill, Map<String, dynami
                                 shopSettings: effectiveSettings,
                                 billingDate: bill.createdAt,
                               );
-                              await FileSaver.instance.saveFile(
+                              final result = await FileDownloadHelper.saveFile(
                                 name: 'Bill_${bill.invoiceNo}',
                                 bytes: excelBytes,
                                 fileExtension: 'xlsx',
                                 mimeType: MimeType.microsoftExcel,
+                                dialogTitle: 'Save Excel Invoice',
                               );
                               if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Excel spreadsheet downloaded successfully!'),
-                                    backgroundColor: Colors.green,
-                                  ),
-                                );
+                                if (result.success) {
+                                  final locationMsg = result.savedPath != null
+                                      ? ' Saved to: ${result.savedPath}'
+                                      : '';
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text('Excel spreadsheet downloaded successfully!$locationMsg'),
+                                      backgroundColor: Colors.green,
+                                    ),
+                                  );
+                                } else {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text('Failed to save Excel spreadsheet: ${result.errorMessage ?? "Unknown error"}'),
+                                      backgroundColor: Colors.red,
+                                    ),
+                                  );
+                                }
                               }
                             } catch (e) {
                               if (context.mounted) {
