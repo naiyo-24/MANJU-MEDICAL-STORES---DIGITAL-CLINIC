@@ -46,10 +46,10 @@ namespace AppUpdater
                 try
                 {
                     var proc = Process.GetProcessById(_waitPid);
-                    if (!proc.WaitForExit(30000))
+                    if (!proc.WaitForExit(15000))
                     {
-                        Log("Warning: Process did not exit within 30 seconds. Attempting kill.");
-                        proc.Kill();
+                        Log("Process did not exit cleanly within 15s. Terminating forcefully...");
+                        proc.Kill(true);
                         proc.WaitForExit(5000);
                     }
                 }
@@ -59,12 +59,33 @@ namespace AppUpdater
                 }
                 catch (Exception ex)
                 {
-                    Log($"Warning waiting for process: {ex.Message}");
+                    Log($"Note waiting for process: {ex.Message}");
                 }
             }
 
-            // Extra buffer time for file handles to be released by Windows
-            Thread.Sleep(1500);
+            // Also check for any lingering SirfBill child instances that may hold file locks
+            try
+            {
+                var siblings = Process.GetProcessesByName("SirfBill");
+                foreach (var p in siblings)
+                {
+                    try
+                    {
+                        if (!p.HasExited)
+                        {
+                            Log($"Killing lingering process: {p.ProcessName} (PID {p.Id})");
+                            p.Kill(true);
+                            p.WaitForExit(3000);
+                        }
+                    }
+                    catch { }
+                }
+            }
+            catch { }
+
+            // Generous cooldown for Windows OS and GPU drivers to release file handles
+            Log("Waiting 3.5 seconds for Windows file system locks to release...");
+            Thread.Sleep(3500);
 
             string stagingDir = Path.Combine(Path.GetTempPath(), "SirfBill_Update_Staging_" + Guid.NewGuid().ToString("N"));
             string backupDir = Path.Combine(_installDir, "_backup_prev_version");
@@ -181,9 +202,10 @@ namespace AppUpdater
                     continue;
                 }
 
-                // Copy with retry in case file lock takes a split second to release
+                // Copy with up to 25 retries (with backoff) in case Windows file locks linger
                 bool copied = false;
-                for (int attempt = 0; attempt < 10; attempt++)
+                Exception? lastEx = null;
+                for (int attempt = 1; attempt <= 25; attempt++)
                 {
                     try
                     {
@@ -191,14 +213,24 @@ namespace AppUpdater
                         copied = true;
                         break;
                     }
-                    catch (IOException)
+                    catch (IOException ioEx)
                     {
-                        Thread.Sleep(300);
+                        lastEx = ioEx;
+                        Log($"[Attempt {attempt}/25] File locked: {fileName}, retrying in 400ms...");
+                        Thread.Sleep(400);
+                    }
+                    catch (UnauthorizedAccessException uaEx)
+                    {
+                        lastEx = uaEx;
+                        Log($"[Attempt {attempt}/25] Access denied: {fileName}, retrying in 500ms...");
+                        Thread.Sleep(500);
                     }
                 }
-                if (!copied)
+
+                if (!copied && lastEx != null)
                 {
-                    File.Copy(file, destFile, true);
+                    Log($"Failed to copy file '{fileName}' after 25 attempts: {lastEx.Message}");
+                    throw lastEx;
                 }
             }
 
