@@ -184,6 +184,12 @@ namespace AppUpdater
         {
             Directory.CreateDirectory(destination);
 
+            // Ensure backup directory exists if backing up
+            if (backup != null)
+            {
+                Directory.CreateDirectory(backup);
+            }
+
             foreach (var file in Directory.GetFiles(source))
             {
                 string fileName = Path.GetFileName(file);
