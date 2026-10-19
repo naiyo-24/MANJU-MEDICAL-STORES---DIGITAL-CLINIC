@@ -873,30 +873,24 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                                       PointerDeviceKind.trackpad,
                                     },
                                   ),
-                                  child: SingleChildScrollView(
-                                    scrollDirection: Axis.horizontal,
-                                    child: SizedBox(
-                                    width: isDesktopWidth
-                                        ? (screenConstraints.maxWidth -
-                                                      64 -
-                                                      280 >
-                                                  1128
-                                              ? screenConstraints.maxWidth -
-                                                    64 -
-                                                    280
-                                              : 1128)
-                                        : (screenConstraints.maxWidth -
-                                                      64 -
-                                                      140 >
-                                                  1096
-                                              ? screenConstraints.maxWidth -
-                                                    64 -
-                                                    140
-                                              : 1096),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.stretch,
-                                      children: [
+                                  child: LayoutBuilder(
+                                    builder: (context, rightConstraints) {
+                                      final minTableWidth = isDesktopWidth
+                                          ? (screenConstraints.maxWidth - 64 - 280 > 1128
+                                              ? screenConstraints.maxWidth - 64 - 280
+                                              : 1128.0)
+                                          : (screenConstraints.maxWidth - 64 - 140 > 1096
+                                              ? screenConstraints.maxWidth - 64 - 140
+                                              : 1096.0);
+
+                                      return SingleChildScrollView(
+                                        scrollDirection: Axis.horizontal,
+                                        child: SizedBox(
+                                          width: minTableWidth,
+                                          height: rightConstraints.maxHeight,
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                                            children: [
                                         Container(
                                           height: 48,
                                           color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[800] : const Color(0xFFF1F5F9),
@@ -1047,9 +1041,11 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                                       ],
                                     ),
                                   ),
-                                ),
-                              ),
+                                );
+                              },
                             ),
+                          ),
+                        ),
                             ],
                           ),
                         ),
@@ -1084,29 +1080,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
             ],
           );
 
-          Widget wrapper = content;
-          
-          if (screenConstraints.maxHeight < 850) {
-            wrapper = SingleChildScrollView(
-              scrollDirection: Axis.vertical,
-              child: SizedBox(
-                height: 850,
-                child: wrapper,
-              ),
-            );
-          }
-          
-          if (screenConstraints.maxWidth < 600) {
-            wrapper = SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: SizedBox(
-                width: screenConstraints.maxWidth < 600 ? 600 : screenConstraints.maxWidth,
-                child: wrapper,
-              ),
-            );
-          }
-          
-          return wrapper;
+          return content;
         },
       ),
     );

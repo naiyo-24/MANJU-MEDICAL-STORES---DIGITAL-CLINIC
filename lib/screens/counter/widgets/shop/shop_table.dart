@@ -49,7 +49,7 @@ class _ShopTableState extends State<ShopTable> {
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           itemCount: paginatedShops.length,
-          separatorBuilder: (_, __) => Divider(height: 1, color: Theme.of(context).dividerColor),
+          separatorBuilder: (_, _) => Divider(height: 1, color: Theme.of(context).dividerColor),
           itemBuilder: (context, index) {
             final shop = paginatedShops[index];
             final isActive = shop.status.toLowerCase() == 'active';
@@ -179,7 +179,7 @@ class _ShopTableState extends State<ShopTable> {
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: paginatedShops.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 16),
+      separatorBuilder: (_, _) => const SizedBox(height: 16),
       padding: const EdgeInsets.all(16),
       itemBuilder: (context, index) {
         final shop = paginatedShops[index];
@@ -193,7 +193,7 @@ class _ShopTableState extends State<ShopTable> {
             border: Border.all(color: Theme.of(context).dividerColor),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.02),
+                color: Colors.black.withValues(alpha: 0.02),
                 blurRadius: 8,
                 offset: const Offset(0, 4),
               ),

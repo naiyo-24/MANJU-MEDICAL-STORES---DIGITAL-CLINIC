@@ -10,6 +10,9 @@ import '../../services/doctor_service.dart';
 import '../../services/draft_service.dart';
 import '../../services/billing_history_service.dart';
 import '../../utils/pdf_generator.dart';
+import '../../utils/docx_generator.dart';
+import '../../utils/excel_invoice_generator.dart';
+import '../../utils/file_download_helper.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/billing_provider.dart';
@@ -35,7 +38,6 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
 
   // Modifiable Data for Current Bill
 
-  int _selectedCategoryIndex = 0;
 
   final TextEditingController _discountController = TextEditingController();
 
@@ -54,10 +56,7 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
   final TextEditingController _newDoctorController = TextEditingController();
 
   List<Doctor> _doctorsList = [];
-  String? _selectedDoctorId;
-  String _selectedDoctorName = 'Walk-in';
 
-  DateTime _currentTime = DateTime.now();
   Timer? _timer;
   Timer? _searchDebounce;
   // Format is now handled by billingProvider
@@ -85,7 +84,6 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
   void _startClock() {
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       setState(() {
-        _currentTime = DateTime.now();
       });
     });
   }
@@ -131,35 +129,7 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
     super.dispose();
   }
 
-  String _formatDate(DateTime date) {
-    const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ];
-    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    String dayName = days[date.weekday - 1];
-    String monthName = months[date.month - 1];
-    return '$dayName, ${date.day} $monthName ${date.year}';
-  }
 
-  String _formatTime(DateTime date) {
-    int hour = date.hour;
-    String period = hour >= 12 ? 'PM' : 'AM';
-    hour = hour % 12;
-    if (hour == 0) hour = 12;
-    String minute = date.minute.toString().padLeft(2, '0');
-    return '$hour:$minute $period';
-  }
 
   Future<void> _saveDraft() async {
     if (_currentBill.isEmpty) {
@@ -388,18 +358,12 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                                         orElse: () => null,
                                       );
                                   if (matchedDoctor != null) {
-                                    _selectedDoctorId = matchedDoctor.id;
-                                    _selectedDoctorName = matchedDoctor.name;
                                     _newDoctorController.clear();
                                   } else if (draft.doctorName.isNotEmpty &&
                                       draft.doctorName != 'Walk-in') {
-                                    _selectedDoctorId = 'new';
-                                    _selectedDoctorName = 'New Doctor';
                                     _newDoctorController.text =
                                         draft.doctorName;
                                   } else {
-                                    _selectedDoctorId = 'walk-in';
-                                    _selectedDoctorName = 'Walk-in';
                                     _newDoctorController.clear();
                                   }
                                   ref
@@ -553,9 +517,157 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                               color: Color(0xFF1E293B),
                             ),
                           ),
-                          IconButton(
-                            icon: const Icon(Icons.close),
-                            onPressed: () => Navigator.pop(context),
+                          Row(
+                            children: [
+                              OutlinedButton.icon(
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: const Color(0xFF166534),
+                                  side: const BorderSide(color: Color(0xFF166534)),
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                ),
+                                icon: const Icon(Icons.description_outlined, size: 18),
+                                label: const Text('Download Word (.docx)', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                                onPressed: () async {
+                                  try {
+                                    final logoBytes = await PdfGenerator.resolveLogoBytes(currentSettings);
+                                    final qrBytes = await PdfGenerator.resolveQrBytes(currentSettings);
+
+                                    final docxBytes = DocxGenerator.generateInvoiceDocx(
+                                      items: _currentBill,
+                                      subtotal: _subtotal,
+                                      discount: _discountAmount,
+                                      tax: _gstAmount,
+                                      grandTotal: _grandTotal,
+                                      invoiceNumber: invoiceNo,
+                                      customerName: _customerNameController.text.isNotEmpty
+                                          ? _customerNameController.text
+                                          : 'Walk-in Customer',
+                                      customerPhone: _customerPhoneController.text,
+                                      customerLocation: _customerLocationController.text,
+                                      gstNumber: ref.read(billingProvider).gstNumber,
+                                      doctorName: ref.read(billingProvider).selectedDoctorId == 'new'
+                                          ? _newDoctorController.text
+                                          : ref.read(billingProvider).selectedDoctorName,
+                                      paymentMethod: ref.read(billingProvider).paymentMethod,
+                                      shopSettings: currentSettings,
+                                      billingDate: DateTime.now(),
+                                      logoBytes: logoBytes,
+                                      qrBytes: qrBytes,
+                                    );
+                                    final result = await FileDownloadHelper.saveFile(
+                                      name: 'Bill_$invoiceNo',
+                                      bytes: docxBytes,
+                                      fileExtension: 'docx',
+                                      mimeType: MimeType.microsoftWord,
+                                      dialogTitle: 'Save Word Invoice',
+                                    );
+                                    if (context.mounted) {
+                                      if (result.success) {
+                                        final locationMsg = result.savedPath != null
+                                            ? ' Saved to: ${result.savedPath}'
+                                            : '';
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(
+                                            content: Text('Word document downloaded successfully!$locationMsg'),
+                                            backgroundColor: Colors.green,
+                                          ),
+                                        );
+                                      } else {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(
+                                            content: Text('Failed to save Word document: ${result.errorMessage ?? "Unknown error"}'),
+                                            backgroundColor: Colors.red,
+                                          ),
+                                        );
+                                      }
+                                    }
+                                  } catch (e) {
+                                    if (context.mounted) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text('Failed to download Word document: $e'),
+                                          backgroundColor: Colors.red,
+                                        ),
+                                      );
+                                    }
+                                  }
+                                },
+                              ),
+                              OutlinedButton.icon(
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: const Color(0xFF166534),
+                                  side: const BorderSide(color: Color(0xFF166534)),
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                ),
+                                icon: const Icon(Icons.table_chart_outlined, size: 18),
+                                label: const Text('Download Excel (.xlsx)', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                                onPressed: () async {
+                                  try {
+                                    final excelBytes = ExcelInvoiceGenerator.generateInvoiceExcel(
+                                      items: _currentBill,
+                                      subtotal: _subtotal,
+                                      discount: _discountAmount,
+                                      tax: _gstAmount,
+                                      grandTotal: _grandTotal,
+                                      invoiceNumber: invoiceNo,
+                                      customerName: _customerNameController.text.isNotEmpty
+                                          ? _customerNameController.text
+                                          : 'Walk-in Customer',
+                                      customerPhone: _customerPhoneController.text,
+                                      customerLocation: _customerLocationController.text,
+                                      gstNumber: ref.read(billingProvider).gstNumber,
+                                      doctorName: ref.read(billingProvider).selectedDoctorId == 'new'
+                                          ? _newDoctorController.text
+                                          : ref.read(billingProvider).selectedDoctorName,
+                                      paymentMethod: ref.read(billingProvider).paymentMethod,
+                                      shopSettings: currentSettings,
+                                      billingDate: DateTime.now(),
+                                    );
+                                    final result = await FileDownloadHelper.saveFile(
+                                      name: 'Bill_$invoiceNo',
+                                      bytes: excelBytes,
+                                      fileExtension: 'xlsx',
+                                      mimeType: MimeType.microsoftExcel,
+                                      dialogTitle: 'Save Excel Invoice',
+                                    );
+                                    if (context.mounted) {
+                                      if (result.success) {
+                                        final locationMsg = result.savedPath != null
+                                            ? ' Saved to: ${result.savedPath}'
+                                            : '';
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(
+                                            content: Text('Excel spreadsheet downloaded successfully!$locationMsg'),
+                                            backgroundColor: Colors.green,
+                                          ),
+                                        );
+                                      } else {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(
+                                            content: Text('Failed to save Excel spreadsheet: ${result.errorMessage ?? "Unknown error"}'),
+                                            backgroundColor: Colors.red,
+                                          ),
+                                        );
+                                      }
+                                    }
+                                  } catch (e) {
+                                    if (context.mounted) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text('Failed to download Excel spreadsheet: $e'),
+                                          backgroundColor: Colors.red,
+                                        ),
+                                      );
+                                    }
+                                  }
+                                },
+                              ),
+                              const SizedBox(width: 8),
+                              IconButton(
+                                icon: const Icon(Icons.close),
+                                onPressed: () => Navigator.pop(context),
+                              ),
+                            ],
                           ),
                         ],
                       ),
@@ -563,7 +675,7 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                     const Divider(height: 1),
                     Expanded(
                       child: PdfPreview(
-                        key: UniqueKey(), // Force fresh render to fix Flutter Web iframe bug
+                        key: ValueKey('billing_pdf_preview_$invoiceNo'),
                         build: (format) => snapshot.data!,
                         allowPrinting: true,
                         allowSharing: false,
@@ -576,6 +688,11 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                             : ref.read(billingProvider).selectedFormat == 'A5'
                                 ? PdfPageFormat.a5.landscape
                                 : PdfPageFormat.a4,
+                        pageFormats: {
+                          'A5 Landscape': PdfPageFormat.a5.landscape,
+                          'A4': PdfPageFormat.a4,
+                          'Thermal': const PdfPageFormat(80 * PdfPageFormat.mm, 300 * PdfPageFormat.mm),
+                        },
                       ),
                     ),
                   ],
@@ -716,11 +833,12 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
         format: ref.read(billingProvider).selectedFormat,
       );
 
-      await FileSaver.instance.saveFile(
+      await FileDownloadHelper.saveFile(
         name: 'Bill_$invoiceNo',
         bytes: pdfBytes,
         fileExtension: 'pdf',
         mimeType: MimeType.pdf,
+        dialogTitle: 'Save Bill PDF',
       );
 
       if (mounted) {
@@ -796,6 +914,7 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
           onLayout: (PdfPageFormat format) async => pdfBytes,
           name: 'Bill_$invoiceNo.pdf',
           format: pageFormat,
+          dynamicLayout: false,
         );
       }
 
@@ -882,7 +1001,6 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
     final packSize = item['pack_size'] ?? 1;
     final isLoose = item['is_loose'] ?? false;
     final currentQty = item['qty'] ?? 0;
-    final itemName = item['name'];
 
     final bool newIsLoose = !isLoose;
     final int availableLimit = newIsLoose ? (packStock * packSize) + looseStock : packStock;
@@ -926,9 +1044,6 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
       _discountController.clear();
       _newDoctorController.clear();
       _savedCustomerId = null;
-      _selectedDoctorId = null;
-      _selectedDoctorName = 'Walk-in';
-      _selectedCategoryIndex = 0;
     });
     ref.read(billingProvider.notifier).updateDiscount(0.0, false);
     
@@ -1038,6 +1153,7 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
         'is_loose': isLoose,
         'id': item['inventory_item_id'],
       });
+      // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Added ${item['name'].toString().split(' - Item')[0]} to cart'),

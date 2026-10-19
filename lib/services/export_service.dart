@@ -8,13 +8,16 @@ import 'package:pdf/widgets.dart' as pw;
 import 'shop_settings_service.dart';
 import '../config/api_constants.dart';
 
+import '../utils/file_download_helper.dart';
+
 class ExportService {
   static Future<void> _exportOrShare(String filename, Uint8List bytes, String ext, MimeType mimeType) async {
-    await FileSaver.instance.saveAs(
+    await FileDownloadHelper.saveFile(
       name: filename,
       bytes: bytes,
       fileExtension: ext,
       mimeType: mimeType,
+      dialogTitle: 'Export $ext file',
     );
   }
   static Future<void> exportToCSV(

@@ -36,7 +36,7 @@ class ShopSummaryCards extends StatelessWidget {
               ],
             ),
           ),
-          Icon(Icons.chevron_right, color: iconColor.withOpacity(0.5), size: 16),
+          Icon(Icons.chevron_right, color: iconColor.withValues(alpha: 0.5), size: 16),
         ],
       ),
     );

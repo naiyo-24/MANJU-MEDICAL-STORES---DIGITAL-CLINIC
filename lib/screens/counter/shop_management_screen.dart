@@ -149,7 +149,7 @@ class _ShopManagementScreenState extends ConsumerState<ShopManagementScreen> {
                     ),
                     const SizedBox(height: 12),
                     DropdownButtonFormField<String>(
-                      value: status,
+                      initialValue: status,
                       items: const [
                         DropdownMenuItem(
                           value: 'Active',
@@ -199,6 +199,7 @@ class _ShopManagementScreenState extends ConsumerState<ShopManagementScreen> {
                         );
                       }
                     } catch (e) {
+                      // ignore: use_build_context_synchronously
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text('Error adding shop: $e')),
                       );
@@ -262,7 +263,7 @@ class _ShopManagementScreenState extends ConsumerState<ShopManagementScreen> {
                     ),
                     const SizedBox(height: 12),
                     DropdownButtonFormField<String>(
-                      value: status.toLowerCase() == 'active'
+                      initialValue: status.toLowerCase() == 'active'
                           ? 'Active'
                           : 'Inactive',
                       items: const [
@@ -315,6 +316,7 @@ class _ShopManagementScreenState extends ConsumerState<ShopManagementScreen> {
                         );
                       }
                     } catch (e) {
+                      // ignore: use_build_context_synchronously
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text('Error updating shop: $e')),
                       );
@@ -358,7 +360,7 @@ class _ShopManagementScreenState extends ConsumerState<ShopManagementScreen> {
 
     final allCities = [
       'All Cities',
-      ..._shops.map((s) => s.city).toSet().toList(),
+      ..._shops.map((s) => s.city).toSet(),
     ];
 
     return Scaffold(
@@ -638,8 +640,9 @@ class _ShopManagementScreenState extends ConsumerState<ShopManagementScreen> {
                                 );
                               }).toList(),
                               onChanged: (newValue) {
-                                if (newValue != null)
+                                if (newValue != null) {
                                   setState(() => _selectedStatus = newValue);
+                                }
                               },
                             ),
                           ),
@@ -676,8 +679,9 @@ class _ShopManagementScreenState extends ConsumerState<ShopManagementScreen> {
                                 );
                               }).toList(),
                               onChanged: (newValue) {
-                                if (newValue != null)
+                                if (newValue != null) {
                                   setState(() => _selectedCity = newValue);
+                                }
                               },
                             ),
                           ),

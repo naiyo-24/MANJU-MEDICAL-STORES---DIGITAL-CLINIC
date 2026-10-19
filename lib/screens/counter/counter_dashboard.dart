@@ -1,3 +1,4 @@
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../utils/responsive.dart';
@@ -7,8 +8,10 @@ import 'dart:async';
 import 'package:flutter/services.dart';
 import '../../services/auth_service.dart';
 import '../../providers/counter_providers.dart';
-import '../../providers/distributor_provider.dart';
 import '../../providers/theme_provider.dart';
+import 'widgets/about/about_us_dialog.dart';
+import '../../services/windows_auto_updater.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 class CounterDashboard extends ConsumerStatefulWidget {
   final StatefulNavigationShell navigationShell;
@@ -23,7 +26,8 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
   DateTime _currentTime = DateTime.now();
   Timer? _timer;
   bool _isSidebarExpanded = true;
-  Timer? _syncTimer;
+
+  late final AppLifecycleListener _lifecycleListener;
 
   @override
   void initState() {
@@ -37,11 +41,41 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
     });
 
     HardwareKeyboard.instance.addHandler(_handleKeyEvent);
+
+    // If user closes or exits the app, logout session so next launch requires login
+    _lifecycleListener = AppLifecycleListener(
+      onDetach: () {
+        AuthService.logout();
+      },
+      onExitRequested: () async {
+        await AuthService.logout();
+        return ui.AppExitResponse.exit;
+      },
+    );
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkAutomaticUpdates();
+    });
+  }
+
+  static bool _hasCheckedUpdateThisSession = false;
+
+  Future<void> _checkAutomaticUpdates() async {
+    if (_hasCheckedUpdateThisSession) return;
+    _hasCheckedUpdateThisSession = true;
+
+    try {
+      final updateInfo = await WindowsAutoUpdater.checkForUpdate();
+      if (mounted && updateInfo != null) {
+        WindowsAutoUpdater.showUpdateDialog(context, updateInfo);
+      }
+    } catch (_) {}
   }
 
   @override
   void dispose() {
     _timer?.cancel();
+    _lifecycleListener.dispose();
     HardwareKeyboard.instance.removeHandler(_handleKeyEvent);
     super.dispose();
   }
@@ -376,7 +410,6 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
     final borderColor = isDark
         ? const Color(0xFF334155)
         : const Color(0xFFE2E8F0);
-    final iconColor = isDark ? Colors.white : const Color(0xFF1E293B);
 
     return Container(
       height: 100,
@@ -472,14 +505,13 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
                                 surface:
                                     Colors.white, // Dialog background color
                               ),
-                              dialogBackgroundColor: Colors.white,
                               textButtonTheme: TextButtonThemeData(
                                 style: TextButton.styleFrom(
                                   foregroundColor: const Color(
                                     0xFF166534,
                                   ), // Button text color
                                 ),
-                              ),
+                              ), dialogTheme: DialogThemeData(backgroundColor: Colors.white),
                             ),
                             child: child!,
                           );
@@ -552,6 +584,7 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
                       if (value == 'logout') {
                         await AuthService.logout();
                         if (context.mounted) {
+                          // ignore: use_build_context_synchronously
                           context.go('/dashboard');
                           ref.invalidate(categoryProvider);
                           ref.invalidate(rackProvider);
@@ -881,6 +914,87 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
                         ),
                       ),
 
+                      // About Us Item
+                      Tooltip(
+                        message: isExpanded ? '' : 'About Us',
+                        child: InkWell(
+                          onTap: () => AboutUsDialog.show(context),
+                          borderRadius: BorderRadius.circular(12),
+                          child: Container(
+                            width: isDesktop
+                                ? (isExpanded ? 228 : 48)
+                                : double.infinity,
+                            margin: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 4,
+                            ),
+                            padding: EdgeInsets.symmetric(
+                              horizontal: isExpanded ? 16 : 0,
+                              vertical: 12,
+                            ),
+                            child: AnimatedCrossFade(
+                              duration: const Duration(milliseconds: 200),
+                              crossFadeState: isExpanded
+                                  ? CrossFadeState.showFirst
+                                  : CrossFadeState.showSecond,
+                              alignment: Alignment.centerLeft,
+                              firstChild: isDesktop
+                                  ? SingleChildScrollView(
+                                      scrollDirection: Axis.horizontal,
+                                      physics: const NeverScrollableScrollPhysics(),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.start,
+                                        children: [
+                                          Icon(
+                                            Icons.info_outline_rounded,
+                                            color: subtitleColor,
+                                            size: 20,
+                                          ),
+                                          const SizedBox(width: 12),
+                                          Text(
+                                            'About Us',
+                                            style: TextStyle(
+                                              color: subtitleColor,
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 14,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    )
+                                  : Row(
+                                      children: [
+                                        Icon(
+                                          Icons.info_outline_rounded,
+                                          color: subtitleColor,
+                                          size: 20,
+                                        ),
+                                        const SizedBox(width: 12),
+                                        Expanded(
+                                          child: Text(
+                                            'About Us',
+                                            style: TextStyle(
+                                              color: subtitleColor,
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 14,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                              secondChild: Center(
+                                child: Icon(
+                                  Icons.info_outline_rounded,
+                                  color: subtitleColor,
+                                  size: 20,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+
                       Tooltip(
                         message: isExpanded ? '' : 'Logout',
                         child: InkWell(
@@ -888,6 +1002,7 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
                             await AuthService.logout();
                             if (context.mounted) {
                               // Go back to the module selection screen FIRST
+                              // ignore: use_build_context_synchronously
                               context.go('/dashboard');
                               // Then invalidate providers so they don't refetch with a missing token
                               ref.invalidate(categoryProvider);
@@ -975,136 +1090,114 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
                   ),
                 ),
               ),
-              // Bottom Sidebar Card
-              AnimatedCrossFade(
-                duration: const Duration(milliseconds: 200),
-                crossFadeState: isExpanded
-                    ? CrossFadeState.showFirst
-                    : CrossFadeState.showSecond,
-                alignment: Alignment.bottomCenter,
-                firstChild: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: isDesktop
-                      ? SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          physics: const NeverScrollableScrollPhysics(),
-                          child: Container(
-                            padding: const EdgeInsets.all(16),
-                            width: 228,
-                            decoration: BoxDecoration(
-                              color: isDark
-                                  ? const Color(0xFF0F172A)
-                                  : Colors.white,
-                              borderRadius: BorderRadius.circular(16),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(
-                                    alpha: isDark ? 0.3 : 0.12,
-                                  ),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ],
+
+
+              Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: isExpanded ? 16.0 : 8.0,
+                  vertical: 12.0,
+                ),
+                child: FutureBuilder<PackageInfo>(
+                  future: PackageInfo.fromPlatform(),
+                  builder: (context, snapshot) {
+                    final version = snapshot.hasData
+                        ? snapshot.data!.version
+                        : '1.0.15';
+                    return Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () async {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Checking for updates...'),
+                              duration: Duration(seconds: 2),
+                              backgroundColor: Color(0xFF1E293B),
                             ),
-                            child: Row(
-                              children: [
-                                const Icon(Icons.eco, color: Color(0xFF22C55E)),
-                                const SizedBox(width: 12),
-                                SizedBox(
-                                  width: 120,
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'Better Care',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 12,
-                                          color: textColor,
-                                        ),
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                      Text(
-                                        'Brighter Tomorrow',
-                                        style: TextStyle(
-                                          fontSize: 10,
-                                          color: subtitleColor,
-                                        ),
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ],
-                                  ),
+                          );
+                          final updateInfo =
+                              await WindowsAutoUpdater.checkForUpdate();
+                          if (context.mounted) {
+                            if (updateInfo != null) {
+                              WindowsAutoUpdater.showUpdateDialog(
+                                  context, updateInfo);
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('SirfBill is already up to date!'),
+                                  backgroundColor: Color(0xFF166534),
                                 ),
-                              ],
-                            ),
+                              );
+                            }
+                          }
+                        },
+                        borderRadius: BorderRadius.circular(10),
+                        child: Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: isExpanded ? 12 : 6,
+                            vertical: 8,
                           ),
-                        )
-                      : Container(
-                          padding: const EdgeInsets.all(16),
-                          width: double.infinity,
                           decoration: BoxDecoration(
                             color: isDark
-                                ? const Color(0xFF0F172A)
-                                : Colors.white,
-                            borderRadius: BorderRadius.circular(16),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(
-                                  alpha: isDark ? 0.3 : 0.12,
-                                ),
-                                blurRadius: 10,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
+                                ? const Color(0xFF1E293B)
+                                : const Color(0xFFF1F5F9),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                              color: isDark
+                                  ? const Color(0xFF334155)
+                                  : const Color(0xFFE2E8F0),
+                            ),
                           ),
                           child: Row(
+                            mainAxisAlignment: isExpanded
+                                ? MainAxisAlignment.spaceBetween
+                                : MainAxisAlignment.center,
                             children: [
-                              const Icon(Icons.eco, color: Color(0xFF22C55E)),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(
+                                    Icons.system_update_rounded,
+                                    size: 14,
+                                    color: Color(0xFF166534),
+                                  ),
+                                  if (isExpanded) ...[
+                                    const SizedBox(width: 8),
                                     Text(
-                                      'Better Care',
+                                      'v$version',
                                       style: TextStyle(
-                                        fontWeight: FontWeight.bold,
                                         fontSize: 12,
-                                        color: textColor,
+                                        fontWeight: FontWeight.bold,
+                                        color: isDark
+                                            ? Colors.white
+                                            : const Color(0xFF1E293B),
                                       ),
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                    Text(
-                                      'Brighter Tomorrow',
-                                      style: TextStyle(
-                                        fontSize: 10,
-                                        color: subtitleColor,
-                                      ),
-                                      overflow: TextOverflow.ellipsis,
                                     ),
                                   ],
-                                ),
+                                ],
                               ),
+                              if (isExpanded)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF166534).withValues(alpha: 0.1),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: const Text(
+                                    'Check',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF166534),
+                                    ),
+                                  ),
+                                ),
                             ],
                           ),
                         ),
-                ),
-                secondChild: const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 16.0),
-                  child: Center(
-                    child: Icon(Icons.eco, color: Color(0xFF22C55E), size: 24),
-                  ),
-                ),
-              ),
-
-              Padding(
-                padding: EdgeInsets.all(isExpanded ? 24.0 : 16.0),
-                child: Center(
-                  child: Text(
-                    isExpanded ? 'Version 1.0.0' : 'v1',
-                    style: TextStyle(fontSize: 10, color: subtitleColor),
-                  ),
+                      ),
+                    );
+                  },
                 ),
               ),
             ],

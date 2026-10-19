@@ -1,0 +1,10 @@
+{
+  "product_id": "SirfBill",
+  "platform": "windows-x64",
+  "channel": "stable",
+  "version": "1.0.0",
+  "mandatory": false,
+  "release_notes": "Initial release with auto-update support.",
+  "package_url": "https://github.com/naiyo-24/MANJU-MEDICAL-STORES---DIGITAL-CLINIC/releases/download/v1.0.0/app-update-windows-x64.zip",
+  "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+}

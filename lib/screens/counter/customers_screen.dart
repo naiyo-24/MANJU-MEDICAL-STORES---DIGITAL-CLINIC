@@ -1017,7 +1017,7 @@ Icon(
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 4,
               offset: const Offset(0, 2),
             ),
@@ -1149,7 +1149,7 @@ Icon(
                   onPressed: () => _deleteCustomer(customer['full_id']),
                   icon: const Icon(Icons.delete_outline, color: Colors.red),
                   style: IconButton.styleFrom(
-                    backgroundColor: Colors.red.withOpacity(0.1),
+                    backgroundColor: Colors.red.withValues(alpha: 0.1),
                   ),
                 ),
               ],

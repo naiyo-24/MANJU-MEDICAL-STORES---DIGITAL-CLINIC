@@ -19,7 +19,7 @@ class DistributorDropdown extends ConsumerWidget {
     return distributorsAsync.when(
       data: (distributors) {
         return DropdownButtonFormField<String>(
-          value: selectedDistributorId,
+          initialValue: selectedDistributorId,
           decoration: InputDecoration(
             labelText: 'Distributor',
             border: OutlineInputBorder(

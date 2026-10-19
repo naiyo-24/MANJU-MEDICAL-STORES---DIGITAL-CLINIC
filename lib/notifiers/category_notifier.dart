@@ -1,6 +1,6 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart' hide Category;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:dio/dio.dart';
 import '../services/category_service.dart';
 
 class CategoryNotifier extends AsyncNotifier<List<Category>> {
@@ -13,7 +13,7 @@ class CategoryNotifier extends AsyncNotifier<List<Category>> {
     try {
       return await CategoryService.getCategories();
     } catch (e, st) {
-      print('CategoryNotifier Error: $e\n$st');
+      debugPrint('CategoryNotifier Error: $e\n$st');
       return [];
     }
   }
@@ -29,7 +29,7 @@ class CategoryNotifier extends AsyncNotifier<List<Category>> {
       }
       return newCategory;
     } catch (e) {
-      throw e;
+      rethrow;
     }
   }
 
@@ -47,7 +47,7 @@ class CategoryNotifier extends AsyncNotifier<List<Category>> {
         );
       }
     } catch (e) {
-      throw e;
+      rethrow;
     }
   }
 }

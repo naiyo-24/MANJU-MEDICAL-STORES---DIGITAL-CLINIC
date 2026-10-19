@@ -34,7 +34,7 @@ class BillingState {
     this.customerLocation = '',
     this.searchQuery = '',
     this.selectedCategoryIndex = 0,
-    this.selectedFormat = 'A4',
+    this.selectedFormat = 'A5',
   });
 
   BillingState copyWith({

@@ -42,6 +42,44 @@ class PdfGenerator {
 
   static String? getCachedLogoUrl() => _cachedLogoUrl;
   static String? getCachedQrUrl() => _cachedQrUrl;
+  static Uint8List? getCachedLogoBytes() => _cachedLogoBytes ?? _cachedDefaultLogo;
+  static Uint8List? getCachedQrBytes() => _cachedQrBytes;
+
+  /// Ensures logo bytes are resolved and returned, fetching from shopSettings or falling back to default asset.
+  static Future<Uint8List?> resolveLogoBytes(Map<String, dynamic>? shopSettings) async {
+    if (_cachedLogoBytes != null) return _cachedLogoBytes;
+    if (shopSettings?['logo_url'] != null && shopSettings!['logo_url'].toString().trim().isNotEmpty) {
+      final url = shopSettings['logo_url'].toString().trim();
+      final bytes = await _fetchImageBytes(url);
+      if (bytes != null) {
+        _cachedLogoBytes = bytes;
+        _cachedLogoUrl = url;
+        return bytes;
+      }
+    }
+    if (_cachedDefaultLogo == null) {
+      try {
+        final ByteData data = await rootBundle.load('assets/LOGO.png');
+        _cachedDefaultLogo = data.buffer.asUint8List();
+      } catch (_) {}
+    }
+    return _cachedDefaultLogo;
+  }
+
+  /// Ensures QR code image bytes are resolved and returned from shopSettings.
+  static Future<Uint8List?> resolveQrBytes(Map<String, dynamic>? shopSettings) async {
+    if (_cachedQrBytes != null) return _cachedQrBytes;
+    if (shopSettings?['qr_url'] != null && shopSettings!['qr_url'].toString().trim().isNotEmpty) {
+      final url = shopSettings['qr_url'].toString().trim();
+      final bytes = await _fetchImageBytes(url);
+      if (bytes != null) {
+        _cachedQrBytes = bytes;
+        _cachedQrUrl = url;
+        return bytes;
+      }
+    }
+    return null;
+  }
 
   /// Clear in-memory cached image bytes and URLs so fresh images are re-fetched.
   static void clearImageCache() {

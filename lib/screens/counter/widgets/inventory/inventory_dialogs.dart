@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../models/counter_models.dart';
 import '../../../../widgets/rack_dropdown.dart';
 import '../../../../widgets/category_dropdown.dart';
 import '../../../../widgets/distributor_dropdown.dart';
@@ -64,7 +63,7 @@ class InventoryDialogs {
     final gstCtrl = TextEditingController(text: item.gst?.toString() ?? '0');
     final discountCtrl = TextEditingController(text: item.discount?.toString() ?? '0');
     final hsnCtrl = TextEditingController(text: item.hsnCode ?? '');
-    final expiryCtrl = TextEditingController(text: item.expiryDate ?? '');
+    final expiryCtrl = TextEditingController(text: item.expiryDate);
     String? selectedRackId = item.rackId;
     String? selectedCategoryId = item.categoryId;
     String? selectedDistributorId = item.distributorId;
