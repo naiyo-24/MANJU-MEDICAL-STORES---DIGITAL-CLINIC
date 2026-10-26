@@ -16,6 +16,7 @@ class InventoryNotifier extends AsyncNotifier<List<InventoryItem>> {
 
   @override
   Future<List<InventoryItem>> build() async {
+    ref.watch(selectedShopIdProvider);
     return _fetchInventory();
   }
 

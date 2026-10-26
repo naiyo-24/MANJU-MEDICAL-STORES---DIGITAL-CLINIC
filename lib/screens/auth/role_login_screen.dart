@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../services/auth_service.dart';
 import '../../utils/responsive.dart';
+import '../../providers/counter_providers.dart';
 
-class RoleLoginScreen extends StatefulWidget {
+class RoleLoginScreen extends ConsumerStatefulWidget {
   final String roleName;
   final Color themeColor;
   final String nextRoute;
@@ -16,10 +18,10 @@ class RoleLoginScreen extends StatefulWidget {
   });
 
   @override
-  State<RoleLoginScreen> createState() => _RoleLoginScreenState();
+  ConsumerState<RoleLoginScreen> createState() => _RoleLoginScreenState();
 }
 
-class _RoleLoginScreenState extends State<RoleLoginScreen> {
+class _RoleLoginScreenState extends ConsumerState<RoleLoginScreen> {
   final _userIdController = TextEditingController();
   final _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
@@ -90,6 +92,8 @@ class _RoleLoginScreenState extends State<RoleLoginScreen> {
         );
 
         if (success && mounted) {
+          // Invalidate all providers so fresh data for the newly authenticated tenant is loaded
+          resetAllSessionProviders(ref);
           context.go(widget.nextRoute);
         }
       } catch (e) {
