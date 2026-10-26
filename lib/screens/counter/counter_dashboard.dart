@@ -1095,7 +1095,7 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
                   builder: (context, snapshot) {
                     final version = snapshot.hasData
                         ? snapshot.data!.version
-                        : '1.0.16';
+                        : '1.0.17';
                     return Material(
                       color: Colors.transparent,
                       child: InkWell(
