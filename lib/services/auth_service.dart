@@ -8,9 +8,21 @@ class AuthService {
   static const String _userIdKey = 'user_id';
   static const String _roleKey = 'user_role';
 
+  /// Clear all persisted and in-memory session data
+  static Future<void> resetSession() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_tokenKey);
+    await prefs.remove(_userIdKey);
+    await prefs.remove(_roleKey);
+    await InventoryService.clearShopId();
+  }
+
   /// Admin login using email and password
   static Future<bool> adminLogin(String email, String password) async {
     try {
+      // First, completely clear any existing session/cache from previous users
+      await resetSession();
+
       final response = await ApiClient().dio.post(
         '/api/auth/admin-login',
         data: {'email': email, 'password': password},
@@ -24,12 +36,13 @@ class AuthService {
         await prefs.setString(_roleKey, data['role']);
         
         try {
-          // Automatically select and save the first shop
+          // Immediately fetch and save the newly logged in user's shop ID
           final shopsResp = await ApiClient().dio.get('/api/admin/shops');
           if (shopsResp.statusCode == 200 && shopsResp.data != null) {
             final List<dynamic> shops = shopsResp.data;
             if (shops.isNotEmpty) {
-              await prefs.setString('selected_shop_id', shops.first['id'].toString());
+              final newShopId = shops.first['id'].toString();
+              await InventoryService.setShopId(newShopId);
             }
           }
         } catch (_) {
@@ -53,11 +66,7 @@ class AuthService {
   }
 
   static Future<void> logout() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_tokenKey);
-    await prefs.remove(_userIdKey);
-    await prefs.remove(_roleKey);
-    await InventoryService.clearShopId();
+    await resetSession();
   }
 
   static Future<String?> getToken() async {

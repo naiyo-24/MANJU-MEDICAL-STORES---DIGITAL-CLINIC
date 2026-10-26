@@ -81,3 +81,19 @@ class SelectedShopIdNotifier extends Notifier<String?> {
 }
 
 final selectedShopIdProvider = NotifierProvider<SelectedShopIdNotifier, String?>(SelectedShopIdNotifier.new);
+
+/// Invalidates and clears all cached state in Riverpod on login/logout
+void resetAllSessionProviders(WidgetRef ref) {
+  ref.invalidate(selectedShopIdProvider);
+  ref.invalidate(shopProvider);
+  ref.invalidate(settingsProvider);
+  ref.invalidate(inventoryProvider);
+  ref.invalidate(billingInventoryProvider);
+  ref.invalidate(purchaseInventoryProvider);
+  ref.invalidate(accountsProvider);
+  ref.invalidate(historyProvider);
+  ref.invalidate(customerProvider);
+  ref.invalidate(doctorProvider);
+  ref.invalidate(rackProvider);
+  ref.invalidate(categoryProvider);
+}

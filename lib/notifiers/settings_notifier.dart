@@ -1,10 +1,12 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../services/shop_settings_service.dart';
 import '../utils/pdf_generator.dart';
+import '../providers/counter_providers.dart';
 
 class SettingsNotifier extends AsyncNotifier<Map<String, dynamic>> {
   @override
   Future<Map<String, dynamic>> build() async {
+    ref.watch(selectedShopIdProvider);
     return ShopSettingsService.getSettings();
   }
 

@@ -586,10 +586,7 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
                         if (context.mounted) {
                           // ignore: use_build_context_synchronously
                           context.go('/dashboard');
-                          ref.invalidate(categoryProvider);
-                          ref.invalidate(rackProvider);
-                          ref.invalidate(inventoryProvider);
-                          ref.invalidate(billingInventoryProvider);
+                          resetAllSessionProviders(ref);
                         }
                       }
                     },
@@ -1004,11 +1001,7 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
                               // Go back to the module selection screen FIRST
                               // ignore: use_build_context_synchronously
                               context.go('/dashboard');
-                              // Then invalidate providers so they don't refetch with a missing token
-                              ref.invalidate(categoryProvider);
-                              ref.invalidate(rackProvider);
-                              ref.invalidate(inventoryProvider);
-                              ref.invalidate(billingInventoryProvider);
+                              resetAllSessionProviders(ref);
                             }
                           },
                           borderRadius: BorderRadius.circular(12),
