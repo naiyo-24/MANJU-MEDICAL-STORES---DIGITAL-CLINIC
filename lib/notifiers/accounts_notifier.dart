@@ -174,7 +174,10 @@ class AccountsNotifier extends AsyncNotifier<AccountsState> {
       if (txn.type == 'Income') {
         runningBal += txn.amount;
       } else if (txn.type == 'Expense') {
-        runningBal -= txn.amount;
+        // Exclude settlement transactions to avoid double-deducting purchase expenses
+        if (txn.status?.toUpperCase() != 'SETTLEMENT') {
+          runningBal -= txn.amount;
+        }
       }
       txn.runningBalance = runningBal;
     }
@@ -186,7 +189,10 @@ class AccountsNotifier extends AsyncNotifier<AccountsState> {
       if (txn.type == 'Income') {
         calculatedIncome += txn.amount;
       } else if (txn.type == 'Expense') {
-        calculatedExpenses += txn.amount;
+        // Exclude settlement transactions to prevent double-counting with purchase bills
+        if (txn.status?.toUpperCase() != 'SETTLEMENT') {
+          calculatedExpenses += txn.amount;
+        }
       }
     }
 

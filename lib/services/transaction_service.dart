@@ -12,6 +12,7 @@ class TransactionModel {
   final double amount;
   final String paymentMode;
   double runningBalance = 0.0; // Initialized to prevent null errors
+  final String? status;
   final String? tenantId;
 
   TransactionModel({
@@ -24,6 +25,7 @@ class TransactionModel {
     required this.amount,
     required this.paymentMode,
     this.runningBalance = 0.0,
+    this.status,
     this.tenantId,
   });
 
@@ -67,6 +69,7 @@ class TransactionModel {
       paymentMode: json['payment_mode'] != null && json['payment_mode'].toString().isNotEmpty
           ? json['payment_mode'].toString()
           : 'Cash',
+      status: json['status']?.toString(),
       tenantId: json['tenant_id'],
     );
   }
