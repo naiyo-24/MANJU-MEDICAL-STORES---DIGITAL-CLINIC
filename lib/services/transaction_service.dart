@@ -103,6 +103,7 @@ class TransactionService {
         'skip': skip,
         'limit': limit,
         if (actualShopId.isNotEmpty) 'shop_id': actualShopId,
+        if (actualShopId.isNotEmpty) 'tenant_id': actualShopId,
       };
       
       final response = await ApiClient().dio.get(
