@@ -1140,20 +1140,23 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
                                   : const Color(0xFFE2E8F0),
                             ),
                           ),
-                          child: Row(
-                            mainAxisAlignment: isExpanded
-                                ? MainAxisAlignment.spaceBetween
-                                : MainAxisAlignment.center,
-                            children: [
-                              Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const Icon(
-                                    Icons.system_update_rounded,
-                                    size: 14,
-                                    color: Color(0xFF166534),
-                                  ),
-                                  if (isExpanded) ...[
+                          child: AnimatedCrossFade(
+                            duration: const Duration(milliseconds: 200),
+                            crossFadeState: isExpanded
+                                ? CrossFadeState.showFirst
+                                : CrossFadeState.showSecond,
+                            alignment: Alignment.centerLeft,
+                            firstChild: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(
+                                      Icons.system_update_rounded,
+                                      size: 14,
+                                      color: Color(0xFF166534),
+                                    ),
                                     const SizedBox(width: 8),
                                     Text(
                                       'v$version',
@@ -1166,9 +1169,7 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
                                       ),
                                     ),
                                   ],
-                                ],
-                              ),
-                              if (isExpanded)
+                                ),
                                 Container(
                                   padding: const EdgeInsets.symmetric(
                                       horizontal: 6, vertical: 2),
@@ -1185,7 +1186,15 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
                                     ),
                                   ),
                                 ),
-                            ],
+                              ],
+                            ),
+                            secondChild: const Center(
+                              child: Icon(
+                                Icons.system_update_rounded,
+                                size: 16,
+                                color: Color(0xFF166534),
+                              ),
+                            ),
                           ),
                         ),
                       ),

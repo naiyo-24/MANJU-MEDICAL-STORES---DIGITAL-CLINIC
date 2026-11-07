@@ -11,8 +11,15 @@ class InventoryNotifier extends AsyncNotifier<List<InventoryItem>> {
   String? _lastCategoryId;
   String? _lastDistributorId;
   bool _hasMore = true;
+  int _activeSearchSessionId = 0;
 
   bool get hasMore => _hasMore;
+  int get activeSearchSessionId => _activeSearchSessionId;
+
+  /// Invalidate any pending in-flight requests immediately
+  void cancelPendingSearch() {
+    _activeSearchSessionId++;
+  }
 
   @override
   Future<List<InventoryItem>> build() async {
@@ -35,6 +42,8 @@ class InventoryNotifier extends AsyncNotifier<List<InventoryItem>> {
     _lastCategoryId = categoryId;
     _lastDistributorId = distributorId;
 
+    final int currentSessionId = ++_activeSearchSessionId;
+
     try {
       final items = await _fetchInventory(
         searchQuery: searchQuery,
@@ -45,8 +54,11 @@ class InventoryNotifier extends AsyncNotifier<List<InventoryItem>> {
         skip: _currentSkip,
         limit: _limit,
       );
+      // Guard against out-of-order race conditions: discard stale in-flight responses!
+      if (currentSessionId != _activeSearchSessionId) return;
       state = AsyncData(List<InventoryItem>.from(items));
     } catch (e, st) {
+      if (currentSessionId != _activeSearchSessionId) return;
       state = AsyncError(e, st);
     }
   }
@@ -57,6 +69,7 @@ class InventoryNotifier extends AsyncNotifier<List<InventoryItem>> {
     _currentSkip += _limit;
 
     final currentList = state.value ?? [];
+    final int currentSessionId = _activeSearchSessionId;
 
     // Fetch next page
     final nextList = await _fetchInventory(
@@ -68,6 +81,8 @@ class InventoryNotifier extends AsyncNotifier<List<InventoryItem>> {
       skip: _currentSkip,
       limit: _limit,
     );
+
+    if (currentSessionId != _activeSearchSessionId) return;
 
     if (nextList.length < _limit) {
       _hasMore = false;

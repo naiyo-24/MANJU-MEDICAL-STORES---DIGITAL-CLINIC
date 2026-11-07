@@ -426,12 +426,33 @@ class _AddPurchaseBillScreenState extends ConsumerState<AddPurchaseBillScreen> {
                       border: OutlineInputBorder(),
                     ),
                     onChanged: (val) {
-                      if (_searchDebounce?.isActive ?? false) _searchDebounce!.cancel();
-                      _searchDebounce = Timer(const Duration(milliseconds: 500), () {
+                      _searchDebounce?.cancel();
+                      final trimmed = _searchCtrl.text.trim();
+
+                      if (trimmed.isEmpty) {
+                        ref.read(purchaseInventoryProvider.notifier).cancelPendingSearch();
                         ref.read(purchaseInventoryProvider.notifier).loadInventory(
-                          searchQuery: val,
+                          searchQuery: null,
                           distributorId: _filterByDistributor ? widget.distributor['id'] : null,
                         );
+                        setState(() {});
+                        return;
+                      }
+
+                      if (trimmed.length < 2) {
+                        ref.read(purchaseInventoryProvider.notifier).cancelPendingSearch();
+                        setState(() {});
+                        return;
+                      }
+
+                      _searchDebounce = Timer(const Duration(milliseconds: 300), () {
+                        final currentQuery = _searchCtrl.text.trim();
+                        if (currentQuery.length >= 2) {
+                          ref.read(purchaseInventoryProvider.notifier).loadInventory(
+                            searchQuery: currentQuery,
+                            distributorId: _filterByDistributor ? widget.distributor['id'] : null,
+                          );
+                        }
                       });
                       setState(() {}); 
                     },

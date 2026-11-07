@@ -471,13 +471,39 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                               Expanded(
                                 child: TextField(
                                   controller: _searchController,
-                                    onChanged: (value) {
-                                      if (_searchDebounce?.isActive ?? false) _searchDebounce!.cancel();
-                                      _searchDebounce = Timer(const Duration(milliseconds: 500), () {
-                                        _fetchData(value);
-                                      });
-                                    },
-                                  onSubmitted: (value) => _fetchData(value),
+                                  onChanged: (value) {
+                                    _searchDebounce?.cancel();
+                                    setState(() {}); // Instant client-side filter update
+                                    final trimmed = _searchController.text.trim();
+
+                                    // 1. If empty, immediately load initial inventory
+                                    if (trimmed.isEmpty) {
+                                      ref.read(inventoryProvider.notifier).cancelPendingSearch();
+                                      _fetchData('');
+                                      return;
+                                    }
+
+                                    // 2. Minimum 2-character guard: don't hammer API on 1 letter
+                                    if (trimmed.length < 2) {
+                                      ref.read(inventoryProvider.notifier).cancelPendingSearch();
+                                      return;
+                                    }
+
+                                    // 3. Debounce network call by 300ms
+                                    _searchDebounce = Timer(const Duration(milliseconds: 300), () {
+                                      final currentQuery = _searchController.text.trim();
+                                      if (currentQuery.length >= 2) {
+                                        _fetchData(currentQuery);
+                                      }
+                                    });
+                                  },
+                                  onSubmitted: (value) {
+                                    _searchDebounce?.cancel();
+                                    final trimmed = _searchController.text.trim();
+                                    if (trimmed.isEmpty || trimmed.length >= 2) {
+                                      _fetchData(trimmed);
+                                    }
+                                  },
                                   decoration: const InputDecoration(
                                     border: InputBorder.none,
                                     hintText:
@@ -727,31 +753,41 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                     ),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(16),
-                      child: inventoryAsync.when(
-                        loading: () => const Center(
-                          child: CircularProgressIndicator(
-                            color: Color(0xFF22C55E),
-                          ),
-                        ),
-                        error: (err, stack) => Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                err.toString(),
-                                style: const TextStyle(color: Colors.red),
+                      child: Builder(
+                        builder: (context) {
+                          final currentMedicines = inventoryAsync.value ?? [];
+                          final isInitialLoading = inventoryAsync.isLoading && currentMedicines.isEmpty;
+
+                          if (isInitialLoading) {
+                            return const Center(
+                              child: CircularProgressIndicator(
+                                color: Color(0xFF22C55E),
                               ),
-                              const SizedBox(height: 16),
-                              ElevatedButton(
-                                onPressed: () => ref
-                                    .read(inventoryProvider.notifier)
-                                    .loadInventory(),
-                                child: const Text('Retry'),
+                            );
+                          }
+
+                          if (inventoryAsync.hasError && currentMedicines.isEmpty) {
+                            return Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    inventoryAsync.error.toString(),
+                                    style: const TextStyle(color: Colors.red),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  ElevatedButton(
+                                    onPressed: () => ref
+                                        .read(inventoryProvider.notifier)
+                                        .loadInventory(),
+                                    child: const Text('Retry'),
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
-                        ),
-                        data: (medicines) {
+                            );
+                          }
+
+                          final medicines = currentMedicines;
                           if (medicines.isEmpty) {
                             return const Center(
                               child: Text(
@@ -760,8 +796,41 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                             );
                           }
 
+                          final query = _searchController.text.trim().toLowerCase();
+                          List<InventoryItem> itemsToDisplay = medicines;
+                          if (query.isNotEmpty) {
+                            itemsToDisplay = medicines.where((m) {
+                              final name = m.name.toLowerCase();
+                              final brand = m.manufacturer.toLowerCase();
+
+                              // When user types 1 single letter, filter by prefix of medicine name or brand
+                              if (query.length == 1) {
+                                final words = name.split(RegExp(r'\s+'));
+                                final matchesNamePrefix = words.any((w) => w.startsWith(query)) || name.startsWith(query);
+                                final matchesBrandPrefix = brand.startsWith(query);
+                                return matchesNamePrefix || matchesBrandPrefix;
+                              }
+
+                              // For >= 2 letters, match anywhere in name, brand, barcode, or batch
+                              final barcode = m.sku.toLowerCase();
+                              final batch = m.batchNumber.toLowerCase();
+                              return name.contains(query) ||
+                                  brand.contains(query) ||
+                                  barcode.contains(query) ||
+                                  batch.contains(query);
+                            }).toList();
+                          }
+
+                          if (itemsToDisplay.isEmpty) {
+                            return const Center(
+                              child: Text(
+                                'No matching medicines found.',
+                              ),
+                            );
+                          }
+
                           final sortedItems = List<InventoryItem>.from(
-                            medicines,
+                            itemsToDisplay,
                           );
                           sortedItems.sort((a, b) {
                             int cmp = 0;

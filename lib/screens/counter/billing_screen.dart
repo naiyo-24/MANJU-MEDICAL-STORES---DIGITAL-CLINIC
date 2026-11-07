@@ -1233,9 +1233,31 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
     final backendCategories = categoryAsync.value ?? [];
     final dynamicCategories = ['All', ...backendCategories.map((c) => c.name)];
 
+    final query = _medicineSearchController.text.trim().toLowerCase();
     List<Map<String, dynamic>> computedFilteredMedicines = allMedicines;
+    if (query.isNotEmpty) {
+      computedFilteredMedicines = allMedicines.where((item) {
+        final name = (item['name'] ?? '').toString().toLowerCase();
+        final brand = (item['brand'] ?? '').toString().toLowerCase();
 
-    // Removed local search filtering since we will fetch from backend
+        // When user types 1 single letter, filter by prefix of medicine name or brand
+        if (query.length == 1) {
+          final words = name.split(RegExp(r'\s+'));
+          final matchesNamePrefix = words.any((w) => w.startsWith(query)) || name.startsWith(query);
+          final matchesBrandPrefix = brand.startsWith(query);
+          return matchesNamePrefix || matchesBrandPrefix;
+        }
+
+        // For >= 2 letters, match anywhere in name, brand, or barcode
+        final barcode = (item['pack'] ?? '').toString().toLowerCase();
+        final batch = (item['batch_number'] ?? '').toString().toLowerCase();
+        return name.contains(query) ||
+            brand.contains(query) ||
+            barcode.contains(query) ||
+            batch.contains(query);
+      }).toList();
+    }
+
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
@@ -1251,14 +1273,14 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
               border: Border(bottom: BorderSide(color: Theme.of(context).dividerColor)),
             ),
             child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Expanded(
                   child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Container(
-                        padding: const EdgeInsets.all(12),
+                        padding: const EdgeInsets.all(10),
                         decoration: const BoxDecoration(
                           color: Color(0xFF22C55E),
                           shape: BoxShape.circle,
@@ -1266,24 +1288,29 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                         child: const Icon(
                           Icons.receipt_long,
                           color: Colors.white,
-                          size: 24,
+                          size: 22,
                         ),
                       ),
-                      const SizedBox(width: 16),
+                      const SizedBox(width: 12),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
                               'New Bill',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                               style: TextStyle(
-                                fontSize: 24,
+                                fontSize: 22,
                                 fontWeight: FontWeight.w900,
                                 color: isDark ? Colors.white : const Color(0xFF1E293B),
                               ),
                             ),
                             Text(
                               'Create a new invoice, search medicines and add to cart',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                               style: TextStyle(
                                 fontSize: 12,
                                 color: isDark ? Colors.grey[400] : const Color(0xFF64748B),
@@ -1295,41 +1322,36 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                     ],
                   ),
                 ),
-                const SizedBox(width: 16),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      onPressed: () {
-                        final selectedIndex = ref.read(billingProvider).selectedCategoryIndex;
-                        String? categoryId;
-                        if (selectedIndex != 0 && selectedIndex <= backendCategories.length) {
-                          categoryId = backendCategories[selectedIndex - 1].id;
-                        }
-                        
-                        ref.read(billingInventoryProvider.notifier).loadInventory(
-                          searchQuery: _medicineSearchController.text.isNotEmpty
-                              ? _medicineSearchController.text
-                              : null,
-                          categoryId: categoryId,
-                        );
-                        _fetchDoctors();
-                        _fetchCustomers();
-                        
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Refreshed inventory and data.'),
-                            duration: Duration(seconds: 1),
-                          ),
-                        );
-                      },
-                      icon: Icon(
-                        Icons.refresh,
-                        color: isDark ? Colors.grey[400] : const Color(0xFF64748B),
+                const SizedBox(width: 8),
+                IconButton(
+                  onPressed: () {
+                    final selectedIndex = ref.read(billingProvider).selectedCategoryIndex;
+                    String? categoryId;
+                    if (selectedIndex != 0 && selectedIndex <= backendCategories.length) {
+                      categoryId = backendCategories[selectedIndex - 1].id;
+                    }
+                    
+                    ref.read(billingInventoryProvider.notifier).loadInventory(
+                      searchQuery: _medicineSearchController.text.isNotEmpty
+                          ? _medicineSearchController.text
+                          : null,
+                      categoryId: categoryId,
+                    );
+                    _fetchDoctors();
+                    _fetchCustomers();
+                    
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Refreshed inventory and data.'),
+                        duration: Duration(seconds: 1),
                       ),
-                      tooltip: 'Refresh',
-                    ),
-                  ],
+                    );
+                  },
+                  icon: Icon(
+                    Icons.refresh,
+                    color: isDark ? Colors.grey[400] : const Color(0xFF64748B),
+                  ),
+                  tooltip: 'Refresh',
                 ),
               ],
             ),
@@ -1346,63 +1368,89 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                       constraints.maxHeight >
                       850; // Use the tested safe threshold
 
-                  Widget leftSide = inventoryState.when(
-                    data: (items) => BillingLeftPanel(
-                      isDesktopWidth: isDesktopWidth,
-                      hasEnoughHeight: true,
-                      filteredMedicines: computedFilteredMedicines,
-                      categories: dynamicCategories,
-                      selectedCategoryIndex: ref
-                          .watch(billingProvider)
-                          .selectedCategoryIndex,
-                      onAddToCart: _addToCart,
-                      onCategorySelected: (index) {
-                        ref.read(billingProvider.notifier).updateCategory(index);
-                        
-                        String? categoryId;
-                        if (index != 0 && index <= backendCategories.length) {
-                          categoryId = backendCategories[index - 1].id;
-                        }
-                        
-                        ref.read(billingInventoryProvider.notifier).loadInventory(
-                          searchQuery: _medicineSearchController.text,
-                          categoryId: categoryId,
-                        );
-                      },
-                      hasMore: ref.read(billingInventoryProvider.notifier).hasMore,
-                      onLoadMore: () {
-                        ref.read(billingInventoryProvider.notifier).loadMore();
-                      },
-                      searchController: _medicineSearchController,
-                      onSearch: (q) {
-                        if (_searchDebounce?.isActive ?? false) _searchDebounce!.cancel();
-                        _searchDebounce = Timer(const Duration(milliseconds: 500), () {
-                          ref
-                              .read(billingInventoryProvider.notifier)
-                              .loadInventory(searchQuery: q);
-                        });
-                      },
-                    ),
-                    loading: () => const Center(
-                      child: CircularProgressIndicator(color: Color(0xFF22C55E)),
-                    ),
-                    error: (err, stack) => Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            err.toString(),
-                            style: const TextStyle(color: Colors.red),
-                          ),
-                          const SizedBox(height: 16),
-                          ElevatedButton(
-                            onPressed: () => ref.read(billingInventoryProvider.notifier).loadInventory(),
-                            child: const Text('Retry'),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
+                  final currentItems = inventoryState.value ?? [];
+                  final isInitialLoading = inventoryState.isLoading && currentItems.isEmpty;
+
+                  Widget leftSide = isInitialLoading
+                      ? const Center(
+                          child: CircularProgressIndicator(color: Color(0xFF22C55E)),
+                        )
+                      : (inventoryState.hasError && currentItems.isEmpty)
+                          ? Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    inventoryState.error.toString(),
+                                    style: const TextStyle(color: Colors.red),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  ElevatedButton(
+                                    onPressed: () => ref.read(billingInventoryProvider.notifier).loadInventory(),
+                                    child: const Text('Retry'),
+                                  ),
+                                ],
+                              ),
+                            )
+                          : BillingLeftPanel(
+                              isDesktopWidth: isDesktopWidth,
+                              hasEnoughHeight: true,
+                              filteredMedicines: computedFilteredMedicines,
+                              categories: dynamicCategories,
+                              selectedCategoryIndex: ref
+                                  .watch(billingProvider)
+                                  .selectedCategoryIndex,
+                              onAddToCart: _addToCart,
+                              onCategorySelected: (index) {
+                                ref.read(billingProvider.notifier).updateCategory(index);
+                                
+                                String? categoryId;
+                                if (index != 0 && index <= backendCategories.length) {
+                                  categoryId = backendCategories[index - 1].id;
+                                }
+                                
+                                ref.read(billingInventoryProvider.notifier).loadInventory(
+                                  searchQuery: _medicineSearchController.text,
+                                  categoryId: categoryId,
+                                );
+                              },
+                              hasMore: ref.read(billingInventoryProvider.notifier).hasMore,
+                              onLoadMore: () {
+                                ref.read(billingInventoryProvider.notifier).loadMore();
+                              },
+                              searchController: _medicineSearchController,
+                              onSearch: (q) {
+                                _searchDebounce?.cancel();
+                                setState(() {}); // Immediately filter loaded medicines in UI for 0ms lag
+
+                                final trimmed = _medicineSearchController.text.trim();
+
+                                // 1. If empty, immediately reset to default inventory
+                                if (trimmed.isEmpty) {
+                                  ref.read(billingInventoryProvider.notifier).cancelPendingSearch();
+                                  ref
+                                      .read(billingInventoryProvider.notifier)
+                                      .loadInventory(searchQuery: null);
+                                  return;
+                                }
+
+                                // 2. Minimum 2-character guard: don't hammer API on 1 letter
+                                if (trimmed.length < 2) {
+                                  ref.read(billingInventoryProvider.notifier).cancelPendingSearch();
+                                  return;
+                                }
+
+                                // 3. Debounce network call by 300ms
+                                _searchDebounce = Timer(const Duration(milliseconds: 300), () {
+                                  final currentQuery = _medicineSearchController.text.trim();
+                                  if (currentQuery.length >= 2) {
+                                    ref
+                                        .read(billingInventoryProvider.notifier)
+                                        .loadInventory(searchQuery: currentQuery);
+                                  }
+                                });
+                              },
+                            );
 
                   Widget rightSide = BillingRightPanel(
                     hasEnoughHeight: isDesktopWidth,
@@ -1463,11 +1511,11 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                         ),
                       );
                     }
-                    if (constraints.maxWidth < 700) {
+                    if (constraints.maxWidth < 1100) {
                       wrapper = SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
                         child: SizedBox(
-                          width: 700,
+                          width: 1100,
                           child: wrapper,
                         ),
                       );
@@ -1475,6 +1523,7 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                     return wrapper;
                   } else {
                     Widget wrapper = SingleChildScrollView(
+                      scrollDirection: Axis.vertical,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
@@ -1488,11 +1537,11 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                       ),
                     );
                     
-                    if (constraints.maxWidth < 400) {
+                    if (constraints.maxWidth < 550) {
                       wrapper = SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
                         child: SizedBox(
-                          width: 400,
+                          width: 550,
                           child: wrapper,
                         ),
                       );
