@@ -741,10 +741,10 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
                       ),
                     ),
                   ),
-                  secondChild: const Center(
+                  secondChild: Center(
                     child: Icon(
                       Icons.local_pharmacy,
-                      color: Color(0xFF166534),
+                      color: isDark ? const Color(0xFF4ADE80) : const Color(0xFF166534),
                       size: 28,
                     ),
                   ),
@@ -1095,49 +1095,106 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
                   builder: (context, snapshot) {
                     final version = snapshot.hasData
                         ? snapshot.data!.version
-                        : '1.0.17';
+                        : '1.0.20';
                     return Material(
                       color: Colors.transparent,
                       child: InkWell(
                         onTap: () async {
+                          ScaffoldMessenger.of(context).hideCurrentSnackBar();
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Checking for updates...'),
-                              duration: Duration(seconds: 2),
-                              backgroundColor: Color(0xFF1E293B),
+                            SnackBar(
+                              content: const Row(
+                                children: [
+                                  SizedBox(
+                                    width: 14,
+                                    height: 14,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  SizedBox(width: 10),
+                                  Text(
+                                    'Checking for updates...',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              behavior: SnackBarBehavior.floating,
+                              duration: const Duration(seconds: 2),
+                              backgroundColor: const Color(0xFF166534),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              margin: const EdgeInsets.all(16),
                             ),
                           );
-                          final updateInfo =
-                              await WindowsAutoUpdater.checkForUpdate();
+                          final checkResult =
+                              await WindowsAutoUpdater.checkForUpdateDetailed();
                           if (context.mounted) {
-                            if (updateInfo != null) {
+                            if (checkResult.isAvailable && checkResult.updateInfo != null) {
                               WindowsAutoUpdater.showUpdateDialog(
-                                  context, updateInfo);
+                                  context, checkResult.updateInfo!);
                             } else {
+                              ScaffoldMessenger.of(context).hideCurrentSnackBar();
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('SirfBill is already up to date!'),
-                                  backgroundColor: Color(0xFF166534),
+                                SnackBar(
+                                  content: Row(
+                                    children: [
+                                      Icon(
+                                        checkResult.isError
+                                            ? Icons.error_outline
+                                            : Icons.check_circle_outline,
+                                        color: Colors.white,
+                                        size: 18,
+                                      ),
+                                      const SizedBox(width: 10),
+                                      Expanded(
+                                        child: Text(
+                                          checkResult.message,
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.w600,
+                                            fontSize: 13,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  behavior: SnackBarBehavior.floating,
+                                  duration: const Duration(seconds: 3),
+                                  backgroundColor: checkResult.isError
+                                      ? Colors.red.shade800
+                                      : const Color(0xFF166534),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  margin: const EdgeInsets.all(16),
                                 ),
                               );
                             }
                           }
                         },
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(12),
                         child: Container(
                           padding: EdgeInsets.symmetric(
-                            horizontal: isExpanded ? 12 : 6,
-                            vertical: 8,
+                            horizontal: isExpanded ? 14 : 6,
+                            vertical: 10,
                           ),
                           decoration: BoxDecoration(
                             color: isDark
-                                ? const Color(0xFF1E293B)
-                                : const Color(0xFFF1F5F9),
-                            borderRadius: BorderRadius.circular(10),
+                                ? const Color(0xFF064E3B).withValues(alpha: 0.25)
+                                : const Color(0xFFEBF7EE),
+                            borderRadius: BorderRadius.circular(12),
                             border: Border.all(
                               color: isDark
-                                  ? const Color(0xFF334155)
-                                  : const Color(0xFFE2E8F0),
+                                  ? const Color(0xFF059669).withValues(alpha: 0.5)
+                                  : const Color(0xFF86EFAC),
+                              width: 1.2,
                             ),
                           ),
                           child: AnimatedCrossFade(
@@ -1158,37 +1215,41 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
                                       Row(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
-                                          const Icon(
-                                            Icons.system_update_rounded,
-                                            size: 14,
-                                            color: Color(0xFF166534),
+                                          Icon(
+                                            Icons.install_desktop_rounded,
+                                            size: 16,
+                                            color: isDark
+                                                ? const Color(0xFF4ADE80)
+                                                : const Color(0xFF166534),
                                           ),
                                           const SizedBox(width: 8),
                                           Text(
-                                            'v$version',
+                                            'Check for Updates',
                                             style: TextStyle(
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.bold,
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.w700,
                                               color: isDark
-                                                  ? Colors.white
-                                                  : const Color(0xFF1E293B),
+                                                  ? const Color(0xFF4ADE80)
+                                                  : const Color(0xFF166534),
                                             ),
                                           ),
                                         ],
                                       ),
                                       Container(
                                         padding: const EdgeInsets.symmetric(
-                                            horizontal: 6, vertical: 2),
+                                            horizontal: 8, vertical: 3),
                                         decoration: BoxDecoration(
-                                          color: const Color(0xFF166534).withValues(alpha: 0.1),
-                                          borderRadius: BorderRadius.circular(6),
+                                          color: isDark
+                                              ? const Color(0xFF059669)
+                                              : const Color(0xFF166534),
+                                          borderRadius: BorderRadius.circular(12),
                                         ),
-                                        child: const Text(
-                                          'Check',
-                                          style: TextStyle(
-                                            fontSize: 10,
+                                        child: Text(
+                                          'v$version',
+                                          style: const TextStyle(
+                                            fontSize: 11,
                                             fontWeight: FontWeight.bold,
-                                            color: Color(0xFF166534),
+                                            color: Colors.white,
                                           ),
                                         ),
                                       ),
@@ -1197,11 +1258,13 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
                                 ),
                               ),
                             ),
-                            secondChild: const Center(
+                            secondChild: Center(
                               child: Icon(
-                                Icons.system_update_rounded,
-                                size: 16,
-                                color: Color(0xFF166534),
+                                Icons.install_desktop_rounded,
+                                size: 18,
+                                color: isDark
+                                    ? const Color(0xFF4ADE80)
+                                    : const Color(0xFF166534),
                               ),
                             ),
                           ),

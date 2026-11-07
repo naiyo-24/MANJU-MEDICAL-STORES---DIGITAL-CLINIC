@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'update_service.dart';
 
 class UpdateInfo {
@@ -19,32 +20,77 @@ class UpdateInfo {
   });
 }
 
+class UpdateCheckResult {
+  final bool isAvailable;
+  final UpdateInfo? updateInfo;
+  final String message;
+  final bool isError;
+
+  UpdateCheckResult({
+    required this.isAvailable,
+    this.updateInfo,
+    required this.message,
+    this.isError = false,
+  });
+}
+
 class WindowsAutoUpdater {
   static final UpdateService _service = UpdateService(
     manifestUrl: UpdateService.defaultManifestUrl,
   );
 
   /// Check whether an update is available on Windows
-  static Future<UpdateInfo?> checkForUpdate() async {
+  static Future<UpdateCheckResult> checkForUpdateDetailed() async {
     if (kIsWeb || !Platform.isWindows) {
-      return null;
+      final info = await PackageInfo.fromPlatform().catchError((_) => PackageInfo(
+        appName: 'SirfBill',
+        packageName: '',
+        version: '1.0.20',
+        buildNumber: '20',
+      ));
+      return UpdateCheckResult(
+        isAvailable: false,
+        message: 'Auto-update is active on the installed Windows Desktop app (.exe). Current version: v${info.version}',
+      );
     }
 
     try {
       final manifest = await _service.checkForUpdate();
-      if (manifest == null) return null;
+      if (manifest == null) {
+        final info = await PackageInfo.fromPlatform();
+        return UpdateCheckResult(
+          isAvailable: false,
+          message: 'SirfBill is already up to date! (v${info.version})',
+        );
+      }
 
-      return UpdateInfo(
+      final updateInfo = UpdateInfo(
         version: manifest.version,
         releaseNotes: manifest.releaseNotes,
         downloadUrl: manifest.packageUrl,
         sha256: manifest.sha256,
         manifest: manifest,
       );
+
+      return UpdateCheckResult(
+        isAvailable: true,
+        updateInfo: updateInfo,
+        message: 'A new update (v${manifest.version}) is available!',
+      );
     } catch (e, stack) {
       debugPrint('[WindowsAutoUpdater] Error checking for updates: $e\n$stack');
-      return null;
+      return UpdateCheckResult(
+        isAvailable: false,
+        isError: true,
+        message: 'Could not connect to update server. Please check your internet connection.',
+      );
     }
+  }
+
+  /// Check whether an update is available on Windows (convenience method)
+  static Future<UpdateInfo?> checkForUpdate() async {
+    final result = await checkForUpdateDetailed();
+    return result.updateInfo;
   }
 
   /// Show the interactive update confirmation, download progress dialog, and updater launcher
