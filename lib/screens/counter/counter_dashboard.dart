@@ -1146,47 +1146,56 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
                                 ? CrossFadeState.showFirst
                                 : CrossFadeState.showSecond,
                             alignment: Alignment.centerLeft,
-                            firstChild: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    const Icon(
-                                      Icons.system_update_rounded,
-                                      size: 14,
-                                      color: Color(0xFF166534),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      'v$version',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.bold,
-                                        color: isDark
-                                            ? Colors.white
-                                            : const Color(0xFF1E293B),
+                            firstChild: ClipRect(
+                              child: SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                physics: const NeverScrollableScrollPhysics(),
+                                child: SizedBox(
+                                  width: 196,
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          const Icon(
+                                            Icons.system_update_rounded,
+                                            size: 14,
+                                            color: Color(0xFF166534),
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Text(
+                                            'v$version',
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.bold,
+                                              color: isDark
+                                                  ? Colors.white
+                                                  : const Color(0xFF1E293B),
+                                            ),
+                                          ),
+                                        ],
                                       ),
-                                    ),
-                                  ],
-                                ),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 6, vertical: 2),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFF166534).withValues(alpha: 0.1),
-                                    borderRadius: BorderRadius.circular(6),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 6, vertical: 2),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFF166534).withValues(alpha: 0.1),
+                                          borderRadius: BorderRadius.circular(6),
+                                        ),
+                                        child: const Text(
+                                          'Check',
+                                          style: TextStyle(
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.bold,
+                                            color: Color(0xFF166534),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  child: const Text(
-                                    'Check',
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.bold,
-                                      color: Color(0xFF166534),
-                                    ),
-                                  ),
                                 ),
-                              ],
+                              ),
                             ),
                             secondChild: const Center(
                               child: Icon(
