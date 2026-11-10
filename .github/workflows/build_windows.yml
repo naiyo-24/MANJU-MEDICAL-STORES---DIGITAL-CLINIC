@@ -45,7 +45,7 @@ jobs:
 
       - name: Copy Updater into Flutter Release Bundle
         run: |
-          Copy-Item -Path "updater/bin/Release/net8.0/win-x64/publish/updater.exe" -Destination "build/windows/x64/runner/Release/updater.exe" -Force
+          Copy-Item -Path "updater/bin/Release/net8.0-windows/win-x64/publish/updater.exe" -Destination "build/windows/x64/runner/Release/updater.exe" -Force
 
       - name: Package Update Zip (Runtime + Executable + Updater)
         shell: pwsh
