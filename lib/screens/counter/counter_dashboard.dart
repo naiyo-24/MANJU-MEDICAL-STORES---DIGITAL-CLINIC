@@ -1238,6 +1238,7 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
                                           ],
                                         ),
                                         Container(
+                                          margin: const EdgeInsets.only(left: 8),
                                           padding: const EdgeInsets.symmetric(
                                               horizontal: 8, vertical: 3),
                                           decoration: BoxDecoration(
@@ -1250,7 +1251,8 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
                                             'v$version',
                                             style: const TextStyle(
                                               fontSize: 11,
-                                              fontWeight: FontWeight.bold,
+                                              fontWeight: FontWeight.w800,
+                                              letterSpacing: 0.2,
                                               color: Colors.white,
                                             ),
                                           ),

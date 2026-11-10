@@ -118,8 +118,19 @@ class UpdateService {
     // 2. Fallback: Check defaultManifestUrl directly if GitHub API was unavailable or rate-limited
     if (highestManifest == null) {
       try {
-        final uri = Uri.parse(manifestUrl);
-        final request = http.Request('GET', uri)..followRedirects = true;
+        // Append cache-busting timestamp to prevent intermediate CDN caching of latest.json
+        final separator = manifestUrl.contains('?') ? '&' : '?';
+        final freshUrl = '$manifestUrl${separator}_t=${DateTime.now().millisecondsSinceEpoch}';
+        final uri = Uri.parse(freshUrl);
+        final request = http.Request('GET', uri)
+          ..followRedirects = true
+          ..maxRedirects = 10
+          ..headers.addAll({
+            'User-Agent': 'SirfBill-Desktop-App',
+            'Accept': 'application/json',
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+          });
         final streamedResponse = await request.send().timeout(const Duration(seconds: 20));
         final response = await http.Response.fromStream(streamedResponse);
 
@@ -154,53 +165,79 @@ class UpdateService {
   }
 
   /// Downloads the update package with download progress stream/callback and verifies SHA-256 hash.
+  /// Uses a resilient HTTP client with User-Agent, redirects, and retry logic to prevent dropped CDN connections.
   Future<File> downloadPackage(
     UpdateManifest manifest, {
     void Function(double progress)? onProgress,
   }) async {
-    final uri = Uri.parse(manifest.packageUrl);
-    final request = http.Request('GET', uri);
-    final streamedResponse = await request.send().timeout(const Duration(minutes: 5));
-
-    if (streamedResponse.statusCode != 200) {
-      throw Exception('Package download failed: HTTP ${streamedResponse.statusCode}');
-    }
-
-    final totalBytes = streamedResponse.contentLength ?? 0;
-    int receivedBytes = 0;
-
     final temp = await getTemporaryDirectory();
     final updateFile = File('${temp.path}${Platform.pathSeparator}app-update.zip');
-    if (await updateFile.exists()) {
-      await updateFile.delete();
-    }
+    
+    int maxAttempts = 3;
+    Exception? lastError;
 
-    final sink = updateFile.openWrite();
+    for (int attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        if (await updateFile.exists()) {
+          await updateFile.delete();
+        }
 
-    await for (final chunk in streamedResponse.stream) {
-      sink.add(chunk);
-      receivedBytes += chunk.length;
-      if (totalBytes > 0 && onProgress != null) {
-        onProgress(receivedBytes / totalBytes);
+        final client = HttpClient();
+        client.connectionTimeout = const Duration(seconds: 30);
+        client.idleTimeout = const Duration(seconds: 60);
+
+        final request = await client.getUrl(Uri.parse(manifest.packageUrl));
+        request.headers.set('User-Agent', 'SirfBill-Desktop-App');
+        request.headers.set('Accept', 'application/octet-stream');
+        request.headers.set('Connection', 'keep-alive');
+        request.followRedirects = true;
+        request.maxRedirects = 10;
+
+        final response = await request.close();
+        if (response.statusCode != 200) {
+          throw Exception('Package download failed with HTTP ${response.statusCode}');
+        }
+
+        final totalBytes = response.contentLength;
+        int receivedBytes = 0;
+        final sink = updateFile.openWrite();
+
+        await for (final chunk in response) {
+          sink.add(chunk);
+          receivedBytes += chunk.length;
+          if (totalBytes > 0 && onProgress != null) {
+            onProgress(receivedBytes / totalBytes);
+          }
+        }
+        await sink.flush();
+        await sink.close();
+        client.close();
+
+        // Verify SHA-256 Digest
+        final digest = await sha256.bind(updateFile.openRead()).first;
+        final calculatedSha = digest.toString().toLowerCase();
+
+        if (calculatedSha != manifest.sha256) {
+          if (await updateFile.exists()) {
+            await updateFile.delete();
+          }
+          throw Exception(
+            'SHA-256 verification failed.\nExpected: ${manifest.sha256}\nActual: $calculatedSha',
+          );
+        }
+
+        // Successfully downloaded and verified
+        return updateFile;
+      } catch (e) {
+        lastError = Exception('Attempt $attempt/$maxAttempts failed: $e');
+        debugPrint('[UpdateService] $lastError');
+        if (attempt < maxAttempts) {
+          await Future.delayed(Duration(seconds: attempt));
+        }
       }
     }
-    await sink.flush();
-    await sink.close();
 
-    // Verify SHA-256 Digest
-    final digest = await sha256.bind(updateFile.openRead()).first;
-    final calculatedSha = digest.toString().toLowerCase();
-
-    if (calculatedSha != manifest.sha256) {
-      if (await updateFile.exists()) {
-        await updateFile.delete();
-      }
-      throw Exception(
-        'SHA-256 verification failed.\nExpected: ${manifest.sha256}\nActual: $calculatedSha',
-      );
-    }
-
-    return updateFile;
+    throw lastError ?? Exception('Failed to download update package after $maxAttempts attempts.');
   }
 
   /// Finds and launches the updater executable, passing arguments, and closes the running Flutter app.
