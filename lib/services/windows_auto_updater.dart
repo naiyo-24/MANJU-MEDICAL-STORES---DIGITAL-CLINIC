@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'update_service.dart';
 
@@ -124,15 +125,35 @@ class _UpdateDownloadDialogState extends State<_UpdateDownloadDialog> {
   double _progress = 0.0;
   String _statusText = '';
   String? _errorMessage;
+  final List<String> _consoleLogs = [];
+  final ScrollController _logScrollController = ScrollController();
+
+  void _addLog(String message) {
+    if (!mounted) return;
+    setState(() {
+      final time = TimeOfDay.now().format(context);
+      _consoleLogs.add('[$time] $message');
+      _statusText = message;
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_logScrollController.hasClients) {
+        _logScrollController.jumpTo(_logScrollController.position.maxScrollExtent);
+      }
+    });
+  }
 
   Future<void> _startUpdate() async {
     if (widget.updateInfo.manifest == null) return;
 
     setState(() {
       _isDownloading = true;
-      _statusText = 'Downloading update package...';
+      _statusText = 'Starting update process...';
       _errorMessage = null;
+      _consoleLogs.clear();
     });
+
+    _addLog('Target version: v${widget.updateInfo.version}');
+    _addLog('Package URL: ${widget.updateInfo.downloadUrl}');
 
     try {
       final packageFile = await widget.service.downloadPackage(
@@ -141,17 +162,16 @@ class _UpdateDownloadDialogState extends State<_UpdateDownloadDialog> {
           if (mounted) {
             setState(() {
               _progress = p;
-              _statusText = 'Downloading update... ${(p * 100).toStringAsFixed(0)}%';
             });
           }
         },
+        onStatusLog: (logMsg) {
+          _addLog(logMsg);
+        },
       );
 
-      if (mounted) {
-        setState(() {
-          _statusText = 'Verifying and launching updater...';
-        });
-      }
+      _addLog('Package downloaded successfully: ${packageFile.path}');
+      _addLog('Detaching application and handing over to updater.exe...');
 
       await Future.delayed(const Duration(milliseconds: 600));
       await widget.service.startUpdater(packageFile);
@@ -161,8 +181,15 @@ class _UpdateDownloadDialogState extends State<_UpdateDownloadDialog> {
           _isDownloading = false;
           _errorMessage = e.toString().replaceFirst('Exception: ', '');
         });
+        _addLog('ERROR: $_errorMessage');
       }
     }
+  }
+
+  @override
+  void dispose() {
+    _logScrollController.dispose();
+    super.dispose();
   }
 
   @override
@@ -241,16 +268,62 @@ class _UpdateDownloadDialogState extends State<_UpdateDownloadDialog> {
                 valueColor: const AlwaysStoppedAnimation<Color>(primaryColor),
                 borderRadius: BorderRadius.circular(4),
               ),
-              const SizedBox(height: 14),
-              Text(
-                _statusText,
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
-                  color: isDark ? Colors.grey[300] : const Color(0xFF334155),
+              const SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text(
+                      _statusText,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: isDark ? Colors.grey[300] : const Color(0xFF334155),
+                      ),
+                    ),
+                  ),
+                  if (_progress > 0)
+                    Text(
+                      '${(_progress * 100).toStringAsFixed(0)}%',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: primaryColor,
+                      ),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              // Live On-Screen Diagnostic Terminal
+              Container(
+                height: 110,
+                width: double.infinity,
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF0F172A),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.white12),
+                ),
+                child: ListView.builder(
+                  controller: _logScrollController,
+                  itemCount: _consoleLogs.length,
+                  itemBuilder: (ctx, idx) => Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 2),
+                    child: Text(
+                      _consoleLogs[idx],
+                      style: const TextStyle(
+                        fontFamily: 'monospace',
+                        fontSize: 11,
+                        color: Color(0xFF4ADE80),
+                        height: 1.3,
+                      ),
+                    ),
+                  ),
                 ),
               ),
-              const SizedBox(height: 6),
+              const SizedBox(height: 8),
               Text(
                 'The application will restart automatically after applying update.',
                 style: TextStyle(fontSize: 11, color: isDark ? Colors.grey[500] : Colors.grey[600]),
@@ -261,18 +334,59 @@ class _UpdateDownloadDialogState extends State<_UpdateDownloadDialog> {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: Colors.red.withValues(alpha: 0.1),
+                  color: const Color(0xFFB91C1C), // Matching the red banner in user's image
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
                 ),
-                child: Row(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Icon(Icons.error_outline_rounded, color: Colors.red, size: 20),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        _errorMessage!,
-                        style: const TextStyle(fontSize: 12, color: Colors.red),
+                    Row(
+                      children: [
+                        const Icon(Icons.error_outline_rounded, color: Colors.white, size: 20),
+                        const SizedBox(width: 8),
+                        const Text(
+                          'Update Error Details:',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const Spacer(),
+                        InkWell(
+                          onTap: () {
+                            Clipboard.setData(ClipboardData(text: _errorMessage!));
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Error copied to clipboard'),
+                                duration: Duration(seconds: 2),
+                              ),
+                            );
+                          },
+                          child: const Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                            child: Row(
+                              children: [
+                                Icon(Icons.copy_rounded, color: Colors.white, size: 14),
+                                SizedBox(width: 4),
+                                Text(
+                                  'Copy',
+                                  style: TextStyle(fontSize: 11, color: Colors.white, fontWeight: FontWeight.bold),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    SelectableText(
+                      _errorMessage!,
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: Colors.white,
+                        fontFamily: 'monospace',
+                        height: 1.3,
                       ),
                     ),
                   ],

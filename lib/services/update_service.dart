@@ -164,80 +164,169 @@ class UpdateService {
     return highestManifest;
   }
 
-  /// Downloads the update package with download progress stream/callback and verifies SHA-256 hash.
-  /// Uses a resilient HTTP client with User-Agent, redirects, and retry logic to prevent dropped CDN connections.
+  /// Downloads the update package with live logging, progress updates, resume support,
+  /// BoringSSL bad-certificate tolerance, and automatic Windows native curl fallback.
   Future<File> downloadPackage(
     UpdateManifest manifest, {
     void Function(double progress)? onProgress,
+    void Function(String message)? onStatusLog,
   }) async {
+    void log(String msg) {
+      debugPrint('[UpdateService] $msg');
+      onStatusLog?.call(msg);
+    }
+
     final temp = await getTemporaryDirectory();
     final updateFile = File('${temp.path}${Platform.pathSeparator}app-update.zip');
-    
+
+    log('Preparing download target: ${updateFile.path}');
+
+    // Strategy 1: Resilient chunked HTTP download with resume and badCertificateCallback
     int maxAttempts = 3;
-    Exception? lastError;
+    bool downloadedSuccessfully = false;
 
     for (int attempt = 1; attempt <= maxAttempts; attempt++) {
       try {
-        if (await updateFile.exists()) {
-          await updateFile.delete();
-        }
+        log('Attempt $attempt/$maxAttempts: Connecting to download server...');
 
         final client = HttpClient();
-        client.connectionTimeout = const Duration(seconds: 30);
-        client.idleTimeout = const Duration(seconds: 60);
+        client.connectionTimeout = const Duration(seconds: 25);
+        client.idleTimeout = const Duration(seconds: 45);
+
+        // Bypass BoringSSL missing root CA issues on Windows retail/antivirus environments
+        client.badCertificateCallback = (X509Certificate cert, String host, int port) {
+          if (host.contains('github.com') ||
+              host.contains('githubusercontent.com') ||
+              host.contains('aws') ||
+              host.contains('azure')) {
+            log('[SSL] Tolerating host certificate for $host');
+            return true;
+          }
+          return false;
+        };
+
+        int existingLength = 0;
+        if (await updateFile.exists()) {
+          existingLength = await updateFile.length();
+        }
 
         final request = await client.getUrl(Uri.parse(manifest.packageUrl));
         request.headers.set('User-Agent', 'SirfBill-Desktop-App');
-        request.headers.set('Accept', 'application/octet-stream');
+        request.headers.set('Accept', '*/*');
         request.headers.set('Connection', 'keep-alive');
         request.followRedirects = true;
         request.maxRedirects = 10;
 
-        final response = await request.close();
-        if (response.statusCode != 200) {
-          throw Exception('Package download failed with HTTP ${response.statusCode}');
+        // Support resuming from previous downloaded bytes if server supports Range
+        if (existingLength > 0) {
+          request.headers.set('Range', 'bytes=$existingLength-');
+          log('Resuming download from byte $existingLength...');
         }
 
-        final totalBytes = response.contentLength;
-        int receivedBytes = 0;
-        final sink = updateFile.openWrite();
+        final response = await request.close();
 
+        // 200 = full download, 206 = partial content (resumed)
+        if (response.statusCode != 200 && response.statusCode != 206) {
+          throw Exception('Download rejected with HTTP ${response.statusCode}');
+        }
+
+        final isPartial = response.statusCode == 206;
+        final contentLength = response.contentLength;
+        final totalExpectedBytes = isPartial ? (existingLength + contentLength) : contentLength;
+
+        int receivedBytes = isPartial ? existingLength : 0;
+        final sink = updateFile.openWrite(mode: isPartial ? FileMode.append : FileMode.write);
+
+        int lastPercentReported = -1;
         await for (final chunk in response) {
           sink.add(chunk);
           receivedBytes += chunk.length;
-          if (totalBytes > 0 && onProgress != null) {
-            onProgress(receivedBytes / totalBytes);
+          if (totalExpectedBytes > 0) {
+            final progress = receivedBytes / totalExpectedBytes;
+            onProgress?.call(progress);
+            final currentPercent = (progress * 100).toInt();
+            if (currentPercent % 20 == 0 && currentPercent != lastPercentReported) {
+              lastPercentReported = currentPercent;
+              final mbDone = (receivedBytes / (1024 * 1024)).toStringAsFixed(1);
+              final mbTotal = (totalExpectedBytes / (1024 * 1024)).toStringAsFixed(1);
+              log('Downloading: $mbDone MB / $mbTotal MB ($currentPercent%)');
+            }
           }
         }
+
         await sink.flush();
         await sink.close();
         client.close();
 
         // Verify SHA-256 Digest
+        log('Verifying SHA-256 package checksum...');
         final digest = await sha256.bind(updateFile.openRead()).first;
         final calculatedSha = digest.toString().toLowerCase();
 
-        if (calculatedSha != manifest.sha256) {
+        if (calculatedSha == manifest.sha256) {
+          log('SHA-256 checksum verified successfully!');
+          downloadedSuccessfully = true;
+          return updateFile;
+        } else {
+          log('Checksum mismatch (Expected: ${manifest.sha256}, Actual: $calculatedSha). Retrying...');
           if (await updateFile.exists()) {
             await updateFile.delete();
           }
-          throw Exception(
-            'SHA-256 verification failed.\nExpected: ${manifest.sha256}\nActual: $calculatedSha',
-          );
         }
-
-        // Successfully downloaded and verified
-        return updateFile;
       } catch (e) {
-        lastError = Exception('Attempt $attempt/$maxAttempts failed: $e');
-        debugPrint('[UpdateService] $lastError');
+        log('Connection issue on attempt $attempt: $e');
         if (attempt < maxAttempts) {
           await Future.delayed(Duration(seconds: attempt));
         }
       }
     }
 
-    throw lastError ?? Exception('Failed to download update package after $maxAttempts attempts.');
+    // Strategy 2: Fallback to Native Windows curl.exe (Uses OS Schannel TLS - Bypasses BoringSSL completely)
+    if (!downloadedSuccessfully && Platform.isWindows) {
+      log('[Fallback] Using Windows native curl.exe to bypass BoringSSL...');
+      try {
+        if (await updateFile.exists()) {
+          await updateFile.delete();
+        }
+
+        final curlResult = await Process.run(
+          'curl.exe',
+          [
+            '-L',
+            '--fail',
+            '--retry', '3',
+            '--retry-delay', '2',
+            '-A', 'SirfBill-Desktop-App',
+            '-k', // Allow in case of strict root CA intercept on client PC
+            manifest.packageUrl,
+            '-o', updateFile.path,
+          ],
+          runInShell: true,
+        );
+
+        if (curlResult.exitCode == 0 && await updateFile.exists()) {
+          log('Windows native curl download completed. Verifying SHA-256...');
+          final digest = await sha256.bind(updateFile.openRead()).first;
+          final calculatedSha = digest.toString().toLowerCase();
+
+          if (calculatedSha == manifest.sha256) {
+            log('SHA-256 verified successfully via Windows curl fallback!');
+            return updateFile;
+          }
+        } else {
+          log('Windows curl failed with exit code: ${curlResult.exitCode}. Error: ${curlResult.stderr}');
+        }
+      } catch (nativeEx) {
+        log('Native Windows curl fallback exception: $nativeEx');
+      }
+    }
+
+    // If both failed, throw descriptive error for the screen
+    throw Exception(
+      'Unable to download update package.\n'
+      'Network or TLS handshake was interrupted by server or local security.\n'
+      'Please check your internet connection or install latest release manually.',
+    );
   }
 
   /// Finds and launches the updater executable, passing arguments, and closes the running Flutter app.
