@@ -1205,62 +1205,48 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
                                   ? CrossFadeState.showFirst
                                   : CrossFadeState.showSecond,
                               alignment: Alignment.centerLeft,
-                              firstChild: ClipRect(
-                                child: SingleChildScrollView(
-                                  scrollDirection: Axis.horizontal,
-                                  physics: const NeverScrollableScrollPhysics(),
-                                  child: SizedBox(
-                                    width: 196,
-                                    child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            Icon(
-                                              Icons.install_desktop_rounded,
-                                              size: 16,
-                                              color: isDark
-                                                  ? const Color(0xFF4ADE80)
-                                                  : const Color(0xFF166534),
-                                            ),
-                                            const SizedBox(width: 8),
-                                            Text(
-                                              'Check for Updates',
-                                              style: TextStyle(
-                                                fontSize: 13,
-                                                fontWeight: FontWeight.w700,
-                                                color: isDark
-                                                    ? const Color(0xFF4ADE80)
-                                                    : const Color(0xFF166534),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                        Container(
-                                          margin: const EdgeInsets.only(left: 8),
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: 8, vertical: 3),
-                                          decoration: BoxDecoration(
-                                            color: isDark
-                                                ? const Color(0xFF059669)
-                                                : const Color(0xFF166534),
-                                            borderRadius: BorderRadius.circular(12),
-                                          ),
-                                          child: Text(
-                                            'v$version',
-                                            style: const TextStyle(
-                                              fontSize: 11,
-                                              fontWeight: FontWeight.w800,
-                                              letterSpacing: 0.2,
-                                              color: Colors.white,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
+                              firstChild: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.install_desktop_rounded,
+                                    size: 16,
+                                    color: isDark
+                                        ? const Color(0xFF4ADE80)
+                                        : const Color(0xFF166534),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'Check for Updates',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                      color: isDark
+                                          ? const Color(0xFF4ADE80)
+                                          : const Color(0xFF166534),
                                     ),
                                   ),
-                                ),
+                                  const SizedBox(width: 8),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 7, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: isDark
+                                          ? const Color(0xFF059669)
+                                          : const Color(0xFF166534),
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: Text(
+                                      'v$version',
+                                      style: const TextStyle(
+                                        fontSize: 10.5,
+                                        fontWeight: FontWeight.w600,
+                                        letterSpacing: 0.2,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                               secondChild: Center(
                                 child: Icon(

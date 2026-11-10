@@ -174,7 +174,10 @@ class _UpdateDownloadDialogState extends State<_UpdateDownloadDialog> {
       _addLog('Detaching application and handing over to updater.exe...');
 
       await Future.delayed(const Duration(milliseconds: 600));
-      await widget.service.startUpdater(packageFile);
+      await widget.service.startUpdater(
+        packageFile,
+        targetVersion: widget.updateInfo.version,
+      );
     } catch (e) {
       if (mounted) {
         setState(() {

@@ -2,7 +2,9 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "SirfBill"
+#ifndef MyAppVersion
 #define MyAppVersion "1.0.0"
+#endif
 #define MyAppPublisher "NAIYO24 PVT. LTD."
 #define MyAppURL "https://github.com/naiyo-24/MANJU-MEDICAL-STORES---DIGITAL-CLINIC"
 #define MyAppExeName "SirfBill.exe"
@@ -24,6 +26,8 @@ PrivilegesRequired=lowest
 OutputDir=..\build\installer
 OutputBaseFilename=SirfBill_Setup_x64
 SetupIconFile=..\windows\runner\resources\app_icon.ico
+UninstallDisplayIcon={app}\{#MyAppExeName}
+UninstallDisplayName={#MyAppName}
 Compression=lzma2/max
 SolidCompression=yes
 WizardStyle=modern

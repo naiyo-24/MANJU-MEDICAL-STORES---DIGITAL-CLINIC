@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Threading;
+using Microsoft.Win32;
 
 namespace AppUpdater
 {
@@ -12,6 +13,7 @@ namespace AppUpdater
         private static string _installDir = "";
         private static string _packagePath = "";
         private static string _restartExe = "";
+        private static string _version = "";
         private static string _logFile = "";
 
         static void Main(string[] args)
@@ -100,6 +102,9 @@ namespace AppUpdater
                 CopyDirectory(sourceDir, _installDir, backupDir);
 
                 Log("Update successfully applied!");
+
+                // Update Windows registry uninstaller DisplayVersion and DisplayIcon so Apps & Features matches
+                UpdateWindowsUninstallRegistry(_version, _restartExe);
 
                 // Clean staging
                 try { Directory.Delete(stagingDir, true); } catch { }
@@ -293,6 +298,42 @@ namespace AppUpdater
             return extractedRoot;
         }
 
+        private static void UpdateWindowsUninstallRegistry(string version, string exePath)
+        {
+            if (string.IsNullOrWhiteSpace(version) && string.IsNullOrWhiteSpace(exePath)) return;
+
+            string appId = "{9F47A9BD-D6EE-474F-94B6-61386A213B59}_is1";
+            string[] registryPaths = new[]
+            {
+                $@"Software\Microsoft\Windows\CurrentVersion\Uninstall\{appId}",
+                $@"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\{appId}"
+            };
+
+            foreach (var relPath in registryPaths)
+            {
+                try
+                {
+                    using var key = Registry.CurrentUser.OpenSubKey(relPath, true);
+                    if (key != null)
+                    {
+                        if (!string.IsNullOrWhiteSpace(version))
+                        {
+                            key.SetValue("DisplayVersion", version);
+                            Log($"Updated registry DisplayVersion to {version} at HKCU\\{relPath}");
+                        }
+                        if (!string.IsNullOrWhiteSpace(exePath) && File.Exists(exePath))
+                        {
+                            key.SetValue("DisplayIcon", exePath);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Log($"Note updating registry HKCU\\{relPath}: {ex.Message}");
+                }
+            }
+        }
+
         private static void ParseArgs(string[] args)
         {
             for (int i = 0; i < args.Length; i++)
@@ -312,6 +353,10 @@ namespace AppUpdater
                 else if (args[i] == "--restart-exe" && i + 1 < args.Length)
                 {
                     _restartExe = args[++i];
+                }
+                else if (args[i] == "--version" && i + 1 < args.Length)
+                {
+                    _version = args[++i];
                 }
             }
         }

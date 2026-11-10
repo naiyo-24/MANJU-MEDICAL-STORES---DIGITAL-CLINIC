@@ -330,7 +330,7 @@ class UpdateService {
   }
 
   /// Finds and launches the updater executable, passing arguments, and closes the running Flutter app.
-  Future<void> startUpdater(File packageFile) async {
+  Future<void> startUpdater(File packageFile, {String? targetVersion}) async {
     final appExecutable = File(Platform.resolvedExecutable);
     final installDir = appExecutable.parent;
 
@@ -347,15 +347,20 @@ class UpdateService {
       }
     }
 
+    final args = [
+      '--wait-pid', '$pid',
+      '--install-dir', installDir.path,
+      '--package', packageFile.path,
+      '--restart-exe', appExecutable.path,
+    ];
+    if (targetVersion != null && targetVersion.isNotEmpty) {
+      args.addAll(['--version', targetVersion]);
+    }
+
     // Launch standalone updater with ProcessStartMode.detached
     await Process.start(
       updaterFile.path,
-      [
-        '--wait-pid', '$pid',
-        '--install-dir', installDir.path,
-        '--package', packageFile.path,
-        '--restart-exe', appExecutable.path,
-      ],
+      args,
       mode: ProcessStartMode.detached,
     );
 

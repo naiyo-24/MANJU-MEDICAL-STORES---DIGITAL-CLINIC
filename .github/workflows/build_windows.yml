@@ -57,8 +57,11 @@ jobs:
         run: choco install innosetup --yes --no-progress
 
       - name: Build Inno Setup Installer
+        shell: pwsh
         run: |
-          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer/setup.iss
+          $tag = if ($env:GITHUB_REF -like "refs/tags/*") { $env:GITHUB_REF.Substring(10) } else { "v1.0.0" }
+          $cleanVersion = $tag.TrimStart("v")
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" "/DMyAppVersion=$cleanVersion" installer/setup.iss
 
       - name: Copy Installer to dist
         shell: pwsh
