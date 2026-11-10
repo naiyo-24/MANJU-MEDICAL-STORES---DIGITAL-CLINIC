@@ -42,7 +42,7 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 ; Main Flutter Windows Release payload (everything in build/windows/x64/runner/Release)
 Source: "..\build\windows\x64\runner\Release\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; Standalone Updater executable
-Source: "..\updater\bin\Release\net8.0\win-x64\publish\updater.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\updater\bin\Release\net8.0-windows\win-x64\publish\updater.exe"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
 Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
