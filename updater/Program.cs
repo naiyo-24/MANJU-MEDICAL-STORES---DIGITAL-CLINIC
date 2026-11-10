@@ -63,29 +63,12 @@ namespace AppUpdater
                 }
             }
 
-            // Also check for any lingering SirfBill child instances that may hold file locks
-            try
-            {
-                var siblings = Process.GetProcessesByName("SirfBill");
-                foreach (var p in siblings)
-                {
-                    try
-                    {
-                        if (!p.HasExited)
-                        {
-                            Log($"Killing lingering process: {p.ProcessName} (PID {p.Id})");
-                            p.Kill(true);
-                            p.WaitForExit(3000);
-                        }
-                    }
-                    catch { }
-                }
-            }
-            catch { }
+            // Also check for and terminate ANY lingering SirfBill processes that may hold file locks
+            KillAllProcessesByName("SirfBill");
 
             // Generous cooldown for Windows OS and GPU drivers to release file handles
-            Log("Waiting 3.5 seconds for Windows file system locks to release...");
-            Thread.Sleep(3500);
+            Log("Waiting 4 seconds for Windows file system locks to release...");
+            Thread.Sleep(4000);
 
             string stagingDir = Path.Combine(Path.GetTempPath(), "SirfBill_Update_Staging_" + Guid.NewGuid().ToString("N"));
             string backupDir = Path.Combine(_installDir, "_backup_prev_version");
@@ -97,20 +80,18 @@ namespace AppUpdater
                 Directory.CreateDirectory(stagingDir);
                 ZipFile.ExtractToDirectory(_packagePath, stagingDir, true);
 
-                // If the zip contains a single root folder (e.g., Release or bundle), locate source directory
-                string sourceDir = stagingDir;
-                var subDirs = Directory.GetDirectories(stagingDir);
-                var subFiles = Directory.GetFiles(stagingDir);
-                if (subDirs.Length == 1 && subFiles.Length == 0)
-                {
-                    sourceDir = subDirs[0];
-                }
+                // Find directory containing SirfBill.exe inside stagingDir (in case zip has a root folder or release subfolder)
+                string sourceDir = FindPayloadDirectory(stagingDir);
+                Log($"Resolved payload directory: {sourceDir}");
+
+                // Make double sure no SirfBill instance has started or lingered
+                KillAllProcessesByName("SirfBill");
 
                 // Step 3: Create backup of current files
                 Log($"Backing up current installation to {backupDir}");
                 if (Directory.Exists(backupDir))
                 {
-                    Directory.Delete(backupDir, true);
+                    try { Directory.Delete(backupDir, true); } catch { }
                 }
                 Directory.CreateDirectory(backupDir);
 
@@ -253,6 +234,63 @@ namespace AppUpdater
 
                 CopyDirectory(dir, destSubDir, backupSubDir);
             }
+        }
+
+        private static void KillAllProcessesByName(string processName)
+        {
+            try
+            {
+                var processes = Process.GetProcessesByName(processName);
+                foreach (var p in processes)
+                {
+                    try
+                    {
+                        if (!p.HasExited)
+                        {
+                            Log($"Terminating process: {p.ProcessName} (PID {p.Id})");
+                            p.Kill(true);
+                            p.WaitForExit(3000);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Log($"Note killing {processName}: {ex.Message}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Log($"Note querying {processName}: {ex.Message}");
+            }
+        }
+
+        private static string FindPayloadDirectory(string extractedRoot)
+        {
+            // If SirfBill.exe is directly in extractedRoot, that's our payload
+            if (File.Exists(Path.Combine(extractedRoot, "SirfBill.exe")))
+            {
+                return extractedRoot;
+            }
+
+            // Search recursively for SirfBill.exe in case zip was packed with a subfolder
+            var files = Directory.GetFiles(extractedRoot, "SirfBill.exe", SearchOption.AllDirectories);
+            if (files.Length > 0)
+            {
+                string? dir = Path.GetDirectoryName(files[0]);
+                if (!string.IsNullOrEmpty(dir))
+                {
+                    return dir;
+                }
+            }
+
+            // Fallback: check if single subfolder exists
+            var subDirs = Directory.GetDirectories(extractedRoot);
+            if (subDirs.Length == 1 && Directory.GetFiles(extractedRoot).Length == 0)
+            {
+                return subDirs[0];
+            }
+
+            return extractedRoot;
         }
 
         private static void ParseArgs(string[] args)

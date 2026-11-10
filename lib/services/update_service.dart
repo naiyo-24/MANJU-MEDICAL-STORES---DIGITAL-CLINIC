@@ -221,6 +221,7 @@ class UpdateService {
       }
     }
 
+    // Launch standalone updater with ProcessStartMode.detached
     await Process.start(
       updaterFile.path,
       [
@@ -232,7 +233,8 @@ class UpdateService {
       mode: ProcessStartMode.detached,
     );
 
-    // Give process brief moment to detach, then exit Flutter app cleanly
+    // Give the operating system a moment to register process handover before exiting
+    await Future.delayed(const Duration(milliseconds: 500));
     exit(0);
   }
 }
