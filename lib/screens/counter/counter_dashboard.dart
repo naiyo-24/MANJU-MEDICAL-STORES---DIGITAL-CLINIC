@@ -1,4 +1,5 @@
 import 'dart:ui' as ui;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../utils/responsive.dart';
@@ -1085,195 +1086,196 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
               ),
 
 
-              Padding(
-                padding: EdgeInsets.symmetric(
-                  horizontal: isExpanded ? 16.0 : 8.0,
-                  vertical: 12.0,
-                ),
-                child: FutureBuilder<PackageInfo>(
-                  future: PackageInfo.fromPlatform(),
-                  builder: (context, snapshot) {
-                    final version = snapshot.hasData
-                        ? snapshot.data!.version
-                        : '1.0.20';
-                    return Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        onTap: () async {
-                          ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: const Row(
-                                children: [
-                                  SizedBox(
-                                    width: 14,
-                                    height: 14,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                  SizedBox(width: 10),
-                                  Text(
-                                    'Checking for updates...',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 13,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              behavior: SnackBarBehavior.floating,
-                              duration: const Duration(seconds: 2),
-                              backgroundColor: const Color(0xFF166534),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              margin: const EdgeInsets.all(16),
-                            ),
-                          );
-                          final checkResult =
-                              await WindowsAutoUpdater.checkForUpdateDetailed();
-                          if (context.mounted) {
-                            if (checkResult.isAvailable && checkResult.updateInfo != null) {
-                              WindowsAutoUpdater.showUpdateDialog(
-                                  context, checkResult.updateInfo!);
-                            } else {
-                              ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Row(
-                                    children: [
-                                      Icon(
-                                        checkResult.isError
-                                            ? Icons.error_outline
-                                            : Icons.check_circle_outline,
+              if (!kIsWeb)
+                Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: isExpanded ? 16.0 : 8.0,
+                    vertical: 12.0,
+                  ),
+                  child: FutureBuilder<PackageInfo>(
+                    future: PackageInfo.fromPlatform(),
+                    builder: (context, snapshot) {
+                      final version = snapshot.hasData
+                          ? snapshot.data!.version
+                          : '1.0.20';
+                      return Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: () async {
+                            ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: const Row(
+                                  children: [
+                                    SizedBox(
+                                      width: 14,
+                                      height: 14,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
                                         color: Colors.white,
-                                        size: 18,
                                       ),
-                                      const SizedBox(width: 10),
-                                      Expanded(
-                                        child: Text(
-                                          checkResult.message,
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.w600,
-                                            fontSize: 13,
+                                    ),
+                                    SizedBox(width: 10),
+                                    Text(
+                                      'Checking for updates...',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                behavior: SnackBarBehavior.floating,
+                                duration: const Duration(seconds: 2),
+                                backgroundColor: const Color(0xFF166534),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                margin: const EdgeInsets.all(16),
+                              ),
+                            );
+                            final checkResult =
+                                await WindowsAutoUpdater.checkForUpdateDetailed();
+                            if (context.mounted) {
+                              if (checkResult.isAvailable && checkResult.updateInfo != null) {
+                                WindowsAutoUpdater.showUpdateDialog(
+                                    context, checkResult.updateInfo!);
+                              } else {
+                                ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Row(
+                                      children: [
+                                        Icon(
+                                          checkResult.isError
+                                              ? Icons.error_outline
+                                              : Icons.check_circle_outline,
+                                          color: Colors.white,
+                                          size: 18,
+                                        ),
+                                        const SizedBox(width: 10),
+                                        Expanded(
+                                          child: Text(
+                                            checkResult.message,
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.w600,
+                                              fontSize: 13,
+                                            ),
                                           ),
                                         ),
-                                      ),
-                                    ],
+                                      ],
+                                    ),
+                                    behavior: SnackBarBehavior.floating,
+                                    duration: const Duration(seconds: 3),
+                                    backgroundColor: checkResult.isError
+                                        ? Colors.red.shade800
+                                        : const Color(0xFF166534),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    margin: const EdgeInsets.all(16),
                                   ),
-                                  behavior: SnackBarBehavior.floating,
-                                  duration: const Duration(seconds: 3),
-                                  backgroundColor: checkResult.isError
-                                      ? Colors.red.shade800
-                                      : const Color(0xFF166534),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  margin: const EdgeInsets.all(16),
-                                ),
-                              );
+                                );
+                              }
                             }
-                          }
-                        },
-                        borderRadius: BorderRadius.circular(12),
-                        child: Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: isExpanded ? 14 : 6,
-                            vertical: 10,
-                          ),
-                          decoration: BoxDecoration(
-                            color: isDark
-                                ? const Color(0xFF064E3B).withValues(alpha: 0.25)
-                                : const Color(0xFFEBF7EE),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: isDark
-                                  ? const Color(0xFF059669).withValues(alpha: 0.5)
-                                  : const Color(0xFF86EFAC),
-                              width: 1.2,
+                          },
+                          borderRadius: BorderRadius.circular(12),
+                          child: Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: isExpanded ? 14 : 6,
+                              vertical: 10,
                             ),
-                          ),
-                          child: AnimatedCrossFade(
-                            duration: const Duration(milliseconds: 200),
-                            crossFadeState: isExpanded
-                                ? CrossFadeState.showFirst
-                                : CrossFadeState.showSecond,
-                            alignment: Alignment.centerLeft,
-                            firstChild: ClipRect(
-                              child: SingleChildScrollView(
-                                scrollDirection: Axis.horizontal,
-                                physics: const NeverScrollableScrollPhysics(),
-                                child: SizedBox(
-                                  width: 196,
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Icon(
-                                            Icons.install_desktop_rounded,
-                                            size: 16,
-                                            color: isDark
-                                                ? const Color(0xFF4ADE80)
-                                                : const Color(0xFF166534),
-                                          ),
-                                          const SizedBox(width: 8),
-                                          Text(
-                                            'Check for Updates',
-                                            style: TextStyle(
-                                              fontSize: 13,
-                                              fontWeight: FontWeight.w700,
+                            decoration: BoxDecoration(
+                              color: isDark
+                                  ? const Color(0xFF064E3B).withValues(alpha: 0.25)
+                                  : const Color(0xFFEBF7EE),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: isDark
+                                    ? const Color(0xFF059669).withValues(alpha: 0.5)
+                                    : const Color(0xFF86EFAC),
+                                width: 1.2,
+                              ),
+                            ),
+                            child: AnimatedCrossFade(
+                              duration: const Duration(milliseconds: 200),
+                              crossFadeState: isExpanded
+                                  ? CrossFadeState.showFirst
+                                  : CrossFadeState.showSecond,
+                              alignment: Alignment.centerLeft,
+                              firstChild: ClipRect(
+                                child: SingleChildScrollView(
+                                  scrollDirection: Axis.horizontal,
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  child: SizedBox(
+                                    width: 196,
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(
+                                              Icons.install_desktop_rounded,
+                                              size: 16,
                                               color: isDark
                                                   ? const Color(0xFF4ADE80)
                                                   : const Color(0xFF166534),
                                             ),
-                                          ),
-                                        ],
-                                      ),
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 8, vertical: 3),
-                                        decoration: BoxDecoration(
-                                          color: isDark
-                                              ? const Color(0xFF059669)
-                                              : const Color(0xFF166534),
-                                          borderRadius: BorderRadius.circular(12),
+                                            const SizedBox(width: 8),
+                                            Text(
+                                              'Check for Updates',
+                                              style: TextStyle(
+                                                fontSize: 13,
+                                                fontWeight: FontWeight.w700,
+                                                color: isDark
+                                                    ? const Color(0xFF4ADE80)
+                                                    : const Color(0xFF166534),
+                                              ),
+                                            ),
+                                          ],
                                         ),
-                                        child: Text(
-                                          'v$version',
-                                          style: const TextStyle(
-                                            fontSize: 11,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.white,
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 8, vertical: 3),
+                                          decoration: BoxDecoration(
+                                            color: isDark
+                                                ? const Color(0xFF059669)
+                                                : const Color(0xFF166534),
+                                            borderRadius: BorderRadius.circular(12),
+                                          ),
+                                          child: Text(
+                                            'v$version',
+                                            style: const TextStyle(
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.white,
+                                            ),
                                           ),
                                         ),
-                                      ),
-                                    ],
+                                      ],
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
-                            secondChild: Center(
-                              child: Icon(
-                                Icons.install_desktop_rounded,
-                                size: 18,
-                                color: isDark
-                                    ? const Color(0xFF4ADE80)
-                                    : const Color(0xFF166534),
+                              secondChild: Center(
+                                child: Icon(
+                                  Icons.install_desktop_rounded,
+                                  size: 18,
+                                  color: isDark
+                                      ? const Color(0xFF4ADE80)
+                                      : const Color(0xFF166534),
+                                ),
                               ),
                             ),
                           ),
                         ),
-                      ),
-                    );
-                  },
+                      );
+                    },
+                  ),
                 ),
-              ),
             ],
           ),
         ),
