@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Threading;
+using System.Windows.Forms;
 using Microsoft.Win32;
 
 namespace AppUpdater
@@ -110,7 +111,15 @@ namespace AppUpdater
                 try { Directory.Delete(stagingDir, true); } catch { }
                 try { File.Delete(_packagePath); } catch { }
 
-                // Step 5: Launch updated app
+                // Step 5: Show success notification before launching
+                string successVersion = string.IsNullOrWhiteSpace(_version) ? "latest version" : $"v{_version}";
+                ShowNotification(
+                    title: "SirfBill Updated Successfully ✓",
+                    message: $"SirfBill has been updated to {successVersion}.\nThe application will now restart.",
+                    isError: false
+                );
+
+                // Step 6: Launch updated app
                 if (!string.IsNullOrWhiteSpace(_restartExe) && File.Exists(_restartExe))
                 {
                     Log($"Launching updated executable: {_restartExe}");
@@ -163,6 +172,19 @@ namespace AppUpdater
                         Log($"Rollback failed: {rbEx.Message}");
                     }
                 }
+
+                // Show Windows error alert so the user knows exactly what went wrong on their PC
+                string shortError = ex.Message.Length > 300 ? ex.Message.Substring(0, 300) + "..." : ex.Message;
+                string logPath = string.IsNullOrWhiteSpace(_logFile) ? "updater.log" : _logFile;
+                ShowNotification(
+                    title: "SirfBill Update Failed",
+                    message: $"The update could not be applied on this computer.\n\n"
+                           + $"Error: {shortError}\n\n"
+                           + $"The previous version has been restored.\n"
+                           + $"Log file: {logPath}\n\n"
+                           + $"Please contact support or install the latest version manually from GitHub.",
+                    isError: true
+                );
             }
         }
 
@@ -296,6 +318,43 @@ namespace AppUpdater
             }
 
             return extractedRoot;
+        }
+
+        private static void ShowNotification(string title, string message, bool isError)
+        {
+            try
+            {
+                // Method 1: Windows Forms MessageBox (always works, blocks until user clicks OK)
+                Application.EnableVisualStyles();
+                MessageBox.Show(
+                    message,
+                    title,
+                    MessageBoxButtons.OK,
+                    isError ? MessageBoxIcon.Error : MessageBoxIcon.Information
+                );
+            }
+            catch (Exception ex)
+            {
+                Log($"Note showing notification: {ex.Message}");
+                // Method 2: Fallback to PowerShell toast notification (non-blocking)
+                try
+                {
+                    string escapedTitle = title.Replace("'", "''").Replace("\"", "\\\"");
+                    string escapedMsg = message.Replace("'", "''").Replace("\"", "\\\"").Replace("\n", " ");
+                    string psScript = isError
+                        ? $"[System.Windows.MessageBox]::Show('{escapedMsg}', '{escapedTitle}', 'OK', 'Error')"
+                        : $"[System.Windows.MessageBox]::Show('{escapedMsg}', '{escapedTitle}', 'OK', 'Information')";
+
+                    Process.Start(new ProcessStartInfo
+                    {
+                        FileName = "powershell.exe",
+                        Arguments = $"-NoProfile -NonInteractive -WindowStyle Hidden -Command \"Add-Type -AssemblyName PresentationFramework; {psScript}\"",
+                        UseShellExecute = false,
+                        CreateNoWindow = true,
+                    })?.WaitForExit(5000);
+                }
+                catch { }
+            }
         }
 
         private static void UpdateWindowsUninstallRegistry(string version, string exePath)
