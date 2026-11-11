@@ -69,84 +69,91 @@ class UpdateService {
     UpdateManifest? highestManifest;
     Version highestVersion = current;
 
-    try {
-      // 1. First attempt: Query GitHub API for all releases to accurately find highest semver
-      final apiUri = Uri.parse(
-        'https://api.github.com/repos/naiyo-24/MANJU-MEDICAL-STORES---DIGITAL-CLINIC/releases',
-      );
-      final apiResp = await http.get(apiUri, headers: {
-        'Accept': 'application/vnd.github.v3+json',
-        'User-Agent': 'SirfBill-Desktop-App',
-      }).timeout(const Duration(seconds: 15));
+    // Helper for adding aggressive cache-busting headers
+    final Map<String, String> noCacheHeaders = {
+      'User-Agent': 'SirfBill-Desktop-App',
+      'Accept': 'application/json',
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0',
+    };
 
-      if (apiResp.statusCode == 200) {
-        final List<dynamic> releases = jsonDecode(apiResp.body);
-        for (final release in releases) {
-          if (release['draft'] == true || release['prerelease'] == true) {
-            continue;
-          }
-          final tagName = (release['tag_name'] as String? ?? '').replaceFirst('v', '').trim();
-          try {
-            final releaseVer = Version.parse(tagName.split('+').first);
-            if (releaseVer > highestVersion) {
-              final assets = release['assets'] as List<dynamic>? ?? [];
-              final latestJsonAsset = assets.firstWhere(
-                (a) => a['name'] == 'latest.json',
-                orElse: () => null,
-              );
-              if (latestJsonAsset != null) {
-                final manifestDownloadUrl = latestJsonAsset['browser_download_url'] as String;
-                final manifestResp = await http.get(Uri.parse(manifestDownloadUrl)).timeout(const Duration(seconds: 15));
-                if (manifestResp.statusCode == 200) {
-                  final data = jsonDecode(manifestResp.body) as Map<String, dynamic>;
-                  final manifest = UpdateManifest.fromJson(data);
-                  final manifestVer = Version.parse(manifest.version.split('+').first);
-                  if (manifestVer > highestVersion) {
-                    highestVersion = manifestVer;
-                    highestManifest = manifest;
-                  }
-                }
-              }
-            }
-          } catch (_) {}
+    // 1. Direct manifest fetch with timestamp cache-buster (fastest & bypasses GitHub API rate limit)
+    try {
+      final separator = manifestUrl.contains('?') ? '&' : '?';
+      final freshUrl = '$manifestUrl${separator}_t=${DateTime.now().millisecondsSinceEpoch}';
+      final uri = Uri.parse(freshUrl);
+      final request = http.Request('GET', uri)
+        ..followRedirects = true
+        ..maxRedirects = 10
+        ..headers.addAll(noCacheHeaders);
+
+      final streamedResponse = await request.send().timeout(const Duration(seconds: 15));
+      final response = await http.Response.fromStream(streamedResponse);
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        final manifest = UpdateManifest.fromJson(data);
+        final cleanLatestVersion = manifest.version.split('+').first;
+        final latest = Version.parse(cleanLatestVersion);
+
+        if (latest > highestVersion) {
+          highestVersion = latest;
+          highestManifest = manifest;
         }
       }
     } catch (e) {
-      debugPrint('[UpdateService] GitHub releases API query failed: $e, falling back to direct URL.');
+      debugPrint('[UpdateService] Direct manifest check failed: $e');
     }
 
-    // 2. Fallback: Check defaultManifestUrl directly if GitHub API was unavailable or rate-limited
+    // 2. Query GitHub Releases API to see if a newer release tag was published
     if (highestManifest == null) {
       try {
-        // Append cache-busting timestamp to prevent intermediate CDN caching of latest.json
-        final separator = manifestUrl.contains('?') ? '&' : '?';
-        final freshUrl = '$manifestUrl${separator}_t=${DateTime.now().millisecondsSinceEpoch}';
-        final uri = Uri.parse(freshUrl);
-        final request = http.Request('GET', uri)
-          ..followRedirects = true
-          ..maxRedirects = 10
-          ..headers.addAll({
-            'User-Agent': 'SirfBill-Desktop-App',
-            'Accept': 'application/json',
-            'Cache-Control': 'no-cache, no-store, must-revalidate',
-            'Pragma': 'no-cache',
-          });
-        final streamedResponse = await request.send().timeout(const Duration(seconds: 20));
-        final response = await http.Response.fromStream(streamedResponse);
+        final apiUri = Uri.parse(
+          'https://api.github.com/repos/naiyo-24/MANJU-MEDICAL-STORES---DIGITAL-CLINIC/releases?_t=${DateTime.now().millisecondsSinceEpoch}',
+        );
+        final apiResp = await http.get(apiUri, headers: {
+          'Accept': 'application/vnd.github.v3+json',
+          ...noCacheHeaders,
+        }).timeout(const Duration(seconds: 15));
 
-        if (response.statusCode == 200) {
-          final data = jsonDecode(response.body) as Map<String, dynamic>;
-          final manifest = UpdateManifest.fromJson(data);
-          final cleanLatestVersion = manifest.version.split('+').first;
-          final latest = Version.parse(cleanLatestVersion);
-
-          if (latest > highestVersion) {
-            highestVersion = latest;
-            highestManifest = manifest;
+        if (apiResp.statusCode == 200) {
+          final List<dynamic> releases = jsonDecode(apiResp.body);
+          for (final release in releases) {
+            if (release['draft'] == true) {
+              continue;
+            }
+            final tagName = (release['tag_name'] as String? ?? '').replaceFirst('v', '').trim();
+            try {
+              final releaseVer = Version.parse(tagName.split('+').first);
+              if (releaseVer > highestVersion) {
+                final assets = release['assets'] as List<dynamic>? ?? [];
+                final latestJsonAsset = assets.firstWhere(
+                  (a) => a['name'] == 'latest.json',
+                  orElse: () => null,
+                );
+                if (latestJsonAsset != null) {
+                  final manifestDownloadUrl =
+                      '${latestJsonAsset['browser_download_url']}?_t=${DateTime.now().millisecondsSinceEpoch}';
+                  final manifestResp = await http
+                      .get(Uri.parse(manifestDownloadUrl), headers: noCacheHeaders)
+                      .timeout(const Duration(seconds: 15));
+                  if (manifestResp.statusCode == 200) {
+                    final data = jsonDecode(manifestResp.body) as Map<String, dynamic>;
+                    final manifest = UpdateManifest.fromJson(data);
+                    final manifestVer = Version.parse(manifest.version.split('+').first);
+                    if (manifestVer > highestVersion) {
+                      highestVersion = manifestVer;
+                      highestManifest = manifest;
+                    }
+                  }
+                }
+              }
+            } catch (_) {}
           }
         }
       } catch (e) {
-        debugPrint('[UpdateService] Fallback manifest check failed: $e');
+        debugPrint('[UpdateService] GitHub releases API query failed: $e');
       }
     }
 

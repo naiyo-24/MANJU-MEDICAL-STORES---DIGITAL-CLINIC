@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'update_service.dart';
 
@@ -125,35 +124,15 @@ class _UpdateDownloadDialogState extends State<_UpdateDownloadDialog> {
   double _progress = 0.0;
   String _statusText = '';
   String? _errorMessage;
-  final List<String> _consoleLogs = [];
-  final ScrollController _logScrollController = ScrollController();
-
-  void _addLog(String message) {
-    if (!mounted) return;
-    setState(() {
-      final time = TimeOfDay.now().format(context);
-      _consoleLogs.add('[$time] $message');
-      _statusText = message;
-    });
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_logScrollController.hasClients) {
-        _logScrollController.jumpTo(_logScrollController.position.maxScrollExtent);
-      }
-    });
-  }
 
   Future<void> _startUpdate() async {
     if (widget.updateInfo.manifest == null) return;
 
     setState(() {
       _isDownloading = true;
-      _statusText = 'Starting update process...';
+      _statusText = 'Connecting to update server...';
       _errorMessage = null;
-      _consoleLogs.clear();
     });
-
-    _addLog('Target version: v${widget.updateInfo.version}');
-    _addLog('Package URL: ${widget.updateInfo.downloadUrl}');
 
     try {
       final packageFile = await widget.service.downloadPackage(
@@ -162,16 +141,27 @@ class _UpdateDownloadDialogState extends State<_UpdateDownloadDialog> {
           if (mounted) {
             setState(() {
               _progress = p;
+              final percent = (p * 100).toStringAsFixed(0);
+              _statusText = 'Downloading package ($percent%)...';
             });
           }
         },
         onStatusLog: (logMsg) {
-          _addLog(logMsg);
+          debugPrint('[Updater] $logMsg');
+          // Only show friendly user messages, keep raw internal/GitHub logs hidden
+          if (mounted && _isDownloading) {
+            if (logMsg.contains('Verifying')) {
+              setState(() => _statusText = 'Verifying package integrity...');
+            } else if (logMsg.contains('handing over') || logMsg.contains('Launching')) {
+              setState(() => _statusText = 'Restarting SirfBill to apply update...');
+            }
+          }
         },
       );
 
-      _addLog('Package downloaded successfully: ${packageFile.path}');
-      _addLog('Detaching application and handing over to updater.exe...');
+      if (mounted) {
+        setState(() => _statusText = 'Preparing restart...');
+      }
 
       await Future.delayed(const Duration(milliseconds: 600));
       await widget.service.startUpdater(
@@ -182,17 +172,16 @@ class _UpdateDownloadDialogState extends State<_UpdateDownloadDialog> {
       if (mounted) {
         setState(() {
           _isDownloading = false;
-          _errorMessage = e.toString().replaceFirst('Exception: ', '');
+          // Sanitize raw URLs or internal system details from customer display
+          final rawMsg = e.toString().replaceFirst('Exception: ', '');
+          if (rawMsg.contains('github') || rawMsg.contains('SocketException') || rawMsg.contains('Failed host lookup')) {
+            _errorMessage = 'Could not reach update server. Please check your internet connection and try again.';
+          } else {
+            _errorMessage = rawMsg;
+          }
         });
-        _addLog('ERROR: $_errorMessage');
       }
     }
-  }
-
-  @override
-  void dispose() {
-    _logScrollController.dispose();
-    super.dispose();
   }
 
   @override
@@ -227,14 +216,14 @@ class _UpdateDownloadDialogState extends State<_UpdateDownloadDialog> {
         ],
       ),
       content: SizedBox(
-        width: 480,
+        width: 440,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (!_isDownloading && _errorMessage == null) ...[
               Text(
-                'A new update is available. Do you want to download and install it now?',
+                'A new update is ready for installation. Would you like to update now?',
                 style: TextStyle(
                   fontSize: 13,
                   color: isDark ? Colors.grey[300] : const Color(0xFF475569),
@@ -243,7 +232,7 @@ class _UpdateDownloadDialogState extends State<_UpdateDownloadDialog> {
               const SizedBox(height: 12),
               if (widget.updateInfo.releaseNotes.isNotEmpty) ...[
                 const Text(
-                  'Release Notes:',
+                  'What\'s New:',
                   style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 6),
@@ -265,25 +254,29 @@ class _UpdateDownloadDialogState extends State<_UpdateDownloadDialog> {
                 ),
               ],
             ] else if (_isDownloading) ...[
-              LinearProgressIndicator(
-                value: _progress > 0 ? _progress : null,
-                backgroundColor: isDark ? Colors.grey[800] : Colors.grey[200],
-                valueColor: const AlwaysStoppedAnimation<Color>(primaryColor),
-                borderRadius: BorderRadius.circular(4),
+              const SizedBox(height: 8),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(6),
+                child: LinearProgressIndicator(
+                  value: _progress > 0 ? _progress : null,
+                  minHeight: 8,
+                  backgroundColor: isDark ? Colors.grey[800] : Colors.grey[200],
+                  valueColor: const AlwaysStoppedAnimation<Color>(primaryColor),
+                ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 14),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Expanded(
                     child: Text(
-                      _statusText,
+                      _statusText.isNotEmpty ? _statusText : 'Updating application...',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: 13,
                         fontWeight: FontWeight.w600,
-                        color: isDark ? Colors.grey[300] : const Color(0xFF334155),
+                        color: isDark ? Colors.grey[200] : const Color(0xFF1E293B),
                       ),
                     ),
                   ),
@@ -291,105 +284,50 @@ class _UpdateDownloadDialogState extends State<_UpdateDownloadDialog> {
                     Text(
                       '${(_progress * 100).toStringAsFixed(0)}%',
                       style: const TextStyle(
-                        fontSize: 12,
+                        fontSize: 13,
                         fontWeight: FontWeight.bold,
                         color: primaryColor,
                       ),
                     ),
                 ],
               ),
-              const SizedBox(height: 10),
-              // Live On-Screen Diagnostic Terminal
-              Container(
-                height: 110,
-                width: double.infinity,
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF0F172A),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.white12),
-                ),
-                child: ListView.builder(
-                  controller: _logScrollController,
-                  itemCount: _consoleLogs.length,
-                  itemBuilder: (ctx, idx) => Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 2),
-                    child: Text(
-                      _consoleLogs[idx],
-                      style: const TextStyle(
-                        fontFamily: 'monospace',
-                        fontSize: 11,
-                        color: Color(0xFF4ADE80),
-                        height: 1.3,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 12),
               Text(
-                'The application will restart automatically after applying update.',
-                style: TextStyle(fontSize: 11, color: isDark ? Colors.grey[500] : Colors.grey[600]),
+                'SirfBill will restart automatically once the update is complete.',
+                style: TextStyle(
+                  fontSize: 11,
+                  color: isDark ? Colors.grey[400] : Colors.grey[600],
+                ),
               ),
             ],
             if (_errorMessage != null) ...[
-              const SizedBox(height: 8),
+              const SizedBox(height: 10),
               Container(
-                padding: const EdgeInsets.all(10),
+                padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFB91C1C), // Matching the red banner in user's image
+                  color: isDark ? const Color(0xFF7F1D1D) : const Color(0xFFFEF2F2),
                   borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: isDark ? Colors.red.shade700 : const Color(0xFFFCA5A5),
+                  ),
                 ),
-                child: Column(
+                child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        const Icon(Icons.error_outline_rounded, color: Colors.white, size: 20),
-                        const SizedBox(width: 8),
-                        const Text(
-                          'Update Error Details:',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                        const Spacer(),
-                        InkWell(
-                          onTap: () {
-                            Clipboard.setData(ClipboardData(text: _errorMessage!));
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Error copied to clipboard'),
-                                duration: Duration(seconds: 2),
-                              ),
-                            );
-                          },
-                          child: const Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                            child: Row(
-                              children: [
-                                Icon(Icons.copy_rounded, color: Colors.white, size: 14),
-                                SizedBox(width: 4),
-                                Text(
-                                  'Copy',
-                                  style: TextStyle(fontSize: 11, color: Colors.white, fontWeight: FontWeight.bold),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
+                    Icon(
+                      Icons.error_outline_rounded,
+                      color: isDark ? Colors.white : const Color(0xFFDC2626),
+                      size: 20,
                     ),
-                    const SizedBox(height: 6),
-                    SelectableText(
-                      _errorMessage!,
-                      style: const TextStyle(
-                        fontSize: 11,
-                        color: Colors.white,
-                        fontFamily: 'monospace',
-                        height: 1.3,
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        _errorMessage!,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: isDark ? Colors.white : const Color(0xFF991B1B),
+                          height: 1.4,
+                        ),
                       ),
                     ),
                   ],
@@ -413,6 +351,7 @@ class _UpdateDownloadDialogState extends State<_UpdateDownloadDialog> {
               backgroundColor: primaryColor,
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             ),
             onPressed: _startUpdate,
             child: Text(_errorMessage != null ? 'Retry' : 'Update Now'),

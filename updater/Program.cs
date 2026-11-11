@@ -370,6 +370,7 @@ namespace AppUpdater
 
             foreach (var relPath in registryPaths)
             {
+                // Try HKCU first (preferred since per-user install)
                 try
                 {
                     using var key = Registry.CurrentUser.OpenSubKey(relPath, true);
@@ -390,6 +391,25 @@ namespace AppUpdater
                 {
                     Log($"Note updating registry HKCU\\{relPath}: {ex.Message}");
                 }
+
+                // Also try HKLM in case installation was run as administrator
+                try
+                {
+                    using var lmKey = Registry.LocalMachine.OpenSubKey(relPath, true);
+                    if (lmKey != null)
+                    {
+                        if (!string.IsNullOrWhiteSpace(version))
+                        {
+                            lmKey.SetValue("DisplayVersion", version);
+                            Log($"Updated registry DisplayVersion to {version} at HKLM\\{relPath}");
+                        }
+                        if (!string.IsNullOrWhiteSpace(exePath) && File.Exists(exePath))
+                        {
+                            lmKey.SetValue("DisplayIcon", exePath);
+                        }
+                    }
+                }
+                catch { }
             }
         }
 
