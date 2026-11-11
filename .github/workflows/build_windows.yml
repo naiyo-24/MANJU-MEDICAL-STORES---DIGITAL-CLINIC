@@ -103,6 +103,8 @@ jobs:
             dist/app-update-windows-x64.zip
             dist/SirfBill_Setup_x64.exe
             dist/latest.json
-          generate_release_notes: true
+          name: "SirfBill v${{ steps.version_info.outputs.clean_version || github.ref_name }}"
+          body: "SirfBill release with performance enhancements and reliability updates."
+          generate_release_notes: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

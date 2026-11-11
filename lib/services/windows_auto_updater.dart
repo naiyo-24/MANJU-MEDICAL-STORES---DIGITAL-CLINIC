@@ -184,6 +184,25 @@ class _UpdateDownloadDialogState extends State<_UpdateDownloadDialog> {
     }
   }
 
+  String _sanitizeReleaseNotes(String rawNotes) {
+    if (rawNotes.trim().isEmpty) {
+      return 'Performance improvements, stability enhancements, and operational updates.';
+    }
+
+    // Strip out GitHub URLs, changelog comparisons, and commit hashes
+    final cleaned = rawNotes
+        .replaceAll(RegExp(r'\*\*Full Changelog\*\*:\s*https?://[^\s]+', caseSensitive: false), '')
+        .replaceAll(RegExp(r'https?://(?:www\.)?github\.com/[^\s]+', caseSensitive: false), '')
+        .replaceAll(RegExp(r'@[\w-]+', caseSensitive: false), '')
+        .trim();
+
+    if (cleaned.isEmpty || cleaned.length < 5) {
+      return 'Performance improvements, stability enhancements, and operational updates.';
+    }
+
+    return cleaned;
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -230,29 +249,37 @@ class _UpdateDownloadDialogState extends State<_UpdateDownloadDialog> {
                 ),
               ),
               const SizedBox(height: 12),
-              if (widget.updateInfo.releaseNotes.isNotEmpty) ...[
-                const Text(
-                  'What\'s New:',
-                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 6),
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    widget.updateInfo.releaseNotes,
-                    style: TextStyle(
-                      fontSize: 12,
-                      height: 1.4,
-                      color: isDark ? Colors.grey[300] : const Color(0xFF334155),
-                    ),
-                  ),
-                ),
-              ],
+              Builder(
+                builder: (context) {
+                  final displayNotes = _sanitizeReleaseNotes(widget.updateInfo.releaseNotes);
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'What\'s New:',
+                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 6),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          displayNotes,
+                          style: TextStyle(
+                            fontSize: 12,
+                            height: 1.4,
+                            color: isDark ? Colors.grey[300] : const Color(0xFF334155),
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
             ] else if (_isDownloading) ...[
               const SizedBox(height: 8),
               ClipRRect(
