@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import '../config/api_constants.dart';
 import 'update_service.dart';
 
 class UpdateInfo {
@@ -36,7 +37,8 @@ class UpdateCheckResult {
 
 class WindowsAutoUpdater {
   static final UpdateService _service = UpdateService(
-    manifestUrl: UpdateService.defaultManifestUrl,
+    manifestUrl: '${ApiConstants.baseUrl}/api/app/version',
+    fallbackManifestUrl: UpdateService.defaultManifestUrl,
   );
 
   /// Check whether an update is available on Windows

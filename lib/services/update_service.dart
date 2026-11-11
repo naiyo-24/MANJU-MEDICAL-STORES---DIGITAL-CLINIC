@@ -46,10 +46,12 @@ class UpdateManifest {
 class UpdateService {
   UpdateService({
     required this.manifestUrl,
+    this.fallbackManifestUrl,
     this.updaterExecutableName = 'updater.exe',
   });
 
   final String manifestUrl;
+  final String? fallbackManifestUrl;
   final String updaterExecutableName;
 
   /// Default GitHub repository manifest URL for SirfBill
@@ -154,6 +156,36 @@ class UpdateService {
         }
       } catch (e) {
         debugPrint('[UpdateService] GitHub releases API query failed: $e');
+      }
+    }
+
+    // 3. Fallback: Query fallbackManifestUrl (e.g. GitHub raw/release latest.json) if backend or primary failed
+    if (highestManifest == null && fallbackManifestUrl != null && fallbackManifestUrl != manifestUrl) {
+      try {
+        final separator = fallbackManifestUrl!.contains('?') ? '&' : '?';
+        final freshUrl = '$fallbackManifestUrl${separator}_t=${DateTime.now().millisecondsSinceEpoch}';
+        final uri = Uri.parse(freshUrl);
+        final request = http.Request('GET', uri)
+          ..followRedirects = true
+          ..maxRedirects = 10
+          ..headers.addAll(noCacheHeaders);
+
+        final streamedResponse = await request.send().timeout(const Duration(seconds: 15));
+        final response = await http.Response.fromStream(streamedResponse);
+
+        if (response.statusCode == 200) {
+          final data = jsonDecode(response.body) as Map<String, dynamic>;
+          final manifest = UpdateManifest.fromJson(data);
+          final cleanLatestVersion = manifest.version.split('+').first;
+          final latest = Version.parse(cleanLatestVersion);
+
+          if (latest > highestVersion) {
+            highestVersion = latest;
+            highestManifest = manifest;
+          }
+        }
+      } catch (e) {
+        debugPrint('[UpdateService] Fallback manifest query failed: $e');
       }
     }
 
