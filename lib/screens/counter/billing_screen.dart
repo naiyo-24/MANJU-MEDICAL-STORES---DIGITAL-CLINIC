@@ -64,6 +64,7 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
   Map<String, dynamic>? _shopSettings;
 
   bool _isGeneratingBill = false;
+  int _mobileTabIndex = 0; // 0: Medicines catalog, 1: Cart & Checkout
 
   @override
   void initState() {
@@ -1453,7 +1454,7 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                             );
 
                   Widget rightSide = BillingRightPanel(
-                    hasEnoughHeight: isDesktopWidth,
+                    hasEnoughHeight: isDesktopWidth ? hasEnoughHeight : true,
                     discountController: _discountController,
                     customerNameController: _customerNameController,
                     customerPhoneController: _customerPhoneController,
@@ -1522,31 +1523,247 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                     }
                     return wrapper;
                   } else {
-                    Widget wrapper = SingleChildScrollView(
-                      scrollDirection: Axis.vertical,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          SizedBox(
-                            height: 600, // Fixed height so it doesn't shrink and overflow when keyboard opens
-                            child: leftSide,
-                          ),
-                          const SizedBox(height: 24),
-                          rightSide,
-                        ],
-                      ),
+                    // Mobile View: Clean Segmented Tab Switcher + Sticky Cart Summary Pill
+                    final totalCartItems = _currentBill.fold<int>(
+                      0,
+                      (sum, item) => sum + (item['quantity'] as int? ?? 1),
                     );
-                    
-                    if (constraints.maxWidth < 550) {
-                      wrapper = SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: SizedBox(
-                          width: 550,
-                          child: wrapper,
+                    final grandTotal = ref.watch(billingProvider).grandTotal;
+                    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        // Segmented Tab Switcher (Medicines vs Cart)
+                        Container(
+                          margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: InkWell(
+                                  onTap: () {
+                                    setState(() {
+                                      _mobileTabIndex = 0;
+                                    });
+                                  },
+                                  borderRadius: BorderRadius.circular(9),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(vertical: 9),
+                                    decoration: BoxDecoration(
+                                      color: _mobileTabIndex == 0
+                                          ? (isDark ? const Color(0xFF0F172A) : Colors.white)
+                                          : Colors.transparent,
+                                      borderRadius: BorderRadius.circular(9),
+                                      boxShadow: _mobileTabIndex == 0
+                                          ? [
+                                              BoxShadow(
+                                                color: Colors.black.withValues(alpha: 0.05),
+                                                blurRadius: 4,
+                                                offset: const Offset(0, 2),
+                                              ),
+                                            ]
+                                          : null,
+                                    ),
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Icon(
+                                          Icons.medication_outlined,
+                                          size: 16,
+                                          color: _mobileTabIndex == 0
+                                              ? const Color(0xFF166534)
+                                              : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
+                                        ),
+                                        const SizedBox(width: 6),
+                                        Text(
+                                          'Medicines',
+                                          style: TextStyle(
+                                            fontSize: 13,
+                                            fontWeight: _mobileTabIndex == 0 ? FontWeight.bold : FontWeight.w600,
+                                            color: _mobileTabIndex == 0
+                                                ? (isDark ? const Color(0xFF4ADE80) : const Color(0xFF166534))
+                                                : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              Expanded(
+                                child: InkWell(
+                                  onTap: () {
+                                    setState(() {
+                                      _mobileTabIndex = 1;
+                                    });
+                                  },
+                                  borderRadius: BorderRadius.circular(9),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(vertical: 9),
+                                    decoration: BoxDecoration(
+                                      color: _mobileTabIndex == 1
+                                          ? (isDark ? const Color(0xFF0F172A) : Colors.white)
+                                          : Colors.transparent,
+                                      borderRadius: BorderRadius.circular(9),
+                                      boxShadow: _mobileTabIndex == 1
+                                          ? [
+                                              BoxShadow(
+                                                color: Colors.black.withValues(alpha: 0.05),
+                                                blurRadius: 4,
+                                                offset: const Offset(0, 2),
+                                              ),
+                                            ]
+                                          : null,
+                                    ),
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Icon(
+                                          Icons.shopping_cart_outlined,
+                                          size: 16,
+                                          color: _mobileTabIndex == 1
+                                              ? const Color(0xFF166534)
+                                              : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
+                                        ),
+                                        const SizedBox(width: 6),
+                                        Text(
+                                          'Cart',
+                                          style: TextStyle(
+                                            fontSize: 13,
+                                            fontWeight: _mobileTabIndex == 1 ? FontWeight.bold : FontWeight.w600,
+                                            color: _mobileTabIndex == 1
+                                                ? (isDark ? const Color(0xFF4ADE80) : const Color(0xFF166534))
+                                                : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
+                                          ),
+                                        ),
+                                        if (totalCartItems > 0) ...[
+                                          const SizedBox(width: 6),
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                                            decoration: BoxDecoration(
+                                              color: const Color(0xFF166534),
+                                              borderRadius: BorderRadius.circular(10),
+                                            ),
+                                            child: Text(
+                                              '$totalCartItems',
+                                              style: const TextStyle(
+                                                fontSize: 10,
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      );
-                    }
-                    return wrapper;
+
+                        // Active Tab Body
+                        Expanded(
+                          child: IndexedStack(
+                            index: _mobileTabIndex,
+                            children: [
+                              // Tab 0: Medicines Catalog
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 10),
+                                child: leftSide,
+                              ),
+                              // Tab 1: Cart & Checkout
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 10),
+                                child: rightSide,
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        // Sticky Bottom Cart Bar (Shown in Catalog view when cart has items)
+                        if (_mobileTabIndex == 0 && _currentBill.isNotEmpty)
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                            decoration: BoxDecoration(
+                              color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.08),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, -3),
+                                ),
+                              ],
+                              border: Border(
+                                top: BorderSide(
+                                  color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                                ),
+                              ),
+                            ),
+                            child: SafeArea(
+                              top: false,
+                              child: Row(
+                                children: [
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        '$totalCartItems item${totalCartItems > 1 ? 's' : ''} added',
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                      Text(
+                                        '₹${grandTotal.toStringAsFixed(2)}',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          color: isDark ? const Color(0xFF4ADE80) : const Color(0xFF166534),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const Spacer(),
+                                  ElevatedButton.icon(
+                                    onPressed: () {
+                                      setState(() {
+                                        _mobileTabIndex = 1;
+                                      });
+                                    },
+                                    icon: const Icon(Icons.arrow_forward, size: 16),
+                                    label: const Text(
+                                      'View Cart & Pay',
+                                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                                    ),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: const Color(0xFF166534),
+                                      foregroundColor: Colors.white,
+                                      elevation: 0,
+                                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                      ],
+                    );
                   }
                 },
               ),
