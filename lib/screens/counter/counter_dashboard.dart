@@ -1150,27 +1150,17 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
                         isExpanded: isExpanded,
                       ),
 
-                      if (isDesktop) ...[
-                        const SizedBox(height: 16),
-                        _buildSidebarFooter(
-                          isDesktop: isDesktop,
-                          isExpanded: isExpanded,
-                          isDark: isDark,
-                          subtitleColor: subtitleColor,
-                        ),
-                      ],
+                      const SizedBox(height: 12),
+                      _buildSidebarFooter(
+                        isDesktop: isDesktop,
+                        isExpanded: isExpanded,
+                        isDark: isDark,
+                        subtitleColor: subtitleColor,
+                      ),
                     ],
                   ),
                 ),
               ),
-
-              if (!isDesktop)
-                _buildSidebarFooter(
-                  isDesktop: isDesktop,
-                  isExpanded: isExpanded,
-                  isDark: isDark,
-                  subtitleColor: subtitleColor,
-                ),
 
 
               if (!kIsWeb && Platform.isWindows)
