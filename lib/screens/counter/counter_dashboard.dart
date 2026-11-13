@@ -11,6 +11,7 @@ import '../../services/auth_service.dart';
 import '../../providers/counter_providers.dart';
 import '../../providers/theme_provider.dart';
 import 'widgets/about/about_us_dialog.dart';
+import 'widgets/auth/logout_confirmation_dialog.dart';
 import 'widgets/sidebar/desktop_zoom_sidebar_control.dart';
 import '../../services/windows_auto_updater.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -584,11 +585,15 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
                     ),
                     onSelected: (value) async {
                       if (value == 'logout') {
-                        await AuthService.logout();
-                        if (context.mounted) {
-                          // ignore: use_build_context_synchronously
-                          context.go('/dashboard');
-                          resetAllSessionProviders(ref);
+                        final shouldLogout =
+                            await LogoutConfirmationDialog.show(context);
+                        if (shouldLogout && context.mounted) {
+                          await AuthService.logout();
+                          if (context.mounted) {
+                            // ignore: use_build_context_synchronously
+                            context.go('/dashboard');
+                            resetAllSessionProviders(ref);
+                          }
                         }
                       }
                     },
@@ -1001,12 +1006,16 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
                         message: isExpanded ? '' : 'Logout',
                         child: InkWell(
                           onTap: () async {
-                            await AuthService.logout();
-                            if (context.mounted) {
-                              // Go back to the module selection screen FIRST
-                              // ignore: use_build_context_synchronously
-                              context.go('/dashboard');
-                              resetAllSessionProviders(ref);
+                            final shouldLogout =
+                                await LogoutConfirmationDialog.show(context);
+                            if (shouldLogout && context.mounted) {
+                              await AuthService.logout();
+                              if (context.mounted) {
+                                // Go back to the module selection screen FIRST
+                                // ignore: use_build_context_synchronously
+                                context.go('/dashboard');
+                                resetAllSessionProviders(ref);
+                              }
                             }
                           },
                           borderRadius: BorderRadius.circular(12),
