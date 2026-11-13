@@ -11,7 +11,8 @@ const bool kEnableZoomForTesting = true;
 bool get isZoomSupported =>
     kEnableZoomForTesting || (!kIsWeb && Platform.isWindows);
 
-/// Global wrapper that applies proportional UI zoom and handles Ctrl +/- hotkeys
+/// Global wrapper that scales components and typography without shrinking the viewport window.
+/// Keeps the app pinned 100% edge-to-edge while adjusting UI density and text scale.
 class DesktopZoomWrapper extends ConsumerWidget {
   final Widget child;
 
@@ -24,6 +25,12 @@ class DesktopZoomWrapper extends ConsumerWidget {
     }
 
     final zoom = ref.watch(desktopZoomProvider);
+
+    // Map zoom scale (0.70 to 1.40) to Material VisualDensity (-3.0 to +3.0)
+    // 0.70 zoom = -3.0 (ultra compact components)
+    // 1.00 zoom =  0.0 (standard density)
+    // 1.40 zoom = +3.0 (large comfortable components)
+    final densityValue = ((zoom - 1.0) / 0.10).clamp(-3.0, 3.0);
 
     return CallbackShortcuts(
       bindings: {
@@ -71,31 +78,23 @@ class DesktopZoomWrapper extends ConsumerWidget {
       },
       child: Focus(
         autofocus: true,
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            // When zoom is default 1.0, render normally
-            if ((zoom - 1.0).abs() < 0.001) {
-              return child;
-            }
-
-            final virtualWidth = constraints.maxWidth / zoom;
-            final virtualHeight = constraints.maxHeight / zoom;
-
-            return ClipRect(
-              child: Transform.scale(
-                scale: zoom,
-                alignment: Alignment.topLeft,
-                child: SizedBox(
-                  width: virtualWidth,
-                  height: virtualHeight,
-                  child: child,
-                ),
-              ),
-            );
-          },
+        child: Theme(
+          data: Theme.of(context).copyWith(
+            visualDensity: VisualDensity(
+              horizontal: densityValue,
+              vertical: densityValue,
+            ),
+          ),
+          child: MediaQuery(
+            data: MediaQuery.of(context).copyWith(
+              // Scales all typography, text, badges, and labels across all screens
+              textScaler: TextScaler.linear(zoom),
+            ),
+            // The canvas remains 100% full width and height edge-to-edge
+            child: child,
+          ),
         ),
       ),
     );
   }
 }
-
