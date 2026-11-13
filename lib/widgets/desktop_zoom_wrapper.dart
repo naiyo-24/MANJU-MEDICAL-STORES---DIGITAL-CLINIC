@@ -5,11 +5,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/desktop_zoom_provider.dart';
 
-/// Flag to allow browser/macOS testing. In production, can be set to false.
-const bool kEnableZoomForTesting = true;
-
-bool get isZoomSupported =>
-    kEnableZoomForTesting || (!kIsWeb && Platform.isWindows);
+/// Zoom is strictly enabled ONLY for the Windows desktop (.exe) build.
+/// Disabled on Web, macOS, iOS, and Android.
+bool get isZoomSupported => !kIsWeb && Platform.isWindows;
 
 /// Global wrapper that scales components and typography without shrinking the viewport window.
 /// Keeps the app pinned 100% edge-to-edge while adjusting UI density and text scale.
