@@ -1,3 +1,5 @@
+import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -90,14 +92,22 @@ class _AboutUsDialogState extends State<AboutUsDialog> {
     final subtitleColor = isDark ? Colors.grey[400] : const Color(0xFF64748B);
 
     final screenSize = MediaQuery.of(context).size;
-    final dialogWidth = (screenSize.width * 0.9).clamp(320.0, 620.0);
-    final dialogHeight = (screenSize.height * 0.85).clamp(400.0, 760.0);
+    final bool isDesktop = !kIsWeb && (Platform.isWindows || Platform.isLinux || Platform.isMacOS);
+    final dialogWidth = isDesktop
+        ? (screenSize.width * 0.9).clamp(320.0, 620.0)
+        : (screenSize.width * 0.94).clamp(300.0, 480.0);
+    final dialogHeight = isDesktop
+        ? (screenSize.height * 0.85).clamp(400.0, 760.0)
+        : (screenSize.height * 0.88).clamp(380.0, 700.0);
 
     return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(isDesktop ? 24 : 18)),
       backgroundColor: isDark ? const Color(0xFF0F172A) : Colors.white,
       clipBehavior: Clip.antiAlias,
-      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+      insetPadding: EdgeInsets.symmetric(
+        horizontal: isDesktop ? 16 : 10,
+        vertical: isDesktop ? 24 : 16,
+      ),
       child: SizedBox(
         width: dialogWidth,
         height: dialogHeight,
@@ -107,7 +117,10 @@ class _AboutUsDialogState extends State<AboutUsDialog> {
           children: [
             // Header Hero Banner
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 22),
+              padding: EdgeInsets.symmetric(
+                horizontal: isDesktop ? 28 : 16,
+                vertical: isDesktop ? 22 : 14,
+              ),
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
                   colors: [primaryGreen, Color(0xFF15803D), accentGreen],
@@ -121,10 +134,10 @@ class _AboutUsDialogState extends State<AboutUsDialog> {
                     children: [
                       // Product Icon Box
                       Container(
-                        padding: const EdgeInsets.all(8),
+                        padding: EdgeInsets.all(isDesktop ? 8 : 6),
                         decoration: BoxDecoration(
                           color: Colors.white,
-                          borderRadius: BorderRadius.circular(16),
+                          borderRadius: BorderRadius.circular(isDesktop ? 16 : 12),
                           boxShadow: [
                             BoxShadow(
                               color: Colors.black.withValues(alpha: 0.15),
@@ -134,32 +147,32 @@ class _AboutUsDialogState extends State<AboutUsDialog> {
                           ],
                         ),
                         child: ClipRRect(
-                          borderRadius: BorderRadius.circular(10),
+                          borderRadius: BorderRadius.circular(isDesktop ? 10 : 8),
                           child: Image.asset(
                             'assets/icon.png',
-                            height: 48,
-                            width: 48,
+                            height: isDesktop ? 48 : 38,
+                            width: isDesktop ? 48 : 38,
                             fit: BoxFit.contain,
-                            errorBuilder: (_, _, _) => const Icon(
+                            errorBuilder: (_, _, _) => Icon(
                               Icons.receipt_long_rounded,
                               color: primaryGreen,
-                              size: 40,
+                              size: isDesktop ? 40 : 30,
                             ),
                           ),
                         ),
                       ),
-                      const SizedBox(width: 16),
+                      SizedBox(width: isDesktop ? 16 : 12),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Row(
                               children: [
-                                const Text(
+                                Text(
                                   'SirfBill',
                                   style: TextStyle(
                                     color: Colors.white,
-                                    fontSize: 22,
+                                    fontSize: isDesktop ? 22 : 18,
                                     fontWeight: FontWeight.bold,
                                     letterSpacing: -0.5,
                                   ),
@@ -180,9 +193,9 @@ class _AboutUsDialogState extends State<AboutUsDialog> {
                                       ),
                                       child: Text(
                                         'v$version',
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           color: Colors.white,
-                                          fontSize: 11,
+                                          fontSize: isDesktop ? 11 : 10,
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),
@@ -192,11 +205,11 @@ class _AboutUsDialogState extends State<AboutUsDialog> {
                               ],
                             ),
                             const SizedBox(height: 3),
-                            const Text(
+                            Text(
                               'Bill Karo, Befikar Raho',
                               style: TextStyle(
                                 color: Colors.white,
-                                fontSize: 13,
+                                fontSize: isDesktop ? 13 : 11.5,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
@@ -206,8 +219,8 @@ class _AboutUsDialogState extends State<AboutUsDialog> {
                     ],
                   ),
                   Positioned(
-                    top: -6,
-                    right: -6,
+                    top: isDesktop ? -6 : -8,
+                    right: isDesktop ? -6 : -8,
                     child: IconButton(
                       icon: const Icon(Icons.close, color: Colors.white70),
                       onPressed: () => Navigator.pop(context),
@@ -221,7 +234,7 @@ class _AboutUsDialogState extends State<AboutUsDialog> {
             // Scrollable Content
             Flexible(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.all(24),
+                padding: EdgeInsets.all(isDesktop ? 24 : 14),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -327,39 +340,40 @@ class _AboutUsDialogState extends State<AboutUsDialog> {
                       builder: (context, constraints) {
                         final isCompact = constraints.maxWidth < 450;
                         if (isCompact) {
-                          return Column(
+                          // Option B: Clean, side-by-side compact highlight chips
+                          return Row(
                             children: [
-                              _buildFeatureCard(
-                                icon: Icons.cloud_done_rounded,
-                                iconColor: const Color(0xFF0284C7),
-                                title: 'Cloud-Powered',
-                                desc: 'Live inventory sync & secure cloud backup',
-                                cardBg: cardBg,
-                                borderColor: borderColor,
-                                textColor: textColor,
-                                subtitleColor: subtitleColor,
+                              Expanded(
+                                child: _buildCompactFeatureChip(
+                                  icon: Icons.cloud_done_rounded,
+                                  iconColor: const Color(0xFF0284C7),
+                                  title: 'Cloud Sync',
+                                  cardBg: cardBg,
+                                  borderColor: borderColor,
+                                  textColor: textColor,
+                                ),
                               ),
-                              const SizedBox(height: 8),
-                              _buildFeatureCard(
-                                icon: Icons.print_rounded,
-                                iconColor: const Color(0xFF2563EB),
-                                title: 'Universal Print',
-                                desc: 'Thermal (58/80mm) & A4 PDF',
-                                cardBg: cardBg,
-                                borderColor: borderColor,
-                                textColor: textColor,
-                                subtitleColor: subtitleColor,
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: _buildCompactFeatureChip(
+                                  icon: Icons.print_rounded,
+                                  iconColor: const Color(0xFF2563EB),
+                                  title: 'Universal Print',
+                                  cardBg: cardBg,
+                                  borderColor: borderColor,
+                                  textColor: textColor,
+                                ),
                               ),
-                              const SizedBox(height: 8),
-                              _buildFeatureCard(
-                                icon: Icons.shield_rounded,
-                                iconColor: const Color(0xFF059669),
-                                title: 'GST Compliant',
-                                desc: 'Instant tax & HSN tracking',
-                                cardBg: cardBg,
-                                borderColor: borderColor,
-                                textColor: textColor,
-                                subtitleColor: subtitleColor,
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: _buildCompactFeatureChip(
+                                  icon: Icons.shield_rounded,
+                                  iconColor: const Color(0xFF059669),
+                                  title: 'GST Ready',
+                                  cardBg: cardBg,
+                                  borderColor: borderColor,
+                                  textColor: textColor,
+                                ),
                               ),
                             ],
                           );
@@ -663,70 +677,72 @@ Customer assistance is provided through official support channels:
                     children: [
                       Text(
                         '© 2026 NAIYO24 PVT. LTD. All rights reserved.',
-                        style: TextStyle(fontSize: 11, color: subtitleColor),
+                        style: TextStyle(fontSize: isDesktop ? 11 : 10, color: subtitleColor),
                       ),
                       Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          TextButton.icon(
-                            icon: _isCheckingUpdate
-                                ? const SizedBox(
-                                    width: 14,
-                                    height: 14,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      valueColor: AlwaysStoppedAnimation<Color>(primaryGreen),
-                                    ),
-                                  )
-                                : const Icon(Icons.system_update_rounded, size: 16),
-                            label: Text(_isCheckingUpdate ? 'Checking...' : 'Check for Updates'),
-                            style: TextButton.styleFrom(
-                              foregroundColor: primaryGreen,
-                              textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                            ),
-                            onPressed: _isCheckingUpdate
-                                ? null
-                                : () async {
-                                    setState(() {
-                                      _isCheckingUpdate = true;
-                                      _updateStatusMessage = 'Connecting to server and checking for updates...';
-                                      _isUpToDate = false;
-                                      _hasUpdateError = false;
-                                    });
+                          if (isDesktop) ...[
+                            TextButton.icon(
+                              icon: _isCheckingUpdate
+                                  ? const SizedBox(
+                                      width: 14,
+                                      height: 14,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        valueColor: AlwaysStoppedAnimation<Color>(primaryGreen),
+                                      ),
+                                    )
+                                  : const Icon(Icons.system_update_rounded, size: 16),
+                              label: Text(_isCheckingUpdate ? 'Checking...' : 'Check for Updates'),
+                              style: TextButton.styleFrom(
+                                foregroundColor: primaryGreen,
+                                textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                              ),
+                              onPressed: _isCheckingUpdate
+                                  ? null
+                                  : () async {
+                                      setState(() {
+                                        _isCheckingUpdate = true;
+                                        _updateStatusMessage = 'Connecting to server and checking for updates...';
+                                        _isUpToDate = false;
+                                        _hasUpdateError = false;
+                                      });
 
-                                    try {
-                                      final updateInfo = await WindowsAutoUpdater.checkForUpdate();
-                                      if (!mounted) return;
+                                      try {
+                                        final updateInfo = await WindowsAutoUpdater.checkForUpdate();
+                                        if (!mounted) return;
 
-                                      if (updateInfo != null) {
-                                        setState(() {
-                                          _isCheckingUpdate = false;
-                                          _updateStatusMessage = 'New update available: v${updateInfo.version}!';
-                                          _isUpToDate = false;
-                                        });
-                                        if (mounted) {
-                                          // ignore: use_build_context_synchronously
-                                          WindowsAutoUpdater.showUpdateDialog(context, updateInfo);
+                                        if (updateInfo != null) {
+                                          setState(() {
+                                            _isCheckingUpdate = false;
+                                            _updateStatusMessage = 'New update available: v${updateInfo.version}!';
+                                            _isUpToDate = false;
+                                          });
+                                          if (mounted) {
+                                            // ignore: use_build_context_synchronously
+                                            WindowsAutoUpdater.showUpdateDialog(context, updateInfo);
+                                          }
+                                        } else {
+                                          setState(() {
+                                            _isCheckingUpdate = false;
+                                            _updateStatusMessage = 'SirfBill is already up to date! (Latest version installed)';
+                                            _isUpToDate = true;
+                                          });
                                         }
-                                      } else {
+                                      } catch (e) {
+                                        if (!mounted) return;
                                         setState(() {
                                           _isCheckingUpdate = false;
-                                          _updateStatusMessage = 'SirfBill is already up to date! (Latest version installed)';
-                                          _isUpToDate = true;
+                                          _updateStatusMessage = 'Failed to check updates. Please verify your connection.';
+                                          _hasUpdateError = true;
                                         });
                                       }
-                                    } catch (e) {
-                                      if (!mounted) return;
-                                      setState(() {
-                                        _isCheckingUpdate = false;
-                                        _updateStatusMessage = 'Failed to check updates. Please verify your connection.';
-                                        _hasUpdateError = true;
-                                      });
-                                    }
-                                  },
-                          ),
-                          const SizedBox(width: 8),
+                                    },
+                            ),
+                            const SizedBox(width: 8),
+                          ],
                           ElevatedButton(
                             style: ElevatedButton.styleFrom(
                               backgroundColor: primaryGreen,
@@ -734,7 +750,10 @@ Customer assistance is provided through official support channels:
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(10),
                               ),
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                              padding: EdgeInsets.symmetric(
+                                horizontal: isDesktop ? 16 : 14,
+                                vertical: isDesktop ? 10 : 8,
+                              ),
                             ),
                             onPressed: () => Navigator.pop(context),
                             child: const Text('Close'),
@@ -748,6 +767,49 @@ Customer assistance is provided through official support channels:
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildCompactFeatureChip({
+    required IconData icon,
+    required Color iconColor,
+    required String title,
+    required Color cardBg,
+    required Color borderColor,
+    required Color textColor,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+      decoration: BoxDecoration(
+        color: cardBg,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: borderColor),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(5),
+            decoration: BoxDecoration(
+              color: iconColor.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Icon(icon, color: iconColor, size: 16),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            title,
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 10.5,
+              color: textColor,
+            ),
+          ),
+        ],
       ),
     );
   }
