@@ -92,7 +92,10 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
             builder: (context, constraints) {
               bool isDesktop = constraints.maxWidth > 800;
               return ListView(
-                padding: const EdgeInsets.all(24.0),
+                padding: EdgeInsets.symmetric(
+                  horizontal: isDesktop ? 24.0 : 12.0,
+                  vertical: isDesktop ? 24.0 : 12.0,
+                ),
                 children: [
                   // Header
                   Wrap(
@@ -232,7 +235,7 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 24),
+                  SizedBox(height: isDesktop ? 24 : 14),
 
                   // Summary Cards
                   LayoutBuilder(
@@ -307,7 +310,7 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                       );
                     },
                   ),
-                  const SizedBox(height: 24),
+                  SizedBox(height: isDesktop ? 24 : 14),
 
                   // Main Content
                   Row(
@@ -334,6 +337,147 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                                 LayoutBuilder(
                                   builder: (context, constraints) {
                                     bool isDesktop = constraints.maxWidth > 800;
+                                    if (!isDesktop) {
+                                      return Container(
+                                        padding: const EdgeInsets.all(12.0),
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                                          children: [
+                                            // Search Field Full Width
+                                            TextField(
+                                              controller: _searchCtrl,
+                                              onChanged: (val) => setState(() {
+                                                _searchQuery = val;
+                                                _currentPage = 1;
+                                              }),
+                                              decoration: InputDecoration(
+                                                hintText: 'Search by name, phone, customer ID...',
+                                                prefixIcon: const Icon(
+                                                  Icons.search,
+                                                  size: 20,
+                                                ),
+                                                border: OutlineInputBorder(
+                                                  borderRadius: BorderRadius.circular(8),
+                                                  borderSide: BorderSide(
+                                                    color: Theme.of(context).dividerColor,
+                                                  ),
+                                                ),
+                                                contentPadding: const EdgeInsets.symmetric(
+                                                  vertical: 0,
+                                                  horizontal: 14,
+                                                ),
+                                              ),
+                                            ),
+                                            const SizedBox(height: 10),
+                                            // Status + City + Reset in a single row
+                                            Row(
+                                              children: [
+                                                Expanded(
+                                                  flex: 5,
+                                                  child: DropdownButtonFormField<String>(
+                                                    isExpanded: true,
+                                                    decoration: InputDecoration(
+                                                      border: OutlineInputBorder(
+                                                        borderRadius: BorderRadius.circular(8),
+                                                        borderSide: BorderSide(
+                                                          color: Theme.of(context).dividerColor,
+                                                        ),
+                                                      ),
+                                                      contentPadding: const EdgeInsets.symmetric(
+                                                        vertical: 0,
+                                                        horizontal: 10,
+                                                      ),
+                                                    ),
+                                                    initialValue: _selectedStatus,
+                                                    items: [
+                                                      'All Status',
+                                                      ...allCustomers
+                                                          .map((e) => e['status'].toString())
+                                                          .toSet(),
+                                                    ].map((s) => DropdownMenuItem(
+                                                      value: s,
+                                                      child: Text(
+                                                        s,
+                                                        style: const TextStyle(fontSize: 13),
+                                                        overflow: TextOverflow.ellipsis,
+                                                      ),
+                                                    )).toList(),
+                                                    onChanged: (val) => setState(() {
+                                                      _selectedStatus = val!;
+                                                      _currentPage = 1;
+                                                    }),
+                                                  ),
+                                                ),
+                                                const SizedBox(width: 8),
+                                                Expanded(
+                                                  flex: 5,
+                                                  child: DropdownButtonFormField<String>(
+                                                    isExpanded: true,
+                                                    decoration: InputDecoration(
+                                                      border: OutlineInputBorder(
+                                                        borderRadius: BorderRadius.circular(8),
+                                                        borderSide: BorderSide(
+                                                          color: Theme.of(context).dividerColor,
+                                                        ),
+                                                      ),
+                                                      contentPadding: const EdgeInsets.symmetric(
+                                                        vertical: 0,
+                                                        horizontal: 10,
+                                                      ),
+                                                    ),
+                                                    initialValue: _selectedCity,
+                                                    items: [
+                                                      'All Cities',
+                                                      ...allCustomers
+                                                          .map((e) => e['city'].toString())
+                                                          .toSet(),
+                                                    ].map((s) => DropdownMenuItem(
+                                                      value: s,
+                                                      child: Text(
+                                                        s,
+                                                        style: const TextStyle(fontSize: 13),
+                                                        overflow: TextOverflow.ellipsis,
+                                                      ),
+                                                    )).toList(),
+                                                    onChanged: (val) => setState(() {
+                                                      _selectedCity = val!;
+                                                      _currentPage = 1;
+                                                    }),
+                                                  ),
+                                                ),
+                                                const SizedBox(width: 8),
+                                                InkWell(
+                                                  onTap: () {
+                                                    setState(() {
+                                                      _searchCtrl.clear();
+                                                      _searchQuery = '';
+                                                      _selectedStatus = 'All Status';
+                                                      _selectedCity = 'All Cities';
+                                                      _currentPage = 1;
+                                                    });
+                                                  },
+                                                  borderRadius: BorderRadius.circular(8),
+                                                  child: Container(
+                                                    padding: const EdgeInsets.all(12),
+                                                    decoration: BoxDecoration(
+                                                      border: Border.all(
+                                                        color: Theme.of(context).dividerColor,
+                                                      ),
+                                                      borderRadius: BorderRadius.circular(8),
+                                                    ),
+                                                    child: const Icon(
+                                                      Icons.refresh,
+                                                      size: 20,
+                                                      color: AppColors.textSecondary,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    }
                                     return Container(
                                       padding: const EdgeInsets.all(16.0),
                                       child: Wrap(
