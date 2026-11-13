@@ -1,4 +1,5 @@
 import 'dart:ui' as ui;
+import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -245,7 +246,7 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
                             ),
                             overflow: TextOverflow.ellipsis,
                           ),
-                          if (shortcut != null)
+                          if (isDesktop && shortcut != null)
                             Text(
                               shortcut,
                               style: TextStyle(
@@ -287,7 +288,7 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
                           ),
                           overflow: TextOverflow.ellipsis,
                         ),
-                        if (shortcut != null)
+                        if (isDesktop && shortcut != null)
                           Text(
                             shortcut,
                             style: TextStyle(
@@ -415,37 +416,40 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
         : const Color(0xFFE2E8F0);
 
     return Container(
-      height: 100,
-      padding: const EdgeInsets.symmetric(horizontal: 12),
+      height: isDesktop ? 100 : 60,
+      padding: EdgeInsets.symmetric(horizontal: isDesktop ? 12 : 8),
       decoration: BoxDecoration(
         color: headerBg,
         border: Border(bottom: BorderSide(color: borderColor, width: 1)),
       ),
-      child: Row(
-        children: [
-          IconButton(
-            icon: const Icon(Icons.menu),
-            onPressed: () {
-              if (isDesktop) {
-                setState(() {
-                  _isSidebarExpanded = !_isSidebarExpanded;
-                });
-              } else {
-                _scaffoldKey.currentState?.openDrawer();
-              }
-            },
-          ),
-          SizedBox(width: isDesktop ? 16 : 8),
-          Image.asset(
-            isDark ? 'assets/LOGO_DM.png' : 'assets/LOGO.png',
-            height: isDesktop ? 75 : 45,
-            width: isDesktop
-                ? null
-                : 110, // constrain width on mobile to give pills space
-            alignment: Alignment.centerLeft, // align left towards the menu
-            fit: BoxFit.contain,
-            cacheHeight: 225,
-          ),
+      child: SafeArea(
+        bottom: false,
+        top: !isDesktop,
+        child: Row(
+          children: [
+            IconButton(
+              icon: const Icon(Icons.menu),
+              onPressed: () {
+                if (isDesktop) {
+                  setState(() {
+                    _isSidebarExpanded = !_isSidebarExpanded;
+                  });
+                } else {
+                  _scaffoldKey.currentState?.openDrawer();
+                }
+              },
+            ),
+            SizedBox(width: isDesktop ? 16 : 8),
+            Image.asset(
+              isDark ? 'assets/LOGO_DM.png' : 'assets/LOGO.png',
+              height: isDesktop ? 75 : 34,
+              width: isDesktop
+                  ? null
+                  : 110, // constrain width on mobile to give pills space
+              alignment: Alignment.centerLeft, // align left towards the menu
+              fit: BoxFit.contain,
+              cacheHeight: 225,
+            ),
 
           if (isDesktop) const Spacer(),
 
@@ -677,6 +681,7 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
           ),
         ],
       ),
+    ),
     );
   }
 
@@ -1099,7 +1104,7 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
               ),
 
 
-              if (!kIsWeb)
+              if (!kIsWeb && Platform.isWindows)
                 Padding(
                   padding: EdgeInsets.symmetric(
                     horizontal: isExpanded ? 16.0 : 8.0,
