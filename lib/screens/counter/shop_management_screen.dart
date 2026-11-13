@@ -363,12 +363,14 @@ class _ShopManagementScreenState extends ConsumerState<ShopManagementScreen> {
       ..._shops.map((s) => s.city).toSet(),
     ];
 
+    final isDesktop = MediaQuery.of(context).size.width > 800;
+
     return Scaffold(
       backgroundColor: isDark
           ? const Color(0xFF0F172A)
           : const Color(0xFFF8FAFC),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(32),
+        padding: EdgeInsets.all(isDesktop ? 32 : 12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -378,25 +380,25 @@ class _ShopManagementScreenState extends ConsumerState<ShopManagementScreen> {
               child: Wrap(
                 crossAxisAlignment: WrapCrossAlignment.center,
                 alignment: WrapAlignment.spaceBetween,
-                spacing: 16,
-                runSpacing: 16,
+                spacing: isDesktop ? 16 : 8,
+                runSpacing: isDesktop ? 16 : 10,
                 children: [
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Container(
-                        padding: const EdgeInsets.all(12),
+                        padding: EdgeInsets.all(isDesktop ? 12 : 9),
                         decoration: BoxDecoration(
                           color: const Color(0xFF22C55E),
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: const Icon(
+                        child: Icon(
                           Icons.storefront,
                           color: Colors.white,
-                          size: 28,
+                          size: isDesktop ? 28 : 22,
                         ),
                       ),
-                      const SizedBox(width: 16),
+                      SizedBox(width: isDesktop ? 16 : 10),
                       Flexible(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -404,7 +406,7 @@ class _ShopManagementScreenState extends ConsumerState<ShopManagementScreen> {
                             Text(
                               'Shops',
                               style: TextStyle(
-                                fontSize: 28,
+                                fontSize: isDesktop ? 28 : 20,
                                 fontWeight: FontWeight.bold,
                                 color: isDark
                                     ? Colors.white
@@ -414,7 +416,7 @@ class _ShopManagementScreenState extends ConsumerState<ShopManagementScreen> {
                             Text(
                               'Manage your branch shops and their settings',
                               style: TextStyle(
-                                fontSize: 14,
+                                fontSize: isDesktop ? 14 : 11.5,
                                 color: isDark
                                     ? const Color(0xFF94A3B8)
                                     : const Color(0xFF64748B),
@@ -426,8 +428,8 @@ class _ShopManagementScreenState extends ConsumerState<ShopManagementScreen> {
                     ],
                   ),
                   Wrap(
-                    spacing: 16,
-                    runSpacing: 16,
+                    spacing: isDesktop ? 16 : 8,
+                    runSpacing: isDesktop ? 16 : 8,
                     crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
                       PopupMenuButton<String>(
@@ -474,9 +476,9 @@ class _ShopManagementScreenState extends ConsumerState<ShopManagementScreen> {
                               ),
                             ],
                         child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 16,
+                          padding: EdgeInsets.symmetric(
+                            horizontal: isDesktop ? 16 : 12,
+                            vertical: isDesktop ? 16 : 10,
                           ),
                           decoration: BoxDecoration(
                             border: Border.all(
@@ -491,7 +493,7 @@ class _ShopManagementScreenState extends ConsumerState<ShopManagementScreen> {
                             children: [
                               Icon(
                                 Icons.download,
-                                size: 18,
+                                size: isDesktop ? 18 : 16,
                                 color: isDark
                                     ? Colors.white
                                     : const Color(0xFF475569),
@@ -500,6 +502,7 @@ class _ShopManagementScreenState extends ConsumerState<ShopManagementScreen> {
                               Text(
                                 'Export',
                                 style: TextStyle(
+                                  fontSize: isDesktop ? 14 : 12.5,
                                   fontWeight: FontWeight.w600,
                                   color: isDark
                                       ? Colors.white
@@ -528,9 +531,9 @@ class _ShopManagementScreenState extends ConsumerState<ShopManagementScreen> {
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF22C55E),
                             foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 20,
-                              vertical: 16,
+                            padding: EdgeInsets.symmetric(
+                              horizontal: isDesktop ? 20 : 14,
+                              vertical: isDesktop ? 16 : 10,
                             ),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8),
@@ -543,7 +546,7 @@ class _ShopManagementScreenState extends ConsumerState<ShopManagementScreen> {
                 ],
               ),
             ),
-            const SizedBox(height: 32),
+            SizedBox(height: isDesktop ? 32 : 14),
 
             // Summary Cards Component
             ShopSummaryCards(
@@ -552,7 +555,7 @@ class _ShopManagementScreenState extends ConsumerState<ShopManagementScreen> {
               inactiveShops: inactiveCount,
               totalLocations: _shops.map((s) => s.city).toSet().length,
             ),
-            const SizedBox(height: 32),
+            SizedBox(height: isDesktop ? 32 : 14),
 
             // Main Content Area
             Container(
@@ -565,168 +568,321 @@ class _ShopManagementScreenState extends ConsumerState<ShopManagementScreen> {
                 children: [
                   // Toolbar
                   Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Wrap(
-                      spacing: 16,
-                      runSpacing: 16,
-                      children: [
-                        ConstrainedBox(
-                          constraints: const BoxConstraints(maxWidth: 300),
-                          child: TextField(
-                            onChanged: (val) =>
-                                setState(() => _searchQuery = val),
-                            decoration: InputDecoration(
-                              hintText:
-                                  'Search shop by name, code, location...',
-                              prefixIcon: const Icon(
-                                Icons.search,
-                                color: Color(0xFF94A3B8),
-                                size: 18,
-                              ),
-                              filled: true,
-                              fillColor: isDark
-                                  ? const Color(0xFF0F172A)
-                                  : Colors.white,
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                                borderSide: BorderSide(
-                                  color: Color(0xFFE2E8F0),
-                                ),
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                                borderSide: BorderSide(
-                                  color: Color(0xFFE2E8F0),
-                                ),
-                              ),
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 12,
-                              ),
-                            ),
-                          ),
-                        ),
-                        Container(
-                          width: 150,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            border: Border.all(color: Theme.of(context).dividerColor),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: DropdownButtonHideUnderline(
-                            child: DropdownButton<String>(
-                              value: _selectedStatus,
-                              isExpanded: true,
-                              icon: const Icon(
-                                Icons.keyboard_arrow_down,
-                                size: 16,
-                                color: Color(0xFF94A3B8),
-                              ),
-                              items: ['All Status', 'Active', 'Inactive'].map((
-                                String value,
-                              ) {
-                                return DropdownMenuItem<String>(
-                                  value: value,
-                                  child: Text(
-                                    value,
-                                    style: TextStyle(
-                                      color: Color(0xFF475569),
-                                      fontSize: 14,
+                    padding: EdgeInsets.all(isDesktop ? 16 : 10),
+                    child: isDesktop
+                        ? Wrap(
+                            spacing: 16,
+                            runSpacing: 16,
+                            children: [
+                              ConstrainedBox(
+                                constraints: const BoxConstraints(maxWidth: 300),
+                                child: TextField(
+                                  onChanged: (val) =>
+                                      setState(() => _searchQuery = val),
+                                  decoration: InputDecoration(
+                                    hintText:
+                                        'Search shop by name, code, location...',
+                                    prefixIcon: const Icon(
+                                      Icons.search,
+                                      color: Color(0xFF94A3B8),
+                                      size: 18,
+                                    ),
+                                    filled: true,
+                                    fillColor: isDark
+                                        ? const Color(0xFF0F172A)
+                                        : Colors.white,
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                      borderSide: const BorderSide(
+                                        color: Color(0xFFE2E8F0),
+                                      ),
+                                    ),
+                                    enabledBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                      borderSide: const BorderSide(
+                                        color: Color(0xFFE2E8F0),
+                                      ),
+                                    ),
+                                    contentPadding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 12,
                                     ),
                                   ),
-                                );
-                              }).toList(),
-                              onChanged: (newValue) {
-                                if (newValue != null) {
-                                  setState(() => _selectedStatus = newValue);
-                                }
-                              },
-                            ),
-                          ),
-                        ),
-                        Container(
-                          width: 150,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            border: Border.all(color: Theme.of(context).dividerColor),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: DropdownButtonHideUnderline(
-                            child: DropdownButton<String>(
-                              value: _selectedCity,
-                              isExpanded: true,
-                              icon: const Icon(
-                                Icons.keyboard_arrow_down,
-                                size: 16,
-                                color: Color(0xFF94A3B8),
+                                ),
                               ),
-                              items: allCities.map((String value) {
-                                return DropdownMenuItem<String>(
-                                  value: value,
-                                  child: Text(
-                                    value,
-                                    style: TextStyle(
-                                      color: Color(0xFF475569),
-                                      fontSize: 14,
+                              Container(
+                                width: 150,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: Theme.of(context).dividerColor),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: DropdownButtonHideUnderline(
+                                  child: DropdownButton<String>(
+                                    value: _selectedStatus,
+                                    isExpanded: true,
+                                    icon: const Icon(
+                                      Icons.keyboard_arrow_down,
+                                      size: 16,
+                                      color: Color(0xFF94A3B8),
+                                    ),
+                                    items: ['All Status', 'Active', 'Inactive'].map((
+                                      String value,
+                                    ) {
+                                      return DropdownMenuItem<String>(
+                                        value: value,
+                                        child: Text(
+                                          value,
+                                          style: const TextStyle(
+                                            color: Color(0xFF475569),
+                                            fontSize: 14,
+                                          ),
+                                        ),
+                                      );
+                                    }).toList(),
+                                    onChanged: (newValue) {
+                                      if (newValue != null) {
+                                        setState(() => _selectedStatus = newValue);
+                                      }
+                                    },
+                                  ),
+                                ),
+                              ),
+                              Container(
+                                width: 150,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: Theme.of(context).dividerColor),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: DropdownButtonHideUnderline(
+                                  child: DropdownButton<String>(
+                                    value: _selectedCity,
+                                    isExpanded: true,
+                                    icon: const Icon(
+                                      Icons.keyboard_arrow_down,
+                                      size: 16,
+                                      color: Color(0xFF94A3B8),
+                                    ),
+                                    items: allCities.map((String value) {
+                                      return DropdownMenuItem<String>(
+                                        value: value,
+                                        child: Text(
+                                          value,
+                                          style: const TextStyle(
+                                            color: Color(0xFF475569),
+                                            fontSize: 14,
+                                          ),
+                                        ),
+                                      );
+                                    }).toList(),
+                                    onChanged: (newValue) {
+                                      if (newValue != null) {
+                                        setState(() => _selectedCity = newValue);
+                                      }
+                                    },
+                                  ),
+                                ),
+                              ),
+                              InkWell(
+                                onTap: () =>
+                                    setState(() => _sortAscending = !_sortAscending),
+                                borderRadius: BorderRadius.circular(8),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 14,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.transparent,
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(
+                                      color: Theme.of(context).dividerColor,
                                     ),
                                   ),
-                                );
-                              }).toList(),
-                              onChanged: (newValue) {
-                                if (newValue != null) {
-                                  setState(() => _selectedCity = newValue);
-                                }
-                              },
-                            ),
-                          ),
-                        ),
-                        InkWell(
-                          onTap: () =>
-                              setState(() => _sortAscending = !_sortAscending),
-                          borderRadius: BorderRadius.circular(8),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 14,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.transparent,
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(
-                                color: Theme.of(context).dividerColor,
-                              ),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  _sortAscending
-                                      ? Icons.arrow_upward
-                                      : Icons.arrow_downward,
-                                  size: 16,
-                                  color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF475569),
-                                ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  'Sort By: NAME',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 12,
-                                    color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        _sortAscending
+                                            ? Icons.arrow_upward
+                                            : Icons.arrow_downward,
+                                        size: 16,
+                                        color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF475569),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        'Sort By: NAME',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 12,
+                                          color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
+                          )
+                        : Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              TextField(
+                                onChanged: (val) =>
+                                    setState(() => _searchQuery = val),
+                                decoration: InputDecoration(
+                                  hintText:
+                                      'Search shop by name, code, location...',
+                                  prefixIcon: const Icon(
+                                    Icons.search,
+                                    color: Color(0xFF94A3B8),
+                                    size: 18,
+                                  ),
+                                  filled: true,
+                                  fillColor: isDark
+                                      ? const Color(0xFF0F172A)
+                                      : Colors.white,
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                    borderSide: const BorderSide(
+                                      color: Color(0xFFE2E8F0),
+                                    ),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                    borderSide: const BorderSide(
+                                      color: Color(0xFFE2E8F0),
+                                    ),
+                                  ),
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 10,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 1,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        border: Border.all(color: Theme.of(context).dividerColor),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: DropdownButtonHideUnderline(
+                                        child: DropdownButton<String>(
+                                          value: _selectedStatus,
+                                          isExpanded: true,
+                                          icon: const Icon(
+                                            Icons.keyboard_arrow_down,
+                                            size: 14,
+                                            color: Color(0xFF94A3B8),
+                                          ),
+                                          items: ['All Status', 'Active', 'Inactive'].map((
+                                            String value,
+                                          ) {
+                                            return DropdownMenuItem<String>(
+                                              value: value,
+                                              child: Text(
+                                                value,
+                                                style: const TextStyle(
+                                                  color: Color(0xFF475569),
+                                                  fontSize: 12,
+                                                ),
+                                              ),
+                                            );
+                                          }).toList(),
+                                          onChanged: (newValue) {
+                                            if (newValue != null) {
+                                              setState(() => _selectedStatus = newValue);
+                                            }
+                                          },
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Expanded(
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 1,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        border: Border.all(color: Theme.of(context).dividerColor),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: DropdownButtonHideUnderline(
+                                        child: DropdownButton<String>(
+                                          value: _selectedCity,
+                                          isExpanded: true,
+                                          icon: const Icon(
+                                            Icons.keyboard_arrow_down,
+                                            size: 14,
+                                            color: Color(0xFF94A3B8),
+                                          ),
+                                          items: allCities.map((String value) {
+                                            return DropdownMenuItem<String>(
+                                              value: value,
+                                              child: Text(
+                                                value,
+                                                style: const TextStyle(
+                                                  color: Color(0xFF475569),
+                                                  fontSize: 12,
+                                                ),
+                                              ),
+                                            );
+                                          }).toList(),
+                                          onChanged: (newValue) {
+                                            if (newValue != null) {
+                                              setState(() => _selectedCity = newValue);
+                                            }
+                                          },
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  InkWell(
+                                    onTap: () =>
+                                        setState(() => _sortAscending = !_sortAscending),
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 10,
+                                        vertical: 12,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: Colors.transparent,
+                                        borderRadius: BorderRadius.circular(8),
+                                        border: Border.all(
+                                          color: Theme.of(context).dividerColor,
+                                        ),
+                                      ),
+                                      child: Icon(
+                                        _sortAscending
+                                            ? Icons.arrow_upward
+                                            : Icons.arrow_downward,
+                                        size: 16,
+                                        color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF475569),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
                           ),
-                        ),
-                      ],
-                    ),
                   ),
 
                   // Table Component
@@ -736,19 +892,19 @@ class _ShopManagementScreenState extends ConsumerState<ShopManagementScreen> {
                     onEdit: _showEditShopDialog,
                   ),
 
-                  const SizedBox(height: 48),
+                  SizedBox(height: isDesktop ? 48 : 20),
 
-                  // Multi-Branch Management Upcoming Feature Card
+                  // Multi-Branch Management Feature Card (Responsive)
                   Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 64,
-                      horizontal: 24,
+                    padding: EdgeInsets.symmetric(
+                      vertical: isDesktop ? 64 : 24,
+                      horizontal: isDesktop ? 24 : 16,
                     ),
                     child: Column(
                       children: [
                         Container(
-                          padding: const EdgeInsets.all(24),
+                          padding: EdgeInsets.all(isDesktop ? 24 : 14),
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             color: isDark
@@ -757,36 +913,38 @@ class _ShopManagementScreenState extends ConsumerState<ShopManagementScreen> {
                             boxShadow: [
                               BoxShadow(
                                 color: Colors.green.withValues(alpha: 0.15),
-                                blurRadius: 60,
-                                spreadRadius: 20,
+                                blurRadius: isDesktop ? 60 : 30,
+                                spreadRadius: isDesktop ? 20 : 10,
                               ),
                             ],
                           ),
-                          child: const Icon(
+                          child: Icon(
                             Icons.hub_rounded,
-                            size: 72,
-                            color: Color(0xFF22C55E),
+                            size: isDesktop ? 72 : 38,
+                            color: const Color(0xFF22C55E),
                           ),
                         ),
-                        const SizedBox(height: 40),
+                        SizedBox(height: isDesktop ? 40 : 16),
                         Text(
                           'Multi-Branch Management',
                           textAlign: TextAlign.center,
                           style: TextStyle(
-                            fontSize: 28,
+                            fontSize: isDesktop ? 28 : 18,
                             fontWeight: FontWeight.w900,
                             color: isDark
                                 ? Colors.white
                                 : const Color(0xFF1E293B),
                           ),
                         ),
-                        const SizedBox(height: 16),
+                        SizedBox(height: isDesktop ? 16 : 8),
                         Text(
-                          'We are designing a powerful new way for you\nto manage multiple\npharmacy branches from a single unified\ndashboard.',
+                          isDesktop
+                              ? 'We are designing a powerful new way for you\nto manage multiple\npharmacy branches from a single unified\ndashboard.'
+                              : 'Manage multiple pharmacy branches from a single unified dashboard.',
                           textAlign: TextAlign.center,
                           style: TextStyle(
-                            fontSize: 16,
-                            height: 1.6,
+                            fontSize: isDesktop ? 16 : 12.5,
+                            height: isDesktop ? 1.6 : 1.4,
                             fontWeight: FontWeight.w600,
                             color: isDark
                                 ? const Color(0xFF94A3B8)
