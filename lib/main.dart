@@ -6,6 +6,7 @@ import 'providers/theme_provider.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'config/responsive_config.dart';
+import 'widgets/desktop_zoom_wrapper.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
@@ -36,9 +37,11 @@ class SirfBillApp extends ConsumerWidget {
         useMaterial3: true,
       ),
       routerConfig: goRouter,
-      builder: (context, child) => ResponsiveBreakpoints.builder(
-        child: child!,
-        breakpoints: ResponsiveConfig.breakpoints,
+      builder: (context, child) => DesktopZoomWrapper(
+        child: ResponsiveBreakpoints.builder(
+          child: child!,
+          breakpoints: ResponsiveConfig.breakpoints,
+        ),
       ),
     );
   }

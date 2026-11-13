@@ -11,6 +11,7 @@ import '../../services/auth_service.dart';
 import '../../providers/counter_providers.dart';
 import '../../providers/theme_provider.dart';
 import 'widgets/about/about_us_dialog.dart';
+import 'widgets/sidebar/desktop_zoom_sidebar_control.dart';
 import '../../services/windows_auto_updater.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
@@ -911,6 +912,9 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
                           ),
                         ),
                       ),
+
+                      // Zoom Control (Desktop Stepper)
+                      DesktopZoomSidebarControl(isExpanded: isExpanded),
 
                       // About Us Item
                       Tooltip(
