@@ -195,10 +195,13 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
       width: isDesktop
           ? (isExpanded ? 228 : 48)
           : double.infinity, // Expand fully on mobile
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      margin: EdgeInsets.symmetric(
+        horizontal: isDesktop ? 16 : 12,
+        vertical: isDesktop ? 4 : 2,
+      ),
       padding: EdgeInsets.symmetric(
-        horizontal: isExpanded ? 16 : 0,
-        vertical: 12,
+        horizontal: isExpanded ? (isDesktop ? 16 : 12) : 0,
+        vertical: isDesktop ? 12 : 8,
       ),
       decoration: BoxDecoration(
         color: isSelected ? itemBgSelected : Colors.transparent,
@@ -348,7 +351,14 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
       child: Scaffold(
         key: _scaffoldKey,
         backgroundColor: Colors.white,
-        drawer: isDesktop ? null : Drawer(child: _buildSidebar(isDesktop)),
+        drawer: isDesktop
+            ? null
+            : Drawer(
+                width: MediaQuery.of(context).size.width * 0.72 > 280
+                    ? 280
+                    : MediaQuery.of(context).size.width * 0.72,
+                child: _buildSidebar(isDesktop),
+              ),
         body: SafeArea(
           child: Column(
             children: [
@@ -685,6 +695,318 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
     );
   }
 
+  Widget _buildSidebarFooter({
+    required bool isDesktop,
+    required bool isExpanded,
+    required bool isDark,
+    required Color subtitleColor,
+  }) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: isExpanded
+          ? CrossAxisAlignment.start
+          : CrossAxisAlignment.center,
+      children: [
+        const Divider(
+          color: Color(0xFFE2E8F0),
+          thickness: 1,
+          indent: 16,
+          endIndent: 16,
+        ),
+        const SizedBox(height: 4),
+
+        Tooltip(
+          message: isExpanded
+              ? ''
+              : (isDark ? 'Light Mode' : 'Dark Mode'),
+          child: InkWell(
+            onTap: () {
+              ref.read(themeProvider.notifier).toggleTheme();
+            },
+            borderRadius: BorderRadius.circular(12),
+            child: Container(
+              width: isDesktop
+                  ? (isExpanded ? 228 : 48)
+                  : double.infinity,
+              margin: EdgeInsets.symmetric(
+                horizontal: isDesktop ? 16 : 12,
+                vertical: isDesktop ? 4 : 2,
+              ),
+              padding: EdgeInsets.symmetric(
+                horizontal: isExpanded ? (isDesktop ? 16 : 12) : 0,
+                vertical: isDesktop ? 12 : 8,
+              ),
+              child: AnimatedCrossFade(
+                duration: const Duration(milliseconds: 200),
+                crossFadeState: isExpanded
+                    ? CrossFadeState.showFirst
+                    : CrossFadeState.showSecond,
+                alignment: Alignment.centerLeft,
+                firstChild: isDesktop
+                    ? SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        physics:
+                            const NeverScrollableScrollPhysics(),
+                        child: Row(
+                          mainAxisAlignment:
+                              MainAxisAlignment.start,
+                          children: [
+                            Icon(
+                              isDark
+                                  ? Icons.light_mode
+                                  : Icons.dark_mode,
+                              color: subtitleColor,
+                              size: 20,
+                            ),
+                            const SizedBox(width: 12),
+                            Text(
+                              isDark ? 'Light Mode' : 'Dark Mode',
+                              style: TextStyle(
+                                color: subtitleColor,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    : Row(
+                        children: [
+                          Icon(
+                            isDark
+                                ? Icons.light_mode
+                                : Icons.dark_mode,
+                            color: subtitleColor,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              isDark ? 'Light Mode' : 'Dark Mode',
+                              style: TextStyle(
+                                color: subtitleColor,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                secondChild: Center(
+                  child: Icon(
+                    isDark ? Icons.light_mode : Icons.dark_mode,
+                    color: subtitleColor,
+                    size: 20,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+
+        // Zoom Control (Desktop Stepper)
+        DesktopZoomSidebarControl(isExpanded: isExpanded),
+
+        // About Us Item
+        Tooltip(
+          message: isExpanded ? '' : 'About Us',
+          child: InkWell(
+            onTap: () => AboutUsDialog.show(context),
+            borderRadius: BorderRadius.circular(12),
+            child: Container(
+              width: isDesktop
+                  ? (isExpanded ? 228 : 48)
+                  : double.infinity,
+              margin: EdgeInsets.symmetric(
+                horizontal: isDesktop ? 16 : 12,
+                vertical: isDesktop ? 4 : 2,
+              ),
+              padding: EdgeInsets.symmetric(
+                horizontal: isExpanded ? (isDesktop ? 16 : 12) : 0,
+                vertical: isDesktop ? 12 : 8,
+              ),
+              child: AnimatedCrossFade(
+                duration: const Duration(milliseconds: 200),
+                crossFadeState: isExpanded
+                    ? CrossFadeState.showFirst
+                    : CrossFadeState.showSecond,
+                alignment: Alignment.centerLeft,
+                firstChild: isDesktop
+                    ? SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        physics: const NeverScrollableScrollPhysics(),
+                        child: Row(
+                          mainAxisAlignment:
+                              MainAxisAlignment.start,
+                          children: [
+                            Icon(
+                              Icons.info_outline_rounded,
+                              color: subtitleColor,
+                              size: 20,
+                            ),
+                            const SizedBox(width: 12),
+                            Text(
+                              'About Us',
+                              style: TextStyle(
+                                color: subtitleColor,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    : Row(
+                        children: [
+                          Icon(
+                            Icons.info_outline_rounded,
+                            color: subtitleColor,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              'About Us',
+                              style: TextStyle(
+                                color: subtitleColor,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                secondChild: Center(
+                  child: Icon(
+                    Icons.info_outline_rounded,
+                    color: subtitleColor,
+                    size: 20,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+
+        Tooltip(
+          message: isExpanded ? '' : 'Logout',
+          child: InkWell(
+            onTap: () async {
+              final shouldLogout =
+                  await LogoutConfirmationDialog.show(context);
+              if (shouldLogout && context.mounted) {
+                await AuthService.logout();
+                if (context.mounted) {
+                  // Go back to the module selection screen FIRST
+                  // ignore: use_build_context_synchronously
+                  context.go('/dashboard');
+                  resetAllSessionProviders(ref);
+                }
+              }
+            },
+            borderRadius: BorderRadius.circular(12),
+            child: Container(
+              width: isDesktop
+                  ? (isExpanded ? 228 : 48)
+                  : double.infinity,
+              margin: EdgeInsets.symmetric(
+                horizontal: isDesktop ? 16 : 12,
+                vertical: isDesktop ? 4 : 2,
+              ),
+              padding: EdgeInsets.symmetric(
+                horizontal: isExpanded ? (isDesktop ? 16 : 12) : 0,
+                vertical: isDesktop ? 12 : 8,
+              ),
+              child: AnimatedCrossFade(
+                duration: const Duration(milliseconds: 200),
+                crossFadeState: isExpanded
+                    ? CrossFadeState.showFirst
+                    : CrossFadeState.showSecond,
+                alignment: Alignment.centerLeft,
+                firstChild: isDesktop
+                    ? const SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        physics: NeverScrollableScrollPhysics(),
+                        child: Row(
+                          mainAxisAlignment:
+                              MainAxisAlignment.start,
+                          children: [
+                            Icon(
+                              Icons.logout,
+                              color: Colors.red,
+                              size: 20,
+                            ),
+                            SizedBox(width: 12),
+                            Text(
+                              'Logout',
+                              style: TextStyle(
+                                color: Colors.red,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    : const Row(
+                        children: [
+                          Icon(
+                            Icons.logout,
+                            color: Colors.red,
+                            size: 20,
+                          ),
+                          SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              'Logout',
+                              style: TextStyle(
+                                color: Colors.red,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                secondChild: const Center(
+                  child: Icon(
+                    Icons.logout,
+                    color: Colors.red,
+                    size: 20,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+
+        if (!isDesktop) ...[
+          const SizedBox(height: 8),
+          Center(
+            child: FutureBuilder<PackageInfo>(
+              future: PackageInfo.fromPlatform(),
+              builder: (context, snapshot) {
+                final version =
+                    snapshot.hasData ? snapshot.data!.version : '1.0.32';
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 8.0),
+                  child: Text(
+                    'SirfBill v$version',
+                    style: TextStyle(
+                      color: subtitleColor.withValues(alpha: 0.6),
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
   Widget _buildSidebar(bool isDesktop) {
     // On mobile (Drawer), always force the sidebar to be fully expanded
     final bool isExpanded = isDesktop ? _isSidebarExpanded : true;
@@ -717,7 +1039,10 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
                 : CrossAxisAlignment.center,
             children: [
               Padding(
-                padding: EdgeInsets.all(isExpanded ? 24.0 : 16.0),
+                padding: EdgeInsets.symmetric(
+                  horizontal: isDesktop ? (isExpanded ? 24.0 : 16.0) : 16.0,
+                  vertical: isDesktop ? (isExpanded ? 24.0 : 16.0) : 16.0,
+                ),
                 child: AnimatedCrossFade(
                   duration: const Duration(milliseconds: 200),
                   crossFadeState: isExpanded
@@ -825,283 +1150,27 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
                         isExpanded: isExpanded,
                       ),
 
-                      const SizedBox(height: 16),
-                      const Divider(
-                        color: Color(0xFFE2E8F0),
-                        thickness: 1,
-                        indent: 16,
-                        endIndent: 16,
-                      ),
-                      const SizedBox(height: 8),
-
-                      Tooltip(
-                        message: isExpanded
-                            ? ''
-                            : (isDark ? 'Light Mode' : 'Dark Mode'),
-                        child: InkWell(
-                          onTap: () {
-                            ref.read(themeProvider.notifier).toggleTheme();
-                          },
-                          borderRadius: BorderRadius.circular(12),
-                          child: Container(
-                            width: isDesktop
-                                ? (isExpanded ? 228 : 48)
-                                : double.infinity,
-                            margin: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 4,
-                            ),
-                            padding: EdgeInsets.symmetric(
-                              horizontal: isExpanded ? 16 : 0,
-                              vertical: 12,
-                            ),
-                            child: AnimatedCrossFade(
-                              duration: const Duration(milliseconds: 200),
-                              crossFadeState: isExpanded
-                                  ? CrossFadeState.showFirst
-                                  : CrossFadeState.showSecond,
-                              alignment: Alignment.centerLeft,
-                              firstChild: isDesktop
-                                  ? SingleChildScrollView(
-                                      scrollDirection: Axis.horizontal,
-                                      physics:
-                                          const NeverScrollableScrollPhysics(),
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.start,
-                                        children: [
-                                          Icon(
-                                            isDark
-                                                ? Icons.light_mode
-                                                : Icons.dark_mode,
-                                            color: subtitleColor,
-                                            size: 20,
-                                          ),
-                                          const SizedBox(width: 12),
-                                          Text(
-                                            isDark ? 'Light Mode' : 'Dark Mode',
-                                            style: TextStyle(
-                                              color: subtitleColor,
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 14,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    )
-                                  : Row(
-                                      children: [
-                                        Icon(
-                                          isDark
-                                              ? Icons.light_mode
-                                              : Icons.dark_mode,
-                                          color: subtitleColor,
-                                          size: 20,
-                                        ),
-                                        const SizedBox(width: 12),
-                                        Expanded(
-                                          child: Text(
-                                            isDark ? 'Light Mode' : 'Dark Mode',
-                                            style: TextStyle(
-                                              color: subtitleColor,
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 14,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                              secondChild: Center(
-                                child: Icon(
-                                  isDark ? Icons.light_mode : Icons.dark_mode,
-                                  color: subtitleColor,
-                                  size: 20,
-                                ),
-                              ),
-                            ),
-                          ),
+                      if (isDesktop) ...[
+                        const SizedBox(height: 16),
+                        _buildSidebarFooter(
+                          isDesktop: isDesktop,
+                          isExpanded: isExpanded,
+                          isDark: isDark,
+                          subtitleColor: subtitleColor,
                         ),
-                      ),
-
-                      // Zoom Control (Desktop Stepper)
-                      DesktopZoomSidebarControl(isExpanded: isExpanded),
-
-                      // About Us Item
-                      Tooltip(
-                        message: isExpanded ? '' : 'About Us',
-                        child: InkWell(
-                          onTap: () => AboutUsDialog.show(context),
-                          borderRadius: BorderRadius.circular(12),
-                          child: Container(
-                            width: isDesktop
-                                ? (isExpanded ? 228 : 48)
-                                : double.infinity,
-                            margin: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 4,
-                            ),
-                            padding: EdgeInsets.symmetric(
-                              horizontal: isExpanded ? 16 : 0,
-                              vertical: 12,
-                            ),
-                            child: AnimatedCrossFade(
-                              duration: const Duration(milliseconds: 200),
-                              crossFadeState: isExpanded
-                                  ? CrossFadeState.showFirst
-                                  : CrossFadeState.showSecond,
-                              alignment: Alignment.centerLeft,
-                              firstChild: isDesktop
-                                  ? SingleChildScrollView(
-                                      scrollDirection: Axis.horizontal,
-                                      physics: const NeverScrollableScrollPhysics(),
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.start,
-                                        children: [
-                                          Icon(
-                                            Icons.info_outline_rounded,
-                                            color: subtitleColor,
-                                            size: 20,
-                                          ),
-                                          const SizedBox(width: 12),
-                                          Text(
-                                            'About Us',
-                                            style: TextStyle(
-                                              color: subtitleColor,
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 14,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    )
-                                  : Row(
-                                      children: [
-                                        Icon(
-                                          Icons.info_outline_rounded,
-                                          color: subtitleColor,
-                                          size: 20,
-                                        ),
-                                        const SizedBox(width: 12),
-                                        Expanded(
-                                          child: Text(
-                                            'About Us',
-                                            style: TextStyle(
-                                              color: subtitleColor,
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 14,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                              secondChild: Center(
-                                child: Icon(
-                                  Icons.info_outline_rounded,
-                                  color: subtitleColor,
-                                  size: 20,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-
-                      Tooltip(
-                        message: isExpanded ? '' : 'Logout',
-                        child: InkWell(
-                          onTap: () async {
-                            final shouldLogout =
-                                await LogoutConfirmationDialog.show(context);
-                            if (shouldLogout && context.mounted) {
-                              await AuthService.logout();
-                              if (context.mounted) {
-                                // Go back to the module selection screen FIRST
-                                // ignore: use_build_context_synchronously
-                                context.go('/dashboard');
-                                resetAllSessionProviders(ref);
-                              }
-                            }
-                          },
-                          borderRadius: BorderRadius.circular(12),
-                          child: Container(
-                            width: isDesktop
-                                ? (isExpanded ? 228 : 48)
-                                : double.infinity,
-                            margin: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 4,
-                            ),
-                            padding: EdgeInsets.symmetric(
-                              horizontal: isExpanded ? 16 : 0,
-                              vertical: 12,
-                            ),
-                            child: AnimatedCrossFade(
-                              duration: const Duration(milliseconds: 200),
-                              crossFadeState: isExpanded
-                                  ? CrossFadeState.showFirst
-                                  : CrossFadeState.showSecond,
-                              alignment: Alignment.centerLeft,
-                              firstChild: isDesktop
-                                  ? const SingleChildScrollView(
-                                      scrollDirection: Axis.horizontal,
-                                      physics: NeverScrollableScrollPhysics(),
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.start,
-                                        children: [
-                                          Icon(
-                                            Icons.logout,
-                                            color: Colors.red,
-                                            size: 20,
-                                          ),
-                                          SizedBox(width: 12),
-                                          Text(
-                                            'Logout',
-                                            style: TextStyle(
-                                              color: Colors.red,
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 14,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    )
-                                  : const Row(
-                                      children: [
-                                        Icon(
-                                          Icons.logout,
-                                          color: Colors.red,
-                                          size: 20,
-                                        ),
-                                        SizedBox(width: 12),
-                                        Expanded(
-                                          child: Text(
-                                            'Logout',
-                                            style: TextStyle(
-                                              color: Colors.red,
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 14,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                              secondChild: const Center(
-                                child: Icon(
-                                  Icons.logout,
-                                  color: Colors.red,
-                                  size: 20,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
+                      ],
                     ],
                   ),
                 ),
               ),
+
+              if (!isDesktop)
+                _buildSidebarFooter(
+                  isDesktop: isDesktop,
+                  isExpanded: isExpanded,
+                  isDark: isDark,
+                  subtitleColor: subtitleColor,
+                ),
 
 
               if (!kIsWeb && Platform.isWindows)
