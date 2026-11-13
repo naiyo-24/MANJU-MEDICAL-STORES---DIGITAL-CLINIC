@@ -1360,14 +1360,12 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
 
           // Main Split Content
           Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  bool isDesktopWidth = constraints.maxWidth > 1100;
-                  bool hasEnoughHeight =
-                      constraints.maxHeight >
-                      850; // Use the tested safe threshold
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                bool isDesktopWidth = constraints.maxWidth > 1100;
+                bool hasEnoughHeight =
+                    constraints.maxHeight >
+                    850; // Use the tested safe threshold
 
                   final currentItems = inventoryState.value ?? [];
                   final isInitialLoading = inventoryState.isLoading && currentItems.isEmpty;
@@ -1493,13 +1491,16 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                   );
 
                   if (isDesktopWidth) {
-                    Widget content = Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(flex: 13, child: leftSide),
-                        const SizedBox(width: 24),
-                        Expanded(flex: 9, child: rightSide),
-                      ],
+                    Widget content = Padding(
+                      padding: const EdgeInsets.all(24.0),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(flex: 13, child: leftSide),
+                          const SizedBox(width: 24),
+                          Expanded(flex: 9, child: rightSide),
+                        ],
+                      ),
                     );
                     
                     Widget wrapper = content;
@@ -1672,19 +1673,19 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                           ),
                         ),
 
-                        // Active Tab Body
+                        // Active Tab Body (expanded cleanly from edge to edge with 6px margin)
                         Expanded(
                           child: IndexedStack(
                             index: _mobileTabIndex,
                             children: [
                               // Tab 0: Medicines Catalog
                               Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 10),
+                                padding: const EdgeInsets.symmetric(horizontal: 6),
                                 child: leftSide,
                               ),
                               // Tab 1: Cart & Checkout
                               Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 10),
+                                padding: const EdgeInsets.symmetric(horizontal: 6),
                                 child: rightSide,
                               ),
                             ],
@@ -1768,7 +1769,6 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                 },
               ),
             ),
-          ),
         ],
       ),
     );
