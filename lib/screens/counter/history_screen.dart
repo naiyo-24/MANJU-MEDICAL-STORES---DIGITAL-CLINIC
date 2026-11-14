@@ -968,12 +968,12 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                         Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF22C55E),
+                            color: const Color(0xFF166534),
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          child: Icon(
+                          child: const Icon(
                             Icons.history,
-                            color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white,
+                            color: Colors.white,
                             size: 24,
                           ),
                         ),
