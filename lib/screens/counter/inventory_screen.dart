@@ -675,32 +675,51 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                         spacing: 16,
                         runSpacing: 16,
                         children: [
-                          Column(
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              RichText(
-                                text: TextSpan(
-                                  style: TextStyle(
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.bold,
-                                    color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
-                                  ),
-                                  children: const [
-                                    TextSpan(text: 'Medicine '),
-                                    TextSpan(
-                                      text: 'Inventory',
-                                      style: TextStyle(color: Color(0xFF166534)),
-                                    ),
-                                  ],
+                              Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF166534),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: const Icon(
+                                  Icons.inventory_2,
+                                  color: Colors.white,
+                                  size: 24,
                                 ),
                               ),
-                              const SizedBox(height: 4),
-                              Text(
-                                'Manage your medicine stock, expiry, and availability in one place.',
-                                style: TextStyle(
-                                  color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B),
-                                  fontSize: 12,
-                                ),
+                              const SizedBox(width: 16),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  RichText(
+                                    text: TextSpan(
+                                      style: TextStyle(
+                                        fontSize: 24,
+                                        fontWeight: FontWeight.bold,
+                                        color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
+                                      ),
+                                      children: const [
+                                        TextSpan(text: 'Medicine '),
+                                        TextSpan(
+                                          text: 'Inventory',
+                                          style: TextStyle(color: Color(0xFF166534)),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Manage your medicine stock, expiry, and availability in one place.',
+                                    style: TextStyle(
+                                      color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B),
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ],
                           ),
@@ -730,30 +749,55 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                     : Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          // Header Title
-                          RichText(
-                            text: TextSpan(
-                              style: TextStyle(
-                                fontSize: 22,
-                                fontWeight: FontWeight.bold,
-                                color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
-                              ),
-                              children: const [
-                                TextSpan(text: 'Medicine '),
-                                TextSpan(
-                                  text: 'Inventory',
-                                  style: TextStyle(color: Color(0xFF166534)),
+                          // Header Title with Icon
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(9),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF166534),
+                                  borderRadius: BorderRadius.circular(10),
                                 ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Manage your medicine stock, expiry, and availability in one place.',
-                            style: TextStyle(
-                              color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B),
-                              fontSize: 12,
-                            ),
+                                child: const Icon(
+                                  Icons.inventory_2,
+                                  color: Colors.white,
+                                  size: 20,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    RichText(
+                                      text: TextSpan(
+                                        style: TextStyle(
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold,
+                                          color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
+                                        ),
+                                        children: const [
+                                          TextSpan(text: 'Medicine '),
+                                          TextSpan(
+                                            text: 'Inventory',
+                                            style: TextStyle(color: Color(0xFF166534)),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      'Manage your medicine stock, expiry, and availability in one place.',
+                                      style: TextStyle(
+                                        color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B),
+                                        fontSize: 11,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
                           ),
                           const SizedBox(height: 16),
 
