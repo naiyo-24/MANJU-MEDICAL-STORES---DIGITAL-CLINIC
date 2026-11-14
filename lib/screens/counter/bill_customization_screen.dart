@@ -6,7 +6,6 @@ import '../../models/settings_models.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:printing/printing.dart';
 import '../../services/shop_settings_service.dart';
-import '../../utils/responsive.dart';
 import '../../utils/pdf_generator.dart';
 import '../../config/api_constants.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -392,560 +391,632 @@ class _BillCustomizationScreenState
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          children: [
-            SizedBox(
-              width: double.infinity,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Expanded(
-                    child: Text(
-                      'Bill Customization',
-                      style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  ElevatedButton.icon(
-                    onPressed: _isSaving ? null : _saveSettings,
-                    icon: _isSaving
-                        ? SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(
-                              color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white,
-                              strokeWidth: 2,
-                            ),
-                          )
-                        : const Icon(Icons.save),
-                    label: const Text(
-                      'Save',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF22C55E),
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
-            Expanded(
-              child: Builder(
-                builder: (context) {
-                  final isDesktop =
-                      Responsive.isDesktop(context) ||
-                      Responsive.isTablet(context);
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final isDesktop = constraints.maxWidth > 900;
 
-                  final contentChildren = <Widget>[
-                    Card(
-                      color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white,
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+          return Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: isDesktop ? 24.0 : 12.0,
+              vertical: isDesktop ? 24.0 : 12.0,
+            ),
+            child: Column(
+              children: [
+                SizedBox(
+                  width: double.infinity,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          'Bill Customization',
+                          style: TextStyle(
+                            fontSize: isDesktop ? 22 : 18,
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(24.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Shop Details',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                            _buildTextField('Shop Name', _shopNameCtrl),
-                            _buildTextField('Tagline', _taglineCtrl),
-                            _buildTextField(
-                              'Address',
-                              _addressCtrl,
-                              maxLines: 2,
-                            ),
-                            Row(
+                      const SizedBox(width: 8),
+                      ElevatedButton.icon(
+                        onPressed: _isSaving ? null : _saveSettings,
+                        icon: _isSaving
+                            ? SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(
+                                  color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white,
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : const Icon(Icons.save),
+                        label: const Text(
+                          'Save',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF22C55E),
+                          foregroundColor: Colors.white,
+                          padding: EdgeInsets.symmetric(
+                            horizontal: isDesktop ? 16 : 14,
+                            vertical: isDesktop ? 12 : 10,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(height: isDesktop ? 24 : 14),
+                Expanded(
+                  child: Builder(
+                    builder: (context) {
+                      final cardPadding = EdgeInsets.all(isDesktop ? 24.0 : 14.0);
+
+                      final contentChildren = <Widget>[
+                        Card(
+                          color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Padding(
+                            padding: cardPadding,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Expanded(
-                                  child: _buildTextField(
-                                    'Phone',
-                                    _phoneCtrl,
-                                    maxLength: 10,
-                                    keyboardType: TextInputType.phone,
+                                Text(
+                                  'Shop Details',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
                                   ),
                                 ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: _buildTextField(
-                                    'Landline',
-                                    _landlineCtrl,
+                                const SizedBox(height: 16),
+                                _buildTextField('Shop Name', _shopNameCtrl),
+                                _buildTextField('Tagline', _taglineCtrl),
+                                _buildTextField(
+                                  'Address',
+                                  _addressCtrl,
+                                  maxLines: 2,
+                                ),
+                                if (isDesktop) ...[
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: _buildTextField(
+                                          'Phone',
+                                          _phoneCtrl,
+                                          maxLength: 10,
+                                          keyboardType: TextInputType.phone,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: _buildTextField(
+                                          'Landline',
+                                          _landlineCtrl,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                ),
-                              ],
-                            ),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: _buildTextField('Email', _emailCtrl),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: _buildTextField(
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: _buildTextField('Email', _emailCtrl),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: _buildTextField(
+                                          'GST Number',
+                                          _gstCtrl,
+                                          maxLength: 15,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ] else ...[
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        flex: 5,
+                                        child: _buildTextField(
+                                          'Phone',
+                                          _phoneCtrl,
+                                          maxLength: 10,
+                                          keyboardType: TextInputType.phone,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 10),
+                                      Expanded(
+                                        flex: 5,
+                                        child: _buildTextField(
+                                          'Landline',
+                                          _landlineCtrl,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  _buildTextField('Email', _emailCtrl),
+                                  _buildTextField(
                                     'GST Number',
                                     _gstCtrl,
                                     maxLength: 15,
                                   ),
-                                ),
-                              ],
-                            ),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: _buildTextField(
-                                    'Drug Licence',
-                                    _drugLicenceCtrl,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Card(
-                      color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white,
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(24.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Bank Details',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                            _buildTextField('Bank Name', _bankNameCtrl),
-                            _buildTextField('Branch Name', _branchNameCtrl),
-                            _buildTextField('A/C Holder Name', _acHolderCtrl),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: _buildTextField(
-                                    'Account Number',
-                                    _acNumberCtrl,
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: _buildTextField(
-                                    'IFSC Code',
-                                    _ifscCtrl,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Card(
-                      color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white,
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(24.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Terms & Conditions (Footer)',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Color(0xFF1E293B),
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                            _buildTextField('Term 1', _terms1Ctrl),
-                            _buildTextField('Term 2', _terms2Ctrl),
-                            _buildTextField('Term 3', _terms3Ctrl),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Card(
-                      color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white,
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(24.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Media (Logo & UPI QR)',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Color(0xFF1E293B),
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceAround,
-                              children: [
-                                Column(
-                                  children: [
-                                    Text(
-                                      'Shop Logo',
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Stack(
-                                      children: [
-                                        Container(
-                                          width: 120,
-                                          height: 120,
-                                          decoration: BoxDecoration(
-                                            border: Border.all(
-                                              color: Colors.grey.shade300,
-                                            ),
-                                            borderRadius: BorderRadius.circular(8),
-                                          ),
-                                          child: _logoUrl != null
-                                              ? ClipRRect(
-                                                  borderRadius: BorderRadius.circular(8),
-                                                  child: Image.network(
-                                                    '${ApiConstants.baseUrl}$_logoUrl',
-                                                    fit: BoxFit.contain,
-                                                  ),
-                                                )
-                                              : const Icon(
-                                                  Icons.image,
-                                                  size: 40,
-                                                  color: Colors.grey,
-                                                ),
-                                        ),
-                                        if (_logoUrl != null)
-                                          Positioned(
-                                            top: -8,
-                                            right: -8,
-                                            child: IconButton(
-                                              icon: const Icon(Icons.cancel, color: Colors.red),
-                                              onPressed: () {
-                                                setState(() {
-                                                  _logoUrl = null;
-                                                });
-                                              },
-                                            ),
-                                          ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 8),
-                                    OutlinedButton.icon(
-                                      onPressed: () => _pickImage(true),
-                                      icon: const Icon(Icons.upload),
-                                      label: const Text('Upload'),
-                                    ),
-                                  ],
-                                ),
-                                Column(
-                                  children: [
-                                    Text(
-                                      'UPI QR Code',
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Stack(
-                                      children: [
-                                        Container(
-                                          width: 120,
-                                          height: 120,
-                                          decoration: BoxDecoration(
-                                            border: Border.all(
-                                              color: Colors.grey.shade300,
-                                            ),
-                                            borderRadius: BorderRadius.circular(8),
-                                          ),
-                                          child: _qrUrl != null
-                                              ? ClipRRect(
-                                                  borderRadius: BorderRadius.circular(8),
-                                                  child: Image.network(
-                                                    '${ApiConstants.baseUrl}$_qrUrl',
-                                                    fit: BoxFit.contain,
-                                                  ),
-                                                )
-                                              : const Icon(
-                                                  Icons.qr_code,
-                                                  size: 40,
-                                                  color: Colors.grey,
-                                                ),
-                                        ),
-                                        if (_qrUrl != null)
-                                          Positioned(
-                                            top: -8,
-                                            right: -8,
-                                            child: IconButton(
-                                              icon: const Icon(Icons.cancel, color: Colors.red),
-                                              onPressed: () {
-                                                setState(() {
-                                                  _qrUrl = null;
-                                                });
-                                              },
-                                            ),
-                                          ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 8),
-                                    OutlinedButton.icon(
-                                      onPressed: () => _pickImage(false),
-                                      icon: const Icon(Icons.upload),
-                                      label: const Text('Upload'),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ];
-
-                  final rightPane = Card(
-                    color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        children: [
-                          Wrap(
-                            alignment: WrapAlignment.spaceBetween,
-                            crossAxisAlignment: WrapCrossAlignment.center,
-                            runSpacing: 16,
-                            spacing: 16,
-                            children: [
-                              Text(
-                                'Live Preview',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
-                                ),
-                              ),
-                              Wrap(
-                                spacing: 16,
-                                runSpacing: 16,
-                                crossAxisAlignment: WrapCrossAlignment.center,
-                                children: [
-                                  ToggleButtons(
-                                    isSelected: [
-                                      _previewFormat == 'Thermal',
-                                      _previewFormat == 'A4',
-                                      _previewFormat == 'A5',
-                                    ],
-                                    onPressed: (index) {
-                                      setState(() {
-                                        _previewFormat = index == 0
-                                            ? 'Thermal'
-                                            : (index == 1 ? 'A4' : 'A5');
-                                        _previewBytes =
-                                            null; // Clear old preview on format change
-                                      });
-                                    },
-                                    borderRadius: BorderRadius.circular(8),
-                                    color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B),
-                                    selectedColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF052E16) : const Color(0xFF22C55E),
-                                    fillColor: Theme.of(context).brightness == Brightness.dark ? Colors.transparent : const Color(0xFFF1F8F5),
-                                    children: const [
-                                      Padding(
-                                        padding: EdgeInsets.symmetric(
-                                          horizontal: 12,
-                                        ),
-                                        child: Text(
-                                          'Thermal',
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 12,
-                                          ),
-                                        ),
-                                      ),
-                                      Padding(
-                                        padding: EdgeInsets.symmetric(
-                                          horizontal: 12,
-                                        ),
-                                        child: Text(
-                                          'A4',
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 12,
-                                          ),
-                                        ),
-                                      ),
-                                      Padding(
-                                        padding: EdgeInsets.symmetric(
-                                          horizontal: 12,
-                                        ),
-                                        child: Text(
-                                          'A5',
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 12,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  ElevatedButton.icon(
-                                    onPressed: _isGenerating
-                                        ? null
-                                        : _generatePreviewPdf,
-                                    icon: const Icon(Icons.refresh),
-                                    label: const Text('Generate Preview'),
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: const Color(0xFF3B82F6),
-                                      foregroundColor: Colors.white,
-                                    ),
-                                  ),
                                 ],
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 16),
-                          Expanded(
-                            child: _previewBytes == null
-                                ? const Center(
-                                    child: Text(
-                                      'Click "Generate Preview" to see the bill format',
-                                      style: TextStyle(
-                                        color: Colors.grey,
-                                        fontSize: 16,
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: _buildTextField(
+                                        'Drug Licence',
+                                        _drugLicenceCtrl,
                                       ),
                                     ),
-                                  )
-                                : PdfPreview(
-                                    build: (format) async => _previewBytes!,
-                                    canChangePageFormat: false,
-                                    canChangeOrientation: false,
-                                    canDebug: false,
-                                    allowPrinting: false,
-                                    allowSharing: false,
-                                  ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-
-                  final leftPane = DefaultTabController(
-                    length: isDesktop ? 2 : 3,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: TabBar(
-                            isScrollable: !isDesktop,
-                            tabAlignment: !isDesktop ? TabAlignment.start : TabAlignment.fill,
-                            labelColor: Theme.of(context).brightness == Brightness.dark ? Colors.green[400] : const Color(0xFF166534),
-                            unselectedLabelColor: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B),
-                            indicatorColor: const Color(0xFF22C55E),
-                            tabs: [
-                              const Tab(text: 'Shop Details'),
-                              const Tab(text: 'Bill Customization'),
-                              if (!isDesktop) const Tab(text: 'Live Preview'),
-                            ],
+                                  ],
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                         const SizedBox(height: 16),
-                        Expanded(
-                          child: TabBarView(
+                        Card(
+                          color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Padding(
+                            padding: cardPadding,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Bank Details',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                _buildTextField('Bank Name', _bankNameCtrl),
+                                _buildTextField('Branch Name', _branchNameCtrl),
+                                _buildTextField('A/C Holder Name', _acHolderCtrl),
+                                if (isDesktop) ...[
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: _buildTextField(
+                                          'Account Number',
+                                          _acNumberCtrl,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: _buildTextField(
+                                          'IFSC Code',
+                                          _ifscCtrl,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ] else ...[
+                                  _buildTextField(
+                                    'Account Number',
+                                    _acNumberCtrl,
+                                  ),
+                                  _buildTextField(
+                                    'IFSC Code',
+                                    _ifscCtrl,
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Card(
+                          color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Padding(
+                            padding: cardPadding,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Terms & Conditions (Footer)',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                _buildTextField('Term 1', _terms1Ctrl),
+                                _buildTextField('Term 2', _terms2Ctrl),
+                                _buildTextField('Term 3', _terms3Ctrl),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Card(
+                          color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Padding(
+                            padding: cardPadding,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Media (Logo & UPI QR)',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                  children: [
+                                    Column(
+                                      children: [
+                                        Text(
+                                          'Shop Logo',
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B),
+                                          ),
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Stack(
+                                          children: [
+                                            Container(
+                                              width: 120,
+                                              height: 120,
+                                              decoration: BoxDecoration(
+                                                border: Border.all(
+                                                  color: Colors.grey.shade300,
+                                                ),
+                                                borderRadius: BorderRadius.circular(8),
+                                              ),
+                                              child: _logoUrl != null
+                                                  ? ClipRRect(
+                                                      borderRadius: BorderRadius.circular(8),
+                                                      child: Image.network(
+                                                        '${ApiConstants.baseUrl}$_logoUrl',
+                                                        fit: BoxFit.contain,
+                                                      ),
+                                                    )
+                                                  : const Icon(
+                                                      Icons.image,
+                                                      size: 40,
+                                                      color: Colors.grey,
+                                                    ),
+                                            ),
+                                            if (_logoUrl != null)
+                                              Positioned(
+                                                top: -8,
+                                                right: -8,
+                                                child: IconButton(
+                                                  icon: const Icon(Icons.cancel, color: Colors.red),
+                                                  onPressed: () {
+                                                    setState(() {
+                                                      _logoUrl = null;
+                                                    });
+                                                  },
+                                                ),
+                                              ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 8),
+                                        OutlinedButton.icon(
+                                          onPressed: () => _pickImage(true),
+                                          icon: const Icon(Icons.upload),
+                                          label: const Text('Upload'),
+                                        ),
+                                      ],
+                                    ),
+                                    Column(
+                                      children: [
+                                        Text(
+                                          'UPI QR Code',
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B),
+                                          ),
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Stack(
+                                          children: [
+                                            Container(
+                                              width: 120,
+                                              height: 120,
+                                              decoration: BoxDecoration(
+                                                border: Border.all(
+                                                  color: Colors.grey.shade300,
+                                                ),
+                                                borderRadius: BorderRadius.circular(8),
+                                              ),
+                                              child: _qrUrl != null
+                                                  ? ClipRRect(
+                                                      borderRadius: BorderRadius.circular(8),
+                                                      child: Image.network(
+                                                        '${ApiConstants.baseUrl}$_qrUrl',
+                                                        fit: BoxFit.contain,
+                                                      ),
+                                                    )
+                                                  : const Icon(
+                                                      Icons.qr_code,
+                                                      size: 40,
+                                                      color: Colors.grey,
+                                                    ),
+                                            ),
+                                            if (_qrUrl != null)
+                                              Positioned(
+                                                top: -8,
+                                                right: -8,
+                                                child: IconButton(
+                                                  icon: const Icon(Icons.cancel, color: Colors.red),
+                                                  onPressed: () {
+                                                    setState(() {
+                                                      _qrUrl = null;
+                                                    });
+                                                  },
+                                                ),
+                                              ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 8),
+                                        OutlinedButton.icon(
+                                          onPressed: () => _pickImage(false),
+                                          icon: const Icon(Icons.upload),
+                                          label: const Text('Upload'),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ];
+
+                      final rightPane = Card(
+                        color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Padding(
+                          padding: EdgeInsets.all(isDesktop ? 16.0 : 12.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              SingleChildScrollView(
-                                child: Column(
+                              if (isDesktop) ...[
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
                                   children: [
-                                    contentChildren[0], // Shop Details
-                                    contentChildren[1], // SizedBox
-                                    contentChildren[2], // Bank Details
+                                    Text(
+                                      'Live Preview',
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                        color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
+                                      ),
+                                    ),
+                                    Row(
+                                      children: [
+                                        ToggleButtons(
+                                          isSelected: [
+                                            _previewFormat == 'Thermal',
+                                            _previewFormat == 'A4',
+                                            _previewFormat == 'A5',
+                                          ],
+                                          onPressed: (index) {
+                                            setState(() {
+                                              _previewFormat = index == 0
+                                                  ? 'Thermal'
+                                                  : (index == 1 ? 'A4' : 'A5');
+                                              _previewBytes = null;
+                                            });
+                                          },
+                                          borderRadius: BorderRadius.circular(8),
+                                          color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B),
+                                          selectedColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF052E16) : const Color(0xFF22C55E),
+                                          fillColor: Theme.of(context).brightness == Brightness.dark ? Colors.transparent : const Color(0xFFF1F8F5),
+                                          children: const [
+                                            Padding(
+                                              padding: EdgeInsets.symmetric(horizontal: 12),
+                                              child: Text('Thermal', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                                            ),
+                                            Padding(
+                                              padding: EdgeInsets.symmetric(horizontal: 12),
+                                              child: Text('A4', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                                            ),
+                                            Padding(
+                                              padding: EdgeInsets.symmetric(horizontal: 12),
+                                              child: Text('A5', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(width: 12),
+                                        ElevatedButton.icon(
+                                          onPressed: _isGenerating ? null : _generatePreviewPdf,
+                                          icon: const Icon(Icons.refresh),
+                                          label: const Text('Generate Preview'),
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: const Color(0xFF3B82F6),
+                                            foregroundColor: Colors.white,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ],
                                 ),
-                              ),
-                              SingleChildScrollView(
-                                child: Column(
+                              ] else ...[
+                                Column(
                                   children: [
-                                    contentChildren[4], // Terms & Conditions
-                                    contentChildren[5], // SizedBox
-                                    contentChildren[6], // Media
+                                    ToggleButtons(
+                                      isSelected: [
+                                        _previewFormat == 'Thermal',
+                                        _previewFormat == 'A4',
+                                        _previewFormat == 'A5',
+                                      ],
+                                      onPressed: (index) {
+                                        setState(() {
+                                          _previewFormat = index == 0
+                                              ? 'Thermal'
+                                              : (index == 1 ? 'A4' : 'A5');
+                                          _previewBytes = null;
+                                        });
+                                      },
+                                      borderRadius: BorderRadius.circular(8),
+                                      color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B),
+                                      selectedColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF052E16) : const Color(0xFF22C55E),
+                                      fillColor: Theme.of(context).brightness == Brightness.dark ? Colors.transparent : const Color(0xFFF1F8F5),
+                                      children: const [
+                                        Padding(
+                                          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                          child: Text('Thermal', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                                        ),
+                                        Padding(
+                                          padding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                                          child: Text('A4', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                                        ),
+                                        Padding(
+                                          padding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                                          child: Text('A5', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 12),
+                                    SizedBox(
+                                      width: double.infinity,
+                                      child: ElevatedButton.icon(
+                                        onPressed: _isGenerating ? null : _generatePreviewPdf,
+                                        icon: const Icon(Icons.refresh),
+                                        label: const Text('Generate Preview'),
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: const Color(0xFF3B82F6),
+                                          foregroundColor: Colors.white,
+                                          padding: const EdgeInsets.symmetric(vertical: 12),
+                                        ),
+                                      ),
+                                    ),
                                   ],
                                 ),
+                              ],
+                              const SizedBox(height: 16),
+                              Expanded(
+                                child: _previewBytes == null
+                                    ? const Center(
+                                        child: Text(
+                                          'Click "Generate Preview" to see the bill format',
+                                          style: TextStyle(
+                                            color: Colors.grey,
+                                            fontSize: 16,
+                                          ),
+                                        ),
+                                      )
+                                    : PdfPreview(
+                                        build: (format) async => _previewBytes!,
+                                        canChangePageFormat: false,
+                                        canChangeOrientation: false,
+                                        canDebug: false,
+                                        allowPrinting: false,
+                                        allowSharing: false,
+                                      ),
                               ),
-                              if (!isDesktop) rightPane,
                             ],
                           ),
                         ),
-                      ],
-                    ),
-                  );
+                      );
 
-                  if (isDesktop) {
-                    return Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(child: leftPane),
-                        const SizedBox(width: 24),
-                        Expanded(child: rightPane),
-                      ],
-                    );
-                  } else {
-                    return leftPane;
-                  }
-                },
-              ),
+                      final leftPane = DefaultTabController(
+                        length: isDesktop ? 2 : 3,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              decoration: BoxDecoration(
+                                color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: TabBar(
+                                isScrollable: !isDesktop,
+                                tabAlignment: !isDesktop ? TabAlignment.start : TabAlignment.fill,
+                                labelColor: Theme.of(context).brightness == Brightness.dark ? Colors.green[400] : const Color(0xFF166534),
+                                unselectedLabelColor: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B),
+                                indicatorColor: const Color(0xFF22C55E),
+                                tabs: [
+                                  const Tab(text: 'Shop Details'),
+                                  const Tab(text: 'Bill Customization'),
+                                  if (!isDesktop) const Tab(text: 'Live Preview'),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            Expanded(
+                              child: TabBarView(
+                                children: [
+                                  SingleChildScrollView(
+                                    child: Column(
+                                      children: [
+                                        contentChildren[0], // Shop Details
+                                        contentChildren[1], // SizedBox
+                                        contentChildren[2], // Bank Details
+                                      ],
+                                    ),
+                                  ),
+                                  SingleChildScrollView(
+                                    child: Column(
+                                      children: [
+                                        contentChildren[4], // Terms & Conditions
+                                        contentChildren[5], // SizedBox
+                                        contentChildren[6], // Media
+                                      ],
+                                    ),
+                                  ),
+                                  if (!isDesktop) rightPane,
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+
+                      if (isDesktop) {
+                        return Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(child: leftPane),
+                            const SizedBox(width: 24),
+                            Expanded(child: rightPane),
+                          ],
+                        );
+                      } else {
+                        return leftPane;
+                      }
+                    },
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
