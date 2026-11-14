@@ -238,12 +238,21 @@ class AccountsWidgets {
     BuildContext context,
     TransactionModel txn,
   ) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryTextColor = isDark ? Colors.white : const Color(0xFF0F172A);
+    final isIncome = txn.type.toLowerCase() == 'income';
+
     showDialog(
       context: context,
       builder: (context) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        backgroundColor: Theme.of(context).cardColor,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(color: Theme.of(context).dividerColor),
+        ),
         child: Container(
-          width: 400,
+          constraints: const BoxConstraints(maxWidth: 440),
+          width: double.infinity,
           padding: const EdgeInsets.all(24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -252,34 +261,69 @@ class AccountsWidgets {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
+                  Text(
                     'Transaction Details',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: primaryTextColor,
+                    ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.close),
+                    icon: Icon(
+                      Icons.close,
+                      color: isDark ? Colors.grey[400] : const Color(0xFF64748B),
+                    ),
                     onPressed: () => Navigator.pop(context),
                   ),
                 ],
               ),
-              const Divider(),
-              const SizedBox(height: 16),
-              AccountsWidgets.buildDetailRow(
-                'Date & Time',
-                "${txn.date} ${txn.time}",
+              Divider(color: Theme.of(context).dividerColor),
+              const SizedBox(height: 12),
+              Flexible(
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      buildDetailRow(
+                        'Date & Time',
+                        "${txn.date} ${txn.time}",
+                        context: context,
+                      ),
+                      buildDetailRow(
+                        'Type',
+                        txn.type,
+                        context: context,
+                        valueColor: isIncome ? const Color(0xFF16A34A) : const Color(0xFFDC2626),
+                        isBold: true,
+                      ),
+                      buildDetailRow(
+                        'Category',
+                        txn.category,
+                        context: context,
+                      ),
+                      buildDetailRow(
+                        'Payment Mode',
+                        txn.paymentMode,
+                        context: context,
+                      ),
+                      buildDetailRow(
+                        'Amount',
+                        _fmt(txn.amount),
+                        context: context,
+                        valueColor: isIncome ? const Color(0xFF16A34A) : const Color(0xFFDC2626),
+                        isBold: true,
+                      ),
+                      buildDetailRow(
+                        'Description',
+                        txn.description.isEmpty ? '-' : txn.description,
+                        context: context,
+                      ),
+                    ],
+                  ),
+                ),
               ),
-              AccountsWidgets.buildDetailRow('Type', txn.type),
-              AccountsWidgets.buildDetailRow('Category', txn.category),
-              AccountsWidgets.buildDetailRow('Payment Mode', txn.paymentMode),
-              AccountsWidgets.buildDetailRow('Amount', _fmt(txn.amount)),
-              const SizedBox(height: 16),
-              const Text(
-                'Description',
-                style: TextStyle(color: Colors.grey, fontSize: 12),
-              ),
-              const SizedBox(height: 4),
-              Text(txn.description, style: const TextStyle(fontSize: 14)),
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
               Align(
                 alignment: Alignment.centerRight,
                 child: ElevatedButton(
@@ -290,10 +334,16 @@ class AccountsWidgets {
                       horizontal: 24,
                       vertical: 12,
                     ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                   ),
                   child: const Text(
                     'Close',
-                    style: TextStyle(color: Colors.white),
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
@@ -304,16 +354,45 @@ class AccountsWidgets {
     );
   }
 
-  static Widget buildDetailRow(String label, String value) {
+  static Widget buildDetailRow(
+    String label,
+    String value, {
+    BuildContext? context,
+    Color? valueColor,
+    bool isBold = false,
+  }) {
+    final isDark = context != null && Theme.of(context).brightness == Brightness.dark;
+    final labelColor = isDark ? const Color(0xFFF1F5F9) : const Color(0xFF1E293B);
+    final valColor = valueColor ?? (isDark ? Colors.white : const Color(0xFF0F172A));
+
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: const TextStyle(color: Colors.grey, fontSize: 14)),
-          Text(
-            value,
-            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+          SizedBox(
+            width: 125,
+            child: Text(
+              label,
+              style: TextStyle(
+                color: labelColor,
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 0.2,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              value,
+              textAlign: TextAlign.end,
+              style: TextStyle(
+                color: valColor,
+                fontSize: 13,
+                fontWeight: isBold ? FontWeight.bold : FontWeight.w600,
+              ),
+            ),
           ),
         ],
       ),
