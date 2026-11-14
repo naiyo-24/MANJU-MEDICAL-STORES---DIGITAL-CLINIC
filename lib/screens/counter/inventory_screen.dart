@@ -303,6 +303,351 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
     super.dispose();
   }
 
+  Widget _buildShopDropdown(BuildContext context, AsyncValue<List<dynamic>> shopsAsync, String? selectedShopId, {bool isExpanded = false}) {
+    return shopsAsync.when(
+      data: (shops) {
+        if (shops.isEmpty) return const SizedBox();
+        final dropdownChild = DropdownButtonHideUnderline(
+          child: DropdownButton<String>(
+            isExpanded: isExpanded,
+            value: (() {
+              final id = selectedShopId ?? (shops.isNotEmpty ? shops.first['id'].toString() : null);
+              if (id != null && shops.any((shop) => shop['id'].toString() == id)) {
+                return id;
+              }
+              return shops.isNotEmpty ? shops.first['id'].toString() : null;
+            })(),
+            icon: Icon(
+              Icons.store,
+              size: 16,
+              color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B),
+            ),
+            style: TextStyle(
+              fontSize: 14,
+              color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
+            ),
+            onChanged: (String? newShopId) async {
+              if (newShopId != null && newShopId != selectedShopId) {
+                ref.read(selectedShopIdProvider.notifier).updateShopId(newShopId);
+                await InventoryService.setShopId(newShopId);
+                ref.invalidate(rackProvider);
+                ref.invalidate(categoryProvider);
+                _fetchData();
+              }
+            },
+            items: shops.map((shop) {
+              return DropdownMenuItem<String>(
+                value: shop['id'].toString(),
+                child: Padding(
+                  padding: const EdgeInsets.only(right: 8.0),
+                  child: Text(
+                    shop['name'] ?? 'Unknown Shop',
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        );
+
+        return Container(
+          height: 44,
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          decoration: BoxDecoration(
+            color: Theme.of(context).cardColor,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Theme.of(context).dividerColor),
+          ),
+          child: dropdownChild,
+        );
+      },
+      loading: () => const SizedBox(
+        width: 20,
+        height: 20,
+        child: CircularProgressIndicator(strokeWidth: 2),
+      ),
+      error: (err, stack) => IconButton(
+        icon: const Icon(Icons.refresh, color: Colors.red),
+        tooltip: 'Retry',
+        onPressed: () => ref.read(inventoryProvider.notifier).loadInventory(),
+      ),
+    );
+  }
+
+  Widget _buildSearchBar(BuildContext context, {double? width}) {
+    return Container(
+      width: width,
+      height: 44,
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[800] : const Color(0xFFF1F5F9),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Theme.of(context).dividerColor),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.search,
+            color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B),
+            size: 18,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: TextField(
+              controller: _searchController,
+              onChanged: (value) {
+                _searchDebounce?.cancel();
+                setState(() {}); // Instant client-side filter update
+                final trimmed = _searchController.text.trim();
+
+                // 1. If empty, immediately load initial inventory
+                if (trimmed.isEmpty) {
+                  ref.read(inventoryProvider.notifier).cancelPendingSearch();
+                  _fetchData('');
+                  return;
+                }
+
+                // 2. Minimum 2-character guard: don't hammer API on 1 letter
+                if (trimmed.length < 2) {
+                  ref.read(inventoryProvider.notifier).cancelPendingSearch();
+                  return;
+                }
+
+                // 3. Debounce network call by 300ms
+                _searchDebounce = Timer(const Duration(milliseconds: 300), () {
+                  final currentQuery = _searchController.text.trim();
+                  if (currentQuery.length >= 2) {
+                    _fetchData(currentQuery);
+                  }
+                });
+              },
+              onSubmitted: (value) {
+                _searchDebounce?.cancel();
+                final trimmed = _searchController.text.trim();
+                if (trimmed.isEmpty || trimmed.length >= 2) {
+                  _fetchData(trimmed);
+                }
+              },
+              decoration: const InputDecoration(
+                border: InputBorder.none,
+                hintText: 'Search inventory by name or brand...',
+                hintStyle: TextStyle(
+                  color: Color(0xFF94A3B8),
+                  fontSize: 12,
+                ),
+                isDense: true,
+                contentPadding: EdgeInsets.zero,
+              ),
+              style: const TextStyle(fontSize: 14),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDateFilterDropdown(BuildContext context, {bool isExpanded = false}) {
+    return Container(
+      height: 44,
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Theme.of(context).dividerColor),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          isExpanded: isExpanded,
+          value: _selectedDateFilter,
+          icon: Icon(
+            Icons.calendar_today,
+            size: 16,
+            color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B),
+          ),
+          style: TextStyle(
+            fontSize: 14,
+            color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
+          ),
+          onChanged: (value) {
+            if (value != null) _onDateFilterChanged(value);
+          },
+          items: [
+            'All Time',
+            'Today',
+            'This Week',
+            'This Month',
+            'This Year',
+            'Custom Range',
+          ].map((filter) => DropdownMenuItem(
+            value: filter,
+            child: Padding(
+              padding: const EdgeInsets.only(right: 8.0),
+              child: Text(filter, overflow: TextOverflow.ellipsis),
+            ),
+          )).toList(),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSortButton(BuildContext context, {bool compact = false}) {
+    return PopupMenuButton<String>(
+      onSelected: (value) {
+        final parts = value.split('|');
+        setState(() {
+          _sortColumn = parts[0];
+          _sortAscending = parts[1] == 'asc';
+        });
+      },
+      child: Container(
+        height: 44,
+        padding: EdgeInsets.symmetric(horizontal: compact ? 12 : 16),
+        decoration: BoxDecoration(
+          color: Theme.of(context).cardColor,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: Theme.of(context).dividerColor),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.sort,
+              color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B),
+              size: 18,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              'Sort By',
+              style: TextStyle(
+                color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
+                fontWeight: FontWeight.bold,
+                fontSize: 13,
+              ),
+            ),
+          ],
+        ),
+      ),
+      itemBuilder: (context) => [
+        const PopupMenuItem(
+          value: 'Medicine Name|asc',
+          child: Text('Medicine Name (A-Z)'),
+        ),
+        const PopupMenuItem(
+          value: 'Medicine Name|desc',
+          child: Text('Medicine Name (Z-A)'),
+        ),
+        const PopupMenuItem(
+          value: 'Added/Updated|desc',
+          child: Text('Added/Updated (Newest First)'),
+        ),
+        const PopupMenuItem(
+          value: 'Added/Updated|asc',
+          child: Text('Added/Updated (Oldest First)'),
+        ),
+        const PopupMenuItem(
+          value: 'Stock|asc',
+          child: Text('Stock (Low to High)'),
+        ),
+        const PopupMenuItem(
+          value: 'Stock|desc',
+          child: Text('Stock (High to Low)'),
+        ),
+        const PopupMenuItem(
+          value: 'Price (₹)|asc',
+          child: Text('Price (Low to High)'),
+        ),
+        const PopupMenuItem(
+          value: 'Price (₹)|desc',
+          child: Text('Price (High to Low)'),
+        ),
+        const PopupMenuItem(
+          value: 'Expiry Date|asc',
+          child: Text('Expiry Date (Earliest First)'),
+        ),
+        const PopupMenuItem(
+          value: 'Expiry Date|desc',
+          child: Text('Expiry Date (Latest First)'),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildExportButton(BuildContext context, {bool compact = false}) {
+    return PopupMenuButton<String>(
+      onSelected: _exportData,
+      child: Container(
+        height: 44,
+        padding: EdgeInsets.symmetric(horizontal: compact ? 12 : 16),
+        decoration: BoxDecoration(
+          color: Theme.of(context).cardColor,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: Theme.of(context).dividerColor),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.download,
+              color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B),
+              size: 18,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              'Export',
+              style: TextStyle(
+                color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
+                fontWeight: FontWeight.bold,
+                fontSize: 13,
+              ),
+            ),
+          ],
+        ),
+      ),
+      itemBuilder: (context) => [
+        const PopupMenuItem(
+          value: 'CSV',
+          child: Text('Export as CSV'),
+        ),
+        const PopupMenuItem(
+          value: 'Excel',
+          child: Text('Export as Excel'),
+        ),
+        const PopupMenuItem(
+          value: 'PDF',
+          child: Text('Export as PDF'),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAddMedicineButton(BuildContext context, {bool isFullWidth = false}) {
+    final btn = ElevatedButton.icon(
+      onPressed: () => context.go('/counter/inventory/upload'),
+      icon: const Icon(Icons.add, size: 16),
+      label: const Text(
+        'Add New Medicine',
+        style: TextStyle(fontWeight: FontWeight.bold),
+      ),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: const Color(0xFF22C55E),
+        foregroundColor: Colors.white,
+        elevation: 0,
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+      ),
+    );
+
+    return SizedBox(
+      height: 44,
+      width: isFullWidth ? double.infinity : null,
+      child: btn,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final inventoryAsync = ref.watch(inventoryProvider);
@@ -321,423 +666,151 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
               // Top Header
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.all(32.0),
+                padding: EdgeInsets.all(isDesktopWidth ? 32.0 : 16.0),
                 color: Colors.transparent,
-                child: Wrap(
-                  alignment: WrapAlignment.spaceBetween,
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  spacing: 16,
-                  runSpacing: 16,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        RichText(
-                          text: TextSpan(
-                            style: TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                              color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
-                            ),
+                child: isDesktopWidth
+                    ? Wrap(
+                        alignment: WrapAlignment.spaceBetween,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        spacing: 16,
+                        runSpacing: 16,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              TextSpan(text: 'Medicine '),
-                              TextSpan(
-                                text: 'Inventory',
-                                style: TextStyle(color: Color(0xFF166534)),
+                              RichText(
+                                text: TextSpan(
+                                  style: TextStyle(
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.bold,
+                                    color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
+                                  ),
+                                  children: const [
+                                    TextSpan(text: 'Medicine '),
+                                    TextSpan(
+                                      text: 'Inventory',
+                                      style: TextStyle(color: Color(0xFF166534)),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Manage your medicine stock, expiry, and availability in one place.',
+                                style: TextStyle(
+                                  color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B),
+                                  fontSize: 12,
+                                ),
                               ),
                             ],
                           ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Manage your medicine stock, expiry, and availability in one place.',
-                          style: TextStyle(
-                            color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B),
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
-                    ),
-                    Wrap(
-                      spacing: 16,
-                      runSpacing: 16,
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      children: [
-                        // Shop Dropdown
-                        shopsAsync.when(
-                          data: (shops) {
-                            if (shops.isEmpty) return const SizedBox();
-                            return Container(
-                              height: 44,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Theme.of(context).cardColor,
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(
-                                  color: Theme.of(context).dividerColor,
-                                ),
-                              ),
-                              child: DropdownButtonHideUnderline(
-                                child: DropdownButton<String>(
-                                  value: (() {
-                                    final id =
-                                        selectedShopId ??
-                                        (shops.isNotEmpty
-                                            ? shops.first['id'].toString()
-                                            : null);
-                                    if (id != null &&
-                                        shops.any(
-                                          (shop) => shop['id'].toString() == id,
-                                        )) {
-                                      return id;
-                                    }
-                                    return shops.isNotEmpty
-                                        ? shops.first['id'].toString()
-                                        : null;
-                                  })(),
-                                  icon: Icon(
-                                    Icons.store,
-                                    size: 16,
-                                    color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B),
-                                  ),
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
-                                  ),
-                                  onChanged: (String? newShopId) async {
-                                    if (newShopId != null &&
-                                        newShopId != selectedShopId) {
-                                      ref
-                                          .read(selectedShopIdProvider.notifier)
-                                          .updateShopId(newShopId);
-                                      await InventoryService.setShopId(
-                                        newShopId,
-                                      );
-                                      ref.invalidate(rackProvider);
-                                      ref.invalidate(categoryProvider);
-                                      _fetchData(); // Refetch inventory for new shop
-                                    }
-                                  },
-                                  items: shops.map((shop) {
-                                    return DropdownMenuItem<String>(
-                                      value: shop['id'].toString(),
-                                      child: Padding(
-                                        padding: const EdgeInsets.only(
-                                          right: 8.0,
-                                        ),
-                                        child: Text(
-                                          shop['name'] ?? 'Unknown Shop',
-                                        ),
-                                      ),
-                                    );
-                                  }).toList(),
-                                ),
-                              ),
-                            );
-                          },
-                          loading: () => const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          ),
-                          error: (err, stack) => IconButton(
-                            icon: const Icon(Icons.refresh, color: Colors.red),
-                            tooltip: 'Retry',
-                            onPressed: () => ref
-                                .read(inventoryProvider.notifier)
-                                .loadInventory(),
-                          ),
-                        ),
-                        // Search Bar
-                        Container(
-                          width: 280,
-                          height: 44,
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[800] : const Color(0xFFF1F5F9),
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: Theme.of(context).dividerColor),
-                          ),
-                          child: Row(
+                          Wrap(
+                            spacing: 16,
+                            runSpacing: 16,
+                            crossAxisAlignment: WrapCrossAlignment.center,
                             children: [
-                              Icon(
-                                Icons.search,
-                                color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B),
-                                size: 18,
+                              _buildShopDropdown(context, shopsAsync, selectedShopId),
+                              _buildSearchBar(context, width: 280),
+                              _buildDateFilterDropdown(context),
+                              _buildSortButton(context),
+                              _buildExportButton(context),
+                              IconButton(
+                                onPressed: () => _fetchData(),
+                                icon: Icon(
+                                  Icons.refresh,
+                                  color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B),
+                                ),
+                                tooltip: 'Refresh',
+                              ),
+                              _buildAddMedicineButton(context),
+                            ],
+                          ),
+                        ],
+                      )
+                    : Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          // Header Title
+                          RichText(
+                            text: TextSpan(
+                              style: TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                                color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
+                              ),
+                              children: const [
+                                TextSpan(text: 'Medicine '),
+                                TextSpan(
+                                  text: 'Inventory',
+                                  style: TextStyle(color: Color(0xFF166534)),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Manage your medicine stock, expiry, and availability in one place.',
+                            style: TextStyle(
+                              color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B),
+                              fontSize: 12,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+
+                          // Mobile Row 1: Shop Selector + Refresh + Export
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _buildShopDropdown(
+                                  context,
+                                  shopsAsync,
+                                  selectedShopId,
+                                  isExpanded: true,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              IconButton(
+                                onPressed: () => _fetchData(),
+                                icon: Icon(
+                                  Icons.refresh,
+                                  color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B),
+                                ),
+                                tooltip: 'Refresh',
+                              ),
+                              const SizedBox(width: 4),
+                              _buildExportButton(context, compact: true),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+
+                          // Mobile Row 2: Search Bar (Full Width)
+                          _buildSearchBar(context),
+                          const SizedBox(height: 12),
+
+                          // Mobile Row 3: Date Filter & Sort By
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _buildDateFilterDropdown(context, isExpanded: true),
                               ),
                               const SizedBox(width: 8),
                               Expanded(
-                                child: TextField(
-                                  controller: _searchController,
-                                  onChanged: (value) {
-                                    _searchDebounce?.cancel();
-                                    setState(() {}); // Instant client-side filter update
-                                    final trimmed = _searchController.text.trim();
-
-                                    // 1. If empty, immediately load initial inventory
-                                    if (trimmed.isEmpty) {
-                                      ref.read(inventoryProvider.notifier).cancelPendingSearch();
-                                      _fetchData('');
-                                      return;
-                                    }
-
-                                    // 2. Minimum 2-character guard: don't hammer API on 1 letter
-                                    if (trimmed.length < 2) {
-                                      ref.read(inventoryProvider.notifier).cancelPendingSearch();
-                                      return;
-                                    }
-
-                                    // 3. Debounce network call by 300ms
-                                    _searchDebounce = Timer(const Duration(milliseconds: 300), () {
-                                      final currentQuery = _searchController.text.trim();
-                                      if (currentQuery.length >= 2) {
-                                        _fetchData(currentQuery);
-                                      }
-                                    });
-                                  },
-                                  onSubmitted: (value) {
-                                    _searchDebounce?.cancel();
-                                    final trimmed = _searchController.text.trim();
-                                    if (trimmed.isEmpty || trimmed.length >= 2) {
-                                      _fetchData(trimmed);
-                                    }
-                                  },
-                                  decoration: const InputDecoration(
-                                    border: InputBorder.none,
-                                    hintText:
-                                        'Search inventory by name or brand...',
-                                    hintStyle: TextStyle(
-                                      color: Color(0xFF94A3B8),
-                                      fontSize: 12,
-                                    ),
-                                    isDense: true,
-                                    contentPadding: EdgeInsets.zero,
-                                  ),
-                                  style: const TextStyle(fontSize: 14),
-                                ),
+                                child: _buildSortButton(context, compact: true),
                               ),
                             ],
                           ),
-                        ),
-                        // Date Filter Dropdown
-                        Container(
-                          height: 44,
-                          padding: const EdgeInsets.symmetric(horizontal: 12),
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).cardColor,
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: Theme.of(context).dividerColor),
-                          ),
-                          child: DropdownButtonHideUnderline(
-                            child: DropdownButton<String>(
-                              value: _selectedDateFilter,
-                              icon: Icon(
-                                Icons.calendar_today,
-                                size: 16,
-                                color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B),
-                              ),
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
-                              ),
-                              onChanged: (value) {
-                                if (value != null) _onDateFilterChanged(value);
-                              },
-                              items:
-                                  [
-                                        'All Time',
-                                        'Today',
-                                        'This Week',
-                                        'This Month',
-                                        'This Year',
-                                        'Custom Range',
-                                      ]
-                                      .map(
-                                        (filter) => DropdownMenuItem(
-                                          value: filter,
-                                          child: Padding(
-                                            padding: const EdgeInsets.only(
-                                              right: 8.0,
-                                            ),
-                                            child: Text(filter),
-                                          ),
-                                        ),
-                                      )
-                                      .toList(),
-                            ),
-                          ),
-                        ),
-                        // Sort By Dropdown
-                        PopupMenuButton<String>(
-                          onSelected: (value) {
-                            final parts = value.split('|');
-                            setState(() {
-                              _sortColumn = parts[0];
-                              _sortAscending = parts[1] == 'asc';
-                            });
-                          },
-                          child: Container(
-                            height: 44,
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
-                            decoration: BoxDecoration(
-                              color: Theme.of(context).cardColor,
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(
-                                color: Theme.of(context).dividerColor,
-                              ),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  Icons.sort,
-                                  color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B),
-                                  size: 18,
-                                ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  'Sort By',
-                                  style: TextStyle(
-                                    color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          itemBuilder: (context) => [
-                            const PopupMenuItem(
-                              value: 'Medicine Name|asc',
-                              child: Text('Medicine Name (A-Z)'),
-                            ),
-                            const PopupMenuItem(
-                              value: 'Medicine Name|desc',
-                              child: Text('Medicine Name (Z-A)'),
-                            ),
-                            const PopupMenuItem(
-                              value: 'Added/Updated|desc',
-                              child: Text('Added/Updated (Newest First)'),
-                            ),
-                            const PopupMenuItem(
-                              value: 'Added/Updated|asc',
-                              child: Text('Added/Updated (Oldest First)'),
-                            ),
-                            const PopupMenuItem(
-                              value: 'Stock|asc',
-                              child: Text('Stock (Low to High)'),
-                            ),
-                            const PopupMenuItem(
-                              value: 'Stock|desc',
-                              child: Text('Stock (High to Low)'),
-                            ),
-                            const PopupMenuItem(
-                              value: 'Price (₹)|asc',
-                              child: Text('Price (Low to High)'),
-                            ),
-                            const PopupMenuItem(
-                              value: 'Price (₹)|desc',
-                              child: Text('Price (High to Low)'),
-                            ),
-                            const PopupMenuItem(
-                              value: 'Expiry Date|asc',
-                              child: Text('Expiry Date (Earliest First)'),
-                            ),
-                            const PopupMenuItem(
-                              value: 'Expiry Date|desc',
-                              child: Text('Expiry Date (Latest First)'),
-                            ),
-                          ],
-                        ),
-                        // Export Buttons
-                        PopupMenuButton<String>(
-                          onSelected: _exportData,
-                          child: Container(
-                            height: 44,
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
-                            decoration: BoxDecoration(
-                              color: Theme.of(context).cardColor,
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(
-                                color: Theme.of(context).dividerColor,
-                              ),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  Icons.download,
-                                  color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B),
-                                  size: 18,
-                                ),
-                                SizedBox(width: 8),
-                                Text(
-                                  'Export',
-                                  style: TextStyle(
-                                    color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          itemBuilder: (context) => [
-                            const PopupMenuItem(
-                              value: 'CSV',
-                              child: Text('Export as CSV'),
-                            ),
-                            const PopupMenuItem(
-                              value: 'Excel',
-                              child: Text('Export as Excel'),
-                            ),
-                            const PopupMenuItem(
-                              value: 'PDF',
-                              child: Text('Export as PDF'),
-                            ),
-                          ],
-                        ),
-                        IconButton(
-                          onPressed: () => _fetchData(),
-                          icon: Icon(
-                            Icons.refresh,
-                            color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B),
-                          ),
-                          tooltip: 'Refresh',
-                        ),
-                        SizedBox(
-                          height: 44,
-                          child: ElevatedButton.icon(
-                            onPressed: () =>
-                                context.go('/counter/inventory/upload'),
-                            icon: const Icon(Icons.add, size: 16),
-                            label: const Text(
-                              'Add New Medicine',
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF22C55E),
-                              foregroundColor: Colors.white,
-                              elevation: 0,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 24,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+                          const SizedBox(height: 12),
+
+                          // Mobile Row 4: Add New Medicine (Full Width)
+                          _buildAddMedicineButton(context, isFullWidth: true),
+                        ],
+                      ),
               ),
 
               // List Content
               Expanded(
                 child: Padding(
-                  padding: const EdgeInsets.all(32.0),
+                  padding: EdgeInsets.all(isDesktopWidth ? 32.0 : 12.0),
                   child: Container(
                     decoration: BoxDecoration(
                       color: Theme.of(context).cardColor,
