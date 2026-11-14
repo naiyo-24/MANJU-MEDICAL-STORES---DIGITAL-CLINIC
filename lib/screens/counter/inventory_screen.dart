@@ -83,9 +83,6 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
     _controllers = LinkedScrollControllerGroup();
     _headController = _controllers.addAndGet();
     _bodyController = _controllers.addAndGet();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _fetchData();
-    });
   }
 
   Future<void> _fetchData([String? query]) async {
