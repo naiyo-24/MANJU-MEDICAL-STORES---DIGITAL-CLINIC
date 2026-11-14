@@ -240,7 +240,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
     final isIncome = txn.type == 'Income';
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 12, left: 16, right: 16),
+      margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
@@ -356,14 +356,45 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                 icon: const Icon(Icons.remove_red_eye_outlined, size: 20),
                 color: const Color(0xFF64748B),
                 onPressed: () {
-                  // View details
+                  AccountsWidgets.showTransactionDetails(
+                    context,
+                    txn,
+                  );
                 },
               ),
               IconButton(
                 icon: const Icon(Icons.delete_outline, size: 20, color: Colors.red),
                 style: IconButton.styleFrom(backgroundColor: Colors.red.withValues(alpha: 0.1)),
                 onPressed: () {
-                  // Delete
+                  showDialog(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: const Text('Delete Transaction'),
+                      content: const Text(
+                        'Are you sure you want to delete this transaction? This action cannot be undone.',
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: const Text('Cancel'),
+                        ),
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red,
+                          ),
+                          onPressed: () async {
+                            Navigator.pop(context);
+                            await TransactionService.deleteTransaction(txn.id);
+                            _loadTransactions();
+                          },
+                          child: const Text(
+                            'Delete',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
                 },
               ),
             ],
@@ -431,16 +462,21 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
         ? _transactions.sublist(startIdx, endIdx)
         : <TransactionModel>[];
 
-    return Container(
-      color: Theme.of(context).scaffoldBackgroundColor,
-      padding: const EdgeInsets.all(24.0),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          bool isDesktop = constraints.maxWidth > 1000;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        bool isDesktop = constraints.maxWidth > 1000;
 
-          Widget leftColumn = Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+        return Container(
+          color: Theme.of(context).scaffoldBackgroundColor,
+          padding: EdgeInsets.symmetric(
+            horizontal: isDesktop ? 24.0 : 12.0,
+            vertical: isDesktop ? 24.0 : 12.0,
+          ),
+          child: Builder(
+            builder: (context) {
+              Widget leftColumn = Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
               // Header
               SizedBox(
                 width: double.infinity,
@@ -617,8 +653,15 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
               // Summary Cards
               LayoutBuilder(
                 builder: (context, constraints) {
-                  bool isMobile = constraints.maxWidth < 600;
-                  double cardWidth = isMobile ? (constraints.maxWidth - 16) / 2 : 250;
+                  double cardWidth;
+                  if (constraints.maxWidth >= 900) {
+                    cardWidth = (constraints.maxWidth - 48) / 4;
+                  } else if (constraints.maxWidth >= 550) {
+                    cardWidth = (constraints.maxWidth - 16) / 2;
+                  } else {
+                    cardWidth = (constraints.maxWidth - 16) / 2;
+                  }
+
                   return Wrap(
                     spacing: 16,
                     runSpacing: 16,
@@ -741,9 +784,116 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                         padding: const EdgeInsets.all(16.0),
                         child: LayoutBuilder(
                           builder: (context, constraints) {
-                            bool isMobile = constraints.maxWidth < 600;
-                            double dropdownWidth = isMobile ? constraints.maxWidth : 160;
-                            double searchWidth = isMobile ? constraints.maxWidth : 350;
+                            bool isMobile = constraints.maxWidth < 650;
+                            
+                            if (isMobile) {
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  // Search Field Full Width
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                                    decoration: BoxDecoration(
+                                      border: Border.all(color: Theme.of(context).dividerColor),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: TextField(
+                                      controller: _searchController,
+                                      decoration: InputDecoration(
+                                        icon: Icon(
+                                          Icons.search,
+                                          size: 18,
+                                          color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF1E293B),
+                                        ),
+                                        hintText: 'Search by description, customer, invoice no...',
+                                        hintStyle: const TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
+                                        border: InputBorder.none,
+                                      ),
+                                      onChanged: (value) {
+                                        _searchQuery = value;
+                                        _loadTransactions();
+                                      },
+                                    ),
+                                  ),
+                                  const SizedBox(height: 10),
+                                  // Horizontal scrollable / compact row for period, type, category, reset
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: AccountsWidgets.buildDynamicDropdown(
+                                          context,
+                                          _selectedPeriod,
+                                          _periods,
+                                          (String? newValue) {
+                                            if (newValue != null) {
+                                              setState(() => _selectedPeriod = newValue);
+                                              _loadTransactions();
+                                            }
+                                          },
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: AccountsWidgets.buildDynamicDropdown(
+                                          context,
+                                          _selectedType,
+                                          _types,
+                                          (String? newValue) {
+                                            if (newValue != null) {
+                                              setState(() => _selectedType = newValue);
+                                              _loadTransactions();
+                                            }
+                                          },
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: AccountsWidgets.buildDynamicDropdown(
+                                          context,
+                                          _selectedCategory,
+                                          _categories,
+                                          (String? newValue) {
+                                            if (newValue != null) {
+                                              setState(() => _selectedCategory = newValue);
+                                              _loadTransactions();
+                                            }
+                                          },
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      InkWell(
+                                        onTap: () {
+                                          setState(() {
+                                            _selectedPeriod = 'All Time';
+                                            _selectedType = 'All Types';
+                                            _selectedCategory = 'All Categories';
+                                            _searchController.clear();
+                                            _searchQuery = '';
+                                          });
+                                          _loadTransactions();
+                                        },
+                                        borderRadius: BorderRadius.circular(8),
+                                        child: Container(
+                                          padding: const EdgeInsets.all(12),
+                                          decoration: BoxDecoration(
+                                            border: Border.all(color: Theme.of(context).dividerColor),
+                                            borderRadius: BorderRadius.circular(8),
+                                          ),
+                                          child: Icon(
+                                            Icons.refresh,
+                                            size: 18,
+                                            color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              );
+                            }
+                            
+                            double dropdownWidth = 160;
+                            double searchWidth = 350;
                             
                             return Wrap(
                               spacing: 12,
@@ -1444,15 +1594,17 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
             return SingleChildScrollView(
               child: Column(
                 children: [
-                  rightSidebar,
-                  const SizedBox(height: 24),
                   leftColumn,
+                  const SizedBox(height: 20),
+                  rightSidebar,
                 ],
               ),
             );
           }
-        },
-      ),
+            },
+          ),
+        );
+      },
     );
   }
 }
