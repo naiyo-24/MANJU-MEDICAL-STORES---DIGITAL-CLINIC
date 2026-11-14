@@ -695,20 +695,12 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  RichText(
-                                    text: TextSpan(
-                                      style: TextStyle(
-                                        fontSize: 24,
-                                        fontWeight: FontWeight.bold,
-                                        color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
-                                      ),
-                                      children: const [
-                                        TextSpan(text: 'Medicine '),
-                                        TextSpan(
-                                          text: 'Inventory',
-                                          style: TextStyle(color: Color(0xFF166534)),
-                                        ),
-                                      ],
+                                  Text(
+                                    'Inventory',
+                                    style: TextStyle(
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.bold,
+                                      color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
                                     ),
                                   ),
                                   const SizedBox(height: 4),
@@ -770,20 +762,12 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    RichText(
-                                      text: TextSpan(
-                                        style: TextStyle(
-                                          fontSize: 20,
-                                          fontWeight: FontWeight.bold,
-                                          color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
-                                        ),
-                                        children: const [
-                                          TextSpan(text: 'Medicine '),
-                                          TextSpan(
-                                            text: 'Inventory',
-                                            style: TextStyle(color: Color(0xFF166534)),
-                                          ),
-                                        ],
+                                    Text(
+                                      'Inventory',
+                                      style: TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                        color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
                                       ),
                                     ),
                                     const SizedBox(height: 2),
