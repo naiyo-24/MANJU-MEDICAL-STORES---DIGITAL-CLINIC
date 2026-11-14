@@ -457,205 +457,242 @@ class DistributorDetailScreen extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (context) => StatefulBuilder(
-        builder: (context, setDialogState) => AlertDialog(
-          backgroundColor: Theme.of(context).cardColor,
-          title: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Text(
-                  'Invoice: ${bill['invoice_no'] ?? 'N/A'}',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: primaryTextColor),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: bill['payment_status'] == 'PAID'
-                      ? (isDark ? const Color(0xFF14532D).withValues(alpha: 0.4) : Colors.green.shade50)
-                      : (isDark ? const Color(0xFF7C2D12).withValues(alpha: 0.4) : Colors.orange.shade50),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  bill['payment_status'] ?? 'UNPAID',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: bill['payment_status'] == 'PAID' ? const Color(0xFF22C55E) : Colors.orange,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          content: LayoutBuilder(
-            builder: (context, dialogConstraints) {
-              final isDesktopDialog = dialogConstraints.maxWidth >= 600;
+        builder: (context, setDialogState) {
+          final isMobileDialog = MediaQuery.of(context).size.width < 600;
 
-              return SizedBox(
-                width: isDesktopDialog ? 800 : double.maxFinite,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Date: ${bill['bill_date']?.toString().split('T')[0] ?? 'N/A'}', style: TextStyle(color: secondaryTextColor, fontSize: 13)),
-                    const SizedBox(height: 16),
-                    Text('Items Purchased', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: primaryTextColor)),
-                    const SizedBox(height: 8),
-                    Flexible(
-                      child: Container(
-                        decoration: BoxDecoration(
-                          border: Border.all(color: cardBorder),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: ListView.separated(
-                          shrinkWrap: true,
-                          itemCount: items.length,
-                          separatorBuilder: (context, index) => Divider(height: 1, color: cardBorder),
-                          itemBuilder: (context, index) {
-                            final item = items[index];
-                            final invItem = inventoryList.where((i) => i.id == item['inventory_item_id']).firstOrNull;
-                            final itemName = invItem != null ? invItem.name : 'Unknown Item (${item['inventory_item_id']})';
-                            
-                            return ListTile(
-                              title: Text(itemName, style: TextStyle(fontWeight: FontWeight.bold, color: primaryTextColor, fontSize: 14)),
-                              subtitle: Text(
-                                'Qty: ${item['quantity']} • Batch: ${item['batch_number'] ?? 'N/A'} • Exp: ${item['expiry_date'] ?? 'N/A'}',
-                                style: TextStyle(color: secondaryTextColor, fontSize: 12),
-                              ),
-                              trailing: Text('₹${item['unit_price'] ?? 0.0}', style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF22C55E), fontSize: 14)),
-                            );
-                          },
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
+          return Dialog(
+            backgroundColor: Theme.of(context).cardColor,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+            child: Container(
+              constraints: BoxConstraints(
+                maxWidth: 700,
+                maxHeight: MediaQuery.of(context).size.height * 0.85,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Pinned Dialog Header
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('Total Amount:', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: primaryTextColor)),
-                        const SizedBox(width: 12),
-                        Text('₹${bill['total_amount'] ?? 0.0}', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF3B82F6))),
+                        Expanded(
+                          child: Text(
+                            'Invoice: ${bill['invoice_no'] ?? 'N/A'}',
+                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: primaryTextColor),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: bill['payment_status'] == 'PAID'
+                                ? (isDark ? const Color(0xFF14532D).withValues(alpha: 0.4) : Colors.green.shade50)
+                                : (isDark ? const Color(0xFF7C2D12).withValues(alpha: 0.4) : Colors.orange.shade50),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            bill['payment_status'] ?? 'UNPAID',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: bill['payment_status'] == 'PAID' ? const Color(0xFF22C55E) : Colors.orange,
+                            ),
+                          ),
+                        ),
                       ],
                     ),
-                  ],
-                ),
-              );
-            },
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text('Close', style: TextStyle(color: secondaryTextColor)),
-            ),
-            ElevatedButton.icon(
-              icon: const Icon(Icons.print, size: 16),
-              label: const Text('PDF'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9),
-                foregroundColor: primaryTextColor,
-                elevation: 0,
-              ),
-              onPressed: () async {
-                final billId = bill['id'];
-                if (billId != null) {
-                  final url = Uri.parse('${ApiConstants.baseUrl}/api/admin/purchases/$billId/pdf');
-                  if (await canLaunchUrl(url)) {
-                    await launchUrl(url, mode: LaunchMode.externalApplication);
-                  }
-                }
-              },
-            ),
-            if (bill['payment_status'] != 'PAID') ...[
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  border: Border.all(color: cardBorder),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: DropdownButtonHideUnderline(
-                  child: DropdownButton<String>(
-                    value: selectedPaymentMethod,
-                    dropdownColor: Theme.of(context).cardColor,
-                    style: TextStyle(color: primaryTextColor, fontSize: 13, fontWeight: FontWeight.w600),
-                    items: [
-                      DropdownMenuItem(
-                        value: 'CASH',
-                        child: Text('Cash Account', style: TextStyle(color: primaryTextColor, fontSize: 13, fontWeight: FontWeight.w600)),
+                  ),
+                  Divider(height: 1, color: cardBorder),
+
+                  // Scrollable Body
+                  Flexible(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Date: ${bill['bill_date']?.toString().split('T')[0] ?? 'N/A'}',
+                            style: TextStyle(color: secondaryTextColor, fontSize: 13),
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Items Purchased',
+                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: primaryTextColor),
+                          ),
+                          const SizedBox(height: 8),
+                          Container(
+                            decoration: BoxDecoration(
+                              border: Border.all(color: cardBorder),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: ListView.separated(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              itemCount: items.length,
+                              separatorBuilder: (context, index) => Divider(height: 1, color: cardBorder),
+                              itemBuilder: (context, index) {
+                                final item = items[index];
+                                final invItem = inventoryList.where((i) => i.id == item['inventory_item_id']).firstOrNull;
+                                final itemName = invItem != null ? invItem.name : 'Unknown Item (${item['inventory_item_id']})';
+
+                                return ListTile(
+                                  dense: isMobileDialog,
+                                  title: Text(itemName, style: TextStyle(fontWeight: FontWeight.bold, color: primaryTextColor, fontSize: 14)),
+                                  subtitle: Text(
+                                    'Qty: ${item['quantity']} • Batch: ${item['batch_number'] ?? 'N/A'} • Exp: ${item['expiry_date'] ?? 'N/A'}',
+                                    style: TextStyle(color: secondaryTextColor, fontSize: 12),
+                                  ),
+                                  trailing: Text('₹${item['unit_price'] ?? 0.0}', style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF22C55E), fontSize: 14)),
+                                );
+                              },
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              Text('Total Amount:', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: primaryTextColor)),
+                              const SizedBox(width: 12),
+                              Text('₹${bill['total_amount'] ?? 0.0}', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF3B82F6))),
+                            ],
+                          ),
+                        ],
                       ),
-                      DropdownMenuItem(
-                        value: 'ONLINE',
-                        child: Text('Bank / UPI', style: TextStyle(color: primaryTextColor, fontSize: 13, fontWeight: FontWeight.w600)),
-                      ),
-                    ],
-                    onChanged: isPaying
-                        ? null
-                        : (val) {
-                            if (val != null) {
-                              setDialogState(() {
-                                selectedPaymentMethod = val;
-                              });
+                    ),
+                  ),
+                  Divider(height: 1, color: cardBorder),
+
+                  // Responsive Pinned Action Bar
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    child: Wrap(
+                      alignment: WrapAlignment.end,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: Text('Close', style: TextStyle(color: secondaryTextColor)),
+                        ),
+                        ElevatedButton.icon(
+                          icon: const Icon(Icons.print, size: 16),
+                          label: const Text('Generate PDF'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9),
+                            foregroundColor: primaryTextColor,
+                            elevation: 0,
+                          ),
+                          onPressed: () async {
+                            final billId = bill['id'];
+                            if (billId != null) {
+                              final url = Uri.parse('${ApiConstants.baseUrl}/api/admin/purchases/$billId/pdf');
+                              if (await canLaunchUrl(url)) {
+                                await launchUrl(url, mode: LaunchMode.externalApplication);
+                              }
                             }
                           },
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF166534),
-                  foregroundColor: Colors.white,
-                ),
-                onPressed: isPaying
-                    ? null
-                    : () async {
-                        setDialogState(() {
-                          isPaying = true;
-                        });
-                        try {
-                          final svc = ref.read(purchaseServiceProvider);
-                          await svc.markBillAsPaid(
-                            bill['id'],
-                            paymentMethod: selectedPaymentMethod,
-                          );
-                          
-                          ref.invalidate(purchaseBillsProvider);
-                          ref.invalidate(distributorAnalyticsProvider(distributor['id']));
-                          ref.invalidate(accountsProvider);
-                          ref.invalidate(historyProvider);
-                          
-                          if (context.mounted) {
-                            Navigator.pop(context);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Bill marked as PAID via $selectedPaymentMethod!'),
-                                backgroundColor: Colors.green,
+                        ),
+                        if (bill['payment_status'] != 'PAID') ...[
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              border: Border.all(color: cardBorder),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: DropdownButtonHideUnderline(
+                              child: DropdownButton<String>(
+                                value: selectedPaymentMethod,
+                                dropdownColor: Theme.of(context).cardColor,
+                                style: TextStyle(color: primaryTextColor, fontSize: 13, fontWeight: FontWeight.w600),
+                                items: [
+                                  DropdownMenuItem(
+                                    value: 'CASH',
+                                    child: Text('Cash Account', style: TextStyle(color: primaryTextColor, fontSize: 13, fontWeight: FontWeight.w600)),
+                                  ),
+                                  DropdownMenuItem(
+                                    value: 'ONLINE',
+                                    child: Text('Bank / UPI', style: TextStyle(color: primaryTextColor, fontSize: 13, fontWeight: FontWeight.w600)),
+                                  ),
+                                ],
+                                onChanged: isPaying
+                                    ? null
+                                    : (val) {
+                                        if (val != null) {
+                                          setDialogState(() {
+                                            selectedPaymentMethod = val;
+                                          });
+                                        }
+                                      },
                               ),
-                            );
-                          }
-                        } catch (e) {
-                          if (context.mounted) {
-                            setDialogState(() {
-                              isPaying = false;
-                            });
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
-                            );
-                          }
-                        }
-                      },
-                child: isPaying
-                    ? const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                      )
-                    : const Text('Mark as Paid', style: TextStyle(color: Colors.white)),
+                            ),
+                          ),
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF166534),
+                              foregroundColor: Colors.white,
+                            ),
+                            onPressed: isPaying
+                                ? null
+                                : () async {
+                                    setDialogState(() {
+                                      isPaying = true;
+                                    });
+                                    try {
+                                      final svc = ref.read(purchaseServiceProvider);
+                                      await svc.markBillAsPaid(
+                                        bill['id'],
+                                        paymentMethod: selectedPaymentMethod,
+                                      );
+
+                                      ref.invalidate(purchaseBillsProvider);
+                                      ref.invalidate(distributorAnalyticsProvider(distributor['id']));
+                                      ref.invalidate(accountsProvider);
+                                      ref.invalidate(historyProvider);
+
+                                      if (context.mounted) {
+                                        Navigator.pop(context);
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(
+                                            content: Text('Bill marked as PAID via $selectedPaymentMethod!'),
+                                            backgroundColor: Colors.green,
+                                          ),
+                                        );
+                                      }
+                                    } catch (e) {
+                                      if (context.mounted) {
+                                        setDialogState(() {
+                                          isPaying = false;
+                                        });
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+                                        );
+                                      }
+                                    }
+                                  },
+                            child: isPaying
+                                ? const SizedBox(
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                  )
+                                : const Text('Mark as Paid', style: TextStyle(color: Colors.white)),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ],
-        ),
+            ),
+          );
+        },
       ),
     );
   }
