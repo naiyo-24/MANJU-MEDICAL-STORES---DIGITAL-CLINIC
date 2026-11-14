@@ -409,15 +409,50 @@ class _BillCustomizationScreenState
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Expanded(
-                        child: Text(
-                          'Bill Customization',
-                          style: TextStyle(
-                            fontSize: isDesktop ? 22 : 18,
-                            fontWeight: FontWeight.bold,
-                            color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: EdgeInsets.all(isDesktop ? 12 : 9),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF166534),
+                                borderRadius: BorderRadius.circular(isDesktop ? 12 : 10),
+                              ),
+                              child: Icon(
+                                Icons.settings,
+                                color: Colors.white,
+                                size: isDesktop ? 24 : 20,
+                              ),
+                            ),
+                            SizedBox(width: isDesktop ? 16 : 10),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    'Bill Customization',
+                                    style: TextStyle(
+                                      fontSize: isDesktop ? 22 : 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    'Configure your invoice template, shop details and print settings',
+                                    style: TextStyle(
+                                      fontSize: isDesktop ? 12 : 11,
+                                      color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                       const SizedBox(width: 8),
