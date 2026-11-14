@@ -152,11 +152,6 @@ class _BillingLeftPanelState extends ConsumerState<BillingLeftPanel> {
                             ),
                           ),
                         ),
-                        Icon(
-                          Icons.qr_code_scanner,
-                          color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B),
-                          size: 18,
-                        ),
                       ],
                     ),
                   ),
