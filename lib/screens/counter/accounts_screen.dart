@@ -362,41 +362,6 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                   );
                 },
               ),
-              IconButton(
-                icon: const Icon(Icons.delete_outline, size: 20, color: Colors.red),
-                style: IconButton.styleFrom(backgroundColor: Colors.red.withValues(alpha: 0.1)),
-                onPressed: () {
-                  showDialog(
-                    context: context,
-                    builder: (context) => AlertDialog(
-                      title: const Text('Delete Transaction'),
-                      content: const Text(
-                        'Are you sure you want to delete this transaction? This action cannot be undone.',
-                      ),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(context),
-                          child: const Text('Cancel'),
-                        ),
-                        ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.red,
-                          ),
-                          onPressed: () async {
-                            Navigator.pop(context);
-                            await TransactionService.deleteTransaction(txn.id);
-                            _loadTransactions();
-                          },
-                          child: const Text(
-                            'Delete',
-                            style: TextStyle(color: Colors.white),
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
             ],
           ),
         ],
@@ -1365,96 +1330,27 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                                                   ),
                                                   SizedBox(
                                                     width: 120,
-                                                    child: Row(
-                                                      mainAxisAlignment:
-                                                          MainAxisAlignment
-                                                              .center,
-                                                      children: [
-                                                        IconButton(
-                                                          icon: const Icon(
-                                                            Icons
-                                                                .remove_red_eye_outlined,
-                                                            size: 16,
-                                                            color: Color(
-                                                              0xFF64748B,
-                                                            ),
+                                                    child: Center(
+                                                      child: IconButton(
+                                                        icon: const Icon(
+                                                          Icons
+                                                              .remove_red_eye_outlined,
+                                                          size: 16,
+                                                          color: Color(
+                                                            0xFF64748B,
                                                           ),
-                                                          onPressed: () {
-                                                            AccountsWidgets.showTransactionDetails(
-                                                              context,
-                                                              txn,
-                                                            );
-                                                          },
-                                                          constraints:
-                                                              const BoxConstraints(),
-                                                          padding:
-                                                              EdgeInsets.zero,
                                                         ),
-                                                        const SizedBox(
-                                                          width: 8,
-                                                        ),
-                                                        IconButton(
-                                                          icon: const Icon(
-                                                            Icons
-                                                                .delete_outline,
-                                                            size: 16,
-                                                            color: Color(
-                                                              0xFF64748B,
-                                                            ),
-                                                          ),
-                                                          onPressed: () {
-                                                            showDialog(
-                                                              context: context,
-                                                              builder: (context) => AlertDialog(
-                                                                title: const Text(
-                                                                  'Delete Transaction',
-                                                                ),
-                                                                content: const Text(
-                                                                  'Are you sure you want to delete this transaction? This action cannot be undone.',
-                                                                ),
-                                                                actions: [
-                                                                  TextButton(
-                                                                    onPressed: () =>
-                                                                        Navigator.pop(
-                                                                          context,
-                                                                        ),
-                                                                    child: const Text(
-                                                                      'Cancel',
-                                                                    ),
-                                                                  ),
-                                                                  ElevatedButton(
-                                                                    style: ElevatedButton.styleFrom(
-                                                                      backgroundColor:
-                                                                          Colors
-                                                                              .red,
-                                                                    ),
-                                                                    onPressed: () async {
-                                                                      Navigator.pop(
-                                                                        context,
-                                                                      );
-                                                                      await TransactionService.deleteTransaction(
-                                                                        txn.id,
-                                                                      );
-                                                                      _loadTransactions();
-                                                                    },
-                                                                    child: const Text(
-                                                                      'Delete',
-                                                                      style: TextStyle(
-                                                                        color: Colors
-                                                                            .white,
-                                                                      ),
-                                                                    ),
-                                                                  ),
-                                                                ],
-                                                              ),
-                                                            );
-                                                          },
-                                                          constraints:
-                                                              const BoxConstraints(),
-                                                          padding:
-                                                              EdgeInsets.zero,
-                                                        ),
-                                                      ],
+                                                        onPressed: () {
+                                                          AccountsWidgets.showTransactionDetails(
+                                                            context,
+                                                            txn,
+                                                          );
+                                                        },
+                                                        constraints:
+                                                            const BoxConstraints(),
+                                                        padding:
+                                                            EdgeInsets.zero,
+                                                      ),
                                                     ),
                                                   ),
                                                 ],
