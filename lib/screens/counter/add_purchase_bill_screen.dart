@@ -208,192 +208,209 @@ class _AddPurchaseBillScreenState extends ConsumerState<AddPurchaseBillScreen> {
           final isDark = Theme.of(context).brightness == Brightness.dark;
           InputDecoration inputDec(String label) => InputDecoration(
             labelText: label,
+            labelStyle: TextStyle(color: isDark ? Colors.grey[400] : const Color(0xFF64748B), fontSize: 13),
             filled: true,
-            fillColor: isDark ? Colors.grey.shade900 : Colors.grey.shade50,
+            fillColor: isDark ? const Color(0xFF1E293B) : Colors.grey.shade50,
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: isDark ? Colors.grey.shade800 : Colors.grey.shade200)),
+            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: isDark ? const Color(0xFF334155) : Colors.grey.shade300)),
             focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF166534), width: 1.5)),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
           );
           
-          return Dialog(
-            backgroundColor: Colors.transparent,
-            insetPadding: const EdgeInsets.all(24),
-            child: Container(
-              width: 850,
-              constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.9),
-              decoration: BoxDecoration(
-                // ignore: deprecated_member_use
-                color: Theme.of(context).dialogBackgroundColor,
-                borderRadius: BorderRadius.circular(24),
-                boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 20, offset: Offset(0, 10))],
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Header
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 20),
-                    decoration: const BoxDecoration(
-                      color: Color(0xFF166534),
-                      borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Row(
+          return LayoutBuilder(
+            builder: (context, dialogConstraints) {
+              final isDesktopDialog = dialogConstraints.maxWidth >= 700;
+
+              Widget wrapField({required Widget child, required double desktopWidth, double? mobileWidth}) {
+                return SizedBox(
+                  width: isDesktopDialog ? desktopWidth : (mobileWidth ?? double.infinity),
+                  child: child,
+                );
+              }
+
+              return Dialog(
+                backgroundColor: Colors.transparent,
+                insetPadding: EdgeInsets.all(isDesktopDialog ? 24 : 12),
+                child: Container(
+                  width: isDesktopDialog ? 850 : double.infinity,
+                  constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.9),
+                  decoration: BoxDecoration(
+                    color: isDark ? const Color(0xFF0F172A) : Colors.white,
+                    borderRadius: BorderRadius.circular(isDesktopDialog ? 24 : 16),
+                    boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 20, offset: Offset(0, 10))],
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Header
+                      Container(
+                        padding: EdgeInsets.symmetric(horizontal: isDesktopDialog ? 28 : 16, vertical: 16),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF166534),
+                          borderRadius: BorderRadius.vertical(top: Radius.circular(isDesktopDialog ? 24 : 16)),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Icon(Icons.medication_liquid, color: Colors.white, size: 28),
-                            SizedBox(width: 12),
-                            Text('Add New Medicine', style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
+                            Row(
+                              children: [
+                                Icon(Icons.medication_liquid, color: Colors.white, size: isDesktopDialog ? 26 : 22),
+                                const SizedBox(width: 10),
+                                Text(
+                                  'Add New Medicine',
+                                  style: TextStyle(color: Colors.white, fontSize: isDesktopDialog ? 20 : 17, fontWeight: FontWeight.bold),
+                                ),
+                              ],
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.close, color: Colors.white, size: 20),
+                              onPressed: () => Navigator.pop(context),
+                            )
                           ],
                         ),
-                        IconButton(
-                          icon: const Icon(Icons.close, color: Colors.white),
-                          onPressed: () => Navigator.pop(context),
-                        )
-                      ],
-                    ),
-                  ),
-                  
-                  // Body
-                  Flexible(
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.all(32),
-                      child: Wrap(
-                        spacing: 24,
-                        runSpacing: 24,
-                        children: [
-                          SizedBox(width: 370, child: TextField(controller: nameCtrl, decoration: inputDec('Medicine Name *'))),
-                          SizedBox(width: 370, child: TextField(controller: mfgCtrl, decoration: inputDec('Manufacturer'))),
-                          SizedBox(width: 370, child: TextField(controller: bpCtrl, keyboardType: TextInputType.number, decoration: inputDec('Buying Price (₹) *'))),
-                          SizedBox(width: 370, child: TextField(controller: spCtrl, keyboardType: TextInputType.number, decoration: inputDec('Selling Price (MRP ₹) *'))),
-                          SizedBox(width: 173, child: TextField(controller: stockCtrl, keyboardType: TextInputType.number, decoration: inputDec('Initial Stock *'))),
-                          SizedBox(width: 173, child: TextField(controller: packSizeCtrl, keyboardType: TextInputType.number, decoration: inputDec('Pieces/Pack'))),
-                          SizedBox(width: 173, child: TextField(controller: gstCtrl, keyboardType: TextInputType.number, decoration: inputDec('GST (%)'))),
-                          SizedBox(width: 173, child: TextField(controller: discountCtrl, keyboardType: TextInputType.number, decoration: inputDec('Discount (%)'))),
-                          SizedBox(width: 173, child: TextField(controller: batchCtrl, decoration: inputDec('Batch Number'))),
-                          SizedBox(width: 173, child: TextField(controller: expiryCtrl, decoration: inputDec('Expiry (yyyy-mm-dd)'))),
-                          SizedBox(width: 370, child: TextField(controller: hsnCtrl, decoration: inputDec('HSN Code'))),
-                          SizedBox(width: 370, child: TextField(controller: skuCtrl, decoration: inputDec('Barcode / SKU'))),
-                          
-                          SizedBox(
-                            width: 370,
-                            child: DropdownButtonFormField<String>(
-                              decoration: inputDec('Category'),
-                              initialValue: selectedCategoryId,
-                              items: cList.map((c) => DropdownMenuItem(value: c.id, child: Text(c.name))).toList(),
-                              onChanged: (v) => setDialogState(() => selectedCategoryId = v),
-                            ),
-                          ),
-                          SizedBox(
-                            width: 370,
-                            child: DropdownButtonFormField<String>(
-                              decoration: inputDec('Rack / Location'),
-                              initialValue: selectedRackId,
-                              items: rList.map((r) => DropdownMenuItem(value: r.id, child: Text(r.rackNumber))).toList(),
-                              onChanged: (v) => setDialogState(() => selectedRackId = v),
-                            ),
-                          ),
-                        ],
                       ),
-                    ),
-                  ),
-                  
-                  // Footer
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-                    decoration: BoxDecoration(
-                      color: isDark ? Colors.grey.shade900 : Colors.grey.shade50,
-                      borderRadius: const BorderRadius.vertical(bottom: Radius.circular(24)),
-                      border: Border(top: BorderSide(color: isDark ? Colors.grey.shade800 : Colors.grey.shade200)),
-                    ),
-                    child: Wrap(
-                      alignment: WrapAlignment.end,
-                      spacing: 12,
-                      runSpacing: 12,
-                      children: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(context),
-                          style: TextButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                            foregroundColor: Colors.grey.shade700,
+                      
+                      // Body
+                      Flexible(
+                        child: SingleChildScrollView(
+                          padding: EdgeInsets.all(isDesktopDialog ? 28 : 16),
+                          child: Wrap(
+                            spacing: 16,
+                            runSpacing: 16,
+                            children: [
+                              wrapField(desktopWidth: 380, child: TextField(controller: nameCtrl, decoration: inputDec('Medicine Name *'))),
+                              wrapField(desktopWidth: 380, child: TextField(controller: mfgCtrl, decoration: inputDec('Manufacturer'))),
+                              wrapField(desktopWidth: 380, child: TextField(controller: bpCtrl, keyboardType: TextInputType.number, decoration: inputDec('Buying Price (₹) *'))),
+                              wrapField(desktopWidth: 380, child: TextField(controller: spCtrl, keyboardType: TextInputType.number, decoration: inputDec('Selling Price (MRP ₹) *'))),
+                              wrapField(desktopWidth: 182, mobileWidth: isDesktopDialog ? null : (dialogConstraints.maxWidth - 48) / 2, child: TextField(controller: stockCtrl, keyboardType: TextInputType.number, decoration: inputDec('Initial Stock *'))),
+                              wrapField(desktopWidth: 182, mobileWidth: isDesktopDialog ? null : (dialogConstraints.maxWidth - 48) / 2, child: TextField(controller: packSizeCtrl, keyboardType: TextInputType.number, decoration: inputDec('Pieces/Pack'))),
+                              wrapField(desktopWidth: 182, mobileWidth: isDesktopDialog ? null : (dialogConstraints.maxWidth - 48) / 2, child: TextField(controller: gstCtrl, keyboardType: TextInputType.number, decoration: inputDec('GST (%)'))),
+                              wrapField(desktopWidth: 182, mobileWidth: isDesktopDialog ? null : (dialogConstraints.maxWidth - 48) / 2, child: TextField(controller: discountCtrl, keyboardType: TextInputType.number, decoration: inputDec('Discount (%)'))),
+                              wrapField(desktopWidth: 182, mobileWidth: isDesktopDialog ? null : (dialogConstraints.maxWidth - 48) / 2, child: TextField(controller: batchCtrl, decoration: inputDec('Batch Number'))),
+                              wrapField(desktopWidth: 182, mobileWidth: isDesktopDialog ? null : (dialogConstraints.maxWidth - 48) / 2, child: TextField(controller: expiryCtrl, decoration: inputDec('Expiry (yyyy-mm-dd)'))),
+                              wrapField(desktopWidth: 380, child: TextField(controller: hsnCtrl, decoration: inputDec('HSN Code'))),
+                              wrapField(desktopWidth: 380, child: TextField(controller: skuCtrl, decoration: inputDec('Barcode / SKU'))),
+                              
+                              wrapField(
+                                desktopWidth: 380,
+                                child: DropdownButtonFormField<String>(
+                                  decoration: inputDec('Category'),
+                                  initialValue: selectedCategoryId,
+                                  dropdownColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+                                  items: cList.map((c) => DropdownMenuItem(value: c.id, child: Text(c.name))).toList(),
+                                  onChanged: (v) => setDialogState(() => selectedCategoryId = v),
+                                ),
+                              ),
+                              wrapField(
+                                desktopWidth: 380,
+                                child: DropdownButtonFormField<String>(
+                                  decoration: inputDec('Rack / Location'),
+                                  initialValue: selectedRackId,
+                                  dropdownColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+                                  items: rList.map((r) => DropdownMenuItem(value: r.id, child: Text(r.rackNumber))).toList(),
+                                  onChanged: (v) => setDialogState(() => selectedRackId = v),
+                                ),
+                              ),
+                            ],
                           ),
-                          child: const Text('Cancel', style: TextStyle(fontSize: 16)),
                         ),
-                        ElevatedButton.icon(
-                          icon: isSaving 
-                              ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                              : const Icon(Icons.check_circle_outline),
-                          label: Text(isSaving ? 'Saving...' : 'Save Medicine', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF166534),
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                            elevation: 0,
-                          ),
-                          onPressed: isSaving ? null : () async {
-                if (nameCtrl.text.isEmpty || bpCtrl.text.isEmpty || spCtrl.text.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please fill required fields *'), backgroundColor: Colors.red));
-                  return;
-                }
-                setDialogState(() => isSaving = true);
-                try {
-                  final newItem = await InventoryService.addMedicine({
-                    'name': nameCtrl.text,
-                    'sku': skuCtrl.text.isNotEmpty ? skuCtrl.text : DateTime.now().millisecondsSinceEpoch.toString(),
-                    'manufacturer': mfgCtrl.text,
-                    'buying_price': double.tryParse(bpCtrl.text) ?? 0.0,
-                    'unit_price': double.tryParse(spCtrl.text) ?? 0.0,
-                    'stock_quantity': 0, // Set to 0 so purchase bill submission sets the correct total
-                    'pack_size': int.tryParse(packSizeCtrl.text) ?? 1,
-                    'gst': double.tryParse(gstCtrl.text) ?? 0.0,
-                    'discount': double.tryParse(discountCtrl.text) ?? 0.0,
-                    'batch_number': batchCtrl.text.isNotEmpty ? batchCtrl.text : 'BATCH-01',
-                    'expiry_date': expiryCtrl.text.isNotEmpty ? expiryCtrl.text : '2030-12-31',
-                    'hsn_code': hsnCtrl.text.isNotEmpty ? hsnCtrl.text : '3004',
-                    'distributor_id': widget.distributor['id'],
-                    'rack_id': selectedRackId,
-                    'category_id': selectedCategoryId,
-                  });
-                  if (context.mounted) {
-                    // Automatically add the created medicine to the purchase bill cart
-                    final requestedQty = int.tryParse(stockCtrl.text) ?? 1;
-                    setState(() {
-                      _items.add({
-                        'inventory_item_id': newItem['id'],
-                        'name': newItem['name'],
-                        'quantity': requestedQty > 0 ? requestedQty : 1,
-                        'buying_price': (newItem['buying_price'] as num?)?.toDouble() ?? 0.0,
-                        'selling_price': (newItem['unit_price'] as num?)?.toDouble() ?? 0.0,
-                        'batch_number': newItem['batch_number'] ?? '',
-                        'expiry_date': newItem['expiry_date'] ?? '',
-                        'hsn_code': newItem['hsn_code'] ?? '',
-                        'gst': (newItem['gst'] as num?)?.toDouble() ?? 0.0,
-                        'rack_id': newItem['rack_id'],
-                        'category_id': newItem['category_id'],
-                      });
-                    });
-                    
-                    ref.invalidate(inventoryProvider); // Refresh global stock
-                    ref.invalidate(purchaseInventoryProvider); // Refresh local search list
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Medicine created & added to bill!'), backgroundColor: Colors.green));
-                  }
-                } catch (e) {
-                  if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red));
-                } finally {
-                  if (context.mounted) setDialogState(() => isSaving = false);
-                }
-              },
-            ),
-          ],
-        )
-      ),
-    ],
-  ),
-),
+                      ),
+                      
+                      // Footer
+                      Container(
+                        padding: EdgeInsets.symmetric(horizontal: isDesktopDialog ? 24 : 16, vertical: 16),
+                        decoration: BoxDecoration(
+                          color: isDark ? const Color(0xFF0F172A) : Colors.grey.shade50,
+                          borderRadius: BorderRadius.vertical(bottom: Radius.circular(isDesktopDialog ? 24 : 16)),
+                          border: Border(top: BorderSide(color: isDark ? const Color(0xFF334155) : Colors.grey.shade200)),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context),
+                              style: TextButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                foregroundColor: isDark ? Colors.grey[400] : Colors.grey.shade700,
+                              ),
+                              child: const Text('Cancel', style: TextStyle(fontSize: 15)),
+                            ),
+                            const SizedBox(width: 8),
+                            ElevatedButton.icon(
+                              icon: isSaving 
+                                  ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                                  : const Icon(Icons.check_circle_outline, size: 18),
+                              label: Text(isSaving ? 'Saving...' : 'Save Medicine', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF166534),
+                                foregroundColor: Colors.white,
+                                padding: EdgeInsets.symmetric(horizontal: isDesktopDialog ? 24 : 16, vertical: 14),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                elevation: 0,
+                              ),
+                              onPressed: isSaving ? null : () async {
+                                if (nameCtrl.text.isEmpty || bpCtrl.text.isEmpty || spCtrl.text.isEmpty) {
+                                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please fill required fields *'), backgroundColor: Colors.red));
+                                  return;
+                                }
+                                setDialogState(() => isSaving = true);
+                                try {
+                                  final newItem = await InventoryService.addMedicine({
+                                    'name': nameCtrl.text,
+                                    'sku': skuCtrl.text.isNotEmpty ? skuCtrl.text : DateTime.now().millisecondsSinceEpoch.toString(),
+                                    'manufacturer': mfgCtrl.text,
+                                    'buying_price': double.tryParse(bpCtrl.text) ?? 0.0,
+                                    'unit_price': double.tryParse(spCtrl.text) ?? 0.0,
+                                    'stock_quantity': 0, // Set to 0 so purchase bill submission sets the correct total
+                                    'pack_size': int.tryParse(packSizeCtrl.text) ?? 1,
+                                    'gst': double.tryParse(gstCtrl.text) ?? 0.0,
+                                    'discount': double.tryParse(discountCtrl.text) ?? 0.0,
+                                    'batch_number': batchCtrl.text.isNotEmpty ? batchCtrl.text : 'BATCH-01',
+                                    'expiry_date': expiryCtrl.text.isNotEmpty ? expiryCtrl.text : '2030-12-31',
+                                    'hsn_code': hsnCtrl.text.isNotEmpty ? hsnCtrl.text : '3004',
+                                    'distributor_id': widget.distributor['id'],
+                                    'rack_id': selectedRackId,
+                                    'category_id': selectedCategoryId,
+                                  });
+                                  if (context.mounted) {
+                                    // Automatically add the created medicine to the purchase bill cart
+                                    final requestedQty = int.tryParse(stockCtrl.text) ?? 1;
+                                    setState(() {
+                                      _items.add({
+                                        'inventory_item_id': newItem['id'],
+                                        'name': newItem['name'],
+                                        'quantity': requestedQty > 0 ? requestedQty : 1,
+                                        'buying_price': (newItem['buying_price'] as num?)?.toDouble() ?? 0.0,
+                                        'selling_price': (newItem['unit_price'] as num?)?.toDouble() ?? 0.0,
+                                        'batch_number': newItem['batch_number'] ?? '',
+                                        'expiry_date': newItem['expiry_date'] ?? '',
+                                        'hsn_code': newItem['hsn_code'] ?? '',
+                                        'gst': (newItem['gst'] as num?)?.toDouble() ?? 0.0,
+                                        'rack_id': newItem['rack_id'],
+                                        'category_id': newItem['category_id'],
+                                      });
+                                    });
+                                    
+                                    ref.invalidate(inventoryProvider); // Refresh global stock
+                                    ref.invalidate(purchaseInventoryProvider); // Refresh local search list
+                                    Navigator.pop(context);
+                                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Medicine created & added to bill!'), backgroundColor: Colors.green));
+                                  }
+                                } catch (e) {
+                                  if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red));
+                                } finally {
+                                  if (context.mounted) setDialogState(() => isSaving = false);
+                                }
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
           );
         },
       ),
@@ -852,13 +869,14 @@ class _AddPurchaseBillScreenState extends ConsumerState<AddPurchaseBillScreen> {
         child: Scaffold(
           backgroundColor: isDark ? Theme.of(context).scaffoldBackgroundColor : const Color(0xFFF8FAFC),
           appBar: AppBar(
-            title: Text('Purchase from ${widget.distributor['name']}', style: const TextStyle(fontSize: 16)),
-            backgroundColor: isDark ? Theme.of(context).appBarTheme.backgroundColor : Colors.white,
+            title: Text('Purchase from ${widget.distributor['name']}', style: TextStyle(fontSize: 16, color: isDark ? Colors.white : Colors.black)),
+            backgroundColor: isDark ? Theme.of(context).cardColor : Colors.white,
             foregroundColor: isDark ? Colors.white : Colors.black,
             elevation: 1,
             bottom: const TabBar(
-              labelColor: Color(0xFF166534),
-              indicatorColor: Color(0xFF166534),
+              labelColor: Color(0xFF22C55E),
+              unselectedLabelColor: Colors.grey,
+              indicatorColor: Color(0xFF22C55E),
               tabs: [
                 Tab(icon: Icon(Icons.search), text: 'Search'),
                 Tab(icon: Icon(Icons.receipt), text: 'Bill'),
@@ -874,12 +892,70 @@ class _AddPurchaseBillScreenState extends ConsumerState<AddPurchaseBillScreen> {
           bottomNavigationBar: Container(
             decoration: BoxDecoration(
               color: isDark ? Theme.of(context).cardColor : Colors.white,
+              border: Border(top: BorderSide(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0))),
               boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 4, offset: Offset(0, -2))],
             ),
             child: SafeArea(
               child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: actionsWrap,
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Row 1: Invoice Number input
+                    SizedBox(
+                      height: 44,
+                      child: TextField(
+                        controller: _invoiceCtrl,
+                        decoration: InputDecoration(
+                          hintText: 'Auto Gen',
+                          labelText: 'Invoice Number',
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                          isDense: true,
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                        ),
+                        style: const TextStyle(fontSize: 13),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    // Row 2: Add New Medicine + Confirm Purchase
+                    Row(
+                      children: [
+                        Expanded(
+                          child: SizedBox(
+                            height: 42,
+                            child: OutlinedButton.icon(
+                              onPressed: _showAddMedicineDialog,
+                              icon: const Icon(Icons.add, size: 16),
+                              label: const Text('Add Medicine', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis),
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: const Color(0xFF166534),
+                                side: const BorderSide(color: Color(0xFF166534)),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: SizedBox(
+                            height: 42,
+                            child: ElevatedButton(
+                              onPressed: _isLoading ? null : _submit,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF166534),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                elevation: 0,
+                              ),
+                              child: _isLoading 
+                                ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)) 
+                                : const Text('Confirm Purchase', style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
