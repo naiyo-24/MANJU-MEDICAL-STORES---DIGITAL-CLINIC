@@ -115,9 +115,9 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
                                 color: AppColors.primaryDark, // Dark Green
                                 borderRadius: BorderRadius.circular(12),
                               ),
-                              child: Icon(
+                              child: const Icon(
                                 Icons.people,
-                                color: Theme.of(context).cardColor,
+                                color: Colors.white,
                                 size: 24,
                               ),
                             ),

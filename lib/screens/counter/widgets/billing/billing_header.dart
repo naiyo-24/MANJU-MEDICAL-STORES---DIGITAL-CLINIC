@@ -29,9 +29,9 @@ class BillingHeaderWidget extends StatelessWidget {
                     color: Color(0xFF22C55E),
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(
+                  child: const Icon(
                     Icons.receipt_long,
-                    color: Theme.of(context).cardColor,
+                    color: Colors.white,
                     size: 24,
                   ),
                 ),

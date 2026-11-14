@@ -461,9 +461,9 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                             color: const Color(0xFF166534),
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          child: Icon(
+                          child: const Icon(
                             Icons.account_balance_wallet,
-                            color: Theme.of(context).cardColor,
+                            color: Colors.white,
                             size: 24,
                           ),
                         ),
