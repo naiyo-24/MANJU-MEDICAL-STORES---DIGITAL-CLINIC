@@ -389,7 +389,7 @@ class _ShopManagementScreenState extends ConsumerState<ShopManagementScreen> {
                       Container(
                         padding: EdgeInsets.all(isDesktop ? 12 : 9),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF22C55E),
+                          color: const Color(0xFF166534),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Icon(
