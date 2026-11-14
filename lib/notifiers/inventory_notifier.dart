@@ -102,17 +102,9 @@ class InventoryNotifier extends AsyncNotifier<List<InventoryItem>> {
     int limit = 100,
   }) async {
     String? shopId = ref.read(selectedShopIdProvider);
-    if (shopId == null) {
+    if (shopId == null || shopId.isEmpty) {
       try {
         shopId = await InventoryService.getShopId();
-        if (shopId.isNotEmpty && ref.read(selectedShopIdProvider) != shopId) {
-          // Delay state update to avoid 'setState() or markNeedsBuild() called during build'
-          Future.microtask(() {
-            if (ref.read(selectedShopIdProvider) != shopId) {
-              ref.read(selectedShopIdProvider.notifier).updateShopId(shopId);
-            }
-          });
-        }
       } catch (e) {
         return [];
       }
