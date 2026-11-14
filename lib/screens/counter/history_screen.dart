@@ -940,9 +940,14 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
             ? filtered.sublist(startIdx, endIdx)
             : <Map<String, dynamic>>[];
 
+        final isDesktop = MediaQuery.of(context).size.width > 800;
+
         return Container(
           color: Colors.transparent,
-          padding: EdgeInsets.all(MediaQuery.of(context).size.width > 800 ? 32.0 : 16.0),
+          padding: EdgeInsets.symmetric(
+            horizontal: isDesktop ? 32.0 : 12.0,
+            vertical: isDesktop ? 32.0 : 12.0,
+          ),
           child: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1375,11 +1380,10 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                             ),
                           ],
                         )
-                      : Wrap(
-                          spacing: 12,
-                          runSpacing: 12,
-                          crossAxisAlignment: WrapCrossAlignment.end,
+                      : Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
+                            // Date Range Header & Horizontal Scrollable Pill Bar
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -1392,79 +1396,107 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                                   ),
                                 ),
                                 const SizedBox(height: 8),
-                                Container(
-                                  width: constraints.maxWidth,
-                                  decoration: BoxDecoration(
-                                    color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white,
-                                    borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(
-                                      color: Theme.of(context).dividerColor,
+                                SingleChildScrollView(
+                                  scrollDirection: Axis.horizontal,
+                                  child: Container(
+                                    height: 40,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 4,
+                                      vertical: 4,
                                     ),
-                                  ),
-                                  child: Wrap(
-                                    children: [
-                                      _buildDateRangeBtn('Today', false),
-                                      _buildDateRangeBtn('This Week', false),
-                                      _buildDateRangeBtn('This Month', false),
-                                      _buildDateRangeBtn('This Year', false),
-                                      _buildDateRangeBtn('Custom Range', true),
-                                    ],
+                                    decoration: BoxDecoration(
+                                      color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white,
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(
+                                        color: Theme.of(context).dividerColor,
+                                      ),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        _buildDateRangeBtn('Today', false),
+                                        _buildDateRangeBtn('This Week', false),
+                                        _buildDateRangeBtn('This Month', false),
+                                        _buildDateRangeBtn('This Year', false),
+                                        VerticalDivider(
+                                          width: 16,
+                                          color: Theme.of(context).dividerColor,
+                                        ),
+                                        _buildDateRangeBtn('Custom Range', true),
+                                      ],
+                                    ),
                                   ),
                                 ),
                               ],
                             ),
-                            SizedBox(
-                              width: (constraints.maxWidth - 12) / 2,
-                              child: _buildDropdownFilter(
-                                'Transaction Type',
-                                ['All', 'Sale', 'Return', 'Adjustment', 'Purchase'],
-                                _selectedType,
-                                (v) => setState(() { _selectedType = v!; _currentPage = 1; }),
+                            const SizedBox(height: 10),
+                            // Search Field Full Width
+                            Container(
+                              height: 42,
+                              decoration: BoxDecoration(
+                                color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: Theme.of(context).dividerColor),
                               ),
-                            ),
-                            SizedBox(
-                              width: (constraints.maxWidth - 12) / 2,
-                              child: _buildDropdownFilter(
-                                'Payment Mode',
-                                ['All', 'Cash', 'UPI', 'Card', 'Bank Transfer'],
-                                _selectedPaymentMode,
-                                (v) => setState(() { _selectedPaymentMode = v!; _currentPage = 1; }),
-                              ),
-                            ),
-                            SizedBox(
-                              width: constraints.maxWidth,
-                              child: Container(
-                                height: 40,
-                                decoration: BoxDecoration(
-                                  color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white,
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(color: Theme.of(context).dividerColor),
+                              child: TextField(
+                                onChanged: (val) => setState(() => _searchQuery = val),
+                                style: const TextStyle(fontSize: 13),
+                                decoration: const InputDecoration(
+                                  hintText: 'Search by bill no, customer name, phone...',
+                                  hintStyle: TextStyle(color: Color(0xFF94A3B8), fontSize: 13),
+                                  prefixIcon: Icon(Icons.search, color: Color(0xFF94A3B8), size: 18),
+                                  border: InputBorder.none,
+                                  contentPadding: EdgeInsets.symmetric(vertical: 12),
                                 ),
-                                child: TextField(
-                                  onChanged: (val) => setState(() => _searchQuery = val),
-                                  style: const TextStyle(fontSize: 13),
-                                  decoration: const InputDecoration(
-                                    hintText: 'Search by bill no, customer name, phone...',
-                                    hintStyle: TextStyle(color: Color(0xFF94A3B8), fontSize: 13),
-                                    prefixIcon: Icon(Icons.search, color: Color(0xFF94A3B8), size: 18),
-                                    border: InputBorder.none,
-                                    contentPadding: EdgeInsets.symmetric(vertical: 12),
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            // Row with Transaction Type, Payment Mode and Reset Icon Button
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: _buildDropdownFilter(
+                                    'Transaction Type',
+                                    ['All', 'Sale', 'Return', 'Adjustment', 'Purchase'],
+                                    _selectedType,
+                                    (v) => setState(() { _selectedType = v!; _currentPage = 1; }),
                                   ),
                                 ),
-                              ),
-                            ),
-                            SizedBox(
-                              width: constraints.maxWidth,
-                              child: OutlinedButton.icon(
-                                onPressed: _resetFilters,
-                                icon: Icon(Icons.clear, color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B), size: 16),
-                                label: Text('Reset Filters', style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B), fontWeight: FontWeight.bold)),
-                                style: OutlinedButton.styleFrom(
-                                  side: BorderSide(color: Theme.of(context).dividerColor),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                  minimumSize: const Size(0, 40),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: _buildDropdownFilter(
+                                    'Payment Mode',
+                                    ['All', 'Cash', 'UPI', 'Card', 'Bank Transfer'],
+                                    _selectedPaymentMode,
+                                    (v) => setState(() { _selectedPaymentMode = v!; _currentPage = 1; }),
+                                  ),
                                 ),
-                              ),
+                                const SizedBox(width: 8),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text('', style: TextStyle(fontSize: 12)),
+                                    const SizedBox(height: 8),
+                                    InkWell(
+                                      onTap: _resetFilters,
+                                      borderRadius: BorderRadius.circular(8),
+                                      child: Container(
+                                        height: 40,
+                                        width: 44,
+                                        decoration: BoxDecoration(
+                                          border: Border.all(color: Theme.of(context).dividerColor),
+                                          borderRadius: BorderRadius.circular(8),
+                                          color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white,
+                                        ),
+                                        child: Icon(
+                                          Icons.refresh,
+                                          size: 18,
+                                          color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
                             ),
                           ],
                         );
