@@ -32,128 +32,231 @@ class _DistributorsScreenState extends ConsumerState<DistributorsScreen> {
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Wrap(
-              alignment: WrapAlignment.spaceBetween,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              runSpacing: 16,
-              spacing: 16,
-              children: [
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      'Distributors',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    IconButton(
-                      icon: const Icon(Icons.refresh, size: 22),
-                      tooltip: 'Refresh',
-                      color: Theme.of(context).brightness == Brightness.dark ? Colors.white70 : const Color(0xFF1E293B),
-                      onPressed: () {
-                        ref.invalidate(distributorsProvider);
-                        ref.invalidate(purchaseBillsProvider);
-                      },
-                    ),
-                  ],
-                ),
-                Wrap(
-                  spacing: 12,
-                  runSpacing: 12,
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  children: [
-                    IconButton(
-                      icon: Icon(Icons.refresh, color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B)),
-                      onPressed: () {
-                        ref.invalidate(distributorsProvider);
-                      },
-                      tooltip: 'Refresh',
-                    ),
-                    PopupMenuButton<String>(
-                      padding: EdgeInsets.zero,
-                      onSelected: (value) async {
-                        final dataToExport = filteredDistributors.map((d) => {
-                          'Name': d['name'] ?? '',
-                          'Email': d['email'] ?? '',
-                          'Phone': d['phone'] ?? '',
-                          'GSTIN': d['gstin'] ?? '',
-                          'Address': d['address'] ?? '',
-                          'Status': d['status'] ?? 'Active',
-                        }).toList();
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final isDesktop = constraints.maxWidth > 800;
 
-                        final timestamp = DateTime.now().millisecondsSinceEpoch;
-                        final settings = ref.read(settingsProvider).value ??
-                            await ref.read(settingsProvider.future).catchError((_) => <String, dynamic>{});
-
-                        if (value == 'csv') {
-                          await ExportService.exportToCSV(dataToExport, 'Distributors_$timestamp');
-                        } else if (value == 'excel') {
-                          await ExportService.exportToExcel(dataToExport, 'Distributors_$timestamp');
-                        } else if (value == 'pdf') {
-                          await ExportService.exportToPDF(dataToExport, 'Distributors_$timestamp', settings);
-                        }
-                      },
-                      offset: const Offset(0, 40),
-                      itemBuilder: (context) => [
-                        const PopupMenuItem(
-                          value: 'csv',
-                          child: Text('Export as CSV'),
-                        ),
-                        const PopupMenuItem(
-                          value: 'excel',
-                          child: Text('Export as Excel'),
-                        ),
-                        const PopupMenuItem(
-                          value: 'pdf',
-                          child: Text('Export as PDF'),
-                        ),
-                      ],
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                        decoration: BoxDecoration(
-                          border: Border.all(color: const Color(0xFF166534)),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.download, color: Color(0xFF166534), size: 18),
-                            SizedBox(width: 8),
-                            Text('Export', style: TextStyle(color: Color(0xFF166534), fontWeight: FontWeight.bold)),
-                          ],
-                        ),
-                      ),
-                    ),
-                    ElevatedButton.icon(
-                      onPressed: () {
-                        showDialog(
-                          context: context,
-                          builder: (context) => const AddDistributorDialog(),
-                        );
-                      },
-                      icon: const Icon(Icons.add, color: Colors.white, size: 18),
-                      label: const Text('Add Distributor', style: TextStyle(color: Colors.white)),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF166534),
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+          return Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: isDesktop ? 24.0 : 12.0,
+              vertical: isDesktop ? 24.0 : 12.0,
             ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (isDesktop) ...[
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Distributors',
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
+                        ),
+                      ),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: Icon(Icons.refresh, color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B)),
+                            onPressed: () {
+                              ref.invalidate(distributorsProvider);
+                              ref.invalidate(purchaseBillsProvider);
+                            },
+                            tooltip: 'Refresh',
+                          ),
+                          const SizedBox(width: 8),
+                          PopupMenuButton<String>(
+                            padding: EdgeInsets.zero,
+                            onSelected: (value) async {
+                              final dataToExport = filteredDistributors.map((d) => {
+                                'Name': d['name'] ?? '',
+                                'Email': d['email'] ?? '',
+                                'Phone': d['phone'] ?? '',
+                                'GSTIN': d['gstin'] ?? '',
+                                'Address': d['address'] ?? '',
+                                'Status': d['status'] ?? 'Active',
+                              }).toList();
+
+                              final timestamp = DateTime.now().millisecondsSinceEpoch;
+                              final settings = ref.read(settingsProvider).value ??
+                                  await ref.read(settingsProvider.future).catchError((_) => <String, dynamic>{});
+
+                              if (value == 'csv') {
+                                await ExportService.exportToCSV(dataToExport, 'Distributors_$timestamp');
+                              } else if (value == 'excel') {
+                                await ExportService.exportToExcel(dataToExport, 'Distributors_$timestamp');
+                              } else if (value == 'pdf') {
+                                await ExportService.exportToPDF(dataToExport, 'Distributors_$timestamp', settings);
+                              }
+                            },
+                            offset: const Offset(0, 40),
+                            itemBuilder: (context) => [
+                              const PopupMenuItem(
+                                value: 'csv',
+                                child: Text('Export as CSV'),
+                              ),
+                              const PopupMenuItem(
+                                value: 'excel',
+                                child: Text('Export as Excel'),
+                              ),
+                              const PopupMenuItem(
+                                value: 'pdf',
+                                child: Text('Export as PDF'),
+                              ),
+                            ],
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                              decoration: BoxDecoration(
+                                border: Border.all(color: const Color(0xFF166534)),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.download, color: Color(0xFF166534), size: 18),
+                                  SizedBox(width: 8),
+                                  Text('Export', style: TextStyle(color: Color(0xFF166534), fontWeight: FontWeight.bold)),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          ElevatedButton.icon(
+                            onPressed: () {
+                              showDialog(
+                                context: context,
+                                builder: (context) => const AddDistributorDialog(),
+                              );
+                            },
+                            icon: const Icon(Icons.add, color: Colors.white, size: 18),
+                            label: const Text('Add Distributor', style: TextStyle(color: Colors.white)),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF166534),
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ] else ...[
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Distributors',
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
+                        ),
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.refresh, color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B)),
+                        onPressed: () {
+                          ref.invalidate(distributorsProvider);
+                          ref.invalidate(purchaseBillsProvider);
+                        },
+                        tooltip: 'Refresh',
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      Expanded(
+                        flex: 4,
+                        child: PopupMenuButton<String>(
+                          padding: EdgeInsets.zero,
+                          onSelected: (value) async {
+                            final dataToExport = filteredDistributors.map((d) => {
+                              'Name': d['name'] ?? '',
+                              'Email': d['email'] ?? '',
+                              'Phone': d['phone'] ?? '',
+                              'GSTIN': d['gstin'] ?? '',
+                              'Address': d['address'] ?? '',
+                              'Status': d['status'] ?? 'Active',
+                            }).toList();
+
+                            final timestamp = DateTime.now().millisecondsSinceEpoch;
+                            final settings = ref.read(settingsProvider).value ??
+                                await ref.read(settingsProvider.future).catchError((_) => <String, dynamic>{});
+
+                            if (value == 'csv') {
+                              await ExportService.exportToCSV(dataToExport, 'Distributors_$timestamp');
+                            } else if (value == 'excel') {
+                              await ExportService.exportToExcel(dataToExport, 'Distributors_$timestamp');
+                            } else if (value == 'pdf') {
+                              await ExportService.exportToPDF(dataToExport, 'Distributors_$timestamp', settings);
+                            }
+                          },
+                          offset: const Offset(0, 40),
+                          itemBuilder: (context) => [
+                            const PopupMenuItem(
+                              value: 'csv',
+                              child: Text('Export as CSV'),
+                            ),
+                            const PopupMenuItem(
+                              value: 'excel',
+                              child: Text('Export as Excel'),
+                            ),
+                            const PopupMenuItem(
+                              value: 'pdf',
+                              child: Text('Export as PDF'),
+                            ),
+                          ],
+                          child: Container(
+                            height: 44,
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              border: Border.all(color: const Color(0xFF166534)),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.download, color: Color(0xFF166534), size: 18),
+                                SizedBox(width: 6),
+                                Text('Export', style: TextStyle(color: Color(0xFF166534), fontWeight: FontWeight.bold)),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        flex: 6,
+                        child: SizedBox(
+                          height: 44,
+                          child: ElevatedButton.icon(
+                            onPressed: () {
+                              showDialog(
+                                context: context,
+                                builder: (context) => const AddDistributorDialog(),
+                              );
+                            },
+                            icon: const Icon(Icons.add, color: Colors.white, size: 18),
+                            label: const Text('Add Distributor', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF166534),
+                              padding: const EdgeInsets.symmetric(horizontal: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
             const SizedBox(height: 16),
             TextField(
               onChanged: (value) {
@@ -217,7 +320,9 @@ class _DistributorsScreenState extends ConsumerState<DistributorsScreen> {
             ),
           ],
         ),
-      ),
-    );
+      );
+    },
+  ),
+);
   }
 }

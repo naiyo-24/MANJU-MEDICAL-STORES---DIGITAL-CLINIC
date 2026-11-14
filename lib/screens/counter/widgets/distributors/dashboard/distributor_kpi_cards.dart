@@ -32,14 +32,10 @@ class DistributorKpiCards extends ConsumerWidget {
       padding: const EdgeInsets.only(bottom: 24.0),
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final isMobile = constraints.maxWidth < 600;
-          final isTablet = constraints.maxWidth < 1100 && constraints.maxWidth >= 600;
-          
-          double cardWidth = constraints.maxWidth; // Mobile
-          if (isTablet) {
-            cardWidth = (constraints.maxWidth - 16) / 2;
-          // ignore: curly_braces_in_flow_control_structures
-          } else if (!isMobile) cardWidth = (constraints.maxWidth - 48) / 4;
+          final isDesktop = constraints.maxWidth >= 900;
+          final cardWidth = isDesktop
+              ? (constraints.maxWidth - 48) / 4
+              : (constraints.maxWidth - 16) / 2;
 
           return Wrap(
             spacing: 16,
@@ -47,8 +43,8 @@ class DistributorKpiCards extends ConsumerWidget {
             children: [
               _buildCard(context, 'Total Distributors', '$totalCount', Icons.business, Colors.blue, cardWidth),
               _buildCard(context, 'Active Distributors', '$activeCount', Icons.check_circle, Colors.green, cardWidth),
-              _buildCard(context, 'Total Purchases', '₹${totalPurchases.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\\d{1,3})(?=(\\d{3})+(?!\\d))'), (Match m) => '${m[1]},')}', Icons.shopping_bag, Colors.purple, cardWidth),
-              _buildCard(context, 'Pending Payments', '₹${pendingPayments.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\\d{1,3})(?=(\\d{3})+(?!\\d))'), (Match m) => '${m[1]},')}', Icons.account_balance_wallet, Colors.orange, cardWidth),
+              _buildCard(context, 'Total Purchases', '₹${totalPurchases.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},')}', Icons.shopping_bag, Colors.purple, cardWidth),
+              _buildCard(context, 'Pending Payments', '₹${pendingPayments.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},')}', Icons.account_balance_wallet, Colors.orange, cardWidth),
             ],
           );
         }

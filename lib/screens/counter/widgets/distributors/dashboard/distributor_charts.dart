@@ -73,20 +73,23 @@ class DistributorCharts extends ConsumerWidget {
       child: LayoutBuilder(
         builder: (context, constraints) {
           final isSmall = constraints.maxWidth < 900;
+          final chartHeight = isSmall ? 260.0 : 350.0;
+          final cardPadding = EdgeInsets.all(isSmall ? 16.0 : 24.0);
+
           return Flex(
             direction: isSmall ? Axis.vertical : Axis.horizontal,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
                 width: isSmall ? constraints.maxWidth : (constraints.maxWidth - 24) * 0.6,
-                height: 350,
-                padding: const EdgeInsets.all(24),
+                height: chartHeight,
+                padding: cardPadding,
                 decoration: _cardDecoration(context),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text('Purchase Trend (Last 6 Months)', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B))),
-                    const SizedBox(height: 24),
+                    SizedBox(height: isSmall ? 14 : 24),
                     Expanded(
                       child: LineChart(
                         LineChartData(
@@ -153,11 +156,11 @@ class DistributorCharts extends ConsumerWidget {
                 ),
               ),
               if (!isSmall) const SizedBox(width: 24),
-              if (isSmall) const SizedBox(height: 24),
+              if (isSmall) const SizedBox(height: 16),
               Container(
                 width: isSmall ? constraints.maxWidth : (constraints.maxWidth - 24) * 0.4,
-                height: 350,
-                padding: const EdgeInsets.all(24),
+                height: chartHeight,
+                padding: cardPadding,
                 decoration: _cardDecoration(context),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,

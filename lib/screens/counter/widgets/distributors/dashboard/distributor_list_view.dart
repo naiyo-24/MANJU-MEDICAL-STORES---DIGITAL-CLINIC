@@ -28,7 +28,7 @@ class DistributorListView extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Container(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
             decoration: BoxDecoration(
               border: Border(bottom: BorderSide(color: Theme.of(context).dividerColor)),
             ),
@@ -46,14 +46,14 @@ class DistributorListView extends ConsumerWidget {
                   context.push('/counter/distributors/details', extra: dist);
                 },
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
                   child: Row(
                     children: [
                       CircleAvatar(
                         backgroundColor: const Color(0xFFE8F5E9),
                         child: const Icon(Icons.business, color: Color(0xFF166534)),
                       ),
-                      const SizedBox(width: 16),
+                      const SizedBox(width: 12),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -64,8 +64,8 @@ class DistributorListView extends ConsumerWidget {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              'Phone: ${dist['phone'] ?? 'N/A'} | Email: ${dist['email'] ?? 'N/A'}',
-                              style: TextStyle(fontSize: 13, color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B)),
+                              'Phone: ${dist['phone'] ?? 'N/A'}\nEmail: ${dist['email'] ?? 'N/A'}',
+                              style: TextStyle(fontSize: 12, color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B)),
                             ),
                           ],
                         ),
