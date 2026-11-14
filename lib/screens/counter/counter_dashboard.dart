@@ -707,8 +707,8 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
           ? CrossAxisAlignment.start
           : CrossAxisAlignment.center,
       children: [
-        const Divider(
-          color: Color(0xFFE2E8F0),
+        Divider(
+          color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
           thickness: 1,
           indent: 16,
           endIndent: 16,
@@ -987,13 +987,13 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
               future: PackageInfo.fromPlatform(),
               builder: (context, snapshot) {
                 final version =
-                    snapshot.hasData ? snapshot.data!.version : '1.0.32';
+                    snapshot.hasData ? snapshot.data!.version : '1.0.35';
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 8.0),
                   child: Text(
                     'SirfBill v$version',
                     style: TextStyle(
-                      color: subtitleColor.withValues(alpha: 0.6),
+                      color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
                       fontSize: 11,
                       fontWeight: FontWeight.w500,
                     ),
