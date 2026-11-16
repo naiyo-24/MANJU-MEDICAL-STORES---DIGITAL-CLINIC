@@ -41,7 +41,7 @@ class _AddDistributorDialogState extends ConsumerState<AddDistributorDialog> {
     
     try {
       final service = ref.read(distributorServiceProvider);
-      await service.addDistributor({
+      final newDistributor = await service.addDistributor({
         'name': _nameController.text.trim(),
         'contact_person': _contactPersonController.text.trim(),
         'phone': _phoneController.text.trim(),
@@ -55,7 +55,7 @@ class _AddDistributorDialogState extends ConsumerState<AddDistributorDialog> {
       ref.invalidate(distributorsProvider);
       
       if (mounted) {
-        Navigator.pop(context);
+        Navigator.pop(context, newDistributor);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Distributor added successfully!'), backgroundColor: Color(0xFF166534)),
         );

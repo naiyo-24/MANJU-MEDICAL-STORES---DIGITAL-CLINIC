@@ -251,6 +251,7 @@ class _UploadManagementScreenState
     bool isRequired = false,
     IconData? suffixIcon,
     TextEditingController? controller,
+    FocusNode? focusNode,
     VoidCallback? onTap,
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -281,6 +282,7 @@ class _UploadManagementScreenState
         SizedBox(height: 8),
         TextField(
           controller: controller,
+          focusNode: focusNode,
           readOnly: onTap != null,
           onTap: onTap,
           decoration: InputDecoration(
@@ -591,11 +593,81 @@ class _UploadManagementScreenState
                                 children: [
                                   _buildResponsiveRow(context, [
                                       Expanded(
-                                        child: _buildTextField(
-                                          'Medicine Name',
-                                          'e.g. Paracetamol 500mg',
-                                          isRequired: true,
-                                          controller: _nameCtrl,
+                                        child: RawAutocomplete<String>(
+                                          textEditingController: _nameCtrl,
+                                          focusNode: FocusNode(),
+                                          optionsBuilder: (TextEditingValue textEditingValue) {
+                                            final query = textEditingValue.text.trim().toLowerCase();
+                                            if (query.isEmpty) {
+                                              return const Iterable<String>.empty();
+                                            }
+                                            final inventoryItems = ref.read(inventoryProvider).value ?? [];
+                                            final names = <String>{};
+                                            for (final item in inventoryItems) {
+                                              if (item.name.toLowerCase().contains(query)) {
+                                                names.add(item.name);
+                                              }
+                                            }
+                                            return names.take(8);
+                                          },
+                                          optionsViewBuilder: (context, onSelected, options) {
+                                            final isDarkTheme = Theme.of(context).brightness == Brightness.dark;
+                                            return Align(
+                                              alignment: Alignment.topLeft,
+                                              child: Material(
+                                                elevation: 8,
+                                                borderRadius: BorderRadius.circular(8),
+                                                color: Theme.of(context).cardColor,
+                                                child: Container(
+                                                  width: 320,
+                                                  constraints: const BoxConstraints(maxHeight: 220),
+                                                  decoration: BoxDecoration(
+                                                    borderRadius: BorderRadius.circular(8),
+                                                    border: Border.all(
+                                                      color: isDarkTheme ? Colors.grey.shade800 : const Color(0xFFE2E8F0),
+                                                    ),
+                                                  ),
+                                                  child: ListView.builder(
+                                                    padding: EdgeInsets.zero,
+                                                    shrinkWrap: true,
+                                                    itemCount: options.length,
+                                                    itemBuilder: (context, index) {
+                                                      final option = options.elementAt(index);
+                                                      return ListTile(
+                                                        dense: true,
+                                                        leading: const Icon(Icons.medication_outlined, size: 16),
+                                                        title: Text(option, style: const TextStyle(fontSize: 13)),
+                                                        onTap: () {
+                                                          onSelected(option);
+                                                          // Pre-fill manufacturer if found
+                                                          final inventoryItems = ref.read(inventoryProvider).value ?? [];
+                                                          final match = inventoryItems.firstWhere(
+                                                            (item) => item.name.toLowerCase() == option.toLowerCase(),
+                                                            orElse: () => inventoryItems.first,
+                                                          );
+                                                          if (match.manufacturer.isNotEmpty && _manufacturerCtrl.text.isEmpty) {
+                                                            _manufacturerCtrl.text = match.manufacturer;
+                                                          }
+                                                          if (match.hsnCode != null && match.hsnCode!.isNotEmpty && _hsnCtrl.text.isEmpty) {
+                                                            _hsnCtrl.text = match.hsnCode!;
+                                                          }
+                                                        },
+                                                      );
+                                                    },
+                                                  ),
+                                                ),
+                                              ),
+                                            );
+                                          },
+                                          fieldViewBuilder: (context, textEditingController, focusNode, onFieldSubmitted) {
+                                            return _buildTextField(
+                                              'Medicine Name',
+                                              'e.g. Paracetamol 500mg',
+                                              isRequired: true,
+                                              controller: textEditingController,
+                                              focusNode: focusNode,
+                                            );
+                                          },
                                         ),
                                       ),
                                       const SizedBox(width: 24),
