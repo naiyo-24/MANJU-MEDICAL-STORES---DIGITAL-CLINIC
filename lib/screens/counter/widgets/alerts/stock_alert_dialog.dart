@@ -433,10 +433,10 @@ class _StockAlertDialogState extends ConsumerState<StockAlertDialog> {
                     child: const Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.add_shopping_cart, size: 12, color: Colors.white),
+                        Icon(Icons.edit_note, size: 14, color: Colors.white),
                         SizedBox(width: 4),
                         Text(
-                          'Order',
+                          'Update Medicine',
                           style: TextStyle(
                             fontSize: 11,
                             color: Colors.white,
