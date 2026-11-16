@@ -16,6 +16,8 @@ import 'widgets/auth/logout_confirmation_dialog.dart';
 import 'widgets/sidebar/desktop_zoom_sidebar_control.dart';
 import '../../services/windows_auto_updater.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import '../../providers/stock_alert_provider.dart';
+import 'widgets/alerts/stock_alert_dialog.dart';
 
 class CounterDashboard extends ConsumerStatefulWidget {
   final StatefulNavigationShell navigationShell;
@@ -494,7 +496,7 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
 
           if (isDesktop) const Spacer(),
 
-          // Right side Profile and Date Pills (scrollable on small screens)
+          // Right side Profile, Stock Alerts, and Date Pills (scrollable on small screens)
           Expanded(
             child: FittedBox(
               fit: BoxFit.scaleDown,
@@ -502,6 +504,81 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
+                  // Low Stock Notification Bell
+                  Consumer(
+                    builder: (context, ref, _) {
+                      final alertsAsync = ref.watch(stockAlertProvider);
+                      final alertCount = alertsAsync.value?.length ?? 0;
+                      final hasAlerts = alertCount > 0;
+
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 8.0),
+                        child: InkWell(
+                          onTap: () => StockAlertDialog.show(context),
+                          borderRadius: BorderRadius.circular(12),
+                          child: Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: isDesktop ? 12 : 8,
+                              vertical: isDesktop ? 8 : 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: hasAlerts
+                                  ? (isDark
+                                      ? const Color(0xFFEF4444).withValues(alpha: 0.2)
+                                      : const Color(0xFFFEE2E2))
+                                  : (isDark
+                                      ? const Color(0xFF334155)
+                                      : const Color(0xFFF1F5F9)),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: hasAlerts
+                                    ? const Color(0xFFEF4444).withValues(alpha: 0.5)
+                                    : (isDark
+                                        ? const Color(0xFF475569)
+                                        : const Color(0xFFE2E8F0)),
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  hasAlerts
+                                      ? Icons.notifications_active
+                                      : Icons.notifications_none,
+                                  color: hasAlerts
+                                      ? const Color(0xFFEF4444)
+                                      : (isDark ? Colors.grey[400] : const Color(0xFF64748B)),
+                                  size: isDesktop ? 20 : 15,
+                                ),
+                                if (hasAlerts) ...[
+                                  SizedBox(width: isDesktop ? 8 : 6),
+                                  Container(
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: isDesktop ? 8 : 6,
+                                      vertical: isDesktop ? 2 : 1,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFEF4444),
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: Text(
+                                      '$alertCount',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: isDesktop ? 12 : 10.5,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+
                   // Date & Time Pill
                   InkWell(
                     onTap: () async {

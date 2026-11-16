@@ -17,6 +17,7 @@ import '../../utils/file_download_helper.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/billing_provider.dart';
 import '../../providers/counter_providers.dart';
+import '../../providers/stock_alert_provider.dart';
 import 'widgets/billing/billing_left_panel.dart';
 import 'widgets/billing/customer_search_field.dart';
 
@@ -804,12 +805,26 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
         );
       }
 
-      // 2. Refresh Inventory, History, Accounts, and Customers to reflect new stock and transactions
+      // 2. Refresh Inventory, History, Accounts, Customers, and Stock Alerts
       ref.invalidate(inventoryProvider);
       ref.invalidate(billingInventoryProvider);
       ref.invalidate(historyProvider);
       ref.invalidate(accountsProvider);
       ref.invalidate(customerProvider);
+      ref.invalidate(stockAlertProvider);
+
+      // Check if any checked-out items became low or out of stock to alert the user
+      final lowStockNames = <String>[];
+      for (final item in checkoutItems) {
+        final currentStock = (item['stock_quantity'] as num?)?.toInt() ?? 0;
+        final billedQty = (item['quantity'] as num?)?.toInt() ?? 0;
+        final remaining = currentStock - billedQty;
+        final threshold = (item['low_stock_threshold'] as num?)?.toInt() ?? 10;
+        if (remaining <= threshold) {
+          final medName = item['medicine_name'] ?? item['name'] ?? 'Item';
+          lowStockNames.add('$medName ($remaining left)');
+        }
+      }
 
       // 3. Generate PDF and Save/Print
 
@@ -843,14 +858,35 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
       );
 
       if (mounted) {
-        scaffoldMessenger.showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Bill generated and saved successfully! Preparing to print...',
+        if (lowStockNames.isNotEmpty) {
+          scaffoldMessenger.showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  const Icon(Icons.warning_amber_rounded, color: Colors.white),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Bill generated! ⚠️ Low stock alert: ${lowStockNames.join(", ")}',
+                      style: const TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                ],
+              ),
+              backgroundColor: Colors.deepOrange,
+              duration: const Duration(seconds: 5),
             ),
-            backgroundColor: Colors.green,
-          ),
-        );
+          );
+        } else {
+          scaffoldMessenger.showSnackBar(
+            const SnackBar(
+              content: Text(
+                'Bill generated and saved successfully! Preparing to print...',
+              ),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
       }
 
       // Save to local billing history FIRST
@@ -1208,6 +1244,7 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
               'rack_id': item.rackId,
               'pack_size': item.packSize ?? 1,
               'loose_stock': item.looseStock,
+              'low_stock_threshold': item.lowStockThreshold ?? 10,
             },
           )
           .toList();

@@ -353,10 +353,53 @@ class _BillingLeftPanelState extends ConsumerState<BillingLeftPanel> {
                                               alignment: Alignment.centerLeft,
                                               child: FittedBox(
                                                 fit: BoxFit.scaleDown,
-                                                child: Container(
-                                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                                  decoration: BoxDecoration(color: (item['stock'] ?? 0) <= 0 && (item['loose_stock'] ?? 0) <= 0 ? const Color(0xFFFEE2E2) : const Color(0xFFF1F8F5), borderRadius: BorderRadius.circular(12)),
-                                                  child: Text(FormatUtils.formatInventoryStock(item), style: TextStyle(color: (item['stock'] ?? 0) <= 0 && (item['loose_stock'] ?? 0) <= 0 ? Colors.red : const Color(0xFF22C55E), fontWeight: FontWeight.bold, fontSize: 12)),
+                                                child: Builder(
+                                                  builder: (context) {
+                                                    final stock = item['stock'] ?? 0;
+                                                    final loose = item['loose_stock'] ?? 0;
+                                                    final threshold = item['low_stock_threshold'] ?? 10;
+                                                    final isOut = stock <= 0 && loose <= 0;
+                                                    final isLow = !isOut && stock <= threshold;
+
+                                                    final bgColor = isOut
+                                                        ? const Color(0xFFFEE2E2)
+                                                        : (isLow
+                                                            ? const Color(0xFFFEF3C7)
+                                                            : const Color(0xFFF1F8F5));
+                                                    final textColor = isOut
+                                                        ? Colors.red
+                                                        : (isLow
+                                                            ? const Color(0xFFD97706)
+                                                            : const Color(0xFF22C55E));
+
+                                                    return Container(
+                                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                                      decoration: BoxDecoration(
+                                                        color: bgColor,
+                                                        borderRadius: BorderRadius.circular(12),
+                                                        border: isLow
+                                                            ? Border.all(color: const Color(0xFFF59E0B).withValues(alpha: 0.5), width: 1)
+                                                            : null,
+                                                      ),
+                                                      child: Row(
+                                                        mainAxisSize: MainAxisSize.min,
+                                                        children: [
+                                                          if (isLow) ...[
+                                                            const Icon(Icons.warning_amber_rounded, size: 12, color: Color(0xFFD97706)),
+                                                            const SizedBox(width: 3),
+                                                          ],
+                                                          Text(
+                                                            FormatUtils.formatInventoryStock(item),
+                                                            style: TextStyle(
+                                                              color: textColor,
+                                                              fontWeight: FontWeight.bold,
+                                                              fontSize: 12,
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    );
+                                                  },
                                                 ),
                                               ),
                                             ),
