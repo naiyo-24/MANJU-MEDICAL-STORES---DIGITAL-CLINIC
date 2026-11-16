@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../../services/doctor_service.dart';
 import '../../../../notifiers/billing_notifier.dart';
 
-class BillingCustomerSection extends StatelessWidget {
+class BillingCustomerSection extends StatefulWidget {
   final BillingState billingState;
   final BillingNotifier notifier;
   final Widget customerSearchField;
@@ -27,6 +27,13 @@ class BillingCustomerSection extends StatelessWidget {
     required this.onSaveCustomerToDb,
     this.onDoctorChanged,
   });
+
+  @override
+  State<BillingCustomerSection> createState() => _BillingCustomerSectionState();
+}
+
+class _BillingCustomerSectionState extends State<BillingCustomerSection> {
+  bool _isExpanded = true;
 
 Widget _buildCompactField(
   BuildContext context,
@@ -92,15 +99,23 @@ Widget _buildCompactField(
         ),
         child: Column(
           children: [
-            Container(
+          InkWell(
+            onTap: () {
+              setState(() {
+                _isExpanded = !_isExpanded;
+              });
+            },
+            borderRadius: BorderRadius.circular(8),
+            child: Container(
               padding: const EdgeInsets.symmetric(
                 horizontal: 16,
                 vertical: 8,
               ),
-              decoration: const BoxDecoration(
-                color: Color(0xFFE8F5E9),
+              decoration: BoxDecoration(
+                color: const Color(0xFFE8F5E9),
                 borderRadius: BorderRadius.vertical(
-                  top: Radius.circular(8),
+                  top: const Radius.circular(8),
+                  bottom: _isExpanded ? Radius.zero : const Radius.circular(8),
                 ),
               ),
               child: Row(
@@ -124,19 +139,21 @@ Widget _buildCompactField(
                       ),
                     ],
                   ),
-                  const Icon(
-                    Icons.keyboard_arrow_up,
-                    color: Color(0xFF166534),
+                  Icon(
+                    _isExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                    color: const Color(0xFF166534),
                     size: 16,
                   ),
                 ],
               ),
             ),
+          ),
+          if (_isExpanded)
             Padding(
               padding: const EdgeInsets.all(12.0),
               child: Column(
                 children: [
-                  customerSearchField,
+                  widget.customerSearchField,
                   const SizedBox(height: 8),
                   Row(
                     children: [
@@ -144,7 +161,7 @@ Widget _buildCompactField(
                         child: _buildCompactField(
                           context,
                           'Name',
-                          customerNameController,
+                          widget.customerNameController,
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -152,7 +169,7 @@ Widget _buildCompactField(
                         child: _buildCompactField(
                           context,
                           'Phone',
-                          customerPhoneController,
+                          widget.customerPhoneController,
                           isNumber: true,
                         ),
                       ),
@@ -162,7 +179,7 @@ Widget _buildCompactField(
                   _buildCompactField(
                     context,
                     'Location / Address',
-                    customerLocationController,
+                    widget.customerLocationController,
                   ),
                   const SizedBox(height: 8),
                   Column(
@@ -188,7 +205,7 @@ Widget _buildCompactField(
                         ),
                         child: DropdownButtonHideUnderline(
                           child: DropdownButton<String>(
-                            value: billingState.selectedDoctorId,
+                            value: widget.billingState.selectedDoctorId,
                             isExpanded: true,
                             icon: const Icon(
                               Icons.keyboard_arrow_down,
@@ -201,20 +218,20 @@ Widget _buildCompactField(
                             onChanged: (String? newValue) {
                               if (newValue != null) {
                                 if (newValue == 'walk-in') {
-                                  notifier.updateDoctor(
+                                  widget.notifier.updateDoctor(
                                     'walk-in',
                                     'Walk-in',
                                   );
                                 } else if (newValue == 'new') {
-                                  notifier.updateDoctor(
+                                  widget.notifier.updateDoctor(
                                     'new',
                                     'New Doctor',
                                   );
                                 } else {
-                                  final doc = doctorsList.firstWhere(
+                                  final doc = widget.doctorsList.firstWhere(
                                     (d) => d.id == newValue,
                                   );
-                                  notifier.updateDoctor(newValue, doc.name);
+                                  widget.notifier.updateDoctor(newValue, doc.name);
                                 }
                               }
                             },
@@ -223,7 +240,7 @@ Widget _buildCompactField(
                                 value: 'walk-in',
                                 child: Text('Walk-in'),
                               ),
-                              ...doctorsList.map(
+                              ...widget.doctorsList.map(
                                 (doc) => DropdownMenuItem(
                                   value: doc.id,
                                   child: Text(doc.name),
@@ -237,7 +254,7 @@ Widget _buildCompactField(
                           ),
                         ),
                       ),
-                      if (billingState.selectedDoctorId == 'new') ...[
+                      if (widget.billingState.selectedDoctorId == 'new') ...[
                         const SizedBox(height: 4),
                         Container(
                           height: 32,
@@ -251,7 +268,7 @@ Widget _buildCompactField(
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: TextField(
-                            controller: newDoctorController,
+                            controller: widget.newDoctorController,
                             style: TextStyle(
                               fontSize: 10,
                               color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
@@ -277,7 +294,7 @@ Widget _buildCompactField(
                   Align(
                     alignment: Alignment.centerRight,
                     child: TextButton.icon(
-                      onPressed: onSaveCustomerToDb,
+                      onPressed: widget.onSaveCustomerToDb,
                       icon: const Icon(
                         Icons.person_add,
                         size: 14,

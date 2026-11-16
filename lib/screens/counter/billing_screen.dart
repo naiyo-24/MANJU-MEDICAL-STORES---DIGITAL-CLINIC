@@ -1491,7 +1491,7 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                   );
 
                   if (isDesktopWidth) {
-                    Widget content = Padding(
+                    return Padding(
                       padding: const EdgeInsets.all(24.0),
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1502,27 +1502,6 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                         ],
                       ),
                     );
-                    
-                    Widget wrapper = content;
-                    if (!hasEnoughHeight) {
-                      wrapper = SingleChildScrollView(
-                        scrollDirection: Axis.vertical,
-                        child: SizedBox(
-                          height: 850,
-                          child: wrapper,
-                        ),
-                      );
-                    }
-                    if (constraints.maxWidth < 1100) {
-                      wrapper = SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: SizedBox(
-                          width: 1100,
-                          child: wrapper,
-                        ),
-                      );
-                    }
-                    return wrapper;
                   } else {
                     // Mobile View: Clean Segmented Tab Switcher + Sticky Cart Summary Pill
                     final totalCartItems = _currentBill.fold<int>(
