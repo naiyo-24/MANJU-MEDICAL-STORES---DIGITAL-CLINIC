@@ -980,23 +980,25 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
           ),
         ),
 
-        if (!isDesktop) ...[
+        if (!isDesktop || kIsWeb || !Platform.isWindows) ...[
           const SizedBox(height: 8),
           Center(
             child: FutureBuilder<PackageInfo>(
               future: PackageInfo.fromPlatform(),
               builder: (context, snapshot) {
                 final version =
-                    snapshot.hasData ? snapshot.data!.version : '1.0.35';
+                    snapshot.hasData ? snapshot.data!.version : '1.0.36';
+                final label = isExpanded ? 'SirfBill v$version' : 'v$version';
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 8.0),
                   child: Text(
-                    'SirfBill v$version',
+                    label,
                     style: TextStyle(
                       color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
-                      fontSize: 11,
+                      fontSize: isExpanded ? 11 : 10,
                       fontWeight: FontWeight.w500,
                     ),
+                    textAlign: TextAlign.center,
                   ),
                 );
               },
