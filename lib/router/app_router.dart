@@ -115,7 +115,15 @@ final goRouter = GoRouter(
               routes: [
                 GoRoute(
                   path: 'upload',
-                  builder: (context, state) => const UploadManagementScreen(),
+                  builder: (context, state) {
+                    final initialName = state.extra is String
+                        ? state.extra as String
+                        : (state.extra is Map ? (state.extra as Map)['name']?.toString() : null);
+                    return UploadManagementScreen(
+                      key: ValueKey('upload_${initialName ?? 'new'}_${DateTime.now().millisecondsSinceEpoch}'),
+                      initialMedicineName: initialName,
+                    );
+                  },
                 ),
               ],
             ),

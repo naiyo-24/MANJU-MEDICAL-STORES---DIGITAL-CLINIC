@@ -11,7 +11,8 @@ import '../../widgets/category_dropdown.dart';
 import '../../widgets/distributor_dropdown.dart';
 
 class UploadManagementScreen extends ConsumerStatefulWidget {
-  const UploadManagementScreen({super.key});
+  final String? initialMedicineName;
+  const UploadManagementScreen({super.key, this.initialMedicineName});
 
   @override
   ConsumerState<UploadManagementScreen> createState() =>
@@ -21,7 +22,7 @@ class UploadManagementScreen extends ConsumerStatefulWidget {
 class _UploadManagementScreenState
     extends ConsumerState<UploadManagementScreen> {
   bool _isUploading = false;
-  final _nameCtrl = TextEditingController();
+  late final TextEditingController _nameCtrl;
   final _skuCtrl = TextEditingController();
   final _manufacturerCtrl = TextEditingController();
   final _batchCtrl = TextEditingController();
@@ -37,6 +38,40 @@ class _UploadManagementScreenState
   String? _selectedRackId;
   String? _selectedCategoryId;
   PlatformFile? _selectedImage;
+
+  @override
+  void initState() {
+    super.initState();
+    _nameCtrl = TextEditingController(text: widget.initialMedicineName ?? '');
+  }
+
+  @override
+  void didUpdateWidget(covariant UploadManagementScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.initialMedicineName != oldWidget.initialMedicineName) {
+      if (widget.initialMedicineName != null &&
+          widget.initialMedicineName!.isNotEmpty) {
+        _nameCtrl.text = widget.initialMedicineName!;
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _nameCtrl.dispose();
+    _skuCtrl.dispose();
+    _manufacturerCtrl.dispose();
+    _batchCtrl.dispose();
+    _stockCtrl.dispose();
+    _packSizeCtrl.dispose();
+    _priceCtrl.dispose();
+    _buyingPriceCtrl.dispose();
+    _hsnCtrl.dispose();
+    _expiryCtrl.dispose();
+    _gstCtrl.dispose();
+    _discountCtrl.dispose();
+    super.dispose();
+  }
 
   Future<void> _pickImage() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(

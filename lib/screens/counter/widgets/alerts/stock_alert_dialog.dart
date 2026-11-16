@@ -3,9 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../models/stock_alert_item.dart';
 import '../../../../providers/stock_alert_provider.dart';
-import '../../../../providers/distributor_provider.dart';
 import '../../../../utils/responsive.dart';
-import '../distributors/add_distributor_dialog.dart';
 
 class StockAlertDialog extends ConsumerStatefulWidget {
   const StockAlertDialog({super.key});
@@ -404,92 +402,37 @@ class _StockAlertDialogState extends ConsumerState<StockAlertDialog> {
                 ),
               ),
               const SizedBox(height: 6),
-              // Action Button: Order if distributor exists, or Add Distributor if not assigned
-              if (item.distributorId != null && item.distributorId!.isNotEmpty)
-                InkWell(
-                  onTap: () async {
-                    Navigator.pop(context);
-                    // Fetch or read distributors to find this distributor's record
-                    final distributorsList = ref.read(distributorsProvider).value ?? [];
-                    final matchedDist = distributorsList.firstWhere(
-                      (d) => d['id']?.toString() == item.distributorId,
-                      orElse: () => {
-                        'id': item.distributorId,
-                        'name': item.distributorName ?? 'Distributor',
-                        'phone': item.distributorPhone ?? '',
-                      },
-                    );
-
-                    // Navigate to purchase order screen with the distributor
-                    context.push('/counter/distributors/purchase', extra: matchedDist);
-                  },
-                  borderRadius: BorderRadius.circular(6),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF166534),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: const Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.edit_note, size: 14, color: Colors.white),
-                        SizedBox(width: 4),
-                        Text(
-                          'Update Medicine',
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
+              // Action Button: Update Medicine (redirects to Add New Medicine page with name prefilled)
+              InkWell(
+                onTap: () {
+                  Navigator.pop(context);
+                  // Redirects directly to the Inventory "Add New Medicine" page pre-filling only the name
+                  context.go('/counter/inventory/upload', extra: item.name);
+                },
+                borderRadius: BorderRadius.circular(6),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF166534),
+                    borderRadius: BorderRadius.circular(6),
                   ),
-                )
-              else
-                InkWell(
-                  onTap: () async {
-                    // Open Add Distributor Dialog
-                    await showDialog(
-                      context: context,
-                      builder: (ctx) => const AddDistributorDialog(),
-                    );
-                    // Refresh alerts and distributors on return
-                    ref.invalidate(distributorsProvider);
-                    ref.invalidate(stockAlertProvider);
-                  },
-                  borderRadius: BorderRadius.circular(6),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9),
-                      borderRadius: BorderRadius.circular(6),
-                      border: Border.all(
-                        color: isDark ? const Color(0xFF475569) : const Color(0xFFCBD5E1),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.edit_note, size: 14, color: Colors.white),
+                      SizedBox(width: 4),
+                      Text(
+                        'Update Medicine',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.person_add_alt_1,
-                          size: 12,
-                          color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          'Add Supplier',
-                          style: TextStyle(
-                            fontSize: 10.5,
-                            color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569),
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
+                    ],
                   ),
                 ),
+              ),
             ],
           ),
         ],
