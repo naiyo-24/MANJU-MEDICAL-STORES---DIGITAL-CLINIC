@@ -466,46 +466,49 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
               cacheHeight: 225,
             ),
 
-          if (isDesktop) const SizedBox(width: 12),
+          if (isDesktop) const SizedBox(width: 16),
 
           if (isDesktop)
             Expanded(
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF1F5F9),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: const Color(0xFFE2E8F0)),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(
-                        Icons.keyboard,
-                        size: 16,
-                        color: Color(0xFF1E293B),
-                      ),
-                      const SizedBox(width: 10),
-                      _buildShortcutChip('F1', 'Billing'),
-                      const SizedBox(width: 10),
-                      _buildShortcutChip('F2', 'Inventory'),
-                      const SizedBox(width: 10),
-                      _buildShortcutChip('F3', 'Shops'),
-                      const SizedBox(width: 10),
-                      _buildShortcutChip('F4', 'Customers'),
-                      const SizedBox(width: 10),
-                      _buildShortcutChip('F5', 'Accounts'),
-                      const SizedBox(width: 10),
-                      _buildShortcutChip('F6', 'History'),
-                      const SizedBox(width: 10),
-                      _buildShortcutChip('F7', 'Settings'),
-                      const SizedBox(width: 10),
-                      _buildShortcutChip('F8', 'Distributors'),
-                      const SizedBox(width: 10),
-                      _buildShortcutChip('F9', 'Manufacturers'),
-                    ],
+              child: Center(
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  physics: const BouncingScrollPhysics(),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF1F5F9),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.keyboard,
+                          size: 16,
+                          color: Color(0xFF1E293B),
+                        ),
+                        const SizedBox(width: 10),
+                        _buildShortcutChip('F1', 'Billing'),
+                        const SizedBox(width: 10),
+                        _buildShortcutChip('F2', 'Inventory'),
+                        const SizedBox(width: 10),
+                        _buildShortcutChip('F3', 'Shops'),
+                        const SizedBox(width: 10),
+                        _buildShortcutChip('F4', 'Customers'),
+                        const SizedBox(width: 10),
+                        _buildShortcutChip('F5', 'Accounts'),
+                        const SizedBox(width: 10),
+                        _buildShortcutChip('F6', 'History'),
+                        const SizedBox(width: 10),
+                        _buildShortcutChip('F7', 'Settings'),
+                        const SizedBox(width: 10),
+                        _buildShortcutChip('F8', 'Distributors'),
+                        const SizedBox(width: 10),
+                        _buildShortcutChip('F9', 'Manufacturers'),
+                      ],
+                    ),
                   ),
                 ),
               ),
