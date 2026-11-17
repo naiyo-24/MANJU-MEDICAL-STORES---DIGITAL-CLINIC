@@ -158,7 +158,6 @@ class _ManufacturerDropdownState extends ConsumerState<ManufacturerDropdown> {
               offset: Offset(0, size.height + 4),
               child: Material(
                 elevation: 8,
-                borderRadius: BorderRadius.circular(10),
                 color: Theme.of(context).cardColor,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),

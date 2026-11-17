@@ -15,6 +15,7 @@ import '../screens/counter/accounts_screen.dart';
 import '../screens/counter/upload_management_screen.dart';
 import '../screens/counter/bill_customization_screen.dart';
 import '../screens/counter/distributors_screen.dart';
+import '../screens/counter/manufacturers_screen.dart';
 import '../screens/counter/distributor_detail_screen.dart';
 import '../screens/counter/add_purchase_bill_screen.dart';
 import '../services/inventory_service.dart';
@@ -203,6 +204,14 @@ final goRouter = GoRouter(
                   builder: (context, state) => AddPurchaseBillScreen(distributor: state.extra as Map<String, dynamic>),
                 ),
               ],
+            ),
+          ],
+        ),
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: '/counter/manufacturers',
+              builder: (context, state) => const ManufacturersScreen(),
             ),
           ],
         ),

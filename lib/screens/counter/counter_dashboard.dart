@@ -112,6 +112,9 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
       } else if (event.logicalKey == LogicalKeyboardKey.f8) {
         _switchTab(7);
         return true;
+      } else if (event.logicalKey == LogicalKeyboardKey.f9) {
+        _switchTab(8);
+        return true;
       }
     }
     return false;
@@ -490,6 +493,7 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
                   _buildShortcutChip('F6', 'History'),
                   _buildShortcutChip('F7', 'Settings'),
                   _buildShortcutChip('F8', 'Distributors'),
+                  _buildShortcutChip('F9', 'Manufacturers'),
                 ],
               ),
             ),
@@ -1226,6 +1230,13 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
                         icon: Icons.local_shipping,
                         label: 'Distributors',
                         shortcut: 'F8',
+                        isExpanded: isExpanded,
+                      ),
+                      _buildSidebarItem(
+                        index: 8,
+                        icon: Icons.domain,
+                        label: 'Manufacturers',
+                        shortcut: 'F9',
                         isExpanded: isExpanded,
                       ),
 
