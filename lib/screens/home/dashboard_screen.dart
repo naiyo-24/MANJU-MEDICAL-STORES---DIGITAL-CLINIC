@@ -314,7 +314,7 @@ class DashboardScreen extends ConsumerWidget {
                             const SizedBox(height: 24),
                             Center(
                               child: Text(
-                                'WELCOME BACK!',
+                                'CLINICAL WORKSPACE!',
                                 style: TextStyle(
                                   fontSize: 10,
                                   fontWeight: FontWeight.bold,
