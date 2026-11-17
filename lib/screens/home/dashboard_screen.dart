@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../providers/theme_provider.dart';
 
 class DashboardScreen extends ConsumerWidget {
@@ -251,11 +252,14 @@ class DashboardScreen extends ConsumerWidget {
               return SingleChildScrollView(
                 child: ConstrainedBox(
                   constraints: BoxConstraints(
+                    minWidth: constraints.maxWidth,
                     minHeight: constraints.maxHeight,
                   ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
+                  child: SizedBox(
+                    width: constraints.maxWidth,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
                       // Top App Bar Area (Toggle button right)
                       Padding(
                         padding: EdgeInsets.symmetric(
@@ -466,38 +470,65 @@ class DashboardScreen extends ConsumerWidget {
 
                       // Footer
                       Container(
-                        padding: const EdgeInsets.symmetric(vertical: 24),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 24,
+                        ),
                         child: Column(
                           children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  'Together for a Healthier Tomorrow',
-                                  style: TextStyle(
-                                    color: isDark
-                                        ? const Color(0xFF94A3B8)
-                                        : const Color(0xFF94A3B8),
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.bold,
+                            FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    'Together for a Healthier Tomorrow',
+                                    style: TextStyle(
+                                      color: isDark
+                                          ? const Color(0xFF94A3B8)
+                                          : const Color(0xFF94A3B8),
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
-                                ),
-                                const SizedBox(width: 4),
-                                const Icon(
-                                  Icons.eco,
-                                  size: 14,
-                                  color: Color(0xFF22C55E),
-                                ),
-                              ],
+                                  const SizedBox(width: 4),
+                                  const Icon(
+                                    Icons.eco,
+                                    size: 14,
+                                    color: Color(0xFF22C55E),
+                                  ),
+                                ],
+                              ),
                             ),
                             const SizedBox(height: 4),
-                            Text(
-                              '© 2026 SirfBill Bill Karo, Befikar Raho.',
-                              style: TextStyle(
-                                color: isDark
-                                    ? const Color(0xFF64748B)
-                                    : const Color(0xFF94A3B8),
-                                fontSize: 10,
+                            FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: RichText(
+                                textAlign: TextAlign.center,
+                                text: TextSpan(
+                                  style: TextStyle(
+                                    color: isDark
+                                        ? const Color(0xFF64748B)
+                                        : const Color(0xFF94A3B8),
+                                    fontSize: 10.5,
+                                  ),
+                                  children: [
+                                    const TextSpan(
+                                      text: '© 2026 SirfBill Bill Karo, Befikar Raho. A Product of ',
+                                    ),
+                                    TextSpan(
+                                      text: 'Naiyo24',
+                                      style: GoogleFonts.jaldi(
+                                        color: isDark
+                                            ? const Color(0xFF4ADE80)
+                                            : const Color(0xFF166534),
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 12.5,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           ],
@@ -505,6 +536,7 @@ class DashboardScreen extends ConsumerWidget {
                       ),
                     ],
                   ),
+                ),
                 ),
               );
             },
