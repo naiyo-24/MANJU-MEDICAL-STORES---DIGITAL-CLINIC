@@ -9,6 +9,8 @@ import '../../utils/responsive.dart';
 import '../../widgets/rack_dropdown.dart';
 import '../../widgets/category_dropdown.dart';
 import '../../widgets/distributor_dropdown.dart';
+import '../../widgets/manufacturer_dropdown.dart';
+import '../../providers/manufacturer_provider.dart';
 import '../../models/stock_alert_item.dart';
 
 class UploadManagementScreen extends ConsumerStatefulWidget {
@@ -47,6 +49,7 @@ class _UploadManagementScreenState
   String? _selectedDistributorId;
   String? _selectedRackId;
   String? _selectedCategoryId;
+  String? _selectedManufacturerId;
   PlatformFile? _selectedImage;
 
   @override
@@ -75,6 +78,7 @@ class _UploadManagementScreenState
       _selectedDistributorId = item.distributorId;
       _selectedRackId = item.rackId;
       _selectedCategoryId = item.categoryId;
+      _selectedManufacturerId = item.manufacturerId;
     } else if (widget.initialAlertItem != null) {
       final item = widget.initialAlertItem!;
       _editingItemId = item.id;
@@ -93,6 +97,7 @@ class _UploadManagementScreenState
       _selectedDistributorId = item.distributorId;
       _selectedRackId = item.rackId;
       _selectedCategoryId = item.categoryId;
+      _selectedManufacturerId = item.manufacturerId;
 
       // In case the alert payload didn't include full fields from the backend, fetch them asynchronously
       _fetchFullItemDetailsIfNeeded(item.id, item.name);
@@ -137,6 +142,7 @@ class _UploadManagementScreenState
           _selectedDistributorId ??= matched.distributorId;
           _selectedRackId ??= matched.rackId;
           _selectedCategoryId ??= matched.categoryId;
+          _selectedManufacturerId ??= matched.manufacturerId;
         });
       }
     } catch (_) {}
@@ -567,11 +573,12 @@ class _UploadManagementScreenState
                               ),
                             ),
                             Tooltip(
-                              message: 'Refresh Categories and Racks',
+                              message: 'Refresh Categories, Racks & Manufacturers',
                               child: IconButton(
                                 onPressed: () {
                                   ref.invalidate(categoryProvider);
                                   ref.invalidate(rackProvider);
+                                  ref.invalidate(manufacturerProvider);
                                 },
                                 icon: Icon(Icons.refresh, color: (isDark ? Colors.white : const Color(0xFF1E293B))),
                               ),
@@ -650,11 +657,12 @@ class _UploadManagementScreenState
                                 ),
                                 const SizedBox(width: 8),
                                 Tooltip(
-                                  message: 'Refresh Categories and Racks',
+                                  message: 'Refresh Categories, Racks & Manufacturers',
                                   child: IconButton(
                                     onPressed: () {
                                       ref.invalidate(categoryProvider);
                                       ref.invalidate(rackProvider);
+                                      ref.invalidate(manufacturerProvider);
                                     },
                                     icon: Icon(Icons.refresh, color: (isDark ? Colors.white : const Color(0xFF1E293B))),
                                   ),
@@ -751,6 +759,11 @@ class _UploadManagementScreenState
                                                           if (match.manufacturer.isNotEmpty && _manufacturerCtrl.text.isEmpty) {
                                                             _manufacturerCtrl.text = match.manufacturer;
                                                           }
+                                                          if (match.manufacturerId != null && _selectedManufacturerId == null) {
+                                                            setState(() {
+                                                              _selectedManufacturerId = match.manufacturerId;
+                                                            });
+                                                          }
                                                           if (match.hsnCode != null && match.hsnCode!.isNotEmpty && _hsnCtrl.text.isEmpty) {
                                                             _hsnCtrl.text = match.hsnCode!;
                                                           }
@@ -775,10 +788,32 @@ class _UploadManagementScreenState
                                       ),
                                       const SizedBox(width: 24),
                                       Expanded(
-                                        child: _buildTextField(
-                                          'Manufacturer',
-                                          'e.g. Sun Pharma',
-                                          controller: _manufacturerCtrl,
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              'Manufacturer',
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.bold,
+                                                color: (isDark ? Colors.white : const Color(0xFF1E293B)),
+                                              ),
+                                            ),
+                                            const SizedBox(height: 8),
+                                            ManufacturerDropdown(
+                                              selectedManufacturerId: _selectedManufacturerId,
+                                              onChanged: (mfg) {
+                                                setState(() {
+                                                  _selectedManufacturerId = mfg?.id;
+                                                  if (mfg != null) {
+                                                    _manufacturerCtrl.text = mfg.name;
+                                                  } else {
+                                                    _manufacturerCtrl.clear();
+                                                  }
+                                                });
+                                              },
+                                            ),
+                                          ],
                                         ),
                                       ),
                                     ],
@@ -1268,6 +1303,7 @@ class _UploadManagementScreenState
         'pack_size': int.tryParse(_packSizeCtrl.text) ?? 1,
         'rack_id': _selectedRackId,
         'category_id': _selectedCategoryId,
+        'manufacturer_id': _selectedManufacturerId,
         'distributor_id': _selectedDistributorId,
         'image_url': uploadedImageUrl,
       };

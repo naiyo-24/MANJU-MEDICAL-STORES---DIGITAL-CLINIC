@@ -13,6 +13,7 @@ import '../notifiers/category_notifier.dart';
 import '../services/rack_service.dart';
 import '../services/category_service.dart';
 import 'distributor_provider.dart';
+import 'manufacturer_provider.dart';
 
 final settingsProvider =
     AsyncNotifierProvider<SettingsNotifier, Map<String, dynamic>>(() {
@@ -97,6 +98,7 @@ void resetAllSessionProviders(WidgetRef ref) {
   ref.invalidate(doctorProvider);
   ref.invalidate(rackProvider);
   ref.invalidate(categoryProvider);
+  ref.invalidate(manufacturerProvider);
   ref.invalidate(distributorsProvider);
   ref.invalidate(purchaseBillsProvider);
 }

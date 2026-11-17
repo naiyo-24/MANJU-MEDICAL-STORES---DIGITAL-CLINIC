@@ -18,6 +18,7 @@ class StockAlertItem {
   final int? packSize;
   final String? rackId;
   final String? categoryId;
+  final String? manufacturerId;
   final String? distributorId;
   final String? distributorName;
   final String? distributorPhone;
@@ -40,6 +41,7 @@ class StockAlertItem {
     this.packSize = 1,
     this.rackId,
     this.categoryId,
+    this.manufacturerId,
     this.distributorId,
     this.distributorName,
     this.distributorPhone,
@@ -66,6 +68,7 @@ class StockAlertItem {
       packSize: item.packSize,
       rackId: item.rackId,
       categoryId: item.categoryId,
+      manufacturerId: item.manufacturerId,
       distributorId: item.distributorId,
       distributorName: item.distributor,
       distributorPhone: null,
@@ -101,6 +104,7 @@ class StockAlertItem {
       packSize: json['pack_size'] != null ? int.tryParse(json['pack_size'].toString()) ?? 1 : 1,
       rackId: json['rack_id']?.toString(),
       categoryId: json['category_id']?.toString(),
+      manufacturerId: json['manufacturer_id']?.toString(),
       distributorId: json['distributor_id']?.toString(),
       distributorName: json['distributor_name']?.toString() ?? json['distributor']?.toString(),
       distributorPhone: json['distributor_phone']?.toString(),

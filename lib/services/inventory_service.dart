@@ -23,6 +23,7 @@ class InventoryItem {
   final int? packSize;
   final String? rackId;
   final String? categoryId;
+  final String? manufacturerId;
   final String? distributor;
   final String? distributorId;
   final String? createdAt;
@@ -48,6 +49,7 @@ class InventoryItem {
     this.packSize,
     this.rackId,
     this.categoryId,
+    this.manufacturerId,
     this.distributor,
     this.distributorId,
     this.createdAt,
@@ -77,6 +79,7 @@ class InventoryItem {
       packSize: json['pack_size'] != null ? int.tryParse(json['pack_size'].toString()) ?? 1 : 1,
       rackId: json['rack_id'],
       categoryId: json['category_id'],
+      manufacturerId: json['manufacturer_id'],
       distributor: json['distributor'],
       distributorId: json['distributor_id'],
       createdAt: json['created_at'],
@@ -103,6 +106,7 @@ class InventoryItem {
       'pack_size': packSize,
       'rack_id': rackId,
       'category_id': categoryId,
+      'manufacturer_id': manufacturerId,
       'distributor_id': distributorId,
       'created_at': createdAt,
       'updated_at': updatedAt,
