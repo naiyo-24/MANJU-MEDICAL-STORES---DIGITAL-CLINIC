@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../models/stock_alert_item.dart';
 import '../../../../providers/stock_alert_provider.dart';
+import '../../../../providers/counter_providers.dart';
+import '../../../../services/inventory_service.dart';
 import '../../../../utils/responsive.dart';
 
 class StockAlertDialog extends ConsumerStatefulWidget {
@@ -402,12 +404,26 @@ class _StockAlertDialogState extends ConsumerState<StockAlertDialog> {
                 ),
               ),
               const SizedBox(height: 6),
-              // Action Button: Update Medicine (redirects to Add New Medicine page with name prefilled)
+              // Action Button: Update Medicine (redirects to Add/Update Medicine page with full item prefilled)
               InkWell(
                 onTap: () {
                   Navigator.pop(context);
-                  // Redirects directly to the Inventory "Add New Medicine" page pre-filling only the name
-                  context.go('/counter/inventory/upload', extra: item.name);
+                  // Find matching InventoryItem in inventoryProvider if available, or pass alert item data
+                  final inventoryList = ref.read(inventoryProvider).value ?? [];
+                  InventoryItem? matchedItem;
+                  try {
+                    matchedItem = inventoryList.firstWhere(
+                      (inv) => inv.id == item.id || (inv.name.toLowerCase() == item.name.toLowerCase() && inv.batchNumber == item.batchNumber),
+                    );
+                  } catch (_) {
+                    matchedItem = null;
+                  }
+
+                  if (matchedItem != null) {
+                    context.go('/counter/inventory/upload', extra: matchedItem);
+                  } else {
+                    context.go('/counter/inventory/upload', extra: item);
+                  }
                 },
                 borderRadius: BorderRadius.circular(6),
                 child: Container(

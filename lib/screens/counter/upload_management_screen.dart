@@ -9,10 +9,19 @@ import '../../utils/responsive.dart';
 import '../../widgets/rack_dropdown.dart';
 import '../../widgets/category_dropdown.dart';
 import '../../widgets/distributor_dropdown.dart';
+import '../../models/stock_alert_item.dart';
 
 class UploadManagementScreen extends ConsumerStatefulWidget {
   final String? initialMedicineName;
-  const UploadManagementScreen({super.key, this.initialMedicineName});
+  final InventoryItem? initialItem;
+  final StockAlertItem? initialAlertItem;
+
+  const UploadManagementScreen({
+    super.key,
+    this.initialMedicineName,
+    this.initialItem,
+    this.initialAlertItem,
+  });
 
   @override
   ConsumerState<UploadManagementScreen> createState() =>
@@ -22,6 +31,7 @@ class UploadManagementScreen extends ConsumerStatefulWidget {
 class _UploadManagementScreenState
     extends ConsumerState<UploadManagementScreen> {
   bool _isUploading = false;
+  String? _editingItemId;
   late final TextEditingController _nameCtrl;
   final _skuCtrl = TextEditingController();
   final _manufacturerCtrl = TextEditingController();
@@ -43,14 +53,47 @@ class _UploadManagementScreenState
   void initState() {
     super.initState();
     _nameCtrl = TextEditingController(text: widget.initialMedicineName ?? '');
+    _populateInitialData();
+  }
+
+  void _populateInitialData() {
+    if (widget.initialItem != null) {
+      final item = widget.initialItem!;
+      _editingItemId = item.id;
+      _nameCtrl.text = item.name;
+      _skuCtrl.text = item.sku;
+      _manufacturerCtrl.text = item.manufacturer;
+      _batchCtrl.text = item.batchNumber;
+      _stockCtrl.text = item.stockQuantity.toString();
+      _packSizeCtrl.text = (item.packSize ?? 1).toString();
+      _priceCtrl.text = item.unitPrice > 0 ? item.unitPrice.toString() : '';
+      _buyingPriceCtrl.text = item.buyingPrice > 0 ? item.buyingPrice.toString() : '';
+      _hsnCtrl.text = item.hsnCode ?? '';
+      _expiryCtrl.text = item.expiryDate;
+      _gstCtrl.text = (item.gst ?? 0.0).toString();
+      _discountCtrl.text = (item.discount ?? 0.0).toString();
+      _selectedDistributorId = item.distributorId;
+      _selectedRackId = item.rackId;
+      _selectedCategoryId = item.categoryId;
+    } else if (widget.initialAlertItem != null) {
+      final item = widget.initialAlertItem!;
+      _editingItemId = item.id;
+      _nameCtrl.text = item.name;
+      _manufacturerCtrl.text = item.manufacturer;
+      _batchCtrl.text = item.batchNumber;
+      _stockCtrl.text = item.stockQuantity.toString();
+      _selectedDistributorId = item.distributorId;
+    }
   }
 
   @override
   void didUpdateWidget(covariant UploadManagementScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.initialMedicineName != oldWidget.initialMedicineName) {
-      if (widget.initialMedicineName != null &&
-          widget.initialMedicineName!.isNotEmpty) {
+    if (widget.initialItem != oldWidget.initialItem ||
+        widget.initialAlertItem != oldWidget.initialAlertItem ||
+        widget.initialMedicineName != oldWidget.initialMedicineName) {
+      _populateInitialData();
+      if (_nameCtrl.text.isEmpty && widget.initialMedicineName != null) {
         _nameCtrl.text = widget.initialMedicineName!;
       }
     }
@@ -423,11 +466,13 @@ class _UploadManagementScreenState
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'Add Medicine',
+                                  _editingItemId != null ? 'Update Medicine' : 'Add Medicine',
                                   style: TextStyle(fontSize: isMobile ? 18 : 20, fontWeight: FontWeight.w900, color: (isDark ? Colors.white : const Color(0xFF1E293B))),
                                 ),
                                 Text(
-                                  'Add a new medicine to your inventory (Master DB)',
+                                  _editingItemId != null
+                                      ? 'Update existing medicine stock & details in inventory'
+                                      : 'Add a new medicine to your inventory (Master DB)',
                                   style: TextStyle(fontSize: 11, color: (isDark ? Colors.grey.shade400 : const Color(0xFF64748B))),
                                   overflow: TextOverflow.ellipsis,
                                 ),
@@ -508,11 +553,13 @@ class _UploadManagementScreenState
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Add Medicine',
+                                _editingItemId != null ? 'Update Medicine' : 'Add Medicine',
                                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: (isDark ? Colors.white : const Color(0xFF1E293B))),
                               ),
                               Text(
-                                'Add a new medicine to your inventory (Master DB)',
+                                _editingItemId != null
+                                    ? 'Update existing medicine stock & details in inventory'
+                                    : 'Add a new medicine to your inventory (Master DB)',
                                 style: TextStyle(fontSize: 12, color: (isDark ? Colors.grey.shade400 : const Color(0xFF64748B))),
                               ),
                             ],
@@ -1051,9 +1098,9 @@ class _UploadManagementScreenState
                       child: ElevatedButton.icon(
                         onPressed: _isUploading ? null : _saveMedicine,
                         icon: const Icon(Icons.save, size: 18),
-                        label: const Text(
-                          'Save Medicine',
-                          style: TextStyle(fontWeight: FontWeight.bold),
+                        label: Text(
+                          _editingItemId != null ? 'Update Medicine' : 'Save Medicine',
+                          style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF22C55E),
@@ -1070,9 +1117,9 @@ class _UploadManagementScreenState
                     ElevatedButton.icon(
                       onPressed: _isUploading ? null : _saveMedicine,
                       icon: const Icon(Icons.save, size: 18),
-                      label: const Text(
-                        'Save Medicine',
-                        style: TextStyle(fontWeight: FontWeight.bold),
+                      label: Text(
+                        _editingItemId != null ? 'Update Medicine' : 'Save Medicine',
+                        style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF22C55E),
@@ -1141,7 +1188,7 @@ class _UploadManagementScreenState
         }
       }
 
-      await InventoryService.addMedicine({
+      final payload = {
         'name': _nameCtrl.text,
         'sku': _skuCtrl.text.isNotEmpty
             ? _skuCtrl.text
@@ -1167,13 +1214,22 @@ class _UploadManagementScreenState
         'category_id': _selectedCategoryId,
         'distributor_id': _selectedDistributorId,
         'image_url': uploadedImageUrl,
-      });
+      };
+
+      if (_editingItemId != null && _editingItemId!.isNotEmpty) {
+        await InventoryService.updateMedicine(_editingItemId!, payload);
+      } else {
+        await InventoryService.addMedicine(payload);
+      }
+
       if (mounted) {
         ref.invalidate(inventoryProvider);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'Medicine added successfully!',
+              _editingItemId != null
+                  ? 'Medicine updated successfully!'
+                  : 'Medicine added successfully!',
               style: TextStyle(color: Theme.of(context).cardColor),
             ),
             backgroundColor: Colors.green,

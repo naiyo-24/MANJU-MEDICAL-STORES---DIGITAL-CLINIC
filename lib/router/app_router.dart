@@ -17,6 +17,8 @@ import '../screens/counter/bill_customization_screen.dart';
 import '../screens/counter/distributors_screen.dart';
 import '../screens/counter/distributor_detail_screen.dart';
 import '../screens/counter/add_purchase_bill_screen.dart';
+import '../services/inventory_service.dart';
+import '../models/stock_alert_item.dart';
 
 import '../screens/lab/lab_dashboard.dart';
 import '../screens/lab/lab_dashboard_home.dart';
@@ -116,12 +118,29 @@ final goRouter = GoRouter(
                 GoRoute(
                   path: 'upload',
                   builder: (context, state) {
-                    final initialName = state.extra is String
-                        ? state.extra as String
-                        : (state.extra is Map ? (state.extra as Map)['name']?.toString() : null);
+                    InventoryItem? itemToEdit;
+                    StockAlertItem? alertItem;
+                    String? initialName;
+
+                    if (state.extra is InventoryItem) {
+                      itemToEdit = state.extra as InventoryItem;
+                      initialName = itemToEdit.name;
+                    } else if (state.extra is StockAlertItem) {
+                      alertItem = state.extra as StockAlertItem;
+                      initialName = alertItem.name;
+                    } else if (state.extra is String) {
+                      initialName = state.extra as String;
+                    } else if (state.extra is Map) {
+                      initialName = (state.extra as Map)['name']?.toString();
+                    }
+
+                    final keyIdentifier = itemToEdit?.id ?? alertItem?.id ?? initialName ?? 'new';
+
                     return UploadManagementScreen(
-                      key: ValueKey('upload_${initialName ?? 'new'}_${DateTime.now().millisecondsSinceEpoch}'),
+                      key: ValueKey('upload_${keyIdentifier}_${DateTime.now().millisecondsSinceEpoch}'),
                       initialMedicineName: initialName,
+                      initialItem: itemToEdit,
+                      initialAlertItem: alertItem,
                     );
                   },
                 ),
