@@ -603,34 +603,40 @@ class _ManufacturersScreenState extends ConsumerState<ManufacturersScreen> {
                     ],
                   )
                 else
-                  Wrap(
-                    spacing: 12,
-                    runSpacing: 10,
+                  Row(
                     children: [
-                      _buildMetricCard(
-                        context,
-                        title: 'Total Manufacturers',
-                        value: '${allManufacturers.length}',
-                        icon: Icons.domain,
-                        color: const Color(0xFF0284C7),
-                        customWidth: (constraints.maxWidth - 36) / 2,
+                      Expanded(
+                        child: _buildMetricCard(
+                          context,
+                          title: 'Total Manufacturers',
+                          value: '${allManufacturers.length}',
+                          icon: Icons.domain,
+                          color: const Color(0xFF0284C7),
+                          isMobile: true,
+                        ),
                       ),
-                      _buildMetricCard(
-                        context,
-                        title: 'Mapped Medicines',
-                        value: '$totalMappedMedicines',
-                        icon: Icons.medication,
-                        color: const Color(0xFF059669),
-                        customWidth: (constraints.maxWidth - 36) / 2,
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: _buildMetricCard(
+                          context,
+                          title: 'Mapped Medicines',
+                          value: '$totalMappedMedicines',
+                          icon: Icons.medication,
+                          color: const Color(0xFF059669),
+                          isMobile: true,
+                        ),
                       ),
-                      _buildMetricCard(
-                        context,
-                        title: 'Short Codes Assigned',
-                        value:
-                            '${allManufacturers.where((m) => m.shortCode != null && m.shortCode!.isNotEmpty).length}',
-                        icon: Icons.tag,
-                        color: const Color(0xFFD97706),
-                        customWidth: constraints.maxWidth - 24,
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: _buildMetricCard(
+                          context,
+                          title: 'Short Codes',
+                          value:
+                              '${allManufacturers.where((m) => m.shortCode != null && m.shortCode!.isNotEmpty).length}',
+                          icon: Icons.tag,
+                          color: const Color(0xFFD97706),
+                          isMobile: true,
+                        ),
                       ),
                     ],
                   ),
@@ -742,8 +748,10 @@ class _ManufacturersScreenState extends ConsumerState<ManufacturersScreen> {
                                   ),
                                 ),
                                 title: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
                                   children: [
-                                    Expanded(
+                                    Flexible(
                                       child: Text(
                                         mfg.name,
                                         style: TextStyle(
@@ -753,6 +761,7 @@ class _ManufacturersScreenState extends ConsumerState<ManufacturersScreen> {
                                               ? Colors.white
                                               : const Color(0xFF1E293B),
                                         ),
+                                        overflow: TextOverflow.ellipsis,
                                       ),
                                     ),
                                     if (mfg.shortCode != null &&
@@ -760,8 +769,8 @@ class _ManufacturersScreenState extends ConsumerState<ManufacturersScreen> {
                                       const SizedBox(width: 8),
                                       Container(
                                         padding: const EdgeInsets.symmetric(
-                                          horizontal: 8,
-                                          vertical: 3,
+                                          horizontal: 7,
+                                          vertical: 2,
                                         ),
                                         decoration: BoxDecoration(
                                           color: const Color(0xFF0284C7)
@@ -778,6 +787,8 @@ class _ManufacturersScreenState extends ConsumerState<ManufacturersScreen> {
                                           style: const TextStyle(
                                             fontWeight: FontWeight.bold,
                                             fontSize: 11,
+                                            height: 1.15,
+                                            letterSpacing: 0.4,
                                             color: Color(0xFF0284C7),
                                           ),
                                         ),
@@ -860,12 +871,16 @@ class _ManufacturersScreenState extends ConsumerState<ManufacturersScreen> {
     required IconData icon,
     required Color color,
     double? customWidth,
+    bool isMobile = false,
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
       width: customWidth,
-      padding: const EdgeInsets.all(14),
+      padding: EdgeInsets.symmetric(
+        horizontal: isMobile ? 8 : 14,
+        vertical: isMobile ? 10 : 14,
+      ),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(12),
@@ -876,22 +891,23 @@ class _ManufacturersScreenState extends ConsumerState<ManufacturersScreen> {
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(10),
+            padding: EdgeInsets.all(isMobile ? 8 : 10),
             decoration: BoxDecoration(
               color: color.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(icon, color: color, size: 20),
+            child: Icon(icon, color: color, size: isMobile ? 18 : 20),
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: isMobile ? 8 : 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
                   value,
                   style: TextStyle(
-                    fontSize: 18,
+                    fontSize: isMobile ? 16 : 18,
                     fontWeight: FontWeight.bold,
                     color: isDark ? Colors.white : const Color(0xFF1E293B),
                   ),
@@ -899,7 +915,7 @@ class _ManufacturersScreenState extends ConsumerState<ManufacturersScreen> {
                 Text(
                   title,
                   style: TextStyle(
-                    fontSize: 11,
+                    fontSize: isMobile ? 10 : 11,
                     color: isDark ? Colors.grey[400] : const Color(0xFF64748B),
                   ),
                   overflow: TextOverflow.ellipsis,
