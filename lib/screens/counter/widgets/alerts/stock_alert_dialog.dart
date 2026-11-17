@@ -53,27 +53,29 @@ class _StockAlertDialogState extends ConsumerState<StockAlertDialog> {
     final secondaryTextColor = isDark ? Colors.grey[400] : const Color(0xFF64748B);
     final borderColor = Theme.of(context).dividerColor;
 
-    final contentWidget = Container(
-      constraints: BoxConstraints(
-        maxWidth: isMobile ? double.infinity : 650,
-        maxHeight: isMobile
-            ? MediaQuery.of(context).size.height * 0.85
-            : MediaQuery.of(context).size.height * 0.75,
-      ),
-      decoration: BoxDecoration(
-        color: cardBg,
-        borderRadius: isMobile
-            ? const BorderRadius.vertical(top: Radius.circular(20))
-            : BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.15),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Column(
+    final contentWidget = Material(
+      color: cardBg,
+      borderRadius: isMobile
+          ? const BorderRadius.vertical(top: Radius.circular(20))
+          : BorderRadius.circular(16),
+      clipBehavior: Clip.antiAlias,
+      child: Container(
+        constraints: BoxConstraints(
+          maxWidth: isMobile ? double.infinity : 650,
+          maxHeight: isMobile
+              ? MediaQuery.of(context).size.height * 0.85
+              : MediaQuery.of(context).size.height * 0.75,
+        ),
+        decoration: BoxDecoration(
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.15),
+              blurRadius: 20,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -297,6 +299,7 @@ class _StockAlertDialogState extends ConsumerState<StockAlertDialog> {
             ),
           ),
         ],
+      ),
       ),
     );
 

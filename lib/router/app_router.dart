@@ -137,7 +137,7 @@ final goRouter = GoRouter(
                     final keyIdentifier = itemToEdit?.id ?? alertItem?.id ?? initialName ?? 'new';
 
                     return UploadManagementScreen(
-                      key: ValueKey('upload_${keyIdentifier}_${DateTime.now().millisecondsSinceEpoch}'),
+                      key: ValueKey('upload_$keyIdentifier'),
                       initialMedicineName: initialName,
                       initialItem: itemToEdit,
                       initialAlertItem: alertItem,
