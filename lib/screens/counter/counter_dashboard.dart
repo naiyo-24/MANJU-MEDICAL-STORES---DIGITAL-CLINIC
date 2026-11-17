@@ -457,7 +457,7 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
             SizedBox(width: isDesktop ? 16 : 8),
             Image.asset(
               isDark ? 'assets/LOGO_DM.png' : 'assets/LOGO.png',
-              height: isDesktop ? 75 : 34,
+              height: isDesktop ? 65 : 34,
               width: isDesktop
                   ? null
                   : 110, // constrain width on mobile to give pills space
@@ -466,310 +466,518 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
               cacheHeight: 225,
             ),
 
-          if (isDesktop) const Spacer(),
+          if (isDesktop) const SizedBox(width: 12),
 
           if (isDesktop)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF1F5F9),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
-              ),
-              child: Wrap(
-                spacing: 12,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                children: [
-                  const Icon(
-                    Icons.keyboard,
-                    size: 16,
-                    color: Color(0xFF1E293B),
+            Expanded(
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF1F5F9),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: const Color(0xFFE2E8F0)),
                   ),
-                  _buildShortcutChip('F1', 'Billing'),
-                  _buildShortcutChip('F2', 'Inventory'),
-                  _buildShortcutChip('F3', 'Shops'),
-                  _buildShortcutChip('F4', 'Customers'),
-                  _buildShortcutChip('F5', 'Accounts'),
-                  _buildShortcutChip('F6', 'History'),
-                  _buildShortcutChip('F7', 'Settings'),
-                  _buildShortcutChip('F8', 'Distributors'),
-                  _buildShortcutChip('F9', 'Manufacturers'),
-                ],
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.keyboard,
+                        size: 16,
+                        color: Color(0xFF1E293B),
+                      ),
+                      const SizedBox(width: 10),
+                      _buildShortcutChip('F1', 'Billing'),
+                      const SizedBox(width: 10),
+                      _buildShortcutChip('F2', 'Inventory'),
+                      const SizedBox(width: 10),
+                      _buildShortcutChip('F3', 'Shops'),
+                      const SizedBox(width: 10),
+                      _buildShortcutChip('F4', 'Customers'),
+                      const SizedBox(width: 10),
+                      _buildShortcutChip('F5', 'Accounts'),
+                      const SizedBox(width: 10),
+                      _buildShortcutChip('F6', 'History'),
+                      const SizedBox(width: 10),
+                      _buildShortcutChip('F7', 'Settings'),
+                      const SizedBox(width: 10),
+                      _buildShortcutChip('F8', 'Distributors'),
+                      const SizedBox(width: 10),
+                      _buildShortcutChip('F9', 'Manufacturers'),
+                    ],
+                  ),
+                ),
               ),
             ),
 
-          if (isDesktop) const Spacer(),
+          if (isDesktop) const SizedBox(width: 16),
 
-          // Right side Profile, Stock Alerts, and Date Pills (scrollable on small screens)
-          Expanded(
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              alignment: Alignment.centerRight,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  // Low Stock Notification Bell
-                  Consumer(
-                    builder: (context, ref, _) {
-                      final alertsAsync = ref.watch(stockAlertProvider);
-                      final alertCount = alertsAsync.value?.length ?? 0;
-                      final hasAlerts = alertCount > 0;
+          // Right side Profile, Stock Alerts, and Date Pills
+          if (isDesktop)
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                // Low Stock Notification Bell
+                Consumer(
+                  builder: (context, ref, _) {
+                    final alertsAsync = ref.watch(stockAlertProvider);
+                    final alertCount = alertsAsync.value?.length ?? 0;
+                    final hasAlerts = alertCount > 0;
 
-                      return Padding(
-                        padding: const EdgeInsets.only(right: 8.0),
-                        child: InkWell(
-                          onTap: () => StockAlertDialog.show(context),
-                          borderRadius: BorderRadius.circular(12),
-                          child: Container(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: isDesktop ? 12 : 8,
-                              vertical: isDesktop ? 8 : 6,
-                            ),
-                            decoration: BoxDecoration(
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 10.0),
+                      child: InkWell(
+                        onTap: () => StockAlertDialog.show(context),
+                        borderRadius: BorderRadius.circular(12),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 9,
+                          ),
+                          decoration: BoxDecoration(
+                            color: hasAlerts
+                                ? (isDark
+                                    ? const Color(0xFFEF4444).withValues(alpha: 0.2)
+                                    : const Color(0xFFFEE2E2))
+                                : (isDark
+                                    ? const Color(0xFF334155)
+                                    : const Color(0xFFF1F5F9)),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
                               color: hasAlerts
-                                  ? (isDark
-                                      ? const Color(0xFFEF4444).withValues(alpha: 0.2)
-                                      : const Color(0xFFFEE2E2))
+                                  ? const Color(0xFFEF4444).withValues(alpha: 0.5)
                                   : (isDark
-                                      ? const Color(0xFF334155)
-                                      : const Color(0xFFF1F5F9)),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: hasAlerts
-                                    ? const Color(0xFFEF4444).withValues(alpha: 0.5)
-                                    : (isDark
-                                        ? const Color(0xFF475569)
-                                        : const Color(0xFFE2E8F0)),
-                              ),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  hasAlerts
-                                      ? Icons.notifications_active
-                                      : Icons.notifications_none,
-                                  color: hasAlerts
-                                      ? const Color(0xFFEF4444)
-                                      : (isDark ? Colors.grey[400] : const Color(0xFF64748B)),
-                                  size: isDesktop ? 20 : 15,
-                                ),
-                                if (hasAlerts) ...[
-                                  SizedBox(width: isDesktop ? 8 : 6),
-                                  Container(
-                                    padding: EdgeInsets.symmetric(
-                                      horizontal: isDesktop ? 8 : 6,
-                                      vertical: isDesktop ? 2 : 1,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFFEF4444),
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                    child: Text(
-                                      '$alertCount',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: isDesktop ? 12 : 10.5,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ],
+                                      ? const Color(0xFF475569)
+                                      : const Color(0xFFE2E8F0)),
                             ),
                           ),
-                        ),
-                      );
-                    },
-                  ),
-
-                  // Date & Time Pill
-                  InkWell(
-                    onTap: () async {
-                      await showDatePicker(
-                        context: context,
-                        initialDate: _currentTime,
-                        firstDate: DateTime(2000),
-                        lastDate: DateTime(2100),
-                        builder: (context, child) {
-                          return Theme(
-                            data: ThemeData.light().copyWith(
-                              colorScheme: const ColorScheme.light(
-                                primary: Color(
-                                  0xFF166534,
-                                ), // Header background color
-                                onPrimary: Colors.white, // Header text color
-                                onSurface: Color(0xFF1E293B), // Body text color
-                                surface:
-                                    Colors.white, // Dialog background color
-                              ),
-                              textButtonTheme: TextButtonThemeData(
-                                style: TextButton.styleFrom(
-                                  foregroundColor: const Color(
-                                    0xFF166534,
-                                  ), // Button text color
-                                ),
-                              ), dialogTheme: DialogThemeData(backgroundColor: Colors.white),
-                            ),
-                            child: child!,
-                          );
-                        },
-                      );
-                    },
-                    borderRadius: BorderRadius.circular(8),
-                    child: Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: isDesktop ? 12 : 8,
-                        vertical: isDesktop ? 6 : 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF1F8F5),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: const Color(0xFF22C55E).withValues(alpha: 0.3),
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          if (isDesktop) ...[
-                            const Icon(
-                              Icons.calendar_today,
-                              color: Color(0xFF166534),
-                              size: 16,
-                            ),
-                            const SizedBox(width: 8),
-                          ],
-                          Column(
+                          child: Row(
                             mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Text(
-                                isDesktop
-                                    ? _formatDate(_currentTime)
-                                    : DateFormat(
-                                        'd MMM yyyy',
-                                      ).format(_currentTime),
-                                style: TextStyle(
-                                  color: const Color(0xFF166534),
-                                  fontSize: isDesktop ? 12 : 10,
-                                  fontWeight: FontWeight.bold,
+                              Icon(
+                                hasAlerts
+                                    ? Icons.notifications_active
+                                    : Icons.notifications_none,
+                                color: hasAlerts
+                                    ? const Color(0xFFEF4444)
+                                    : (isDark ? Colors.grey[400] : const Color(0xFF64748B)),
+                                size: 24,
+                              ),
+                              if (hasAlerts) ...[
+                                const SizedBox(width: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 3,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFEF4444),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Text(
+                                    '$alertCount',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+
+                // Date & Time Pill
+                InkWell(
+                  onTap: () async {
+                    await showDatePicker(
+                      context: context,
+                      initialDate: _currentTime,
+                      firstDate: DateTime(2000),
+                      lastDate: DateTime(2100),
+                      builder: (context, child) {
+                        return Theme(
+                          data: ThemeData.light().copyWith(
+                            colorScheme: const ColorScheme.light(
+                              primary: Color(0xFF166534),
+                              onPrimary: Colors.white,
+                              onSurface: Color(0xFF1E293B),
+                              surface: Colors.white,
+                            ),
+                            textButtonTheme: TextButtonThemeData(
+                              style: TextButton.styleFrom(
+                                foregroundColor: const Color(0xFF166534),
+                              ),
+                            ),
+                            dialogTheme: const DialogThemeData(backgroundColor: Colors.white),
+                          ),
+                          child: child!,
+                        );
+                      },
+                    );
+                  },
+                  borderRadius: BorderRadius.circular(12),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF1F8F5),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: const Color(0xFF22C55E).withValues(alpha: 0.3),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.calendar_today,
+                          color: Color(0xFF166534),
+                          size: 20,
+                        ),
+                        const SizedBox(width: 10),
+                        Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              _formatDate(_currentTime),
+                              style: const TextStyle(
+                                color: Color(0xFF166534),
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              _formatTime(_currentTime),
+                              style: const TextStyle(
+                                color: Color(0xFF1E293B),
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+
+                // Profile Pill
+                PopupMenuButton<String>(
+                  offset: const Offset(0, 48),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  onSelected: (value) async {
+                    if (value == 'logout') {
+                      final shouldLogout =
+                          await LogoutConfirmationDialog.show(context);
+                      if (shouldLogout && context.mounted) {
+                        await AuthService.logout();
+                        if (context.mounted) {
+                          // ignore: use_build_context_synchronously
+                          context.go('/dashboard');
+                          resetAllSessionProviders(ref);
+                        }
+                      }
+                    }
+                  },
+                  itemBuilder: (context) => [
+                    const PopupMenuItem(
+                      value: 'logout',
+                      child: Row(
+                        children: [
+                          Icon(Icons.logout, size: 18, color: Colors.red),
+                          SizedBox(width: 8),
+                          Text(
+                            'Logout',
+                            style: TextStyle(fontSize: 14, color: Colors.red),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 7,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        CircleAvatar(
+                          radius: 17,
+                          backgroundColor: Color(0xFFF1F5F9),
+                          child: Icon(
+                            Icons.person,
+                            size: 22,
+                            color: Color(0xFF1E293B),
+                          ),
+                        ),
+                        SizedBox(width: 10),
+                        Column(
+                          mainAxisSize: MainAxisSize.min,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Counter Admin',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                                color: Color(0xFF1E293B),
+                              ),
+                            ),
+                            Text(
+                              'Counter',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: Color(0xFF64748B),
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(width: 8),
+                        Icon(
+                          Icons.keyboard_arrow_down,
+                          color: Color(0xFF1E293B),
+                          size: 18,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            )
+          else
+            // Mobile right side
+            Expanded(
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerRight,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    // Low Stock Notification Bell (Mobile)
+                    Consumer(
+                      builder: (context, ref, _) {
+                        final alertsAsync = ref.watch(stockAlertProvider);
+                        final alertCount = alertsAsync.value?.length ?? 0;
+                        final hasAlerts = alertCount > 0;
+
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 8.0),
+                          child: InkWell(
+                            onTap: () => StockAlertDialog.show(context),
+                            borderRadius: BorderRadius.circular(12),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: hasAlerts
+                                    ? (isDark
+                                        ? const Color(0xFFEF4444).withValues(alpha: 0.2)
+                                        : const Color(0xFFFEE2E2))
+                                    : (isDark
+                                        ? const Color(0xFF334155)
+                                        : const Color(0xFFF1F5F9)),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: hasAlerts
+                                      ? const Color(0xFFEF4444).withValues(alpha: 0.5)
+                                      : (isDark
+                                          ? const Color(0xFF475569)
+                                          : const Color(0xFFE2E8F0)),
                                 ),
                               ),
-                              Text(
-                                _formatTime(_currentTime),
-                                style: TextStyle(
-                                  color: const Color(0xFF1E293B),
-                                  fontSize: isDesktop ? 12 : 10,
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    hasAlerts
+                                        ? Icons.notifications_active
+                                        : Icons.notifications_none,
+                                    color: hasAlerts
+                                        ? const Color(0xFFEF4444)
+                                        : (isDark ? Colors.grey[400] : const Color(0xFF64748B)),
+                                    size: 15,
+                                  ),
+                                  if (hasAlerts) ...[
+                                    const SizedBox(width: 6),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 6,
+                                        vertical: 1,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFEF4444),
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      child: Text(
+                                        '$alertCount',
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 10.5,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+
+                    // Date & Time Pill (Mobile)
+                    InkWell(
+                      onTap: () async {
+                        await showDatePicker(
+                          context: context,
+                          initialDate: _currentTime,
+                          firstDate: DateTime(2000),
+                          lastDate: DateTime(2100),
+                          builder: (context, child) {
+                            return Theme(
+                              data: ThemeData.light().copyWith(
+                                colorScheme: const ColorScheme.light(
+                                  primary: Color(0xFF166534),
+                                  onPrimary: Colors.white,
+                                  onSurface: Color(0xFF1E293B),
+                                  surface: Colors.white,
                                 ),
+                                textButtonTheme: TextButtonThemeData(
+                                  style: TextButton.styleFrom(
+                                    foregroundColor: const Color(0xFF166534),
+                                  ),
+                                ),
+                                dialogTheme: const DialogThemeData(backgroundColor: Colors.white),
+                              ),
+                              child: child!,
+                            );
+                          },
+                        );
+                      },
+                      borderRadius: BorderRadius.circular(8),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF1F8F5),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: const Color(0xFF22C55E).withValues(alpha: 0.3),
+                          ),
+                        ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              DateFormat('d MMM yyyy').format(_currentTime),
+                              style: const TextStyle(
+                                color: Color(0xFF166534),
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              _formatTime(_currentTime),
+                              style: const TextStyle(
+                                color: Color(0xFF1E293B),
+                                fontSize: 10,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+
+                    // Profile Pill (Mobile)
+                    PopupMenuButton<String>(
+                      offset: const Offset(0, 45),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      onSelected: (value) async {
+                        if (value == 'logout') {
+                          final shouldLogout =
+                              await LogoutConfirmationDialog.show(context);
+                          if (shouldLogout && context.mounted) {
+                            await AuthService.logout();
+                            if (context.mounted) {
+                              // ignore: use_build_context_synchronously
+                              context.go('/dashboard');
+                              resetAllSessionProviders(ref);
+                            }
+                          }
+                        }
+                      },
+                      itemBuilder: (context) => [
+                        const PopupMenuItem(
+                          value: 'logout',
+                          child: Row(
+                            children: [
+                              Icon(Icons.logout, size: 18, color: Colors.red),
+                              SizedBox(width: 8),
+                              Text(
+                                'Logout',
+                                style: TextStyle(fontSize: 14, color: Colors.red),
                               ),
                             ],
                           ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-
-                  // Profile Pill
-                  PopupMenuButton<String>(
-                    offset: const Offset(0, 45),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    onSelected: (value) async {
-                      if (value == 'logout') {
-                        final shouldLogout =
-                            await LogoutConfirmationDialog.show(context);
-                        if (shouldLogout && context.mounted) {
-                          await AuthService.logout();
-                          if (context.mounted) {
-                            // ignore: use_build_context_synchronously
-                            context.go('/dashboard');
-                            resetAllSessionProviders(ref);
-                          }
-                        }
-                      }
-                    },
-                    itemBuilder: (context) => [
-                      const PopupMenuItem(
-                        value: 'logout',
-                        child: Row(
-                          children: [
-                            Icon(Icons.logout, size: 18, color: Colors.red),
-                            SizedBox(width: 8),
-                            Text(
-                              'Logout',
-                              style: TextStyle(fontSize: 14, color: Colors.red),
-                            ),
-                          ],
+                        ),
+                      ],
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          border: Border.all(color: const Color(0xFFE2E8F0)),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: const CircleAvatar(
+                          radius: 14,
+                          backgroundColor: Color(0xFFF1F5F9),
+                          child: Icon(
+                            Icons.person,
+                            size: 18,
+                            color: Color(0xFF1E293B),
+                          ),
                         ),
                       ),
-                    ],
-                    child: Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: isDesktop ? 12 : 8,
-                        vertical: isDesktop ? 6 : 8,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        border: Border.all(color: const Color(0xFFE2E8F0)),
-                        borderRadius: isDesktop
-                            ? BorderRadius.circular(12)
-                            : BorderRadius.circular(20),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const CircleAvatar(
-                            radius: 14,
-                            backgroundColor: Color(0xFFF1F5F9),
-                            child: Icon(
-                              Icons.person,
-                              size: 18,
-                              color: Color(0xFF1E293B),
-                            ),
-                          ),
-                          if (isDesktop) ...[
-                            const SizedBox(width: 8),
-                            const Column(
-                              mainAxisSize: MainAxisSize.min,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Counter Admin',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 12,
-                                    color: Color(0xFF1E293B),
-                                  ),
-                                ),
-                                Text(
-                                  'Counter',
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    color: Color(0xFF1E293B),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(width: 8),
-                            const Icon(
-                              Icons.keyboard_arrow_down,
-                              color: Color(0xFF1E293B),
-                              size: 16,
-                            ),
-                          ],
-                        ],
-                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
-          ),
         ],
       ),
     ),
