@@ -371,7 +371,7 @@ class _StockAlertDialogState extends ConsumerState<StockAlertDialog> {
                       const SizedBox(width: 4),
                       Expanded(
                         child: Text(
-                          'Supplier: ${item.distributorName}',
+                          'Distributor: ${item.distributorName}',
                           style: TextStyle(fontSize: 11, color: secondaryTextColor, fontWeight: FontWeight.w500),
                           overflow: TextOverflow.ellipsis,
                         ),
