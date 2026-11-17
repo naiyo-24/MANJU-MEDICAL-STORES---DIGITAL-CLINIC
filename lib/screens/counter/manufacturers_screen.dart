@@ -99,6 +99,30 @@ class _ManufacturersScreenState extends ConsumerState<ManufacturersScreen> {
     );
   }
 
+  Future<void> _handleExport(String type, List<Manufacturer> filtered,
+      int Function(Manufacturer) getMappedCount) async {
+    final timestamp = DateTime.now().millisecondsSinceEpoch;
+    final dataToExport = filtered
+        .map((m) => {
+              'Name': m.name,
+              'Short Code': m.shortCode ?? '',
+              'Mapped Medicines': getMappedCount(m),
+            })
+        .toList();
+
+    final settings = ref.read(settingsProvider).value ?? {};
+
+    if (type == 'csv') {
+      await ExportService.exportToCSV(dataToExport, 'Manufacturers_$timestamp');
+    } else if (type == 'excel') {
+      await ExportService.exportToExcel(
+          dataToExport, 'Manufacturers_$timestamp');
+    } else if (type == 'pdf') {
+      await ExportService.exportToPDF(
+          dataToExport, 'Manufacturers_$timestamp', settings);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final manufacturersAsync = ref.watch(manufacturerProvider);
@@ -114,17 +138,33 @@ class _ManufacturersScreenState extends ConsumerState<ManufacturersScreen> {
             return name.contains(query) || code.contains(query);
           }).toList();
 
+    // Set of registered manufacturer identifiers for true association
+    final registeredMfgIds = allManufacturers.map((m) => m.id).toSet();
+    final registeredMfgNames =
+        allManufacturers.map((m) => m.name.toLowerCase().trim()).toSet();
+
     // Compute medicine counts per manufacturer
     final Map<String, int> medicineCountsByMfgId = {};
     final Map<String, int> medicineCountsByName = {};
+    int totalMappedMedicines = 0;
+
     for (final item in inventoryItems) {
-      if (item.manufacturerId != null && item.manufacturerId!.isNotEmpty) {
+      bool isItemMapped = false;
+      if (item.manufacturerId != null &&
+          registeredMfgIds.contains(item.manufacturerId)) {
         medicineCountsByMfgId[item.manufacturerId!] =
             (medicineCountsByMfgId[item.manufacturerId!] ?? 0) + 1;
+        isItemMapped = true;
       }
       if (item.manufacturer.isNotEmpty) {
         final lower = item.manufacturer.toLowerCase().trim();
-        medicineCountsByName[lower] = (medicineCountsByName[lower] ?? 0) + 1;
+        if (registeredMfgNames.contains(lower)) {
+          medicineCountsByName[lower] = (medicineCountsByName[lower] ?? 0) + 1;
+          isItemMapped = true;
+        }
+      }
+      if (isItemMapped) {
+        totalMappedMedicines++;
       }
     }
 
@@ -151,124 +191,246 @@ class _ManufacturersScreenState extends ConsumerState<ManufacturersScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Header Row
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF059669),
-                            borderRadius: BorderRadius.circular(12),
+                // 1. Header (Responsive: Desktop side-by-side, Mobile stacked)
+                if (isDesktop) ...[
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF059669),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Icon(
+                              Icons.domain,
+                              color: Colors.white,
+                              size: 24,
+                            ),
                           ),
-                          child: const Icon(
-                            Icons.domain,
-                            color: Colors.white,
-                            size: 24,
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Manufacturers',
-                              style: TextStyle(
-                                fontSize: isDesktop ? 24 : 20,
-                                fontWeight: FontWeight.bold,
-                                color: isDark
-                                    ? Colors.white
-                                    : const Color(0xFF1E293B),
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              'Pharmaceutical companies and medicine brand manufacturers',
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: isDark
-                                    ? Colors.grey[400]
-                                    : const Color(0xFF64748B),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                    Row(
-                      children: [
-                        // Export Button
-                        if (isDesktop && filtered.isNotEmpty)
-                          PopupMenuButton<String>(
-                            tooltip: 'Export Manufacturers',
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            icon: Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 14, vertical: 10),
-                              decoration: BoxDecoration(
-                                color: isDark
-                                    ? const Color(0xFF1E293B)
-                                    : const Color(0xFFF1F5F9),
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(
+                          const SizedBox(width: 16),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Manufacturers',
+                                style: TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
                                   color: isDark
-                                      ? Colors.grey[700]!
-                                      : const Color(0xFFE2E8F0),
+                                      ? Colors.white
+                                      : const Color(0xFF1E293B),
                                 ),
                               ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    Icons.download,
-                                    size: 16,
-                                    color: isDark
-                                        ? Colors.white
-                                        : const Color(0xFF1E293B),
+                              const SizedBox(height: 2),
+                              Text(
+                                'Pharmaceutical companies and medicine brand manufacturers',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: isDark
+                                      ? Colors.grey[400]
+                                      : const Color(0xFF64748B),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            tooltip: 'Refresh',
+                            onPressed: () => ref
+                                .read(manufacturerProvider.notifier)
+                                .refresh(),
+                            icon: Icon(
+                              Icons.refresh,
+                              color: isDark
+                                  ? Colors.white
+                                  : const Color(0xFF1E293B),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          if (filtered.isNotEmpty)
+                            PopupMenuButton<String>(
+                              tooltip: 'Export Manufacturers',
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              onSelected: (val) =>
+                                  _handleExport(val, filtered, getMappedCount),
+                              itemBuilder: (context) => [
+                                const PopupMenuItem(
+                                  value: 'csv',
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.table_chart, size: 18),
+                                      SizedBox(width: 8),
+                                      Text('Export as CSV'),
+                                    ],
                                   ),
-                                  const SizedBox(width: 6),
+                                ),
+                                const PopupMenuItem(
+                                  value: 'excel',
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.grid_on, size: 18),
+                                      SizedBox(width: 8),
+                                      Text('Export as Excel'),
+                                    ],
+                                  ),
+                                ),
+                                const PopupMenuItem(
+                                  value: 'pdf',
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.picture_as_pdf, size: 18),
+                                      SizedBox(width: 8),
+                                      Text('Export as PDF'),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 14, vertical: 10),
+                                decoration: BoxDecoration(
+                                  color: isDark
+                                      ? const Color(0xFF1E293B)
+                                      : const Color(0xFFF1F5F9),
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(
+                                    color: isDark
+                                        ? Colors.grey[700]!
+                                        : const Color(0xFFE2E8F0),
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      Icons.download,
+                                      size: 16,
+                                      color: isDark
+                                          ? Colors.white
+                                          : const Color(0xFF1E293B),
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      'Export',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 13,
+                                        color: isDark
+                                            ? Colors.white
+                                            : const Color(0xFF1E293B),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          const SizedBox(width: 8),
+                          ElevatedButton.icon(
+                            onPressed: _showAddDialog,
+                            icon: const Icon(Icons.add, size: 18),
+                            label: const Text('Add Manufacturer'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF059669),
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 12,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              elevation: 0,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ] else ...[
+                  // Mobile Header
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(9),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF059669),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: const Icon(
+                                Icons.domain,
+                                color: Colors.white,
+                                size: 20,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
                                   Text(
-                                    'Export',
+                                    'Manufacturers',
                                     style: TextStyle(
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 13,
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
                                       color: isDark
                                           ? Colors.white
                                           : const Color(0xFF1E293B),
                                     ),
                                   ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    'Pharmaceutical brand manufacturers',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: isDark
+                                          ? Colors.grey[400]
+                                          : const Color(0xFF64748B),
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
                                 ],
                               ),
                             ),
-                            onSelected: (value) async {
-                              final timestamp =
-                                  DateTime.now().millisecondsSinceEpoch;
-                              final dataToExport = filtered
-                                  .map((m) => {
-                                        'Name': m.name,
-                                        'Short Code': m.shortCode ?? '',
-                                        'Mapped Medicines': getMappedCount(m),
-                                      })
-                                  .toList();
-
-                              final settings =
-                                  ref.read(settingsProvider).value ?? {};
-
-                              if (value == 'csv') {
-                                await ExportService.exportToCSV(
-                                    dataToExport, 'Manufacturers_$timestamp');
-                              } else if (value == 'excel') {
-                                await ExportService.exportToExcel(
-                                    dataToExport, 'Manufacturers_$timestamp');
-                              } else if (value == 'pdf') {
-                                await ExportService.exportToPDF(dataToExport,
-                                    'Manufacturers_$timestamp', settings);
-                              }
-                            },
+                          ],
+                        ),
+                      ),
+                      IconButton(
+                        tooltip: 'Refresh',
+                        onPressed: () =>
+                            ref.read(manufacturerProvider.notifier).refresh(),
+                        icon: Icon(
+                          Icons.refresh,
+                          color:
+                              isDark ? Colors.white : const Color(0xFF1E293B),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      if (filtered.isNotEmpty) ...[
+                        Expanded(
+                          flex: 4,
+                          child: PopupMenuButton<String>(
+                            padding: EdgeInsets.zero,
+                            onSelected: (val) =>
+                                _handleExport(val, filtered, getMappedCount),
                             itemBuilder: (context) => [
                               const PopupMenuItem(
                                 value: 'csv',
@@ -301,77 +463,71 @@ class _ManufacturersScreenState extends ConsumerState<ManufacturersScreen> {
                                 ),
                               ),
                             ],
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 10),
+                              decoration: BoxDecoration(
+                                color: isDark
+                                    ? const Color(0xFF1E293B)
+                                    : const Color(0xFFF1F5F9),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: isDark
+                                      ? Colors.grey[700]!
+                                      : const Color(0xFFE2E8F0),
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.download,
+                                    size: 16,
+                                    color: isDark
+                                        ? Colors.white
+                                        : const Color(0xFF1E293B),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    'Export',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 13,
+                                      color: isDark
+                                          ? Colors.white
+                                          : const Color(0xFF1E293B),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
-                        const SizedBox(width: 8),
-                        // Refresh Button
-                        IconButton(
-                          tooltip: 'Refresh',
-                          onPressed: () =>
-                              ref.read(manufacturerProvider.notifier).refresh(),
-                          icon: const Icon(Icons.refresh),
                         ),
                         const SizedBox(width: 8),
-                        // Add Manufacturer Button
-                        ElevatedButton.icon(
+                      ],
+                      Expanded(
+                        flex: 6,
+                        child: ElevatedButton.icon(
                           onPressed: _showAddDialog,
                           icon: const Icon(Icons.add, size: 18),
-                          label: Text(isDesktop
-                              ? 'Add Manufacturer'
-                              : 'Add'),
+                          label: const Text('Add Manufacturer'),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF059669),
                             foregroundColor: Colors.white,
-                            padding: EdgeInsets.symmetric(
-                              horizontal: isDesktop ? 18 : 12,
-                              vertical: 12,
-                            ),
+                            padding: const EdgeInsets.symmetric(vertical: 10),
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
+                              borderRadius: BorderRadius.circular(8),
                             ),
                             elevation: 0,
                           ),
                         ),
-                      ],
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 20),
+                      ),
+                    ],
+                  ),
+                ],
 
-                // Top Metric Cards
-                Wrap(
-                  spacing: 16,
-                  runSpacing: 12,
-                  children: [
-                    _buildMetricCard(
-                      context,
-                      title: 'Total Manufacturers',
-                      value: '${allManufacturers.length}',
-                      icon: Icons.domain,
-                      color: const Color(0xFF0284C7),
-                      isDesktop: isDesktop,
-                    ),
-                    _buildMetricCard(
-                      context,
-                      title: 'Mapped Medicines',
-                      value: '${inventoryItems.where((i) => i.manufacturerId != null || i.manufacturer.isNotEmpty).length}',
-                      icon: Icons.medication,
-                      color: const Color(0xFF059669),
-                      isDesktop: isDesktop,
-                    ),
-                    _buildMetricCard(
-                      context,
-                      title: 'Short Codes Assigned',
-                      value:
-                          '${allManufacturers.where((m) => m.shortCode != null && m.shortCode!.isNotEmpty).length}',
-                      icon: Icons.tag,
-                      color: const Color(0xFFD97706),
-                      isDesktop: isDesktop,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 16),
 
-                // Search Bar
+                // 2. Search Bar at Top (Matching Distributors screen)
                 Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 14,
@@ -407,9 +563,81 @@ class _ManufacturersScreenState extends ConsumerState<ManufacturersScreen> {
                     onChanged: (val) => setState(() => _searchQuery = val),
                   ),
                 ),
+
                 const SizedBox(height: 16),
 
-                // Table / List Content
+                // 3. Three KPI Summary Cards (Total Manufacturers, Mapped Medicines, Short Codes Assigned)
+                if (isDesktop)
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildMetricCard(
+                          context,
+                          title: 'Total Manufacturers',
+                          value: '${allManufacturers.length}',
+                          icon: Icons.domain,
+                          color: const Color(0xFF0284C7),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: _buildMetricCard(
+                          context,
+                          title: 'Mapped Medicines',
+                          value: '$totalMappedMedicines',
+                          icon: Icons.medication,
+                          color: const Color(0xFF059669),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: _buildMetricCard(
+                          context,
+                          title: 'Short Codes Assigned',
+                          value:
+                              '${allManufacturers.where((m) => m.shortCode != null && m.shortCode!.isNotEmpty).length}',
+                          icon: Icons.tag,
+                          color: const Color(0xFFD97706),
+                        ),
+                      ),
+                    ],
+                  )
+                else
+                  Wrap(
+                    spacing: 12,
+                    runSpacing: 10,
+                    children: [
+                      _buildMetricCard(
+                        context,
+                        title: 'Total Manufacturers',
+                        value: '${allManufacturers.length}',
+                        icon: Icons.domain,
+                        color: const Color(0xFF0284C7),
+                        customWidth: (constraints.maxWidth - 36) / 2,
+                      ),
+                      _buildMetricCard(
+                        context,
+                        title: 'Mapped Medicines',
+                        value: '$totalMappedMedicines',
+                        icon: Icons.medication,
+                        color: const Color(0xFF059669),
+                        customWidth: (constraints.maxWidth - 36) / 2,
+                      ),
+                      _buildMetricCard(
+                        context,
+                        title: 'Short Codes Assigned',
+                        value:
+                            '${allManufacturers.where((m) => m.shortCode != null && m.shortCode!.isNotEmpty).length}',
+                        icon: Icons.tag,
+                        color: const Color(0xFFD97706),
+                        customWidth: constraints.maxWidth - 24,
+                      ),
+                    ],
+                  ),
+
+                const SizedBox(height: 16),
+
+                // 4. Table / List Content
                 Expanded(
                   child: manufacturersAsync.when(
                     data: (_) {
@@ -631,12 +859,12 @@ class _ManufacturersScreenState extends ConsumerState<ManufacturersScreen> {
     required String value,
     required IconData icon,
     required Color color,
-    required bool isDesktop,
+    double? customWidth,
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
-      width: isDesktop ? 220 : 160,
+      width: customWidth,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
