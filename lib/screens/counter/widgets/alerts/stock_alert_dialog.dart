@@ -406,9 +406,9 @@ class _StockAlertDialogState extends ConsumerState<StockAlertDialog> {
               const SizedBox(height: 6),
               // Action Button: Update Medicine (redirects to Add/Update Medicine page with full item prefilled)
               InkWell(
-                onTap: () {
+                onTap: () async {
                   Navigator.pop(context);
-                  // Find matching InventoryItem in inventoryProvider if available, or pass alert item data
+                  // Find matching InventoryItem in inventoryProvider if available, or fetch full item
                   final inventoryList = ref.read(inventoryProvider).value ?? [];
                   InventoryItem? matchedItem;
                   try {
@@ -422,7 +422,26 @@ class _StockAlertDialogState extends ConsumerState<StockAlertDialog> {
                   if (matchedItem != null) {
                     context.go('/counter/inventory/upload', extra: matchedItem);
                   } else {
-                    context.go('/counter/inventory/upload', extra: item);
+                    // Try asynchronous single-medicine search if not on the first 100-page in memory
+                    try {
+                      final shopId = await InventoryService.getShopId();
+                      if (shopId.isNotEmpty) {
+                        final fetched = await InventoryService.fetchInventory(
+                          shopId: shopId,
+                          searchQuery: item.name,
+                        );
+                        if (fetched.isNotEmpty) {
+                          matchedItem = fetched.firstWhere(
+                            (inv) => inv.id == item.id || inv.name.toLowerCase() == item.name.toLowerCase(),
+                            orElse: () => fetched.first,
+                          );
+                        }
+                      }
+                    } catch (_) {}
+
+                    if (context.mounted) {
+                      context.go('/counter/inventory/upload', extra: matchedItem ?? item);
+                    }
                   }
                 },
                 borderRadius: BorderRadius.circular(6),

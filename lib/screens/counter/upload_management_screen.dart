@@ -79,11 +79,67 @@ class _UploadManagementScreenState
       final item = widget.initialAlertItem!;
       _editingItemId = item.id;
       _nameCtrl.text = item.name;
+      _skuCtrl.text = item.sku;
       _manufacturerCtrl.text = item.manufacturer;
       _batchCtrl.text = item.batchNumber;
       _stockCtrl.text = item.stockQuantity.toString();
+      _packSizeCtrl.text = (item.packSize ?? 1).toString();
+      _priceCtrl.text = item.unitPrice > 0 ? item.unitPrice.toString() : '';
+      _buyingPriceCtrl.text = item.buyingPrice > 0 ? item.buyingPrice.toString() : '';
+      _hsnCtrl.text = item.hsnCode ?? '';
+      _expiryCtrl.text = item.expiryDate;
+      _gstCtrl.text = (item.gst ?? 0.0).toString();
+      _discountCtrl.text = (item.discount ?? 0.0).toString();
       _selectedDistributorId = item.distributorId;
+      _selectedRackId = item.rackId;
+      _selectedCategoryId = item.categoryId;
+
+      // In case the alert payload didn't include full fields from the backend, fetch them asynchronously
+      _fetchFullItemDetailsIfNeeded(item.id, item.name);
     }
+  }
+
+  Future<void> _fetchFullItemDetailsIfNeeded(String itemId, String medicineName) async {
+    if (_priceCtrl.text.isNotEmpty && _expiryCtrl.text.isNotEmpty) return;
+    try {
+      final shopId = await InventoryService.getShopId();
+      if (shopId.isEmpty) return;
+
+      final results = await InventoryService.fetchInventory(
+        shopId: shopId,
+        searchQuery: medicineName,
+      );
+
+      InventoryItem? matched;
+      try {
+        matched = results.firstWhere(
+          (m) => m.id == itemId || m.name.toLowerCase() == medicineName.toLowerCase(),
+        );
+      } catch (_) {
+        if (results.isNotEmpty) matched = results.first;
+      }
+
+      if (matched != null && mounted) {
+        setState(() {
+          _editingItemId = matched!.id;
+          if (_nameCtrl.text.isEmpty) _nameCtrl.text = matched.name;
+          if (_skuCtrl.text.isEmpty) _skuCtrl.text = matched.sku;
+          if (_manufacturerCtrl.text.isEmpty) _manufacturerCtrl.text = matched.manufacturer;
+          if (_batchCtrl.text.isEmpty) _batchCtrl.text = matched.batchNumber;
+          if (_stockCtrl.text.isEmpty) _stockCtrl.text = matched.stockQuantity.toString();
+          if (_priceCtrl.text.isEmpty && matched.unitPrice > 0) _priceCtrl.text = matched.unitPrice.toString();
+          if (_buyingPriceCtrl.text.isEmpty && matched.buyingPrice > 0) _buyingPriceCtrl.text = matched.buyingPrice.toString();
+          if (_hsnCtrl.text.isEmpty && matched.hsnCode != null) _hsnCtrl.text = matched.hsnCode!;
+          if (_expiryCtrl.text.isEmpty) _expiryCtrl.text = matched.expiryDate;
+          if (_packSizeCtrl.text == '1' && matched.packSize != null) _packSizeCtrl.text = matched.packSize.toString();
+          if (_gstCtrl.text == '0' && matched.gst != null) _gstCtrl.text = matched.gst.toString();
+          if (_discountCtrl.text == '0' && matched.discount != null) _discountCtrl.text = matched.discount.toString();
+          _selectedDistributorId ??= matched.distributorId;
+          _selectedRackId ??= matched.rackId;
+          _selectedCategoryId ??= matched.categoryId;
+        });
+      }
+    } catch (_) {}
   }
 
   @override
