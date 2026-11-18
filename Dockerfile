@@ -33,8 +33,8 @@ RUN set -eux; \
     pip3 install --no-cache-dir fonttools; \
     fi
 
-# Build the web release
-RUN flutter build web --release --no-tree-shake-icons
+# Build the web release without PWA offline service worker caching
+RUN flutter build web --release --no-tree-shake-icons --pwa-strategy=none
 
 # Production image
 FROM nginx:stable-alpine

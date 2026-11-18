@@ -7,9 +7,15 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'config/responsive_config.dart';
 import 'widgets/desktop_zoom_wrapper.dart';
+import 'services/web_update_checker.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
+
+  // Automatically monitor for server deployments on Web
+  WebUpdateChecker.startPeriodicCheck();
+
   runApp(const ProviderScope(child: SirfBillApp()));
 }
 
