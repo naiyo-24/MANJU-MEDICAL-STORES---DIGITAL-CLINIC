@@ -16,6 +16,7 @@ import '../screens/counter/upload_management_screen.dart';
 import '../screens/counter/bill_customization_screen.dart';
 import '../screens/counter/distributors_screen.dart';
 import '../screens/counter/manufacturers_screen.dart';
+import '../screens/counter/gst_filing_screen.dart';
 import '../screens/counter/distributor_detail_screen.dart';
 import '../screens/counter/add_purchase_bill_screen.dart';
 import '../services/inventory_service.dart';
@@ -212,6 +213,14 @@ final goRouter = GoRouter(
             GoRoute(
               path: '/counter/manufacturers',
               builder: (context, state) => const ManufacturersScreen(),
+            ),
+          ],
+        ),
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: '/counter/gst-filing',
+              builder: (context, state) => const GstFilingScreen(),
             ),
           ],
         ),

@@ -115,6 +115,9 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
       } else if (event.logicalKey == LogicalKeyboardKey.f9) {
         _switchTab(8);
         return true;
+      } else if (event.logicalKey == LogicalKeyboardKey.f10) {
+        _switchTab(9);
+        return true;
       }
     }
     return false;
@@ -519,6 +522,8 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
                         _buildShortcutChip('F8', 'Distributors'),
                         const SizedBox(width: 10),
                         _buildShortcutChip('F9', 'Manufacturers'),
+                        const SizedBox(width: 10),
+                        _buildShortcutChip('F10', 'GST Filing'),
                       ],
                     ),
                   ),
@@ -1490,6 +1495,13 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
                         icon: Icons.domain,
                         label: 'Manufacturers',
                         shortcut: 'F9',
+                        isExpanded: isExpanded,
+                      ),
+                      _buildSidebarItem(
+                        index: 9,
+                        icon: Icons.account_balance,
+                        label: 'GST Filing',
+                        shortcut: 'F10',
                         isExpanded: isExpanded,
                       ),
 
