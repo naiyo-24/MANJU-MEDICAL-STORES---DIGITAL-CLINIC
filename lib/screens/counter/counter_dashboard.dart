@@ -365,25 +365,37 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
                 child: _buildSidebar(isDesktop),
               ),
         body: SafeArea(
-          child: Column(
-            children: [
-              _buildHeader(isDesktop),
-              // Main Body
-              Expanded(
-                child: Row(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final headerHeight = isDesktop ? 72.0 : 56.0;
+              // Guard against transient 1px layout passes or collapsed views
+              if (constraints.maxHeight <= headerHeight) {
+                return const SizedBox.shrink();
+              }
+
+              return ClipRect(
+                child: Column(
                   children: [
-                    if (isDesktop) _buildSidebar(isDesktop),
-                    // Screen Content
+                    _buildHeader(isDesktop),
+                    // Main Body
                     Expanded(
-                      child: Container(
-                        color: scaffoldBg,
-                        child: widget.navigationShell,
+                      child: Row(
+                        children: [
+                          if (isDesktop) _buildSidebar(isDesktop),
+                          // Screen Content
+                          Expanded(
+                            child: Container(
+                              color: scaffoldBg,
+                              child: widget.navigationShell,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
                 ),
-              ),
-            ],
+              );
+            },
           ),
         ),
       ),
