@@ -25,8 +25,16 @@ class _GstFilingScreenState extends ConsumerState<GstFilingScreen> {
   String _selectedDuration = '3 Months';
   final List<String> _durationOptions = [
     '1 Month',
+    '2 Months',
     '3 Months',
+    '4 Months',
+    '5 Months',
     '6 Months',
+    '7 Months',
+    '8 Months',
+    '9 Months',
+    '10 Months',
+    '11 Months',
     '12 Months',
   ];
 
@@ -592,7 +600,7 @@ class _GstFilingScreenState extends ConsumerState<GstFilingScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          '1) GST Number *',
+          'GST Number *',
           style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w600,
@@ -610,6 +618,11 @@ class _GstFilingScreenState extends ConsumerState<GstFilingScreen> {
           ),
           decoration: InputDecoration(
             hintText: 'e.g. 29ABCDE1234F1Z5',
+            hintStyle: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w400,
+              color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
+            ),
             prefixIcon: const Icon(Icons.badge_outlined, size: 20),
             filled: true,
             fillColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
@@ -646,7 +659,7 @@ class _GstFilingScreenState extends ConsumerState<GstFilingScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          '2) Annual Turnover *',
+          'Annual Turnover',
           style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w600,
@@ -663,6 +676,11 @@ class _GstFilingScreenState extends ConsumerState<GstFilingScreen> {
           ),
           decoration: InputDecoration(
             hintText: 'e.g. 25 Lakhs, 1.5 Cr, or 5000000',
+            hintStyle: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w400,
+              color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
+            ),
             prefixIcon: const Icon(Icons.currency_rupee, size: 20),
             filled: true,
             fillColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
@@ -683,12 +701,6 @@ class _GstFilingScreenState extends ConsumerState<GstFilingScreen> {
               borderSide: const BorderSide(color: Color(0xFF166534), width: 1.5),
             ),
           ),
-          validator: (value) {
-            if (value == null || value.trim().isEmpty) {
-              return 'Please enter annual turnover';
-            }
-            return null;
-          },
         ),
       ],
     );
@@ -699,7 +711,7 @@ class _GstFilingScreenState extends ConsumerState<GstFilingScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          '3) Billing Period Duration *',
+          'Billing Period Duration *',
           style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w600,
@@ -752,7 +764,7 @@ class _GstFilingScreenState extends ConsumerState<GstFilingScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          '4) Upload Bill Files (Any Format Accepted) *',
+          'Upload Bill Files (Any Format Accepted) *',
           style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w600,
