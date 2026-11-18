@@ -110,9 +110,7 @@ class _GstFilingScreenState extends ConsumerState<GstFilingScreen> {
     }
 
     Uint8List? fileBytes = _pickedFile!.bytes;
-    if (fileBytes == null && _pickedFile!.path != null && !kIsWeb) {
-      // Handled via path in service
-    }
+    String? filePathOnDisk = kIsWeb ? null : _pickedFile!.path;
 
     setState(() {
       _isUploading = true;
@@ -128,7 +126,7 @@ class _GstFilingScreenState extends ConsumerState<GstFilingScreen> {
         durationMonths: _durationCustomController.text.trim().isNotEmpty
             ? _durationCustomController.text.trim()
             : _selectedDuration,
-        filePathOnDisk: _pickedFile!.path,
+        filePathOnDisk: filePathOnDisk,
         onSendProgress: (sent, total) {
           if (total > 0 && mounted) {
             setState(() {
