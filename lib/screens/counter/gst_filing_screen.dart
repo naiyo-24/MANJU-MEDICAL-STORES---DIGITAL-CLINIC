@@ -345,44 +345,52 @@ class _GstFilingScreenState extends ConsumerState<GstFilingScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF166534) : const Color(0xFFDCFCE7),
-                    borderRadius: BorderRadius.circular(10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: isDark ? const Color(0xFF166534) : const Color(0xFFDCFCE7),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(
+                      Icons.account_balance,
+                      color: Color(0xFF166534),
+                      size: 24,
+                    ),
                   ),
-                  child: const Icon(
-                    Icons.account_balance,
-                    color: Color(0xFF166534),
-                    size: 24,
+                  const SizedBox(width: 12),
+                  Flexible(
+                    child: Text(
+                      'GST Filing',
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: isDark ? Colors.white : const Color(0xFF1E293B),
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
-                ),
-                const SizedBox(width: 12),
-                Text(
-                  'GST Filing',
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: isDark ? Colors.white : const Color(0xFF1E293B),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Upload your pharmacy bills for hassle-free GST return filing',
-              style: TextStyle(
-                fontSize: 13,
-                color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                ],
               ),
-            ),
-          ],
+              const SizedBox(height: 4),
+              Text(
+                'Upload your pharmacy bills for hassle-free GST return filing',
+                style: TextStyle(
+                  fontSize: 13,
+                  color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
         ),
+        const SizedBox(width: 8),
         IconButton(
           onPressed: () {
             ref.read(gstFilingsProvider.notifier).refresh();
