@@ -431,7 +431,7 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
         : const Color(0xFFE2E8F0);
 
     return Container(
-      height: isDesktop ? 100 : 60,
+      height: isDesktop ? 72 : 56,
       padding: EdgeInsets.symmetric(horizontal: isDesktop ? 12 : 8),
       decoration: BoxDecoration(
         color: headerBg,
@@ -454,10 +454,10 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
                 }
               },
             ),
-            SizedBox(width: isDesktop ? 16 : 8),
+            SizedBox(width: isDesktop ? 12 : 8),
             Image.asset(
               isDark ? 'assets/LOGO_DM.png' : 'assets/LOGO.png',
-              height: isDesktop ? 65 : 34,
+              height: isDesktop ? 46 : 30,
               width: isDesktop
                   ? null
                   : 110, // constrain width on mobile to give pills space
@@ -466,7 +466,7 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
               cacheHeight: 225,
             ),
 
-          if (isDesktop) const SizedBox(width: 16),
+          if (isDesktop) const SizedBox(width: 12),
 
           if (isDesktop)
             Expanded(
@@ -536,8 +536,8 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
                         borderRadius: BorderRadius.circular(12),
                         child: Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 14,
-                            vertical: 9,
+                            horizontal: 12,
+                            vertical: 7,
                           ),
                           decoration: BoxDecoration(
                             color: hasAlerts
@@ -629,8 +629,8 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
                   borderRadius: BorderRadius.circular(12),
                   child: Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 8,
+                      horizontal: 12,
+                      vertical: 6,
                     ),
                     decoration: BoxDecoration(
                       color: const Color(0xFFF1F8F5),
@@ -727,8 +727,8 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
                   ],
                   child: Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 7,
+                      horizontal: 12,
+                      vertical: 5,
                     ),
                     decoration: BoxDecoration(
                       color: isDark ? const Color(0xFF1E293B) : Colors.white,
