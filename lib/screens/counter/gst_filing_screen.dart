@@ -360,12 +360,14 @@ class _GstFilingScreenState extends ConsumerState<GstFilingScreen> {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF166534) : const Color(0xFFDCFCE7),
+                      color: isDark
+                          ? const Color(0xFF166534).withValues(alpha: 0.3)
+                          : const Color(0xFFDCFCE7),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.account_balance,
-                      color: Color(0xFF166534),
+                      color: isDark ? const Color(0xFF4ADE80) : const Color(0xFF166534),
                       size: 24,
                     ),
                   ),
@@ -1060,7 +1062,7 @@ class _GstFilingScreenState extends ConsumerState<GstFilingScreen> {
                                   ),
                                 ),
                                 Text(
-                                  '•  ${DateFormat('dd MMM yyyy, hh:mm a').format(filing.createdAt)}',
+                                  '•  ${DateFormat('dd MMM yyyy, hh:mm a').format(filing.createdAt.toLocal())}',
                                   style: TextStyle(
                                     fontSize: 12,
                                     color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
