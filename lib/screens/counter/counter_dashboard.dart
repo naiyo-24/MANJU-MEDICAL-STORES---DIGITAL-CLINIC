@@ -677,11 +677,18 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
                 ),
                 const SizedBox(width: 10),
 
-                // Profile Pill
+                // Profile Pill (Desktop & Web)
                 PopupMenuButton<String>(
-                  offset: const Offset(0, 48),
+                  position: PopupMenuPosition.under,
+                  offset: const Offset(0, 8),
+                  constraints: const BoxConstraints(minWidth: 160),
+                  elevation: 6,
+                  color: isDark ? const Color(0xFF1E293B) : Colors.white,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(12),
+                    side: BorderSide(
+                      color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                    ),
                   ),
                   onSelected: (value) async {
                     if (value == 'logout') {
@@ -700,13 +707,19 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
                   itemBuilder: (context) => [
                     const PopupMenuItem(
                       value: 'logout',
+                      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                       child: Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(Icons.logout, size: 18, color: Colors.red),
-                          SizedBox(width: 8),
+                          SizedBox(width: 10),
                           Text(
                             'Logout',
-                            style: TextStyle(fontSize: 14, color: Colors.red),
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.red,
+                            ),
                           ),
                         ],
                       ),
@@ -718,23 +731,25 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
                       vertical: 7,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.white,
-                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                      color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                      border: Border.all(
+                        color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                      ),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Row(
+                    child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         CircleAvatar(
                           radius: 17,
-                          backgroundColor: Color(0xFFF1F5F9),
+                          backgroundColor: isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9),
                           child: Icon(
                             Icons.person,
                             size: 22,
-                            color: Color(0xFF1E293B),
+                            color: isDark ? Colors.white : const Color(0xFF1E293B),
                           ),
                         ),
-                        SizedBox(width: 10),
+                        const SizedBox(width: 10),
                         Column(
                           mainAxisSize: MainAxisSize.min,
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -745,22 +760,22 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 13,
-                                color: Color(0xFF1E293B),
+                                color: isDark ? Colors.white : const Color(0xFF1E293B),
                               ),
                             ),
                             Text(
                               'Counter',
                               style: TextStyle(
                                 fontSize: 11,
-                                color: Color(0xFF64748B),
+                                color: isDark ? Colors.grey[400] : const Color(0xFF64748B),
                               ),
                             ),
                           ],
                         ),
-                        SizedBox(width: 8),
+                        const SizedBox(width: 8),
                         Icon(
                           Icons.keyboard_arrow_down,
-                          color: Color(0xFF1E293B),
+                          color: isDark ? Colors.white : const Color(0xFF1E293B),
                           size: 18,
                         ),
                       ],
@@ -923,9 +938,16 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
 
                     // Profile Pill (Mobile)
                     PopupMenuButton<String>(
-                      offset: const Offset(0, 45),
+                      position: PopupMenuPosition.under,
+                      offset: const Offset(0, 6),
+                      constraints: const BoxConstraints(minWidth: 140),
+                      elevation: 6,
+                      color: isDark ? const Color(0xFF1E293B) : Colors.white,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(10),
+                        side: BorderSide(
+                          color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                        ),
                       ),
                       onSelected: (value) async {
                         if (value == 'logout') {
@@ -944,13 +966,19 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
                       itemBuilder: (context) => [
                         const PopupMenuItem(
                           value: 'logout',
+                          padding: EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                           child: Row(
+                            mainAxisSize: MainAxisSize.min,
                             children: [
                               Icon(Icons.logout, size: 18, color: Colors.red),
                               SizedBox(width: 8),
                               Text(
                                 'Logout',
-                                style: TextStyle(fontSize: 14, color: Colors.red),
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.red,
+                                ),
                               ),
                             ],
                           ),
@@ -962,17 +990,19 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
                           vertical: 8,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.white,
-                          border: Border.all(color: const Color(0xFFE2E8F0)),
+                          color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                          border: Border.all(
+                            color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                          ),
                           borderRadius: BorderRadius.circular(20),
                         ),
-                        child: const CircleAvatar(
+                        child: CircleAvatar(
                           radius: 14,
-                          backgroundColor: Color(0xFFF1F5F9),
+                          backgroundColor: isDark ? const Color(0xFF334155) : const Color(0xFFF1F5F9),
                           child: Icon(
                             Icons.person,
                             size: 18,
-                            color: Color(0xFF1E293B),
+                            color: isDark ? Colors.white : const Color(0xFF1E293B),
                           ),
                         ),
                       ),
