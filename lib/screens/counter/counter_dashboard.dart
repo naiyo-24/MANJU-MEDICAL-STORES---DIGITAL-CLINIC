@@ -539,6 +539,58 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
+                // Quick Action: GST Filing Button (Desktop)
+                Padding(
+                  padding: const EdgeInsets.only(right: 10.0),
+                  child: InkWell(
+                    onTap: () => _switchTab(9),
+                    borderRadius: BorderRadius.circular(12),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 7,
+                      ),
+                      decoration: BoxDecoration(
+                        color: widget.navigationShell.currentIndex == 9
+                            ? (isDark
+                                ? const Color(0xFF166534).withValues(alpha: 0.5)
+                                : const Color(0xFFDCFCE7))
+                            : (isDark
+                                ? const Color(0xFF166534).withValues(alpha: 0.2)
+                                : const Color(0xFFF1F8F5)),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: widget.navigationShell.currentIndex == 9
+                              ? const Color(0xFF22C55E)
+                              : (isDark
+                                  ? const Color(0xFF166534)
+                                  : const Color(0xFF22C55E).withValues(alpha: 0.3)),
+                          width: widget.navigationShell.currentIndex == 9 ? 1.5 : 1.0,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.account_balance,
+                            color: isDark ? const Color(0xFF4ADE80) : const Color(0xFF166534),
+                            size: 18,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'GST Filing',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                              color: isDark ? const Color(0xFF4ADE80) : const Color(0xFF166534),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+
                 // Low Stock Notification Bell
                 Consumer(
                   builder: (context, ref, _) {
@@ -810,6 +862,43 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
+                    // Quick Action: GST Filing Button (Mobile)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 8.0),
+                      child: InkWell(
+                        onTap: () => _switchTab(9),
+                        borderRadius: BorderRadius.circular(12),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: widget.navigationShell.currentIndex == 9
+                                ? (isDark
+                                    ? const Color(0xFF166534).withValues(alpha: 0.5)
+                                    : const Color(0xFFDCFCE7))
+                                : (isDark
+                                    ? const Color(0xFF166534).withValues(alpha: 0.2)
+                                    : const Color(0xFFF1F8F5)),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: widget.navigationShell.currentIndex == 9
+                                  ? const Color(0xFF22C55E)
+                                  : (isDark
+                                      ? const Color(0xFF166534)
+                                      : const Color(0xFF22C55E).withValues(alpha: 0.3)),
+                            ),
+                          ),
+                          child: Icon(
+                            Icons.account_balance,
+                            color: isDark ? const Color(0xFF4ADE80) : const Color(0xFF166534),
+                            size: 16,
+                          ),
+                        ),
+                      ),
+                    ),
+
                     // Low Stock Notification Bell (Mobile)
                     Consumer(
                       builder: (context, ref, _) {
