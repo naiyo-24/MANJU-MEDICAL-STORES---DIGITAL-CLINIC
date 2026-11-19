@@ -10,7 +10,6 @@ import '../../services/doctor_service.dart';
 import '../../services/draft_service.dart';
 import '../../services/billing_history_service.dart';
 import '../../utils/pdf_generator.dart';
-import '../../utils/pdf_thermal_generator.dart';
 import '../../utils/docx_generator.dart';
 import '../../utils/excel_invoice_generator.dart';
 import '../../utils/file_download_helper.dart';
@@ -687,42 +686,14 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                         canChangePageFormat: false,
                         pdfFileName: 'Bill_$invoiceNo.pdf',
                         initialPageFormat: ref.read(billingProvider).selectedFormat == 'Thermal'
-                            ? PdfPageFormat(
-                                72 * PdfPageFormat.mm,
-                                PdfThermalGenerator.calculateThermalHeight(
-                                  itemCount: _currentBill.length,
-                                  hasLogo: currentSettings?['logo_url'] != null &&
-                                      currentSettings!['logo_url'].toString().trim().isNotEmpty,
-                                  hasQr: currentSettings?['qr_code_url'] != null &&
-                                      currentSettings!['qr_code_url'].toString().trim().isNotEmpty,
-                                  hasDrugLicence: (currentSettings?['drug_licence'] ?? '').toString().trim().isNotEmpty,
-                                ),
-                                marginLeft: 3 * PdfPageFormat.mm,
-                                marginRight: 4 * PdfPageFormat.mm,
-                                marginTop: 2 * PdfPageFormat.mm,
-                                marginBottom: 4 * PdfPageFormat.mm,
-                              )
+                            ? PdfPageFormat.roll80
                             : ref.read(billingProvider).selectedFormat == 'A5'
                                 ? PdfPageFormat.a5.landscape
                                 : PdfPageFormat.a4,
                         pageFormats: {
                           'A5 Landscape': PdfPageFormat.a5.landscape,
                           'A4': PdfPageFormat.a4,
-                          'Thermal': PdfPageFormat(
-                            72 * PdfPageFormat.mm,
-                            PdfThermalGenerator.calculateThermalHeight(
-                              itemCount: _currentBill.length,
-                              hasLogo: currentSettings?['logo_url'] != null &&
-                                  currentSettings!['logo_url'].toString().trim().isNotEmpty,
-                              hasQr: currentSettings?['qr_code_url'] != null &&
-                                  currentSettings!['qr_code_url'].toString().trim().isNotEmpty,
-                              hasDrugLicence: (currentSettings?['drug_licence'] ?? '').toString().trim().isNotEmpty,
-                            ),
-                            marginLeft: 3 * PdfPageFormat.mm,
-                            marginRight: 4 * PdfPageFormat.mm,
-                            marginTop: 2 * PdfPageFormat.mm,
-                            marginBottom: 4 * PdfPageFormat.mm,
-                          ),
+                          'Thermal': PdfPageFormat.roll80,
                         },
                       ),
                     ),
@@ -918,9 +889,6 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
         }
       }
 
-      // Capture item count BEFORE clearing cart for checkout so thermal print height is exact
-      final billedItemsCount = _currentBill.length;
-
       // Save to local billing history FIRST
       await BillingHistoryService.saveBill(
         SavedBill(
@@ -977,30 +945,14 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
         if (selectedFormat == 'A5') {
           pageFormat = PdfPageFormat.a5.landscape;
         } else if (isThermal) {
-          final pageHeight = PdfThermalGenerator.calculateThermalHeight(
-            itemCount: billedItemsCount,
-            hasLogo: currentSettings?['logo_url'] != null &&
-                currentSettings!['logo_url'].toString().trim().isNotEmpty,
-            hasQr: currentSettings?['qr_code_url'] != null &&
-                currentSettings!['qr_code_url'].toString().trim().isNotEmpty,
-            hasDrugLicence: (currentSettings?['drug_licence'] ?? '').toString().trim().isNotEmpty,
-          );
-
-          pageFormat = PdfPageFormat(
-            72 * PdfPageFormat.mm,
-            pageHeight,
-            marginLeft: 3 * PdfPageFormat.mm,
-            marginRight: 4 * PdfPageFormat.mm,
-            marginTop: 1 * PdfPageFormat.mm,
-            marginBottom: 4 * PdfPageFormat.mm,
-          );
+          pageFormat = PdfPageFormat.roll80;
         }
 
         await Printing.layoutPdf(
           onLayout: (PdfPageFormat format) async => pdfBytes,
           name: 'Bill_$invoiceNo.pdf',
           format: pageFormat,
-          dynamicLayout: false,
+          dynamicLayout: true,
           usePrinterSettings: false,
         );
       }
