@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../../models/settings_models.dart';
@@ -170,33 +171,45 @@ class _BillCustomizationScreenState
   Future<void> _pickImage(bool isLogo) async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
       type: FileType.image,
+      withData: true,
     );
-    if (result != null && result.files.single.bytes != null) {
-      try {
-        final bytes = result.files.single.bytes!;
-        final filename = result.files.single.name;
-        String url;
-        if (isLogo) {
-          url = await ShopSettingsService.uploadLogo(bytes, filename);
-          setState(() {
-            _logoUrl = url;
-          });
-          PdfGenerator.clearImageCache();
-        } else {
-          url = await ShopSettingsService.uploadQr(bytes, filename);
-          setState(() {
-            _qrUrl = url;
-          });
-          PdfGenerator.clearImageCache();
+    if (result != null && result.files.isNotEmpty) {
+      final pickedFile = result.files.single;
+      Uint8List? bytes = pickedFile.bytes;
+      if (bytes == null && pickedFile.path != null && !kIsWeb) {
+        try {
+          bytes = await File(pickedFile.path!).readAsBytes();
+        } catch (e) {
+          debugPrint('Error reading file bytes on desktop: $e');
         }
-      } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Error uploading image: $e'),
-              backgroundColor: Colors.red,
-            ),
-          );
+      }
+
+      if (bytes != null) {
+        try {
+          final filename = pickedFile.name;
+          String url;
+          if (isLogo) {
+            url = await ShopSettingsService.uploadLogo(bytes, filename);
+            setState(() {
+              _logoUrl = url;
+            });
+            PdfGenerator.clearImageCache();
+          } else {
+            url = await ShopSettingsService.uploadQr(bytes, filename);
+            setState(() {
+              _qrUrl = url;
+            });
+            PdfGenerator.clearImageCache();
+          }
+        } catch (e) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Error uploading image: $e'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
         }
       }
     }

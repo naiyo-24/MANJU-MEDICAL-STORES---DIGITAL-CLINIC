@@ -959,8 +959,8 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
           onLayout: (PdfPageFormat format) async => pdfBytes,
           name: 'Bill_$invoiceNo.pdf',
           format: pageFormat,
-          dynamicLayout: isThermal ? true : false,
-          usePrinterSettings: isThermal ? true : false,
+          dynamicLayout: false,
+          usePrinterSettings: false,
         );
       }
 
