@@ -918,6 +918,9 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
         }
       }
 
+      // Capture item count BEFORE clearing cart for checkout so thermal print height is exact
+      final billedItemsCount = _currentBill.length;
+
       // Save to local billing history FIRST
       await BillingHistoryService.saveBill(
         SavedBill(
@@ -975,7 +978,7 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
           pageFormat = PdfPageFormat.a5.landscape;
         } else if (isThermal) {
           final pageHeight = PdfThermalGenerator.calculateThermalHeight(
-            itemCount: _currentBill.length,
+            itemCount: billedItemsCount,
             hasLogo: currentSettings?['logo_url'] != null &&
                 currentSettings!['logo_url'].toString().trim().isNotEmpty,
             hasQr: currentSettings?['qr_code_url'] != null &&
@@ -988,7 +991,7 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
             pageHeight,
             marginLeft: 3 * PdfPageFormat.mm,
             marginRight: 4 * PdfPageFormat.mm,
-            marginTop: 2 * PdfPageFormat.mm,
+            marginTop: 1 * PdfPageFormat.mm,
             marginBottom: 4 * PdfPageFormat.mm,
           );
         }

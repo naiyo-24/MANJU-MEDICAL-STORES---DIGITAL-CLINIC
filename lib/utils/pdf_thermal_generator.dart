@@ -69,14 +69,17 @@ class PdfThermalGenerator {
           pageHeight,
           marginLeft: 3 * PdfPageFormat.mm,
           marginRight: 4 * PdfPageFormat.mm,
-          marginTop: 2 * PdfPageFormat.mm,
+          marginTop: 1 * PdfPageFormat.mm,
           marginBottom: 4 * PdfPageFormat.mm,
         ),
         build: (pw.Context context) {
-          return pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.center,
-            mainAxisSize: pw.MainAxisSize.min,
-            children: [
+          return pw.Align(
+            alignment: pw.Alignment.topCenter,
+            child: pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.center,
+              mainAxisAlignment: pw.MainAxisAlignment.start,
+              mainAxisSize: pw.MainAxisSize.min,
+              children: [
               if (logoImage != null)
                 pw.Image(logoImage, width: 50, height: 50),
               pw.SizedBox(height: 5),
@@ -315,7 +318,8 @@ class PdfThermalGenerator {
                 textAlign: pw.TextAlign.center,
               ),
             ],
-          );
+          ),
+        );
         },
       ),
     );
