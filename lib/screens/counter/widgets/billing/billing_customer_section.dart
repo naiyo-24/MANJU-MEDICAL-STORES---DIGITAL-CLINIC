@@ -301,7 +301,7 @@ Widget _buildCompactField(
                         color: Color(0xFF22C55E),
                       ),
                       label: const Text(
-                        'Save to DB',
+                        'Save',
                         style: TextStyle(
                           fontSize: 12,
                           color: Color(0xFF166534),

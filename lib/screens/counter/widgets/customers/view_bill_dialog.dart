@@ -240,8 +240,8 @@ void showViewBillDialog(BuildContext context, SavedBill bill, Map<String, dynami
                   canChangePageFormat: false,
                   initialPageFormat: bill.format == 'Thermal'
                       ? const PdfPageFormat(
-                          80 * PdfPageFormat.mm,
-                          300 * PdfPageFormat.mm,
+                          72 * PdfPageFormat.mm,
+                          double.infinity,
                         )
                       : bill.format == 'A5'
                       ? PdfPageFormat.a5.landscape
@@ -249,7 +249,7 @@ void showViewBillDialog(BuildContext context, SavedBill bill, Map<String, dynami
                   pageFormats: {
                     'A5 Landscape': PdfPageFormat.a5.landscape,
                     'A4': PdfPageFormat.a4,
-                    'Thermal': const PdfPageFormat(80 * PdfPageFormat.mm, 300 * PdfPageFormat.mm),
+                    'Thermal': const PdfPageFormat(72 * PdfPageFormat.mm, double.infinity),
                   },
                 ),
               ),

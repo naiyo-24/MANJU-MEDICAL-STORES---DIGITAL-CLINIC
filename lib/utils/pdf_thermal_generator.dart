@@ -30,8 +30,14 @@ class PdfThermalGenerator {
 
     pdf.addPage(
       pw.Page(
-        pageFormat: PdfPageFormat.roll80,
-        margin: const pw.EdgeInsets.all(10),
+        pageFormat: const PdfPageFormat(
+          72 * PdfPageFormat.mm,
+          double.infinity,
+          marginLeft: 3 * PdfPageFormat.mm,
+          marginRight: 4 * PdfPageFormat.mm,
+          marginTop: 4 * PdfPageFormat.mm,
+          marginBottom: 6 * PdfPageFormat.mm,
+        ),
         build: (pw.Context context) {
           return pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.center,
@@ -125,9 +131,9 @@ class PdfThermalGenerator {
               // Thermal Items Table
               pw.Table(
                 columnWidths: {
-                  0: const pw.FlexColumnWidth(3),
-                  1: const pw.FlexColumnWidth(1),
-                  2: const pw.FlexColumnWidth(1.5),
+                  0: const pw.FlexColumnWidth(3.0),
+                  1: const pw.FlexColumnWidth(0.9),
+                  2: const pw.FlexColumnWidth(1.6),
                 },
                 children: [
                   pw.TableRow(
@@ -147,13 +153,16 @@ class PdfThermalGenerator {
                         ),
                         textAlign: pw.TextAlign.center,
                       ),
-                      pw.Text(
-                        'Amt',
-                        style: pw.TextStyle(
-                          fontSize: 8,
-                          fontWeight: pw.FontWeight.bold,
+                      pw.Padding(
+                        padding: const pw.EdgeInsets.only(right: 2),
+                        child: pw.Text(
+                          'Amt',
+                          style: pw.TextStyle(
+                            fontSize: 8,
+                            fontWeight: pw.FontWeight.bold,
+                          ),
+                          textAlign: pw.TextAlign.right,
                         ),
-                        textAlign: pw.TextAlign.right,
                       ),
                     ],
                   ),
@@ -161,14 +170,14 @@ class PdfThermalGenerator {
                     (item) => pw.TableRow(
                       children: [
                         pw.Padding(
-                          padding: const pw.EdgeInsets.all(2),
+                          padding: const pw.EdgeInsets.symmetric(vertical: 2),
                           child: pw.Text(
                             item['name'] ?? 'Unknown Item',
                             style: const pw.TextStyle(fontSize: 8),
                           ),
                         ),
                         pw.Padding(
-                          padding: const pw.EdgeInsets.all(2),
+                          padding: const pw.EdgeInsets.symmetric(vertical: 2),
                           child: pw.Text(
                             FormatUtils.formatQty(item),
                             style: const pw.TextStyle(fontSize: 8),
@@ -176,7 +185,7 @@ class PdfThermalGenerator {
                           ),
                         ),
                         pw.Padding(
-                          padding: const pw.EdgeInsets.all(2),
+                          padding: const pw.EdgeInsets.only(top: 2, bottom: 2, right: 2),
                           child: pw.Text(
                             (item['total'] ?? 0.0).toStringAsFixed(2),
                             style: const pw.TextStyle(fontSize: 8),
@@ -193,64 +202,71 @@ class PdfThermalGenerator {
               pw.SizedBox(height: 5),
 
               // Totals
-              pw.Row(
-                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                children: [
-                  pw.Text(
-                    'Subtotal:',
-                    style: const pw.TextStyle(fontSize: 8),
-                  ),
-                  pw.Text(
-                    subtotal.toStringAsFixed(2),
-                    style: const pw.TextStyle(fontSize: 8),
-                  ),
-                ],
-              ),
-              if (discount > 0)
-                pw.Row(
-                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+              pw.Padding(
+                padding: const pw.EdgeInsets.only(right: 2),
+                child: pw.Column(
                   children: [
-                    pw.Text(
-                      'Discount:',
-                      style: const pw.TextStyle(fontSize: 8),
+                    pw.Row(
+                      mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                      children: [
+                        pw.Text(
+                          'Subtotal:',
+                          style: const pw.TextStyle(fontSize: 8),
+                        ),
+                        pw.Text(
+                          subtotal.toStringAsFixed(2),
+                          style: const pw.TextStyle(fontSize: 8),
+                        ),
+                      ],
                     ),
-                    pw.Text(
-                      discount.toStringAsFixed(2),
-                      style: const pw.TextStyle(fontSize: 8),
+                    if (discount > 0)
+                      pw.Row(
+                        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                        children: [
+                          pw.Text(
+                            'Discount:',
+                            style: const pw.TextStyle(fontSize: 8),
+                          ),
+                          pw.Text(
+                            discount.toStringAsFixed(2),
+                            style: const pw.TextStyle(fontSize: 8),
+                          ),
+                        ],
+                      ),
+                    pw.Row(
+                      mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                      children: [
+                        pw.Text(
+                          'Tax (GST):',
+                          style: const pw.TextStyle(fontSize: 8),
+                        ),
+                        pw.Text(
+                          tax.toStringAsFixed(2),
+                          style: const pw.TextStyle(fontSize: 8),
+                        ),
+                      ],
+                    ),
+                    pw.Row(
+                      mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                      children: [
+                        pw.Text(
+                          'Grand Total:',
+                          style: pw.TextStyle(
+                            fontSize: 10,
+                            fontWeight: pw.FontWeight.bold,
+                          ),
+                        ),
+                        pw.Text(
+                          roundedTotal.toStringAsFixed(2),
+                          style: pw.TextStyle(
+                            fontSize: 10,
+                            fontWeight: pw.FontWeight.bold,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
-              pw.Row(
-                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                children: [
-                  pw.Text(
-                    'Tax (GST):',
-                    style: const pw.TextStyle(fontSize: 8),
-                  ),
-                  pw.Text(
-                    tax.toStringAsFixed(2),
-                    style: const pw.TextStyle(fontSize: 8),
-                  ),
-                ],
-              ),
-              pw.Row(
-                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                children: [
-                  pw.Text(
-                    'Grand Total:',
-                    style: pw.TextStyle(
-                      fontSize: 10,
-                      fontWeight: pw.FontWeight.bold,
-                    ),
-                  ),
-                  pw.Text(
-                    roundedTotal.toStringAsFixed(2),
-                    style: pw.TextStyle(
-                      fontSize: 10,
-                      fontWeight: pw.FontWeight.bold,
-                    ),
-                  ),
-                ],
               ),
               pw.SizedBox(height: 10),
               if (qrImage != null)

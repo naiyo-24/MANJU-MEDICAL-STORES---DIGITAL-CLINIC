@@ -686,14 +686,14 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                         canChangePageFormat: false,
                         pdfFileName: 'Bill_$invoiceNo.pdf',
                         initialPageFormat: ref.read(billingProvider).selectedFormat == 'Thermal'
-                            ? const PdfPageFormat(80 * PdfPageFormat.mm, 300 * PdfPageFormat.mm)
+                            ? const PdfPageFormat(72 * PdfPageFormat.mm, double.infinity)
                             : ref.read(billingProvider).selectedFormat == 'A5'
                                 ? PdfPageFormat.a5.landscape
                                 : PdfPageFormat.a4,
                         pageFormats: {
                           'A5 Landscape': PdfPageFormat.a5.landscape,
                           'A4': PdfPageFormat.a4,
-                          'Thermal': const PdfPageFormat(80 * PdfPageFormat.mm, 300 * PdfPageFormat.mm),
+                          'Thermal': const PdfPageFormat(72 * PdfPageFormat.mm, double.infinity),
                         },
                       ),
                     ),
@@ -944,7 +944,7 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
         if (selectedFormat == 'A5') {
           pageFormat = PdfPageFormat.a5.landscape;
         } else if (selectedFormat == 'Thermal') {
-          pageFormat = const PdfPageFormat(80 * PdfPageFormat.mm, 300 * PdfPageFormat.mm);
+          pageFormat = const PdfPageFormat(72 * PdfPageFormat.mm, double.infinity);
         }
 
         await Printing.layoutPdf(
