@@ -5,6 +5,33 @@ import 'package:pdf/widgets.dart' as pw;
 import 'format_utils.dart';
 
 class PdfThermalGenerator {
+  /// Calculate the exact physical receipt height to avoid infinite height bugs
+  /// on Windows spoolers and Web print engines.
+  static double calculateThermalHeight({
+    required int itemCount,
+    bool hasLogo = false,
+    bool hasQr = false,
+    bool hasDrugLicence = false,
+  }) {
+    // Exact height breakdown in millimeters:
+    // Top & Bottom margins: 2mm + 6mm = 8mm
+    // Logo: 50mm height + 5mm gap = 55mm (if present)
+    // Shop info (Name, address, phone, GSTIN, DL): ~30mm to 36mm
+    // Invoice No, Date, Customer info: ~18mm
+    // Table Header + Divider: ~12mm
+    // Each Item row (Name, Qty, Amount): ~7.5mm
+    // Table bottom divider + Totals (Subtotal, Tax, Grand Total): ~30mm
+    // QR code: 60mm + 10mm gap = 70mm (if present)
+    // Footer "Thank you! Visit Again.": ~15mm
+    // Safety buffer: ~10mm
+    double heightMm = 8.0 + 30.0 + 18.0 + 12.0 + (itemCount * 7.5) + 30.0 + 15.0 + 10.0;
+    if (hasLogo) heightMm += 55.0;
+    if (hasQr) heightMm += 70.0;
+    if (hasDrugLicence) heightMm += 6.0;
+
+    return heightMm * PdfPageFormat.mm;
+  }
+
   static Future<Uint8List> generateThermalBill({
     required List<Map<String, dynamic>> items,
     required double subtotal,
@@ -28,15 +55,22 @@ class PdfThermalGenerator {
   }) async {
     final pdf = pw.Document(theme: theme);
 
+    final pageHeight = calculateThermalHeight(
+      itemCount: items.length,
+      hasLogo: logoImage != null,
+      hasQr: qrImage != null,
+      hasDrugLicence: drugLicence.isNotEmpty,
+    );
+
     pdf.addPage(
       pw.Page(
-        pageFormat: const PdfPageFormat(
+        pageFormat: PdfPageFormat(
           72 * PdfPageFormat.mm,
-          double.infinity,
+          pageHeight,
           marginLeft: 3 * PdfPageFormat.mm,
           marginRight: 4 * PdfPageFormat.mm,
-          marginTop: 4 * PdfPageFormat.mm,
-          marginBottom: 6 * PdfPageFormat.mm,
+          marginTop: 2 * PdfPageFormat.mm,
+          marginBottom: 4 * PdfPageFormat.mm,
         ),
         build: (pw.Context context) {
           return pw.Column(
