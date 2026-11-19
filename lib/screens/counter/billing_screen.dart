@@ -939,19 +939,28 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
       // Show the native print dialog for the user to print the final bill immediately!
       if (mounted) {
         final selectedFormat = ref.read(billingProvider).selectedFormat;
-        PdfPageFormat pageFormat = PdfPageFormat.a4;
+        final isThermal = selectedFormat == 'Thermal';
         
+        PdfPageFormat pageFormat = PdfPageFormat.a4;
         if (selectedFormat == 'A5') {
           pageFormat = PdfPageFormat.a5.landscape;
-        } else if (selectedFormat == 'Thermal') {
-          pageFormat = const PdfPageFormat(72 * PdfPageFormat.mm, double.infinity);
+        } else if (isThermal) {
+          pageFormat = const PdfPageFormat(
+            72 * PdfPageFormat.mm,
+            double.infinity,
+            marginLeft: 3 * PdfPageFormat.mm,
+            marginRight: 4 * PdfPageFormat.mm,
+            marginTop: 4 * PdfPageFormat.mm,
+            marginBottom: 6 * PdfPageFormat.mm,
+          );
         }
 
         await Printing.layoutPdf(
           onLayout: (PdfPageFormat format) async => pdfBytes,
           name: 'Bill_$invoiceNo.pdf',
           format: pageFormat,
-          dynamicLayout: false,
+          dynamicLayout: isThermal ? true : false,
+          usePrinterSettings: isThermal ? true : false,
         );
       }
 
