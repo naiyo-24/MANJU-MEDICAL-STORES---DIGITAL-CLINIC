@@ -936,24 +936,78 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
       // Wait a tiny bit to allow the pop animation to finish, preventing !_debugLocked crash
       await Future.delayed(const Duration(milliseconds: 200));
 
-      // Show the native print dialog for the user to print the final bill immediately!
+      // Show the print preview dialog for the final bill immediately!
+      // This uses the exact same PdfPreview widget that successfully prints
+      // the complete bill with zero cut-off on the Essae printer.
       if (mounted) {
-        final selectedFormat = ref.read(billingProvider).selectedFormat;
-        final isThermal = selectedFormat == 'Thermal';
-        
-        PdfPageFormat pageFormat = PdfPageFormat.a4;
-        if (selectedFormat == 'A5') {
-          pageFormat = PdfPageFormat.a5.landscape;
-        } else if (isThermal) {
-          pageFormat = PdfPageFormat.roll80;
-        }
-
-        await Printing.layoutPdf(
-          onLayout: (PdfPageFormat format) async => pdfBytes,
-          name: 'Bill_$invoiceNo.pdf',
-          format: pageFormat,
-          dynamicLayout: true,
-          usePrinterSettings: false,
+        showDialog(
+          context: context,
+          builder: (dialogCtx) {
+            return Dialog(
+              insetPadding: const EdgeInsets.all(32),
+              child: Container(
+                width: 800,
+                height: MediaQuery.of(dialogCtx).size.height * 0.8,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              const Icon(Icons.check_circle_rounded, color: Color(0xFF166534), size: 24),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Bill Generated Successfully — $invoiceNo',
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF1E293B),
+                                ),
+                              ),
+                            ],
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.close),
+                            onPressed: () => Navigator.pop(dialogCtx),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Divider(height: 1),
+                    Expanded(
+                      child: PdfPreview(
+                        key: ValueKey('generated_bill_preview_$invoiceNo'),
+                        build: (format) => pdfBytes,
+                        allowPrinting: true,
+                        allowSharing: true,
+                        canDebug: false,
+                        canChangeOrientation: false,
+                        canChangePageFormat: false,
+                        pdfFileName: 'Bill_$invoiceNo.pdf',
+                        initialPageFormat: ref.read(billingProvider).selectedFormat == 'Thermal'
+                            ? PdfPageFormat.roll80
+                            : ref.read(billingProvider).selectedFormat == 'A5'
+                                ? PdfPageFormat.a5.landscape
+                                : PdfPageFormat.a4,
+                        pageFormats: {
+                          'A5 Landscape': PdfPageFormat.a5.landscape,
+                          'A4': PdfPageFormat.a4,
+                          'Thermal': PdfPageFormat.roll80,
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
         );
       }
 
