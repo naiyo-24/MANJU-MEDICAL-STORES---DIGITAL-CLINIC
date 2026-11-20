@@ -1,9 +1,9 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:pdf/pdf.dart';
 import 'package:printing/printing.dart';
 import 'package:file_saver/file_saver.dart';
 import 'dart:async';
-import 'dart:typed_data';
 import '../../services/customer_service.dart';
 import '../../services/billing_service.dart';
 import '../../services/doctor_service.dart';
@@ -686,14 +686,26 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                         canChangePageFormat: false,
                         pdfFileName: 'Bill_$invoiceNo.pdf',
                         initialPageFormat: ref.read(billingProvider).selectedFormat == 'Thermal'
-                            ? PdfPageFormat.roll80
+                            ? (kIsWeb
+                                ? const PdfPageFormat(
+                                    72 * PdfPageFormat.mm,
+                                    140 * PdfPageFormat.mm,
+                                    marginAll: 0,
+                                  )
+                                : PdfPageFormat.roll80)
                             : ref.read(billingProvider).selectedFormat == 'A5'
                                 ? PdfPageFormat.a5.landscape
                                 : PdfPageFormat.a4,
                         pageFormats: {
                           'A5 Landscape': PdfPageFormat.a5.landscape,
                           'A4': PdfPageFormat.a4,
-                          'Thermal': PdfPageFormat.roll80,
+                          'Thermal': kIsWeb
+                              ? const PdfPageFormat(
+                                  72 * PdfPageFormat.mm,
+                                  140 * PdfPageFormat.mm,
+                                  marginAll: 0,
+                                )
+                              : PdfPageFormat.roll80,
                         },
                       ),
                     ),
@@ -992,14 +1004,26 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                         canChangePageFormat: false,
                         pdfFileName: 'Bill_$invoiceNo.pdf',
                         initialPageFormat: ref.read(billingProvider).selectedFormat == 'Thermal'
-                            ? PdfPageFormat.roll80
+                            ? (kIsWeb
+                                ? const PdfPageFormat(
+                                    72 * PdfPageFormat.mm,
+                                    140 * PdfPageFormat.mm,
+                                    marginAll: 0,
+                                  )
+                                : PdfPageFormat.roll80)
                             : ref.read(billingProvider).selectedFormat == 'A5'
                                 ? PdfPageFormat.a5.landscape
                                 : PdfPageFormat.a4,
                         pageFormats: {
                           'A5 Landscape': PdfPageFormat.a5.landscape,
                           'A4': PdfPageFormat.a4,
-                          'Thermal': PdfPageFormat.roll80,
+                          'Thermal': kIsWeb
+                              ? const PdfPageFormat(
+                                  72 * PdfPageFormat.mm,
+                                  140 * PdfPageFormat.mm,
+                                  marginAll: 0,
+                                )
+                              : PdfPageFormat.roll80,
                         },
                       ),
                     ),
