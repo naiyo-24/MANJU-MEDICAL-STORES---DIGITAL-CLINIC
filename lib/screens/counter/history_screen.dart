@@ -932,6 +932,13 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
             ? 1
             : (totalRecords / itemsPerPage).ceil();
 
+        if (_currentPage > totalPages && totalPages > 0) {
+          _currentPage = totalPages;
+        }
+        if (_currentPage < 1) {
+          _currentPage = 1;
+        }
+
         final int startIdx = (_currentPage - 1) * itemsPerPage;
         final int endIdx = (startIdx + itemsPerPage > totalRecords)
             ? totalRecords
@@ -1319,7 +1326,10 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                                     ),
                                     child: TextField(
                                       onChanged: (val) =>
-                                          setState(() => _searchQuery = val),
+                                          setState(() {
+                                            _searchQuery = val;
+                                            _currentPage = 1;
+                                          }),
                                       style: const TextStyle(fontSize: 13),
                                       decoration: const InputDecoration(
                                         hintText:
@@ -1438,7 +1448,10 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                                 border: Border.all(color: Theme.of(context).dividerColor),
                               ),
                               child: TextField(
-                                onChanged: (val) => setState(() => _searchQuery = val),
+                                onChanged: (val) => setState(() {
+                                  _searchQuery = val;
+                                  _currentPage = 1;
+                                }),
                                 style: const TextStyle(fontSize: 13),
                                 decoration: const InputDecoration(
                                   hintText: 'Search by bill no, customer name, phone...',

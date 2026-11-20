@@ -78,6 +78,14 @@ class _CustomersScreenState extends ConsumerState<CustomersScreen> {
         final totalPages = (totalRecords / _itemsPerPage).ceil() == 0
             ? 1
             : (totalRecords / _itemsPerPage).ceil();
+
+        if (_currentPage > totalPages && totalPages > 0) {
+          _currentPage = totalPages;
+        }
+        if (_currentPage < 1) {
+          _currentPage = 1;
+        }
+
         final startIdx = (_currentPage - 1) * _itemsPerPage;
         final endIdx = (startIdx + _itemsPerPage > totalRecords)
             ? totalRecords

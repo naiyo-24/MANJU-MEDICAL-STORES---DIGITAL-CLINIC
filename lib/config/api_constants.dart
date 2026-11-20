@@ -3,4 +3,5 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 class ApiConstants {
   static String get baseUrl =>
       dotenv.env['API_BASE_URL'] ?? 'http://127.0.0.1:8000';
+  static const int defaultFetchLimit = 10000;
 }

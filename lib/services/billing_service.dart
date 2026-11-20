@@ -1,5 +1,6 @@
 import '../config/api_client.dart';
 import 'inventory_service.dart';
+import '../config/api_constants.dart';
 
 class BillingService {
   static Future<Map<String, dynamic>> checkout({
@@ -66,7 +67,9 @@ class BillingService {
     }
   }
 
-  static Future<Map<String, dynamic>> getPosHistory() async {
+  static Future<Map<String, dynamic>> getPosHistory({
+    int limit = ApiConstants.defaultFetchLimit,
+  }) async {
     try {
       final shopId = await InventoryService.getShopId();
 
@@ -75,7 +78,7 @@ class BillingService {
         queryParameters: {
           'shop_id': shopId,
           'tenant_id': shopId,
-          'limit': 1000,
+          'limit': limit,
           '_t': DateTime.now().millisecondsSinceEpoch,
         },
       );

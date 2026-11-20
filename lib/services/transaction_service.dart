@@ -1,4 +1,5 @@
 import '../config/api_client.dart';
+import '../config/api_constants.dart';
 import 'package:intl/intl.dart';
 import 'inventory_service.dart';
 
@@ -94,7 +95,7 @@ class TransactionService {
 
   static Future<List<TransactionModel>> getTransactions({
     int skip = 0,
-    int limit = 100,
+    int limit = ApiConstants.defaultFetchLimit,
     String? shopId,
   }) async {
     try {

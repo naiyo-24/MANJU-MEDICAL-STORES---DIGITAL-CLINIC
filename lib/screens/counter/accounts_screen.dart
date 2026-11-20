@@ -419,6 +419,12 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
     final totalPages = (totalRecords / _itemsPerPage).ceil() == 0
         ? 1
         : (totalRecords / _itemsPerPage).ceil();
+    if (_currentPage > totalPages && totalPages > 0) {
+      _currentPage = totalPages;
+    }
+    if (_currentPage < 1) {
+      _currentPage = 1;
+    }
     final startIdx = (_currentPage - 1) * _itemsPerPage;
     final endIdx = (startIdx + _itemsPerPage > totalRecords)
         ? totalRecords
@@ -775,7 +781,10 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                                         border: InputBorder.none,
                                       ),
                                       onChanged: (value) {
-                                        _searchQuery = value;
+                                        setState(() {
+                                          _searchQuery = value;
+                                          _currentPage = 1;
+                                        });
                                         _loadTransactions();
                                       },
                                     ),
@@ -791,7 +800,10 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                                           _periods,
                                           (String? newValue) {
                                             if (newValue != null) {
-                                              setState(() => _selectedPeriod = newValue);
+                                              setState(() {
+                                                _selectedPeriod = newValue;
+                                                _currentPage = 1;
+                                              });
                                               _loadTransactions();
                                             }
                                           },
@@ -805,7 +817,10 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                                           _types,
                                           (String? newValue) {
                                             if (newValue != null) {
-                                              setState(() => _selectedType = newValue);
+                                              setState(() {
+                                                _selectedType = newValue;
+                                                _currentPage = 1;
+                                              });
                                               _loadTransactions();
                                             }
                                           },
@@ -819,7 +834,10 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                                           _categories,
                                           (String? newValue) {
                                             if (newValue != null) {
-                                              setState(() => _selectedCategory = newValue);
+                                              setState(() {
+                                                _selectedCategory = newValue;
+                                                _currentPage = 1;
+                                              });
                                               _loadTransactions();
                                             }
                                           },
@@ -834,6 +852,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                                             _selectedCategory = 'All Categories';
                                             _searchController.clear();
                                             _searchQuery = '';
+                                            _currentPage = 1;
                                           });
                                           _loadTransactions();
                                         },
@@ -871,7 +890,10 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                                     _periods,
                                     (String? newValue) {
                                       if (newValue != null) {
-                                        setState(() => _selectedPeriod = newValue);
+                                        setState(() {
+                                          _selectedPeriod = newValue;
+                                          _currentPage = 1;
+                                        });
                                         _loadTransactions();
                                       }
                                     },
@@ -883,7 +905,10 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                                     _types,
                                     (String? newValue) {
                                       if (newValue != null) {
-                                        setState(() => _selectedType = newValue);
+                                        setState(() {
+                                          _selectedType = newValue;
+                                          _currentPage = 1;
+                                        });
                                         _loadTransactions();
                                       }
                                     },
@@ -895,7 +920,10 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                                     _categories,
                                     (String? newValue) {
                                       if (newValue != null) {
-                                        setState(() => _selectedCategory = newValue);
+                                        setState(() {
+                                          _selectedCategory = newValue;
+                                          _currentPage = 1;
+                                        });
                                         _loadTransactions();
                                       }
                                     },
@@ -933,7 +961,10 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                                     border: InputBorder.none,
                                   ),
                                   onChanged: (value) {
-                                    _searchQuery = value;
+                                    setState(() {
+                                      _searchQuery = value;
+                                      _currentPage = 1;
+                                    });
                                     _loadTransactions();
                                   },
                                 ),
@@ -947,6 +978,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> {
                                       _selectedCategory = 'All Categories';
                                       _searchController.clear();
                                       _searchQuery = '';
+                                      _currentPage = 1;
                                     });
                                     _loadTransactions();
                                   },

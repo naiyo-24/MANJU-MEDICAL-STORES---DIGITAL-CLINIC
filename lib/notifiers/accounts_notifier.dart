@@ -4,6 +4,7 @@ import '../services/transaction_service.dart';
 import '../services/account_service.dart';
 import '../services/accounting_extended_service.dart';
 import '../services/billing_service.dart';
+import '../config/api_constants.dart';
 import '../providers/counter_providers.dart';
 
 class AccountsState {
@@ -84,7 +85,10 @@ class AccountsNotifier extends AsyncNotifier<AccountsState> {
     String selectedCategory = 'All Categories',
     String searchQuery = '',
   }) async {
-    final allTxns = await TransactionService.getTransactions(shopId: shopId);
+    final allTxns = await TransactionService.getTransactions(
+      shopId: shopId,
+      limit: ApiConstants.defaultFetchLimit,
+    );
 
     // Dynamically build category list from all transactions
     final Set<String> catSet = {};
