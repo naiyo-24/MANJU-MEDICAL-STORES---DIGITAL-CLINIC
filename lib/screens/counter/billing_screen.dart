@@ -686,26 +686,14 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                         canChangePageFormat: false,
                         pdfFileName: 'Bill_$invoiceNo.pdf',
                         initialPageFormat: ref.read(billingProvider).selectedFormat == 'Thermal'
-                            ? (kIsWeb
-                                ? const PdfPageFormat(
-                                    72 * PdfPageFormat.mm,
-                                    140 * PdfPageFormat.mm,
-                                    marginAll: 0,
-                                  )
-                                : PdfPageFormat.roll80)
+                            ? PdfPageFormat.roll80
                             : ref.read(billingProvider).selectedFormat == 'A5'
                                 ? PdfPageFormat.a5.landscape
                                 : PdfPageFormat.a4,
                         pageFormats: {
                           'A5 Landscape': PdfPageFormat.a5.landscape,
                           'A4': PdfPageFormat.a4,
-                          'Thermal': kIsWeb
-                              ? const PdfPageFormat(
-                                  72 * PdfPageFormat.mm,
-                                  140 * PdfPageFormat.mm,
-                                  marginAll: 0,
-                                )
-                              : PdfPageFormat.roll80,
+                          'Thermal': PdfPageFormat.roll80,
                         },
                       ),
                     ),
@@ -1004,26 +992,14 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                         canChangePageFormat: false,
                         pdfFileName: 'Bill_$invoiceNo.pdf',
                         initialPageFormat: ref.read(billingProvider).selectedFormat == 'Thermal'
-                            ? (kIsWeb
-                                ? const PdfPageFormat(
-                                    72 * PdfPageFormat.mm,
-                                    140 * PdfPageFormat.mm,
-                                    marginAll: 0,
-                                  )
-                                : PdfPageFormat.roll80)
+                            ? PdfPageFormat.roll80
                             : ref.read(billingProvider).selectedFormat == 'A5'
                                 ? PdfPageFormat.a5.landscape
                                 : PdfPageFormat.a4,
                         pageFormats: {
                           'A5 Landscape': PdfPageFormat.a5.landscape,
                           'A4': PdfPageFormat.a4,
-                          'Thermal': kIsWeb
-                              ? const PdfPageFormat(
-                                  72 * PdfPageFormat.mm,
-                                  140 * PdfPageFormat.mm,
-                                  marginAll: 0,
-                                )
-                              : PdfPageFormat.roll80,
+                          'Thermal': PdfPageFormat.roll80,
                         },
                       ),
                     ),

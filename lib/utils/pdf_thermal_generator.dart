@@ -55,18 +55,11 @@ class PdfThermalGenerator {
   }) async {
     final pdf = pw.Document(theme: theme);
 
-    final pageHeight = calculateThermalHeight(
-      itemCount: items.length,
-      hasLogo: logoImage != null,
-      hasQr: qrImage != null,
-      hasDrugLicence: drugLicence.isNotEmpty,
-    );
-
     pdf.addPage(
       pw.Page(
-        pageFormat: PdfPageFormat(
+        pageFormat: const PdfPageFormat(
           72 * PdfPageFormat.mm,
-          pageHeight,
+          double.infinity,
           marginLeft: 3 * PdfPageFormat.mm,
           marginRight: 4 * PdfPageFormat.mm,
           marginTop: 1 * PdfPageFormat.mm,
