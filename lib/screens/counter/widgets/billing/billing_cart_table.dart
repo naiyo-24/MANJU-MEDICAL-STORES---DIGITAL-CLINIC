@@ -221,7 +221,7 @@ class _BillingCartTableState extends State<BillingCartTable> {
                                           ),
                                         ),
                                         Text(
-                                          item['brand'],
+                                          item['brand']?.toString() ?? '',
                                           style: TextStyle(
                                             color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B),
                                             fontSize: 9,

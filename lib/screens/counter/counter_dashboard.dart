@@ -61,6 +61,7 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkAutomaticUpdates();
+      ref.read(stockAlertProvider.notifier).refresh();
     });
   }
 

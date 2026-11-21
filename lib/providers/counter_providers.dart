@@ -14,6 +14,7 @@ import '../services/rack_service.dart';
 import '../services/category_service.dart';
 import 'distributor_provider.dart';
 import 'manufacturer_provider.dart';
+import 'stock_alert_provider.dart';
 
 final settingsProvider =
     AsyncNotifierProvider<SettingsNotifier, Map<String, dynamic>>(() {
@@ -87,6 +88,7 @@ final selectedShopIdProvider = NotifierProvider<SelectedShopIdNotifier, String?>
 /// Invalidates and clears all cached state in Riverpod on login/logout
 void resetAllSessionProviders(WidgetRef ref) {
   ref.invalidate(selectedShopIdProvider);
+  ref.invalidate(stockAlertProvider);
   ref.invalidate(shopProvider);
   ref.invalidate(settingsProvider);
   ref.invalidate(inventoryProvider);

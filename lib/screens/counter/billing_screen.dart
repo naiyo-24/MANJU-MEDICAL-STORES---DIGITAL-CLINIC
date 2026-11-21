@@ -480,15 +480,23 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                     final qty = (i['qty'] as num?)?.toInt() ?? 1;
                     return <String, dynamic>{
                       'name': i['name'] ?? 'Item',
+                      'brand': i['brand']?.toString() ?? (i['brand_name']?.toString() ?? ''),
                       'qty': qty,
                       'price': price,
                       'mrp': price,
                       'total': (i['total'] as num?)?.toDouble() ?? (price * qty),
-                      'batch': i['batch']?.toString() ?? '-',
-                      'expiry': i['expiry']?.toString() ?? '-',
-                      'hsn': i['hsn']?.toString() ?? '-',
+                      'batch': i['batch']?.toString() ?? (i['batch_number']?.toString() ?? '-'),
+                      'expiry': i['expiry']?.toString() ?? (i['expiry_date']?.toString() ?? '-'),
+                      'hsn': i['hsn']?.toString() ?? (i['hsn_code']?.toString() ?? '-'),
+                      'discount': (i['discount'] as num?)?.toDouble() ?? 0.0,
+                      'cgst': (i['cgst'] as num?)?.toDouble() ?? 0.0,
+                      'sgst': (i['sgst'] as num?)?.toDouble() ?? 0.0,
+                      'stock': (i['stock'] as num?)?.toInt() ?? 999,
+                      'pack_size': (i['pack_size'] as num?)?.toInt() ?? 1,
+                      'loose_stock': (i['loose_stock'] as num?)?.toInt() ?? 0,
                       'inventory_item_id': i['inventory_item_id'],
                       'is_loose': i['is_loose'] ?? false,
+                      'id': i['inventory_item_id']?.toString() ?? '',
                     };
                   }).toList();
 
@@ -693,14 +701,14 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                                                 ),
                                               ),
                                               const SizedBox(width: 6),
-                                              // RECTIFY / EDIT BUTTON
+                                              // EDIT BUTTON
                                               OutlinedButton.icon(
                                                 onPressed: () {
                                                   Navigator.pop(dialogCtx);
                                                   _rectifyBill(bill);
                                                 },
                                                 icon: const Icon(Icons.edit, size: 14, color: Color(0xFFD97706)),
-                                                label: const Text('Rectify', style: TextStyle(fontSize: 11, color: Color(0xFFD97706), fontWeight: FontWeight.bold)),
+                                                label: const Text('Edit', style: TextStyle(fontSize: 11, color: Color(0xFFD97706), fontWeight: FontWeight.bold)),
                                                 style: OutlinedButton.styleFrom(
                                                   side: const BorderSide(color: Color(0xFFD97706)),
                                                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -761,7 +769,7 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          "Loaded '${bill.invoiceNo}' for rectification. Make your adjustments and click 'Generate Bill' to update.",
+          "Loaded '${bill.invoiceNo}' for editing. Make your adjustments and click 'Generate Bill' to update.",
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         backgroundColor: const Color(0xFFD97706),
@@ -1413,7 +1421,7 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                 Expanded(
                   child: Text(
                     isRectifiedRun
-                        ? "Invoice '$invoiceNo' rectified successfully! Saved to 'Invoices' page."
+                        ? "Invoice '$invoiceNo' updated successfully! Saved to 'Invoices' page."
                         : "Bill '$invoiceNo' generated successfully! Saved to 'Invoices' page.",
                     style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
                   ),
