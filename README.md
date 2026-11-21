@@ -6,9 +6,14 @@
   </picture>
   <br/>
   <h1>SirfBill POS - Manju Medical Stores & Digital Clinic</h1>
+  <p>
+    <strong>Live Web App:</strong> <a href="https://sirfbill.naiyo24.com/#/dashboard" target="_blank">https://sirfbill.naiyo24.com/#/counter/billing</a>
+  </p>
 </div>
 
 Welcome to the **SirfBill POS** application for **Manju Medical Stores & Digital Clinic**! This is a comprehensive, multi-tenant Point of Sale (POS) and inventory management system designed specifically for pharmacies, medical stores, and digital clinics.
+
+> **🌐 Hosted Application:** The live production app is accessible at [https://sirfbill.naiyo24.com/#/dashboard](https://sirfbill.naiyo24.com/#/counter/billing).
 
 ---
 
@@ -32,6 +37,11 @@ Welcome to the **SirfBill POS** application for **Manju Medical Stores & Digital
   - [Inventory & Stock Management](#inventory--stock-management)
   - [Financial Accounts & History](#financial-accounts--history)
 - [Backend API Contract](#backend-api-contract)
+- [Deployment & Distribution](#-deployment--distribution)
+  - [1. Web Deployment (Docker + Nginx)](#1-web-deployment-docker--nginx)
+  - [2. Production Web Caching Prevention](#2-production-web-caching-prevention)
+  - [3. Desktop (Windows) Installer & Auto-Updater](#3-desktop-windows-installer--auto-updater)
+  - [4. Android / Mobile Build](#4-android--mobile-build)
 - [Key Design Decisions](#key-design-decisions)
 - [Common Gotchas](#common-gotchas)
 - [Adding a New Feature](#adding-a-new-feature)
@@ -176,8 +186,11 @@ lib/
 ├── models/                  # Data Transfer Objects (DTOs)
 │   ├── counter_models.dart  # Core POS data schemas
 │   ├── crm_models.dart      # Customer and User schemas
+│   ├── gst_filing.dart      # GST return and tax summary schemas
 │   ├── lab_models.dart      # Lab, bookings, and pathology models
-│   └── settings_models.dart # ShopSettings (Drug License, GSTIN, Bank details)
+│   ├── manufacturer.dart    # Medicine manufacturing company models
+│   ├── settings_models.dart # ShopSettings (Drug License, GSTIN, Bank details)
+│   └── stock_alert_item.dart# Low-stock and expiry alert models
 │
 ├── notifiers/               # Riverpod State Notifiers (Business Logic)
 │   ├── accounts_notifier.dart
@@ -198,8 +211,12 @@ lib/
 │   ├── counter_providers.dart
 │   ├── crm_provider.dart
 │   ├── crm_providers.dart
+│   ├── desktop_zoom_provider.dart
 │   ├── distributor_provider.dart
+│   ├── gst_filing_provider.dart
 │   ├── lab_providers.dart
+│   ├── manufacturer_provider.dart
+│   ├── stock_alert_provider.dart
 │   └── theme_provider.dart
 │
 ├── router/                  # Navigation & Routing
@@ -222,13 +239,13 @@ lib/
 │   │   ├── history_screen.dart
 │   │   ├── inventory_screen.dart
 │   │   ├── shop_management_screen.dart
-│   │   └── upload_management_screen.dart
+│   │   ├── upload_management_screen.dart
 │   │   └── widgets/         # Component-level subfolders for counter modules
 │   │       ├── accounts/
-│   │       ├── billing/
+│   │       ├── billing/     # Cart table, payment modal, invoice preview
 │   │       ├── customers/
-│   │       ├── distributors/
-│   │       ├── inventory/
+│   │       ├── distributors/# Add/edit distributor dialogs
+│   │       ├── inventory/   # Add product, batch edit, stock alert banners
 │   │       └── shop/
 │   ├── crm/                 # Digital Clinic & CRM Modules
 │   │   ├── crm_appointments_screen.dart
@@ -276,35 +293,50 @@ lib/
 │   ├── draft_service.dart
 │   ├── export_service.dart
 │   ├── global_search_service.dart
+│   ├── gst_filing_service.dart
 │   ├── inventory_service.dart
 │   ├── lab_data_service.dart
+│   ├── manufacturer_service.dart
 │   ├── pdf_generator_service.dart
 │   ├── purchase_service.dart
 │   ├── rack_service.dart
 │   ├── shop_service.dart
 │   ├── shop_settings_service.dart
-│   └── transaction_service.dart
+│   ├── stock_alert_service.dart
+│   ├── transaction_service.dart
+│   ├── update_service.dart
+│   ├── web_reload_web.dart / web_reload_stub.dart
+│   ├── web_update_checker.dart
+│   └── windows_auto_updater.dart
 │
 ├── themes/                  # Design System
 │   ├── app_colors.dart      # Centralized hex color constants
 │   └── app_theme.dart       # Material 3 typography and component styles
 │
-├── utils/                   # Helpers and Utilities
+├── utils/                   # Helpers, Generators, and Utilities
+│   ├── docx_generator.dart  # Word DOCX export support
+│   ├── excel_invoice_generator.dart # Excel spreadsheet generation
+│   ├── file_download_helper.dart    # Web and Desktop blob/disk downloads
 │   ├── format_utils.dart    # Currency and date formatters
 │   ├── pdf_generator.dart   # Main interface for invoice creation
 │   ├── pdf_a4_generator.dart# Full-page A4 format implementation
 │   ├── pdf_a5_generator.dart# Half-page A5 format implementation
-│   ├── pdf_thermal_generator.dart # 3-inch thermal printer implementation
+│   ├── pdf_thermal_generator.dart # 3-inch (80mm) thermal printer implementation
 │   └── responsive.dart      # Breakpoints for desktop/tablet scaling
 │
 ├── widgets/                 # Global Reusable UI Components
 │   ├── category_dropdown.dart
 │   ├── custom_date_range_picker.dart
 │   ├── custom_pagination.dart
+│   ├── desktop_zoom_wrapper.dart # Keyboard shortcut zoom scaling for desktop POS
 │   ├── distributor_dropdown.dart
-│   └── rack_dropdown.dart
+│   ├── manufacturer_dropdown.dart
+│   ├── rack_dropdown.dart
+│   ├── responsive_container.dart
+│   ├── responsive_layout.dart
+│   └── responsive_scaffold.dart
 │
-└── main.dart                # Application entry point, initializing dotenv and ProviderScope
+└── main.dart                # Application entry point, initializing dotenv, Desktop window size, and ProviderScope
 ```
 
 ## 🏗️ Architecture Deep Dive
@@ -652,6 +684,91 @@ The Flutter `ApiClient` is designed to handle these specific backend responses:
 - `404 Not Found`: The requested resource (e.g., a specific transaction ID) does not exist or belongs to a different tenant.
 - `500 Internal Server Error`: An unhandled exception occurred on the FastAPI server.
 
+## 🚀 Deployment & Distribution
+
+SirfBill is architected to compile across multiple targets: **Web (Docker/Nginx)**, **Windows Desktop (MSI/Installer with Auto-Updater)**, and **Mobile (Android/iOS)**.
+
+---
+
+### 1. Web Deployment (Docker + Nginx)
+
+The project includes an optimized multi-stage `Dockerfile` and an production-grade `nginx/nginx.conf` reverse proxy configuration running on port `5194`.
+
+#### Build & Run via Docker Compose:
+```bash
+# Build and run container in detached mode
+docker-compose up -d --build
+```
+The application will be accessible at `http://localhost:5194`.
+
+#### Docker Multi-Stage Build Workflow:
+1. **Stage 1 (`cirrusci/flutter:latest` AS build)**:
+   - Synchronizes Flutter SDK to compatible release tags.
+   - Runs `flutter pub get`.
+   - Installs font subsetting libraries (`fontconfig`, `libfreetype6`, `fonttools`).
+   - Compiles web output:
+     ```bash
+     flutter build web --release --no-tree-shake-icons --pwa-strategy=none
+     ```
+2. **Stage 2 (`nginx:stable-alpine`)**:
+   - Copies production compiled assets to `/usr/share/nginx/html`.
+   - Injects custom `nginx/nginx.conf` reverse proxy routing.
+   - Listens on port `5194`.
+
+---
+
+### 2. Production Web Caching Prevention
+
+A notorious challenge with Flutter Web single-page applications is aggressive browser caching of `index.html` and old `.js` bundles after updates. SirfBill resolves this through two dedicated mechanisms:
+
+#### A. Nginx Header Controls (`nginx/nginx.conf`)
+- **Zero-Cache for Entrypoints**: All `*.html` and `*.json` files are served with:
+  ```nginx
+  add_header Cache-Control "no-cache, no-store, must-revalidate, max-age=0";
+  add_header Pragma "no-cache";
+  expires 0;
+  ```
+- **Hashed Assets**: JavaScript, WASM, and font assets are cached for 1 hour with public transform permissions.
+- **SPA Fallback Routing**: Unmatched routes fallback cleanly to `try_files $uri $uri/ /index.html;`.
+
+#### B. In-App Web Version Checker (`WebUpdateChecker`)
+- Flutter web periodically polls `version.json` in the background.
+- When an updated build version is deployed, users receive an non-intrusive banner prompting them to reload, executing a clean cache-busting refresh via `web_reload_web.dart`.
+
+---
+
+### 3. Desktop (Windows) Installer & Auto-Updater
+
+For offline and high-volume billing counters, SirfBill provides a native Windows release pipeline:
+
+#### A. Native Inno Setup (`installer/setup.iss`)
+- Builds a signed Windows installer executable (`SirfBill_Setup_v2.0.0.exe`).
+- Packages the Flutter Runner executable, DLLs, and printer drivers.
+- Automatically handles Desktop shortcut creation and registry uninstall entries.
+
+#### B. Standalone C# .NET Updater (`updater/Program.cs`)
+- SirfBill features an out-of-process updater utility written in C# (`Updater.exe`).
+- When a new desktop release is tagged on GitHub Releases:
+  1. The Flutter client downloads the differential zip payload.
+  2. Launches `updater/Program.cs` in the background.
+  3. The Flutter application terminates cleanly so files are unlocked.
+  4. The updater replaces binary assemblies and relaunches SirfBill automatically.
+
+---
+
+### 4. Android / Mobile Build
+
+To build an Android APK for mobile devices or handheld POS terminals:
+```bash
+# Debug APK
+flutter build apk --debug
+
+# Production Release Split-Per-ABI APKs
+flutter build apk --release --split-per-abi
+```
+
+---
+
 ## 🧠 Key Design Decisions
 
 Throughout the development of SirfBill, several architectural choices were made to prioritize speed, scalability, and developer experience.
@@ -677,7 +794,7 @@ By relying heavily on Riverpod `ConsumerWidget`, we have virtually eliminated `S
 If you run into bugs while developing or deploying SirfBill, check these common pitfalls first:
 
 ### 1. Flutter Web Deployment & Caching (`.env` issues)
-Browsers heavily cache Flutter Web `main.dart.js` and static asset files (like `.env`). If you deploy an update but the live site (`bill.naiyo24.com`) is still trying to hit an old API IP address:
+Browsers heavily cache Flutter Web `main.dart.js` and static asset files (like `.env`). If you deploy an update but the live site (`https://sirfbill.naiyo24.com/#/counter/billing`) is still trying to hit an old API IP address:
 - **Do not** rely solely on `.env` files for production URLs.
 - **Fix**: You must pass the API URL at compile time using Dart Defines. This forces the Flutter engine to bake the URL into the binary, bypassing the browser's static asset cache.
 ```bash
