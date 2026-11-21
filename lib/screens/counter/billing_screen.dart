@@ -447,6 +447,7 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
   Future<void> _showInvoicesDialog() async {
     List<SavedBill> backendBills = [];
     bool isLoadingBackend = true;
+    bool hasInitiatedFetch = false;
 
     showDialog(
       context: context,
@@ -454,7 +455,11 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
         final isDark = Theme.of(dialogCtx).brightness == Brightness.dark;
         return StatefulBuilder(
           builder: (dialogCtx, setDialogState) {
-            if (isLoadingBackend) {
+            void fetchLatestInvoices() {
+              setDialogState(() {
+                isLoadingBackend = true;
+              });
+
               BillingService.getPosHistory(days: 30).then((res) {
                 final historyList = res['history'] as List? ?? [];
                 final mapped = historyList.map((item) {
@@ -524,22 +529,41 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
               });
             }
 
+            if (!hasInitiatedFetch) {
+              hasInitiatedFetch = true;
+              fetchLatestInvoices();
+            }
+
             return AlertDialog(
               backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
               title: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Icon(
-                    Icons.receipt_long,
-                    color: isDark ? const Color(0xFF4ADE80) : const Color(0xFF166534),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.receipt_long,
+                        color: isDark ? const Color(0xFF4ADE80) : const Color(0xFF166534),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Invoices (Recent 30 Days)',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: isDark ? Colors.white : const Color(0xFF1E293B),
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Invoices (Recent 30 Days)',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: isDark ? Colors.white : const Color(0xFF1E293B),
+                  IconButton(
+                    icon: Icon(
+                      Icons.refresh,
+                      color: isDark ? const Color(0xFF4ADE80) : const Color(0xFF166534),
+                      size: 20,
                     ),
+                    tooltip: 'Refresh latest invoices',
+                    onPressed: isLoadingBackend ? null : fetchLatestInvoices,
                   ),
                 ],
               ),
