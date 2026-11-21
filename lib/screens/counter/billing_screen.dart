@@ -66,6 +66,8 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
 
   bool _isGeneratingBill = false;
   int _mobileTabIndex = 0; // 0: Medicines catalog, 1: Cart & Checkout
+  String? _rectifyingInvoiceNo;
+  String? _rectifyingBillId;
 
   @override
   void initState() {
@@ -160,9 +162,27 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
     await DraftService.saveDraft(draft);
 
     if (mounted) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Bill saved as draft!')));
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Row(
+            children: [
+              Icon(Icons.check_circle_outline, color: Colors.white, size: 20),
+              SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  "Invoice draft saved! You can access it anytime from the 'Draft Invoices' (auto-retained for 30 days).",
+                  style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                ),
+              ),
+            ],
+          ),
+          backgroundColor: const Color(0xFF1E293B),
+          duration: const Duration(seconds: 4),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        ),
+      );
       ref.read(billingProvider.notifier).clearBill();
       _customerNameController.clear();
       _customerPhoneController.clear();
@@ -170,6 +190,8 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
 
       _newDoctorController.clear();
       _discountController.clear();
+      _rectifyingInvoiceNo = null;
+      _rectifyingBillId = null;
       setState(() {});
     }
   }
@@ -282,7 +304,7 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                   Icon(Icons.folder_open, color: Color(0xFF1E293B)),
                   SizedBox(width: 8),
                   Text(
-                    'Saved Drafts',
+                    'Draft Invoices',
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -297,7 +319,7 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                 child: drafts.isEmpty
                     ? const Center(
                         child: Text(
-                          'No drafts found.',
+                          'No draft invoices found (auto-retained for 30 days).',
                           style: TextStyle(color: Color(0xFF64748B)),
                         ),
                       )
@@ -387,9 +409,10 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                                       : '';
                                 });
                                 Navigator.pop(context);
+                                ScaffoldMessenger.of(context).hideCurrentSnackBar();
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
-                                    content: Text('Draft loaded successfully!'),
+                                    content: Text('Draft invoice loaded successfully!'),
                                   ),
                                 );
                               },
@@ -406,6 +429,293 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
               ],
             );
           },
+        );
+      },
+    );
+  }
+
+  Future<void> _showInvoicesDialog() async {
+    final bills = await BillingHistoryService.getBillingHistory();
+    if (!mounted) return;
+
+    showDialog(
+      context: context,
+      builder: (dialogCtx) {
+        return StatefulBuilder(
+          builder: (dialogCtx, setDialogState) {
+            return AlertDialog(
+              title: const Row(
+                children: [
+                  Icon(Icons.receipt_long, color: Color(0xFF166534)),
+                  SizedBox(width: 8),
+                  Text(
+                    'Invoices (Recent 30 Days)',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1E293B),
+                    ),
+                  ),
+                ],
+              ),
+              content: SizedBox(
+                width: 650,
+                height: 480,
+                child: bills.isEmpty
+                    ? const Center(
+                        child: Text(
+                          'No generated invoices found for the last 30 days.',
+                          style: TextStyle(color: Color(0xFF64748B)),
+                        ),
+                      )
+                    : ListView.builder(
+                        itemCount: bills.length,
+                        itemBuilder: (ctx, index) {
+                          final bill = bills[index];
+                          final timeStr =
+                              "${bill.createdAt.day}/${bill.createdAt.month}/${bill.createdAt.year} ${bill.createdAt.hour}:${bill.createdAt.minute.toString().padLeft(2, '0')}";
+                          return Card(
+                            margin: const EdgeInsets.only(bottom: 10),
+                            elevation: 1,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              side: BorderSide(color: Colors.grey.withValues(alpha: 0.2)),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            Text(
+                                              bill.invoiceNo,
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 14,
+                                                color: Color(0xFF1E293B),
+                                              ),
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                              decoration: BoxDecoration(
+                                                color: const Color(0xFF166534).withValues(alpha: 0.1),
+                                                borderRadius: BorderRadius.circular(4),
+                                              ),
+                                              child: Text(
+                                                bill.paymentMode,
+                                                style: const TextStyle(
+                                                  fontSize: 10,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Color(0xFF166534),
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          'Customer: ${bill.customerName.isEmpty ? "Walk-in" : bill.customerName} • Items: ${bill.items.length}',
+                                          style: const TextStyle(fontSize: 12, color: Color(0xFF475569)),
+                                        ),
+                                        const SizedBox(height: 2),
+                                        Text(
+                                          '$timeStr • Format: ${bill.format}',
+                                          style: const TextStyle(fontSize: 11, color: Color(0xFF94A3B8)),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    children: [
+                                      Text(
+                                        '₹${bill.grandTotal.toStringAsFixed(2)}',
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.w900,
+                                          fontSize: 15,
+                                          color: Color(0xFF166534),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 6),
+                                      Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          // RE-PRINT BUTTON
+                                          ElevatedButton.icon(
+                                            onPressed: () {
+                                              Navigator.pop(dialogCtx);
+                                              _reprintBill(bill);
+                                            },
+                                            icon: const Icon(Icons.print, size: 14),
+                                            label: const Text('Re-Print', style: TextStyle(fontSize: 11)),
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor: const Color(0xFF3B82F6),
+                                              foregroundColor: Colors.white,
+                                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                              minimumSize: Size.zero,
+                                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 6),
+                                          // RECTIFY / EDIT BUTTON
+                                          OutlinedButton.icon(
+                                            onPressed: () {
+                                              Navigator.pop(dialogCtx);
+                                              _rectifyBill(bill);
+                                            },
+                                            icon: const Icon(Icons.edit, size: 14, color: Color(0xFFD97706)),
+                                            label: const Text('Rectify', style: TextStyle(fontSize: 11, color: Color(0xFFD97706), fontWeight: FontWeight.bold)),
+                                            style: OutlinedButton.styleFrom(
+                                              side: const BorderSide(color: Color(0xFFD97706)),
+                                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                              minimumSize: Size.zero,
+                                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(dialogCtx),
+                  child: const Text('Close'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _rectifyBill(SavedBill bill) {
+    setState(() {
+      _rectifyingInvoiceNo = bill.invoiceNo;
+      _rectifyingBillId = bill.id;
+      ref.read(billingProvider.notifier).setBill(List.from(bill.items));
+      _customerNameController.text = bill.customerName == 'Walk-in Customer' ? '' : bill.customerName;
+      _customerPhoneController.text = bill.customerPhone;
+      _customerLocationController.text = bill.customerLocation;
+
+      final matchedDoctor = _doctorsList.cast<Doctor?>().firstWhere(
+            (d) => d?.name == bill.doctorName,
+            orElse: () => null,
+          );
+      if (matchedDoctor != null) {
+        _newDoctorController.clear();
+      } else if (bill.doctorName.isNotEmpty && bill.doctorName != 'Walk-in') {
+        _newDoctorController.text = bill.doctorName;
+      } else {
+        _newDoctorController.clear();
+      }
+
+      ref.read(billingProvider.notifier).updateDiscount(bill.discount, false);
+      _discountController.text = bill.discount > 0 ? bill.discount.toStringAsFixed(2) : '';
+    });
+
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          "Loaded '${bill.invoiceNo}' for rectification. Make your adjustments and click 'Generate Bill' to update.",
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: const Color(0xFFD97706),
+        duration: const Duration(seconds: 5),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
+  Future<void> _reprintBill(SavedBill bill) async {
+    final currentSettings = _shopSettings;
+    final pdfBytes = await PdfGenerator.generateBill(
+      items: bill.items,
+      subtotal: bill.subtotal,
+      discount: bill.discount,
+      tax: bill.tax,
+      grandTotal: bill.grandTotal,
+      invoiceNumber: bill.invoiceNo,
+      customerName: bill.customerName,
+      customerPhone: bill.customerPhone,
+      customerLocation: bill.customerLocation,
+      shopSettings: currentSettings ?? bill.shopSettings,
+      doctorName: bill.doctorName,
+      paymentMethod: bill.paymentMode,
+      gstNumber: bill.customerGstin,
+      format: bill.format,
+    );
+
+    if (!mounted) return;
+    showDialog(
+      context: context,
+      builder: (dialogCtx) {
+        return Dialog(
+          insetPadding: const EdgeInsets.all(32),
+          child: Container(
+            width: 800,
+            height: MediaQuery.of(dialogCtx).size.height * 0.8,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.print, color: Color(0xFF3B82F6), size: 24),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Re-Printing Invoice — ${bill.invoiceNo}',
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF1E293B),
+                            ),
+                          ),
+                        ],
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close),
+                        onPressed: () => Navigator.pop(dialogCtx),
+                      ),
+                    ],
+                  ),
+                ),
+                const Divider(height: 1),
+                Expanded(
+                  child: PdfPreview(
+                    key: ValueKey('reprint_${bill.invoiceNo}'),
+                    build: (format) => pdfBytes,
+                    allowPrinting: true,
+                    allowSharing: true,
+                    canDebug: false,
+                    initialPageFormat: bill.format == 'A4'
+                        ? PdfPageFormat.a4
+                        : (bill.format == 'A5' ? PdfPageFormat.a5 : PdfPageFormat.roll80),
+                  ),
+                ),
+              ],
+            ),
+          ),
         );
       },
     );
@@ -781,7 +1091,7 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
               .toUpperCase() ??
           'INV';
       if (baseInvoice.length > 5) baseInvoice = baseInvoice.substring(0, 5);
-      final String invoiceNo =
+      final String invoiceNo = _rectifyingInvoiceNo ??
           '$baseInvoice${DateTime.now().millisecondsSinceEpoch.toString().substring(5)}';
 
       // 1. Send to Backend POS API
@@ -889,33 +1199,41 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
         }
       }
 
-      // Save to local billing history FIRST
-      await BillingHistoryService.saveBill(
-        SavedBill(
-          id: DateTime.now().millisecondsSinceEpoch.toString(),
-          invoiceNo: invoiceNo,
-          customerName: _customerNameController.text.isNotEmpty
-              ? _customerNameController.text
-              : 'Walk-in Customer',
-          customerPhone: _customerPhoneController.text,
-          customerLocation: _customerLocationController.text,
-          customerGstin: ref.read(billingProvider).gstNumber,
-          doctorName: ref.read(billingProvider).selectedDoctorId == 'new'
-              ? _newDoctorController.text
-              : ref.read(billingProvider).selectedDoctorName,
-          paymentMode: ref.read(billingProvider).paymentMethod,
-          subtotal: _subtotal,
-          discount: _discountAmount,
-          tax: _gstAmount,
-          grandTotal: _grandTotal,
-          items: List.from(_currentBill),
-          createdAt: DateTime.now(),
-          format: ref.read(billingProvider).selectedFormat,
-          shopSettings: currentSettings != null
-              ? Map<String, dynamic>.from(currentSettings)
-              : null,
-        ),
+      // Save or Update local billing history
+      final savedBillObj = SavedBill(
+        id: _rectifyingBillId ?? DateTime.now().millisecondsSinceEpoch.toString(),
+        invoiceNo: invoiceNo,
+        customerName: _customerNameController.text.isNotEmpty
+            ? _customerNameController.text
+            : 'Walk-in Customer',
+        customerPhone: _customerPhoneController.text,
+        customerLocation: _customerLocationController.text,
+        customerGstin: ref.read(billingProvider).gstNumber,
+        doctorName: ref.read(billingProvider).selectedDoctorId == 'new'
+            ? _newDoctorController.text
+            : ref.read(billingProvider).selectedDoctorName,
+        paymentMode: ref.read(billingProvider).paymentMethod,
+        subtotal: _subtotal,
+        discount: _discountAmount,
+        tax: _gstAmount,
+        grandTotal: _grandTotal,
+        items: List.from(_currentBill),
+        createdAt: DateTime.now(),
+        format: ref.read(billingProvider).selectedFormat,
+        shopSettings: currentSettings != null
+            ? Map<String, dynamic>.from(currentSettings)
+            : null,
       );
+
+      if (_rectifyingBillId != null) {
+        await BillingHistoryService.updateBill(savedBillObj);
+      } else {
+        await BillingHistoryService.saveBill(savedBillObj);
+      }
+
+      final isRectifiedRun = _rectifyingInvoiceNo != null;
+      _rectifyingInvoiceNo = null;
+      _rectifyingBillId = null;
 
       // Clear after successful checkout
       _clearCart();
@@ -931,6 +1249,31 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
         setState(() {
           _isGeneratingBill = false;
         });
+
+        // App Toaster notifying the cashier that bill is saved to Invoices
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.check_circle_rounded, color: Colors.white, size: 20),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    isRectifiedRun
+                        ? "Invoice '$invoiceNo' rectified successfully! Saved to 'Invoices' page."
+                        : "Bill '$invoiceNo' generated successfully! Saved to 'Invoices' page.",
+                    style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: const Color(0xFF166534),
+            duration: const Duration(seconds: 4),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          ),
+        );
       }
 
       // Wait a tiny bit to allow the pop animation to finish, preventing !_debugLocked crash
@@ -1563,6 +1906,7 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                     onSaveCustomerToDb: _saveCustomerToDb,
                     onSaveDraft: _saveDraft,
                     onShowDraftsDialog: _showDraftsDialog,
+                    onShowInvoicesDialog: _showInvoicesDialog,
                     onShowBillPreview: _showBillPreview,
                     onGenerateBill: _generateAndSaveBill,
                                         customerSearchField: CustomerSearchField(

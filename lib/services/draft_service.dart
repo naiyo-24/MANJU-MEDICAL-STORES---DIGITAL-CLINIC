@@ -83,8 +83,31 @@ class DraftService {
     final prefs = await SharedPreferences.getInstance();
     List<String> draftsJson = prefs.getStringList(_draftsKey) ?? [];
 
-    return draftsJson.map((d) => DraftBill.fromJson(jsonDecode(d))).toList()
-      ..sort((a, b) => b.createdAt.compareTo(a.createdAt)); // Newest first
+    // 30-day cutoff auto-purge
+    final cutoffDate = DateTime.now().subtract(const Duration(days: 30));
+
+    final List<DraftBill> validDrafts = [];
+    final List<String> validDraftsJson = [];
+
+    for (final d in draftsJson) {
+      try {
+        final draft = DraftBill.fromJson(jsonDecode(d));
+        if (draft.createdAt.isAfter(cutoffDate)) {
+          validDrafts.add(draft);
+          validDraftsJson.add(d);
+        }
+      } catch (_) {
+        // Skip corrupted entries
+      }
+    }
+
+    // If any drafts expired, prune storage immediately
+    if (validDraftsJson.length != draftsJson.length) {
+      await prefs.setStringList(_draftsKey, validDraftsJson);
+    }
+
+    validDrafts.sort((a, b) => b.createdAt.compareTo(a.createdAt)); // Newest first
+    return validDrafts;
   }
 
   static Future<void> deleteDraft(String id) async {

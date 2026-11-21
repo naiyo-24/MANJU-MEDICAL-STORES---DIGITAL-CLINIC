@@ -22,6 +22,7 @@ class BillingRightPanel extends ConsumerWidget {
   final VoidCallback onSaveCustomerToDb;
   final VoidCallback onSaveDraft;
   final VoidCallback onShowDraftsDialog;
+  final VoidCallback onShowInvoicesDialog;
   final VoidCallback onShowBillPreview;
   final VoidCallback onGenerateBill;
   final Widget customerSearchField;
@@ -44,6 +45,7 @@ class BillingRightPanel extends ConsumerWidget {
     required this.onSaveCustomerToDb,
     required this.onSaveDraft,
     required this.onShowDraftsDialog,
+    required this.onShowInvoicesDialog,
     required this.onShowBillPreview,
     required this.onGenerateBill,
     required this.customerSearchField,
@@ -137,6 +139,7 @@ class BillingRightPanel extends ConsumerWidget {
             onSaveCustomerToDb: onSaveCustomerToDb,
             onSaveDraft: onSaveDraft,
             onShowDraftsDialog: onShowDraftsDialog,
+            onShowInvoicesDialog: onShowInvoicesDialog,
             onShowBillPreview: onShowBillPreview,
             onGenerateBill: onGenerateBill,
             isGeneratingBill: isGeneratingBill,

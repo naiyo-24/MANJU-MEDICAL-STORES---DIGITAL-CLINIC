@@ -19,6 +19,7 @@ class BillingSummaryWidget extends StatelessWidget {
   final VoidCallback onSaveCustomerToDb;
   final VoidCallback onSaveDraft;
   final VoidCallback onShowDraftsDialog;
+  final VoidCallback onShowInvoicesDialog;
   final VoidCallback onShowBillPreview;
   final VoidCallback onGenerateBill;
   final bool isGeneratingBill;
@@ -31,6 +32,7 @@ class BillingSummaryWidget extends StatelessWidget {
     required this.onSaveCustomerToDb,
     required this.onSaveDraft,
     required this.onShowDraftsDialog,
+    required this.onShowInvoicesDialog,
     required this.onShowBillPreview,
     required this.onGenerateBill,
     required this.isGeneratingBill,
@@ -451,42 +453,72 @@ class BillingSummaryWidget extends StatelessWidget {
                     icon: Icon(
                       Icons.folder_open,
                       color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
-                      size: 16,
+                      size: 14,
                     ),
                     label: Text(
-                      'Drafts',
+                      'Draft Invoices',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
                         fontWeight: FontWeight.bold,
-                        fontSize: 12,
+                        fontSize: 11,
                       ),
                     ),
                     style: OutlinedButton.styleFrom(
                       side: BorderSide(color: Theme.of(context).dividerColor),
-                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
                     ),
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: onShowInvoicesDialog,
+                    icon: const Icon(
+                      Icons.receipt_long,
+                      color: Color(0xFF166534),
+                      size: 14,
+                    ),
+                    label: const Text(
+                      'Invoices',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: Color(0xFF166534),
+                        fontWeight: FontWeight.bold,
+                        fontSize: 11,
+                      ),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      side: BorderSide(color: const Color(0xFF166534).withValues(alpha: 0.4)),
+                      backgroundColor: const Color(0xFF166534).withValues(alpha: 0.05),
+                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 6),
                 Expanded(
                   child: OutlinedButton.icon(
                     onPressed: onSaveDraft,
                     icon: Icon(
                       Icons.save,
                       color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
-                      size: 16,
+                      size: 14,
                     ),
                     label: Text(
-                      'Save Draft',
+                      'Save Invoice',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
                         fontWeight: FontWeight.bold,
-                        fontSize: 12,
+                        fontSize: 11,
                       ),
                     ),
                     style: OutlinedButton.styleFrom(
                       side: BorderSide(color: Theme.of(context).dividerColor),
-                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
                     ),
                   ),
                 ),

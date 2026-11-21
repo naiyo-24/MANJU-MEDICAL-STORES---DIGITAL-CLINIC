@@ -26,14 +26,58 @@ class BillingHistoryService {
     final prefs = await SharedPreferences.getInstance();
     final List<String> currentHistory = prefs.getStringList(_key) ?? [];
 
-    final bills = currentHistory.map((draftStr) {
-      final Map<String, dynamic> json = jsonDecode(draftStr);
-      return SavedBill.fromJson(json);
-    }).toList();
+    // 30-day cutoff auto-purge
+    final cutoffDate = DateTime.now().subtract(const Duration(days: 30));
+
+    final List<SavedBill> validBills = [];
+    final List<String> validBillsJson = [];
+
+    for (final draftStr in currentHistory) {
+      try {
+        final Map<String, dynamic> json = jsonDecode(draftStr);
+        final bill = SavedBill.fromJson(json);
+        if (bill.createdAt.isAfter(cutoffDate)) {
+          validBills.add(bill);
+          validBillsJson.add(draftStr);
+        }
+      } catch (_) {
+        // Skip corrupted entries
+      }
+    }
+
+    // If any bills expired, prune storage immediately
+    if (validBillsJson.length != currentHistory.length) {
+      await prefs.setStringList(_key, validBillsJson);
+    }
 
     // Sort by latest first
-    bills.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-    return bills;
+    validBills.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    return validBills;
+  }
+
+  static Future<void> updateBill(SavedBill updatedBill) async {
+    final prefs = await SharedPreferences.getInstance();
+    final List<String> currentHistory = prefs.getStringList(_key) ?? [];
+
+    int index = -1;
+    for (int i = 0; i < currentHistory.length; i++) {
+      try {
+        final map = jsonDecode(currentHistory[i]);
+        if (map['id'] == updatedBill.id || map['invoiceNo'] == updatedBill.invoiceNo) {
+          index = i;
+          break;
+        }
+      } catch (_) {}
+    }
+
+    if (index != -1) {
+      currentHistory[index] = jsonEncode(updatedBill.toJson());
+    } else {
+      currentHistory.add(jsonEncode(updatedBill.toJson()));
+    }
+
+    await prefs.setStringList(_key, currentHistory);
+    historyUpdated.value++;
   }
 
   static Future<void> clearHistory() async {
