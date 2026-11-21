@@ -1094,25 +1094,46 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
       final String invoiceNo = _rectifyingInvoiceNo ??
           '$baseInvoice${DateTime.now().millisecondsSinceEpoch.toString().substring(5)}';
 
-      // 1. Send to Backend POS API
+      // 1. Send to Backend POS API (Checkout or Rectify)
       final checkoutItems = _currentBill
           .where((item) => item['inventory_item_id'] != null)
           .toList();
 
       if (checkoutItems.isNotEmpty) {
-        await BillingService.checkout(
-          items: checkoutItems,
-          totalAmount: _grandTotal,
-          customerId: _savedCustomerId,
-          customerName: _customerNameController.text.isNotEmpty
-              ? _customerNameController.text
-              : 'Walk-in Customer',
-          customerPhone: _customerPhoneController.text,
-          customerLocation: _customerLocationController.text,
-          customerGstin: ref.read(billingProvider).gstNumber,
-          invoiceNo: invoiceNo,
-          paymentMethod: ref.read(billingProvider).paymentMethod,
-        );
+        if (_rectifyingInvoiceNo != null) {
+          // Dedicated atomic rectification pipeline
+          await BillingService.rectifyInvoice(
+            invoiceNo: invoiceNo,
+            items: checkoutItems,
+            totalAmount: _grandTotal,
+            subtotal: _subtotal,
+            totalDiscount: _discountAmount,
+            totalGst: _gstAmount,
+            customerId: _savedCustomerId,
+            customerName: _customerNameController.text.isNotEmpty
+                ? _customerNameController.text
+                : 'Walk-in Customer',
+            customerPhone: _customerPhoneController.text,
+            customerLocation: _customerLocationController.text,
+            customerGstin: ref.read(billingProvider).gstNumber,
+            paymentMethod: ref.read(billingProvider).paymentMethod,
+          );
+        } else {
+          // Standard fresh checkout pipeline
+          await BillingService.checkout(
+            items: checkoutItems,
+            totalAmount: _grandTotal,
+            customerId: _savedCustomerId,
+            customerName: _customerNameController.text.isNotEmpty
+                ? _customerNameController.text
+                : 'Walk-in Customer',
+            customerPhone: _customerPhoneController.text,
+            customerLocation: _customerLocationController.text,
+            customerGstin: ref.read(billingProvider).gstNumber,
+            invoiceNo: invoiceNo,
+            paymentMethod: ref.read(billingProvider).paymentMethod,
+          );
+        }
       }
 
       // 2. Refresh Inventory, History, Accounts, Customers, and Stock Alerts
