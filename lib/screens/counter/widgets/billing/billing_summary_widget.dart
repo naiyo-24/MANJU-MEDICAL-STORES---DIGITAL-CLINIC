@@ -475,24 +475,34 @@ class BillingSummaryWidget extends StatelessWidget {
                 Expanded(
                   child: OutlinedButton.icon(
                     onPressed: onShowInvoicesDialog,
-                    icon: const Icon(
+                    icon: Icon(
                       Icons.receipt_long,
-                      color: Color(0xFF166534),
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? const Color(0xFF4ADE80)
+                          : const Color(0xFF166534),
                       size: 14,
                     ),
-                    label: const Text(
+                    label: Text(
                       'Invoices',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        color: Color(0xFF166534),
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? const Color(0xFF4ADE80)
+                            : const Color(0xFF166534),
                         fontWeight: FontWeight.bold,
                         fontSize: 11,
                       ),
                     ),
                     style: OutlinedButton.styleFrom(
-                      side: BorderSide(color: const Color(0xFF166534).withValues(alpha: 0.4)),
-                      backgroundColor: const Color(0xFF166534).withValues(alpha: 0.05),
+                      side: BorderSide(
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? const Color(0xFF4ADE80).withValues(alpha: 0.5)
+                            : const Color(0xFF166534).withValues(alpha: 0.4),
+                      ),
+                      backgroundColor: Theme.of(context).brightness == Brightness.dark
+                          ? const Color(0xFF4ADE80).withValues(alpha: 0.12)
+                          : const Color(0xFF166534).withValues(alpha: 0.05),
                       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
                     ),
                   ),

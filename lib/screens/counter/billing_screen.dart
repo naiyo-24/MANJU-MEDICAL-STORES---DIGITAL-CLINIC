@@ -296,19 +296,21 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
     showDialog(
       context: context,
       builder: (context) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
         return StatefulBuilder(
           builder: (context, setDialogState) {
             return AlertDialog(
-              title: const Row(
+              backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+              title: Row(
                 children: [
-                  Icon(Icons.folder_open, color: Color(0xFF1E293B)),
-                  SizedBox(width: 8),
+                  Icon(Icons.folder_open, color: isDark ? Colors.white : const Color(0xFF1E293B)),
+                  const SizedBox(width: 8),
                   Text(
                     'Draft Invoices',
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF1E293B),
+                      color: isDark ? Colors.white : const Color(0xFF1E293B),
                     ),
                   ),
                 ],
@@ -317,10 +319,10 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                 width: 500,
                 height: 400,
                 child: drafts.isEmpty
-                    ? const Center(
+                    ? Center(
                         child: Text(
                           'No draft invoices found (auto-retained for 30 days).',
-                          style: TextStyle(color: Color(0xFF64748B)),
+                          style: TextStyle(color: isDark ? Colors.grey[400] : const Color(0xFF64748B)),
                         ),
                       )
                     : ListView.builder(
@@ -330,7 +332,14 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                           final timeStr =
                               "${draft.createdAt.day}/${draft.createdAt.month}/${draft.createdAt.year} ${draft.createdAt.hour}:${draft.createdAt.minute.toString().padLeft(2, '0')}";
                           return Card(
+                            color: isDark ? const Color(0xFF0F172A) : Colors.white,
                             margin: const EdgeInsets.only(bottom: 8),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              side: BorderSide(
+                                color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                              ),
+                            ),
                             child: ListTile(
                               contentPadding: const EdgeInsets.symmetric(
                                 horizontal: 16,
@@ -340,16 +349,17 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
                                 draft.customerName.isEmpty
                                     ? 'Walk-in Customer'
                                     : draft.customerName,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 14,
+                                  color: isDark ? Colors.white : const Color(0xFF1E293B),
                                 ),
                               ),
                               subtitle: Text(
                                 'Items: ${draft.items.length} • Format: ${draft.format} • $timeStr',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 12,
-                                  color: Color(0xFF64748B),
+                                  color: isDark ? Colors.grey[400] : const Color(0xFF64748B),
                                 ),
                               ),
                               trailing: IconButton(
@@ -424,7 +434,7 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: const Text('Close'),
+                  child: Text('Close', style: TextStyle(color: isDark ? Colors.white : null)),
                 ),
               ],
             );
@@ -435,25 +445,100 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
   }
 
   Future<void> _showInvoicesDialog() async {
-    final bills = await BillingHistoryService.getBillingHistory();
-    if (!mounted) return;
+    List<SavedBill> backendBills = [];
+    bool isLoadingBackend = true;
 
     showDialog(
       context: context,
       builder: (dialogCtx) {
+        final isDark = Theme.of(dialogCtx).brightness == Brightness.dark;
         return StatefulBuilder(
           builder: (dialogCtx, setDialogState) {
+            if (isLoadingBackend) {
+              BillingService.getPosHistory(days: 30).then((res) {
+                final historyList = res['history'] as List? ?? [];
+                final mapped = historyList.map((item) {
+                  String dateStr = item['date']?.toString() ?? '';
+                  dateStr = dateStr.replaceAll(' ', 'T');
+                  if (dateStr.endsWith('Z')) dateStr = dateStr.substring(0, dateStr.length - 1);
+                  final dt = DateTime.tryParse(dateStr) ?? DateTime.now();
+
+                  final rawItems = (item['items_detail'] as List?)
+                          ?.map((i) => Map<String, dynamic>.from(i))
+                          .toList() ??
+                      [];
+
+                  final itemsList = rawItems.map((i) {
+                    final price = (i['mrp'] as num?)?.toDouble() ??
+                        (i['price'] as num?)?.toDouble() ??
+                        0.0;
+                    final qty = (i['qty'] as num?)?.toInt() ?? 1;
+                    return <String, dynamic>{
+                      'name': i['name'] ?? 'Item',
+                      'qty': qty,
+                      'price': price,
+                      'mrp': price,
+                      'total': (i['total'] as num?)?.toDouble() ?? (price * qty),
+                      'batch': i['batch']?.toString() ?? '-',
+                      'expiry': i['expiry']?.toString() ?? '-',
+                      'hsn': i['hsn']?.toString() ?? '-',
+                      'inventory_item_id': i['inventory_item_id'],
+                      'is_loose': i['is_loose'] ?? false,
+                    };
+                  }).toList();
+
+                  final grandTotal = (item['amount'] as num?)?.toDouble() ?? 0.0;
+                  return SavedBill(
+                    id: item['id']?.toString() ?? '',
+                    invoiceNo: item['bill_no']?.toString() ?? item['invoice_no']?.toString() ?? 'INV',
+                    customerName: item['customer_name']?.isEmpty ?? true ? 'Walk-in Customer' : item['customer_name'],
+                    customerPhone: item['customer_phone']?.toString() ?? '',
+                    customerLocation: item['customer_location']?.toString() ?? '',
+                    customerGstin: item['customer_gstin']?.toString() ?? '',
+                    doctorName: item['doctor_name']?.toString() ?? '',
+                    paymentMode: item['payment_mode']?.toString() ?? 'CASH',
+                    subtotal: (item['subtotal'] as num?)?.toDouble() ?? grandTotal,
+                    discount: (item['discount'] as num?)?.toDouble() ?? 0.0,
+                    tax: (item['tax'] as num?)?.toDouble() ?? 0.0,
+                    grandTotal: grandTotal,
+                    items: itemsList,
+                    createdAt: dt,
+                    format: item['format']?.toString() ?? 'A5',
+                  );
+                }).toList();
+
+                if (dialogCtx.mounted) {
+                  setDialogState(() {
+                    backendBills = mapped;
+                    isLoadingBackend = false;
+                  });
+                }
+              }).catchError((_) async {
+                final localBills = await BillingHistoryService.getBillingHistory();
+                if (dialogCtx.mounted) {
+                  setDialogState(() {
+                    backendBills = localBills;
+                    isLoadingBackend = false;
+                  });
+                }
+              });
+            }
+
             return AlertDialog(
-              title: const Row(
+              backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+              title: Row(
                 children: [
-                  Icon(Icons.receipt_long, color: Color(0xFF166534)),
-                  SizedBox(width: 8),
+                  Icon(
+                    Icons.receipt_long,
+                    color: isDark ? const Color(0xFF4ADE80) : const Color(0xFF166534),
+                  ),
+                  const SizedBox(width: 8),
                   Text(
                     'Invoices (Recent 30 Days)',
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF1E293B),
+                      color: isDark ? Colors.white : const Color(0xFF1E293B),
                     ),
                   ),
                 ],
@@ -461,137 +546,159 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
               content: SizedBox(
                 width: 650,
                 height: 480,
-                child: bills.isEmpty
+                child: isLoadingBackend
                     ? const Center(
-                        child: Text(
-                          'No generated invoices found for the last 30 days.',
-                          style: TextStyle(color: Color(0xFF64748B)),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            CircularProgressIndicator(),
+                            SizedBox(height: 12),
+                            Text('Fetching recent invoices from backend...'),
+                          ],
                         ),
                       )
-                    : ListView.builder(
-                        itemCount: bills.length,
-                        itemBuilder: (ctx, index) {
-                          final bill = bills[index];
-                          final timeStr =
-                              "${bill.createdAt.day}/${bill.createdAt.month}/${bill.createdAt.year} ${bill.createdAt.hour}:${bill.createdAt.minute.toString().padLeft(2, '0')}";
-                          return Card(
-                            margin: const EdgeInsets.only(bottom: 10),
-                            elevation: 1,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                              side: BorderSide(color: Colors.grey.withValues(alpha: 0.2)),
+                    : backendBills.isEmpty
+                        ? Center(
+                            child: Text(
+                              'No generated invoices found for the last 30 days.',
+                              style: TextStyle(
+                                color: isDark ? Colors.grey[400] : const Color(0xFF64748B),
+                              ),
                             ),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                              child: Row(
-                                children: [
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Row(
+                          )
+                        : ListView.builder(
+                            itemCount: backendBills.length,
+                            itemBuilder: (ctx, index) {
+                              final bill = backendBills[index];
+                              final timeStr =
+                                  "${bill.createdAt.day}/${bill.createdAt.month}/${bill.createdAt.year} ${bill.createdAt.hour}:${bill.createdAt.minute.toString().padLeft(2, '0')}";
+                              return Card(
+                                color: isDark ? const Color(0xFF0F172A) : Colors.white,
+                                margin: const EdgeInsets.only(bottom: 10),
+                                elevation: 1,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                  side: BorderSide(
+                                    color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                                  ),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                                  child: Row(
+                                    children: [
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
                                           children: [
+                                            Row(
+                                              children: [
+                                                Text(
+                                                  bill.invoiceNo,
+                                                  style: TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 14,
+                                                    color: isDark ? Colors.white : const Color(0xFF1E293B),
+                                                  ),
+                                                ),
+                                                const SizedBox(width: 8),
+                                                Container(
+                                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                                  decoration: BoxDecoration(
+                                                    color: (isDark ? const Color(0xFF4ADE80) : const Color(0xFF166534)).withValues(alpha: 0.15),
+                                                    borderRadius: BorderRadius.circular(4),
+                                                  ),
+                                                  child: Text(
+                                                    bill.paymentMode,
+                                                    style: TextStyle(
+                                                      fontSize: 10,
+                                                      fontWeight: FontWeight.bold,
+                                                      color: isDark ? const Color(0xFF4ADE80) : const Color(0xFF166534),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            const SizedBox(height: 4),
                                             Text(
-                                              bill.invoiceNo,
-                                              style: const TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 14,
-                                                color: Color(0xFF1E293B),
+                                              'Customer: ${bill.customerName.isEmpty ? "Walk-in" : bill.customerName} • Items: ${bill.items.length}',
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                color: isDark ? Colors.grey[300] : const Color(0xFF475569),
                                               ),
                                             ),
-                                            const SizedBox(width: 8),
-                                            Container(
-                                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                              decoration: BoxDecoration(
-                                                color: const Color(0xFF166534).withValues(alpha: 0.1),
-                                                borderRadius: BorderRadius.circular(4),
-                                              ),
-                                              child: Text(
-                                                bill.paymentMode,
-                                                style: const TextStyle(
-                                                  fontSize: 10,
-                                                  fontWeight: FontWeight.bold,
-                                                  color: Color(0xFF166534),
-                                                ),
+                                            const SizedBox(height: 2),
+                                            Text(
+                                              '$timeStr • Format: ${bill.format}',
+                                              style: TextStyle(
+                                                fontSize: 11,
+                                                color: isDark ? Colors.grey[500] : const Color(0xFF94A3B8),
                                               ),
                                             ),
                                           ],
                                         ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          'Customer: ${bill.customerName.isEmpty ? "Walk-in" : bill.customerName} • Items: ${bill.items.length}',
-                                          style: const TextStyle(fontSize: 12, color: Color(0xFF475569)),
-                                        ),
-                                        const SizedBox(height: 2),
-                                        Text(
-                                          '$timeStr • Format: ${bill.format}',
-                                          style: const TextStyle(fontSize: 11, color: Color(0xFF94A3B8)),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  Column(
-                                    crossAxisAlignment: CrossAxisAlignment.end,
-                                    children: [
-                                      Text(
-                                        '₹${bill.grandTotal.toStringAsFixed(2)}',
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.w900,
-                                          fontSize: 15,
-                                          color: Color(0xFF166534),
-                                        ),
                                       ),
-                                      const SizedBox(height: 6),
-                                      Row(
-                                        mainAxisSize: MainAxisSize.min,
+                                      Column(
+                                        crossAxisAlignment: CrossAxisAlignment.end,
                                         children: [
-                                          // RE-PRINT BUTTON
-                                          ElevatedButton.icon(
-                                            onPressed: () {
-                                              Navigator.pop(dialogCtx);
-                                              _reprintBill(bill);
-                                            },
-                                            icon: const Icon(Icons.print, size: 14),
-                                            label: const Text('Re-Print', style: TextStyle(fontSize: 11)),
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor: const Color(0xFF3B82F6),
-                                              foregroundColor: Colors.white,
-                                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                                              minimumSize: Size.zero,
-                                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                          Text(
+                                            '₹${bill.grandTotal.toStringAsFixed(2)}',
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.w900,
+                                              fontSize: 15,
+                                              color: isDark ? const Color(0xFF4ADE80) : const Color(0xFF166534),
                                             ),
                                           ),
-                                          const SizedBox(width: 6),
-                                          // RECTIFY / EDIT BUTTON
-                                          OutlinedButton.icon(
-                                            onPressed: () {
-                                              Navigator.pop(dialogCtx);
-                                              _rectifyBill(bill);
-                                            },
-                                            icon: const Icon(Icons.edit, size: 14, color: Color(0xFFD97706)),
-                                            label: const Text('Rectify', style: TextStyle(fontSize: 11, color: Color(0xFFD97706), fontWeight: FontWeight.bold)),
-                                            style: OutlinedButton.styleFrom(
-                                              side: const BorderSide(color: Color(0xFFD97706)),
-                                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                                              minimumSize: Size.zero,
-                                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                            ),
+                                          const SizedBox(height: 6),
+                                          Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              // RE-PRINT BUTTON
+                                              ElevatedButton.icon(
+                                                onPressed: () {
+                                                  Navigator.pop(dialogCtx);
+                                                  _reprintBill(bill);
+                                                },
+                                                icon: const Icon(Icons.print, size: 14),
+                                                label: const Text('Re-Print', style: TextStyle(fontSize: 11)),
+                                                style: ElevatedButton.styleFrom(
+                                                  backgroundColor: const Color(0xFF3B82F6),
+                                                  foregroundColor: Colors.white,
+                                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                                  minimumSize: Size.zero,
+                                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                                ),
+                                              ),
+                                              const SizedBox(width: 6),
+                                              // RECTIFY / EDIT BUTTON
+                                              OutlinedButton.icon(
+                                                onPressed: () {
+                                                  Navigator.pop(dialogCtx);
+                                                  _rectifyBill(bill);
+                                                },
+                                                icon: const Icon(Icons.edit, size: 14, color: Color(0xFFD97706)),
+                                                label: const Text('Rectify', style: TextStyle(fontSize: 11, color: Color(0xFFD97706), fontWeight: FontWeight.bold)),
+                                                style: OutlinedButton.styleFrom(
+                                                  side: const BorderSide(color: Color(0xFFD97706)),
+                                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                                  minimumSize: Size.zero,
+                                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                                ),
+                                              ),
+                                            ],
                                           ),
                                         ],
                                       ),
                                     ],
                                   ),
-                                ],
-                              ),
-                            ),
-                          );
-                        },
-                      ),
+                                ),
+                              );
+                            },
+                          ),
               ),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(dialogCtx),
-                  child: const Text('Close'),
+                  child: Text('Close', style: TextStyle(color: isDark ? Colors.white : null)),
                 ),
               ],
             );
