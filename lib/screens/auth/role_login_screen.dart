@@ -266,7 +266,7 @@ class _RoleLoginScreenState extends ConsumerState<RoleLoginScreen> {
                       ),
                       if (isWide)
                         const Text(
-                          'SirfBill: Smart Billing, Complete Peace of Mind',
+                          'Smart Billing, Complete Peace of Mind',
                           style: TextStyle(color: Colors.white70, fontSize: 12),
                         )
                       else
