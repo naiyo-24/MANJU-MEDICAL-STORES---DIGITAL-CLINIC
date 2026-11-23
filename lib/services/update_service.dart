@@ -108,7 +108,37 @@ class UpdateService {
       debugPrint('[UpdateService] Direct manifest check failed: $e');
     }
 
-    // 2. Query GitHub Releases API to see if a newer release tag was published
+    // 2. Direct GitHub Release Asset download (CDN path - no rate limits, completely bypasses GitHub API)
+    if (highestManifest == null) {
+      try {
+        final directAssetUri = Uri.parse(
+          'https://github.com/naiyo-24/MANJU-MEDICAL-STORES---DIGITAL-CLINIC/releases/latest/download/latest.json?_t=${DateTime.now().millisecondsSinceEpoch}',
+        );
+        final request = http.Request('GET', directAssetUri)
+          ..followRedirects = true
+          ..maxRedirects = 10
+          ..headers.addAll(noCacheHeaders);
+
+        final streamedResponse = await request.send().timeout(const Duration(seconds: 15));
+        final response = await http.Response.fromStream(streamedResponse);
+
+        if (response.statusCode == 200) {
+          final data = jsonDecode(response.body) as Map<String, dynamic>;
+          final manifest = UpdateManifest.fromJson(data);
+          final cleanLatestVersion = manifest.version.split('+').first;
+          final latest = Version.parse(cleanLatestVersion);
+
+          if (latest > highestVersion) {
+            highestVersion = latest;
+            highestManifest = manifest;
+          }
+        }
+      } catch (e) {
+        debugPrint('[UpdateService] Direct GitHub release asset check failed: $e');
+      }
+    }
+
+    // 3. Fallback: Query GitHub Releases API to see if a newer release tag was published
     if (highestManifest == null) {
       try {
         final apiUri = Uri.parse(
