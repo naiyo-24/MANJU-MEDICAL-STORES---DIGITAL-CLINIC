@@ -266,7 +266,7 @@ class _RoleLoginScreenState extends ConsumerState<RoleLoginScreen> {
                       ),
                       if (isWide)
                         const Text(
-                          'SirfBill • Smart Billing, Complete Peace of Mind',
+                          'SirfBill: Smart Billing, Complete Peace of Mind',
                           style: TextStyle(color: Colors.white70, fontSize: 12),
                         )
                       else
@@ -308,7 +308,7 @@ class _RoleLoginScreenState extends ConsumerState<RoleLoginScreen> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             const Text(
-                              '© 2026 SirfBill. Smart Billing, Complete Peace of Mind. All rights reserved.',
+                              '© 2026 SirfBill: Smart Billing, Complete Peace of Mind. All rights reserved.',
                               style: TextStyle(
                                 color: Color(0xFF94A3B8),
                                 fontSize: 12,
@@ -317,7 +317,7 @@ class _RoleLoginScreenState extends ConsumerState<RoleLoginScreen> {
                             Row(
                               children: [
                                 const Text(
-                                  'SirfBill Pharma — Naiyo24',
+                                  'SirfBill — Naiyo24',
                                   style: TextStyle(
                                     color: Color(0xFF94A3B8),
                                     fontSize: 12,
@@ -332,7 +332,7 @@ class _RoleLoginScreenState extends ConsumerState<RoleLoginScreen> {
                       : Column(
                           children: [
                             const Text(
-                              '© 2026 SirfBill. Smart Billing, Complete Peace of Mind. All rights reserved.',
+                              '© 2026 SirfBill: Smart Billing, Complete Peace of Mind. All rights reserved.',
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 color: Color(0xFF94A3B8),
@@ -344,7 +344,7 @@ class _RoleLoginScreenState extends ConsumerState<RoleLoginScreen> {
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 const Text(
-                                  'SirfBill Pharma — Naiyo24',
+                                  'SirfBill — Naiyo24',
                                   style: TextStyle(
                                     color: Color(0xFF94A3B8),
                                     fontSize: 12,

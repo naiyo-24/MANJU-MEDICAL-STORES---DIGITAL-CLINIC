@@ -483,7 +483,7 @@ class DashboardScreen extends ConsumerWidget {
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Text(
-                                    'SirfBill Pharma — Naiyo24',
+                                    'Together for a Healither Tomorrow',
                                     style: TextStyle(
                                       color: isDark
                                           ? const Color(0xFF94A3B8)
@@ -509,13 +509,14 @@ class DashboardScreen extends ConsumerWidget {
                                 text: TextSpan(
                                   style: TextStyle(
                                     color: isDark
-                                        ? const Color(0xFF64748B)
-                                        : const Color(0xFF94A3B8),
-                                    fontSize: 10.5,
+                                        ? const Color(0xFF94A3B8)
+                                        : const Color(0xFF334155),
+                                    fontSize: 11.5,
+                                    fontWeight: FontWeight.w500,
                                   ),
                                   children: [
                                     const TextSpan(
-                                      text: '© 2026 SirfBill. Smart Billing, Complete Peace of Mind. A Product of ',
+                                      text: '© 2026 SirfBill Pharna — ',
                                     ),
                                     TextSpan(
                                       text: 'Naiyo24',
@@ -524,7 +525,7 @@ class DashboardScreen extends ConsumerWidget {
                                             ? const Color(0xFF4ADE80)
                                             : const Color(0xFF166534),
                                         fontWeight: FontWeight.bold,
-                                        fontSize: 12.5,
+                                        fontSize: 13.5,
                                       ),
                                     ),
                                   ],

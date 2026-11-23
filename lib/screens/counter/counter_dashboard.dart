@@ -33,7 +33,7 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
   Timer? _timer;
   bool _isSidebarExpanded = true;
 
-  late final AppLifecycleListener _lifecycleListener;
+  AppLifecycleListener? _lifecycleListener;
 
   @override
   void initState() {
@@ -48,18 +48,21 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
 
     HardwareKeyboard.instance.addHandler(_handleKeyEvent);
 
-    // If user closes or exits the app, logout session so next launch requires login
-    _lifecycleListener = AppLifecycleListener(
-      onDetach: () {
-        AuthService.logout();
-      },
-      onExitRequested: () async {
-        await AuthService.logout();
-        return ui.AppExitResponse.exit;
-      },
-    );
+    // If user closes or exits the app, logout session so next launch requires login (Desktop only)
+    if (!kIsWeb) {
+      _lifecycleListener = AppLifecycleListener(
+        onDetach: () {
+          AuthService.logout();
+        },
+        onExitRequested: () async {
+          await AuthService.logout();
+          return ui.AppExitResponse.exit;
+        },
+      );
+    }
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       _checkAutomaticUpdates();
       ref.read(stockAlertProvider.notifier).refresh();
     });
@@ -82,7 +85,7 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
   @override
   void dispose() {
     _timer?.cancel();
-    _lifecycleListener.dispose();
+    _lifecycleListener?.dispose();
     HardwareKeyboard.instance.removeHandler(_handleKeyEvent);
     super.dispose();
   }
