@@ -27,7 +27,7 @@ class SirfBillApp extends ConsumerWidget {
     final themeMode = ref.watch(themeProvider);
 
     return MaterialApp.router(
-      title: 'SirfBill: Smart Billing, Complete Peace of Mind',
+      title: 'Smart Billing, Complete Peace of Mind',
       debugShowCheckedModeBanner: false,
       themeMode: themeMode,
       theme: ThemeData(
