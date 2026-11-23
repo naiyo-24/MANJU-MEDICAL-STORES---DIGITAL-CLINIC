@@ -317,7 +317,7 @@ class _RoleLoginScreenState extends ConsumerState<RoleLoginScreen> {
                             Row(
                               children: [
                                 const Text(
-                                  'SirfBill — Naiyo24',
+                                  'SirfBill Pharma — Naiyo24',
                                   style: TextStyle(
                                     color: Color(0xFF94A3B8),
                                     fontSize: 12,
