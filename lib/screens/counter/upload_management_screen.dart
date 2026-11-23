@@ -38,7 +38,6 @@ class _UploadManagementScreenState
   bool _isUploading = false;
   String? _editingItemId;
   int? _originalStockQuantity;
-  double? _originalBuyingPrice;
   late final TextEditingController _nameCtrl;
   final _skuCtrl = TextEditingController();
   final _manufacturerCtrl = TextEditingController();
@@ -73,7 +72,6 @@ class _UploadManagementScreenState
       _manufacturerCtrl.text = item.manufacturer;
       _batchCtrl.text = item.batchNumber;
       _originalStockQuantity = item.stockQuantity;
-      _originalBuyingPrice = item.buyingPrice;
       _stockCtrl.text = item.stockQuantity.toString();
       _packSizeCtrl.text = (item.packSize ?? 1).toString();
       _priceCtrl.text = item.unitPrice > 0 ? item.unitPrice.toString() : '';
@@ -86,6 +84,9 @@ class _UploadManagementScreenState
       _selectedRackId = item.rackId;
       _selectedCategoryId = item.categoryId;
       _selectedManufacturerId = item.manufacturerId;
+
+      // Always fetch fresh item details from backend to bypass any stale router/provider cache
+      _fetchFullItemDetailsIfNeeded(item.id, item.name);
     } else if (widget.initialAlertItem != null) {
       final item = widget.initialAlertItem!;
       _editingItemId = item.id;
@@ -94,7 +95,6 @@ class _UploadManagementScreenState
       _manufacturerCtrl.text = item.manufacturer;
       _batchCtrl.text = item.batchNumber;
       _originalStockQuantity = item.stockQuantity;
-      _originalBuyingPrice = item.buyingPrice;
       _stockCtrl.text = item.stockQuantity.toString();
       _packSizeCtrl.text = (item.packSize ?? 1).toString();
       _priceCtrl.text = item.unitPrice > 0 ? item.unitPrice.toString() : '';
@@ -108,13 +108,12 @@ class _UploadManagementScreenState
       _selectedCategoryId = item.categoryId;
       _selectedManufacturerId = item.manufacturerId;
 
-      // In case the alert payload didn't include full fields from the backend, fetch them asynchronously
+      // Fetch fresh and full details asynchronously
       _fetchFullItemDetailsIfNeeded(item.id, item.name);
     }
   }
 
   Future<void> _fetchFullItemDetailsIfNeeded(String itemId, String medicineName) async {
-    if (_priceCtrl.text.isNotEmpty && _expiryCtrl.text.isNotEmpty) return;
     try {
       final shopId = await InventoryService.getShopId();
       if (shopId.isEmpty) return;
@@ -140,20 +139,20 @@ class _UploadManagementScreenState
           if (_skuCtrl.text.isEmpty) _skuCtrl.text = matched.sku;
           if (_manufacturerCtrl.text.isEmpty) _manufacturerCtrl.text = matched.manufacturer;
           if (_batchCtrl.text.isEmpty) _batchCtrl.text = matched.batchNumber;
-          _originalStockQuantity ??= matched.stockQuantity;
-          _originalBuyingPrice ??= matched.buyingPrice;
-          if (_stockCtrl.text.isEmpty) _stockCtrl.text = matched.stockQuantity.toString();
-          if (_priceCtrl.text.isEmpty && matched.unitPrice > 0) _priceCtrl.text = matched.unitPrice.toString();
-          if (_buyingPriceCtrl.text.isEmpty && matched.buyingPrice > 0) _buyingPriceCtrl.text = matched.buyingPrice.toString();
+          // Synchronize authoritative live stock quantity & buying price from backend
+          _originalStockQuantity = matched.stockQuantity;
+          _stockCtrl.text = matched.stockQuantity.toString();
+          if (matched.unitPrice > 0) _priceCtrl.text = matched.unitPrice.toString();
+          if (matched.buyingPrice > 0) _buyingPriceCtrl.text = matched.buyingPrice.toString();
           if (_hsnCtrl.text.isEmpty && matched.hsnCode != null) _hsnCtrl.text = matched.hsnCode!;
-          if (_expiryCtrl.text.isEmpty) _expiryCtrl.text = matched.expiryDate;
-          if (_packSizeCtrl.text == '1' && matched.packSize != null) _packSizeCtrl.text = matched.packSize.toString();
-          if (_gstCtrl.text == '0' && matched.gst != null) _gstCtrl.text = matched.gst.toString();
-          if (_discountCtrl.text == '0' && matched.discount != null) _discountCtrl.text = matched.discount.toString();
-          _selectedDistributorId ??= matched.distributorId;
-          _selectedRackId ??= matched.rackId;
-          _selectedCategoryId ??= matched.categoryId;
-          _selectedManufacturerId ??= matched.manufacturerId;
+          if (matched.expiryDate.isNotEmpty) _expiryCtrl.text = matched.expiryDate;
+          if (matched.packSize != null) _packSizeCtrl.text = matched.packSize.toString();
+          if (matched.gst != null) _gstCtrl.text = matched.gst.toString();
+          if (matched.discount != null) _discountCtrl.text = matched.discount.toString();
+          if (matched.distributorId != null) _selectedDistributorId = matched.distributorId;
+          if (matched.rackId != null) _selectedRackId = matched.rackId;
+          if (matched.categoryId != null) _selectedCategoryId = matched.categoryId;
+          if (matched.manufacturerId != null) _selectedManufacturerId = matched.manufacturerId;
         });
       }
     } catch (_) {}
@@ -1385,6 +1384,8 @@ class _UploadManagementScreenState
         }
       }
 
+      final int savedStock = int.tryParse(_stockCtrl.text) ?? 0;
+
       if (_editingItemId != null && _editingItemId!.isNotEmpty) {
         await InventoryService.updateMedicine(_editingItemId!, payload);
       } else {
@@ -1392,12 +1393,25 @@ class _UploadManagementScreenState
       }
 
       if (mounted) {
+        setState(() {
+          _originalStockQuantity = savedStock;
+        });
+
         ref.invalidate(inventoryProvider);
         ref.invalidate(purchaseInventoryProvider);
         ref.invalidate(purchaseBillsProvider);
         ref.invalidate(distributorsProvider);
         ref.invalidate(accountsProvider);
         ref.invalidate(stockAlertProvider);
+        ref.invalidate(billingInventoryProvider);
+
+        // Explicitly trigger background reload of inventory and stock alerts
+        Future.microtask(() {
+          try {
+            ref.read(inventoryProvider.notifier).loadInventory();
+            ref.read(billingInventoryProvider.notifier).loadInventory();
+          } catch (_) {}
+        });
 
         if (isStockIncreased) {
           final String billNumText = createdPurchaseBillNumber != null ? ' (#$createdPurchaseBillNumber)' : '';

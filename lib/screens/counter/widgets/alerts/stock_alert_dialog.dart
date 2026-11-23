@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import '../../../../models/stock_alert_item.dart';
 import '../../../../providers/stock_alert_provider.dart';
 import '../../../../providers/counter_providers.dart';
-import '../../../../services/inventory_service.dart';
 import '../../../../utils/responsive.dart';
 
 class StockAlertDialog extends ConsumerStatefulWidget {
@@ -411,40 +410,11 @@ class _StockAlertDialogState extends ConsumerState<StockAlertDialog> {
               InkWell(
                 onTap: () async {
                   Navigator.pop(context);
-                  // Find matching InventoryItem in inventoryProvider if available, or fetch full item
-                  final inventoryList = ref.read(inventoryProvider).value ?? [];
-                  InventoryItem? matchedItem;
-                  try {
-                    matchedItem = inventoryList.firstWhere(
-                      (inv) => inv.id == item.id || (inv.name.toLowerCase() == item.name.toLowerCase() && inv.batchNumber == item.batchNumber),
-                    );
-                  } catch (_) {
-                    matchedItem = null;
-                  }
-
-                  if (matchedItem != null) {
-                    context.go('/counter/inventory/upload', extra: matchedItem);
-                  } else {
-                    // Try asynchronous single-medicine search if not on the first 100-page in memory
-                    try {
-                      final shopId = await InventoryService.getShopId();
-                      if (shopId.isNotEmpty) {
-                        final fetched = await InventoryService.fetchInventory(
-                          shopId: shopId,
-                          searchQuery: item.name,
-                        );
-                        if (fetched.isNotEmpty) {
-                          matchedItem = fetched.firstWhere(
-                            (inv) => inv.id == item.id || inv.name.toLowerCase() == item.name.toLowerCase(),
-                            orElse: () => fetched.first,
-                          );
-                        }
-                      }
-                    } catch (_) {}
-
-                    if (context.mounted) {
-                      context.go('/counter/inventory/upload', extra: matchedItem ?? item);
-                    }
+                  // Push to upload page and await return to immediately refresh stock alert and inventory lists
+                  await context.push('/counter/inventory/upload', extra: item);
+                  if (context.mounted) {
+                    ref.invalidate(stockAlertProvider);
+                    ref.read(inventoryProvider.notifier).loadInventory();
                   }
                 },
                 borderRadius: BorderRadius.circular(6),
