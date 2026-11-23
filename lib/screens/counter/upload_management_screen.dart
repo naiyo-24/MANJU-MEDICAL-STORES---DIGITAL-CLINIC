@@ -124,12 +124,23 @@ class _UploadManagementScreenState
       );
 
       InventoryItem? matched;
-      try {
-        matched = results.firstWhere(
-          (m) => m.id == itemId || m.name.toLowerCase() == medicineName.toLowerCase(),
-        );
-      } catch (_) {
-        if (results.isNotEmpty) matched = results.first;
+      // 1. Strict priority: match by exact unique item ID first
+      if (itemId.isNotEmpty) {
+        try {
+          matched = results.firstWhere((m) => m.id == itemId);
+        } catch (_) {}
+      }
+
+      // 2. Fallback only if no ID or not found: match by exact name AND batch number
+      if (matched == null && medicineName.isNotEmpty) {
+        final currentBatch = _batchCtrl.text.trim();
+        try {
+          matched = results.firstWhere(
+            (m) =>
+                m.name.toLowerCase() == medicineName.toLowerCase() &&
+                (currentBatch.isEmpty || m.batchNumber == currentBatch),
+          );
+        } catch (_) {}
       }
 
       if (matched != null && mounted) {
