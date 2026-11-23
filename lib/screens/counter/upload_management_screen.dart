@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:file_picker/file_picker.dart';
 import '../../services/inventory_service.dart';
+import '../../services/purchase_service.dart';
+import '../../providers/distributor_provider.dart';
+import '../../providers/stock_alert_provider.dart';
 import '../../services/export_service.dart';
 import '../../providers/counter_providers.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -34,6 +37,8 @@ class _UploadManagementScreenState
     extends ConsumerState<UploadManagementScreen> {
   bool _isUploading = false;
   String? _editingItemId;
+  int? _originalStockQuantity;
+  double? _originalBuyingPrice;
   late final TextEditingController _nameCtrl;
   final _skuCtrl = TextEditingController();
   final _manufacturerCtrl = TextEditingController();
@@ -67,6 +72,8 @@ class _UploadManagementScreenState
       _skuCtrl.text = item.sku;
       _manufacturerCtrl.text = item.manufacturer;
       _batchCtrl.text = item.batchNumber;
+      _originalStockQuantity = item.stockQuantity;
+      _originalBuyingPrice = item.buyingPrice;
       _stockCtrl.text = item.stockQuantity.toString();
       _packSizeCtrl.text = (item.packSize ?? 1).toString();
       _priceCtrl.text = item.unitPrice > 0 ? item.unitPrice.toString() : '';
@@ -86,6 +93,8 @@ class _UploadManagementScreenState
       _skuCtrl.text = item.sku;
       _manufacturerCtrl.text = item.manufacturer;
       _batchCtrl.text = item.batchNumber;
+      _originalStockQuantity = item.stockQuantity;
+      _originalBuyingPrice = item.buyingPrice;
       _stockCtrl.text = item.stockQuantity.toString();
       _packSizeCtrl.text = (item.packSize ?? 1).toString();
       _priceCtrl.text = item.unitPrice > 0 ? item.unitPrice.toString() : '';
@@ -131,6 +140,8 @@ class _UploadManagementScreenState
           if (_skuCtrl.text.isEmpty) _skuCtrl.text = matched.sku;
           if (_manufacturerCtrl.text.isEmpty) _manufacturerCtrl.text = matched.manufacturer;
           if (_batchCtrl.text.isEmpty) _batchCtrl.text = matched.batchNumber;
+          _originalStockQuantity ??= matched.stockQuantity;
+          _originalBuyingPrice ??= matched.buyingPrice;
           if (_stockCtrl.text.isEmpty) _stockCtrl.text = matched.stockQuantity.toString();
           if (_priceCtrl.text.isEmpty && matched.unitPrice > 0) _priceCtrl.text = matched.unitPrice.toString();
           if (_buyingPriceCtrl.text.isEmpty && matched.buyingPrice > 0) _buyingPriceCtrl.text = matched.buyingPrice.toString();
@@ -1308,6 +1319,72 @@ class _UploadManagementScreenState
         'image_url': uploadedImageUrl,
       };
 
+      final int newStock = int.tryParse(_stockCtrl.text) ?? 0;
+      final double effectiveBuyingPrice = double.tryParse(_buyingPriceCtrl.text) ?? 0.0;
+      final int originalStock = _originalStockQuantity ?? 0;
+      final int addedStock = newStock - originalStock;
+      final bool isStockIncreased = _editingItemId != null && _editingItemId!.isNotEmpty && addedStock > 0;
+
+      String? createdPurchaseBillNumber;
+      String? dynamicDistributorName;
+      double generatedBillAmount = 0.0;
+
+      // When existing medicine stock is increased, generate an unpaid purchase bill
+      if (isStockIncreased) {
+        final distributorsAsync = ref.read(distributorsProvider);
+        final List<dynamic> distributors = distributorsAsync.value ?? [];
+        dynamic matchedDist;
+        if (_selectedDistributorId != null) {
+          try {
+            matchedDist = distributors.firstWhere(
+              (d) => d['id']?.toString() == _selectedDistributorId?.toString(),
+            );
+          } catch (_) {}
+        }
+        dynamicDistributorName = matchedDist != null
+            ? (matchedDist['name']?.toString() ?? 'Distributor')
+            : (_selectedDistributorId != null ? 'Selected Distributor' : 'Self Purchase');
+
+        generatedBillAmount = addedStock * effectiveBuyingPrice;
+        final shopId = await InventoryService.getShopId();
+
+        final purchaseBillData = {
+          'shop_id': shopId,
+          'distributor_id': _selectedDistributorId,
+          'invoice_no': 'PB-${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}',
+          'payment_status': 'UNPAID',
+          'payment_method': 'CREDIT',
+          'bill_date': DateTime.now().toIso8601String().split('T')[0],
+          'total_amount': generatedBillAmount,
+          'subtotal': generatedBillAmount,
+          'total_discount': 0.0,
+          'total_gst': double.tryParse(_gstCtrl.text) ?? 0.0,
+          'amount_paid': 0.0,
+          'items': [
+            {
+              'inventory_item_id': _editingItemId,
+              'name': _nameCtrl.text,
+              'quantity': addedStock,
+              'unit_price': effectiveBuyingPrice,
+              'selling_price': double.tryParse(_priceCtrl.text) ?? 0.0,
+              'batch_number': _batchCtrl.text.isNotEmpty ? _batchCtrl.text : 'BATCH-01',
+              'expiry_date': _expiryCtrl.text.isNotEmpty ? _expiryCtrl.text : null,
+              'hsn_code': _hsnCtrl.text.isNotEmpty ? _hsnCtrl.text : null,
+              'gst': double.tryParse(_gstCtrl.text) ?? 0.0,
+              'rack_id': _selectedRackId,
+              'category_id': _selectedCategoryId,
+            }
+          ],
+        };
+
+        try {
+          final billResp = await PurchaseService().createPurchaseBill(purchaseBillData);
+          createdPurchaseBillNumber = billResp['invoice_no']?.toString() ?? purchaseBillData['invoice_no']?.toString();
+        } catch (e) {
+          debugPrint('Notice: automatic purchase bill generation fallback: $e');
+        }
+      }
+
       if (_editingItemId != null && _editingItemId!.isNotEmpty) {
         await InventoryService.updateMedicine(_editingItemId!, payload);
       } else {
@@ -1316,17 +1393,48 @@ class _UploadManagementScreenState
 
       if (mounted) {
         ref.invalidate(inventoryProvider);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              _editingItemId != null
-                  ? 'Medicine updated successfully!'
-                  : 'Medicine added successfully!',
-              style: TextStyle(color: Theme.of(context).cardColor),
+        ref.invalidate(purchaseInventoryProvider);
+        ref.invalidate(purchaseBillsProvider);
+        ref.invalidate(distributorsProvider);
+        ref.invalidate(accountsProvider);
+        ref.invalidate(stockAlertProvider);
+
+        if (isStockIncreased) {
+          final String billNumText = createdPurchaseBillNumber != null ? ' (#$createdPurchaseBillNumber)' : '';
+          final String amountText = generatedBillAmount > 0 ? ' of ₹${generatedBillAmount.toStringAsFixed(2)}' : '';
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  const Icon(Icons.check_circle_rounded, color: Colors.white, size: 22),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'Stock increased by +$addedStock units. An unpaid purchase bill$billNumText$amountText has been generated for Distributor [$dynamicDistributorName].',
+                      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: Colors.white),
+                    ),
+                  ),
+                ],
+              ),
+              backgroundColor: const Color(0xFF166534),
+              duration: const Duration(seconds: 5),
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             ),
-            backgroundColor: Colors.green,
-          ),
-        );
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                _editingItemId != null
+                    ? 'Medicine updated successfully!'
+                    : 'Medicine added successfully!',
+                style: TextStyle(color: Theme.of(context).cardColor),
+              ),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
         Navigator.pop(context, true);
       }
     } catch (e) {
