@@ -72,7 +72,6 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
   @override
   void initState() {
     super.initState();
-    _startClock();
     _fetchDoctors();
     _fetchCustomers();
     _fetchShopSettings();
@@ -85,12 +84,7 @@ class _BillingScreenState extends ConsumerState<BillingScreen> {
     });
   }
 
-  void _startClock() {
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      setState(() {
-      });
-    });
-  }
+
 
   Future<void> _fetchShopSettings() async {
     try {

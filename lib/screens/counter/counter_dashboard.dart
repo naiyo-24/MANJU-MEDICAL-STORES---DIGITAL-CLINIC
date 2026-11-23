@@ -29,8 +29,7 @@ class CounterDashboard extends ConsumerStatefulWidget {
 
 class _CounterDashboardState extends ConsumerState<CounterDashboard> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  DateTime _currentTime = DateTime.now();
-  Timer? _timer;
+  // Live clock is isolated in _DashboardLiveClock
   bool _isSidebarExpanded = true;
 
   AppLifecycleListener? _lifecycleListener;
@@ -38,13 +37,7 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
   @override
   void initState() {
     super.initState();
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (mounted) {
-        setState(() {
-          _currentTime = DateTime.now();
-        });
-      }
-    });
+
 
     HardwareKeyboard.instance.addHandler(_handleKeyEvent);
 
@@ -84,7 +77,6 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
 
   @override
   void dispose() {
-    _timer?.cancel();
     _lifecycleListener?.dispose();
     HardwareKeyboard.instance.removeHandler(_handleKeyEvent);
     super.dispose();
@@ -136,36 +128,7 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
     }
   }
 
-  String _formatDate(DateTime date) {
-    const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ];
-    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    String dayName = days[date.weekday - 1];
-    String monthName = months[date.month - 1];
-    return '$dayName, ${date.day} $monthName ${date.year}';
-  }
 
-  String _formatTime(DateTime date) {
-    int hour = date.hour;
-    String period = hour >= 12 ? 'PM' : 'AM';
-    hour = hour % 12;
-    if (hour == 0) hour = 12;
-    String minute = date.minute.toString().padLeft(2, '0');
-    String second = date.second.toString().padLeft(2, '0');
-    return '$hour:$minute:$second $period';
-  }
 
   Widget _buildSidebarItem({
     required int index,
@@ -675,7 +638,7 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
                   onTap: () async {
                     await showDatePicker(
                       context: context,
-                      initialDate: _currentTime,
+                      initialDate: DateTime.now(),
                       firstDate: DateTime(2000),
                       lastDate: DateTime(2100),
                       builder: (context, child) {
@@ -721,29 +684,7 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
                           size: 20,
                         ),
                         const SizedBox(width: 10),
-                        Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              _formatDate(_currentTime),
-                              style: const TextStyle(
-                                color: Color(0xFF166534),
-                                fontSize: 13,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            Text(
-                              _formatTime(_currentTime),
-                              style: const TextStyle(
-                                color: Color(0xFF1E293B),
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
-                        ),
+const _DashboardLiveClock(isMobile: false),
                       ],
                     ),
                   ),
@@ -983,7 +924,7 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
                       onTap: () async {
                         await showDatePicker(
                           context: context,
-                          initialDate: _currentTime,
+                          initialDate: DateTime.now(),
                           firstDate: DateTime(2000),
                           lastDate: DateTime(2100),
                           builder: (context, child) {
@@ -1020,28 +961,7 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
                             color: const Color(0xFF22C55E).withValues(alpha: 0.3),
                           ),
                         ),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              DateFormat('d MMM yyyy').format(_currentTime),
-                              style: const TextStyle(
-                                color: Color(0xFF166534),
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            Text(
-                              _formatTime(_currentTime),
-                              style: const TextStyle(
-                                color: Color(0xFF1E293B),
-                                fontSize: 10,
-                              ),
-                            ),
-                          ],
-                        ),
+child: const _DashboardLiveClock(isMobile: true),
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -1793,6 +1713,110 @@ class _CounterDashboardState extends ConsumerState<CounterDashboard> {
           ),
         ),
       ),
+    );
+  }
+}
+
+
+/// Isolated micro-widget for live clock display that does NOT rebuild the parent dashboard
+class _DashboardLiveClock extends StatefulWidget {
+  final bool isMobile;
+  const _DashboardLiveClock({required this.isMobile});
+
+  @override
+  State<_DashboardLiveClock> createState() => _DashboardLiveClockState();
+}
+
+class _DashboardLiveClockState extends State<_DashboardLiveClock> {
+  late DateTime _now;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _now = DateTime.now();
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted) {
+        setState(() {
+          _now = DateTime.now();
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  String _formatDate(DateTime date) {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    String dayName = days[date.weekday - 1];
+    String monthName = months[date.month - 1];
+    return '$dayName, ${date.day} $monthName ${date.year}';
+  }
+
+  String _formatTime(DateTime date) {
+    int hour = date.hour;
+    String period = hour >= 12 ? 'PM' : 'AM';
+    hour = hour % 12;
+    if (hour == 0) hour = 12;
+    String minute = date.minute.toString().padLeft(2, '0');
+    String second = date.second.toString().padLeft(2, '0');
+    return '$hour:$minute:$second $period';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (widget.isMobile) {
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            DateFormat('d MMM yyyy').format(_now),
+            style: const TextStyle(
+              color: Color(0xFF166534),
+              fontSize: 10,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          Text(
+            _formatTime(_now),
+            style: const TextStyle(
+              color: Color(0xFF1E293B),
+              fontSize: 10,
+            ),
+          ),
+        ],
+      );
+    }
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(
+          _formatDate(_now),
+          style: const TextStyle(
+            color: Color(0xFF166534),
+            fontSize: 13,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        Text(
+          _formatTime(_now),
+          style: const TextStyle(
+            color: Color(0xFF1E293B),
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
     );
   }
 }
