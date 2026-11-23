@@ -308,7 +308,7 @@ class _RoleLoginScreenState extends ConsumerState<RoleLoginScreen> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             const Text(
-                              '© 2026 SirfBill: Smart Billing, Complete Peace of Mind. All rights reserved.',
+                              'Smart Billing, Complete Peace of Mind. All rights reserved.',
                               style: TextStyle(
                                 color: Color(0xFF94A3B8),
                                 fontSize: 12,
