@@ -206,7 +206,7 @@ class _AboutUsDialogState extends State<AboutUsDialog> {
                             ),
                             const SizedBox(height: 3),
                             Text(
-                              'Bill Karo, Befikar Raho',
+                              'Smart Billing, Complete Peace of Mind',
                               style: TextStyle(
                                 color: Colors.white,
                                 fontSize: isDesktop ? 13 : 11.5,

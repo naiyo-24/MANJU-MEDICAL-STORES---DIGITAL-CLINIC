@@ -483,7 +483,7 @@ class DashboardScreen extends ConsumerWidget {
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Text(
-                                    'Together for a Healthier Tomorrow',
+                                    'SirfBill Pharma — Naiyo24',
                                     style: TextStyle(
                                       color: isDark
                                           ? const Color(0xFF94A3B8)
@@ -515,7 +515,7 @@ class DashboardScreen extends ConsumerWidget {
                                   ),
                                   children: [
                                     const TextSpan(
-                                      text: '© 2026 SirfBill Bill Karo, Befikar Raho. A Product of ',
+                                      text: '© 2026 SirfBill. Smart Billing, Complete Peace of Mind. A Product of ',
                                     ),
                                     TextSpan(
                                       text: 'Naiyo24',

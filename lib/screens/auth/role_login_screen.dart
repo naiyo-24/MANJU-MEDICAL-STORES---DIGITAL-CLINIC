@@ -266,7 +266,7 @@ class _RoleLoginScreenState extends ConsumerState<RoleLoginScreen> {
                       ),
                       if (isWide)
                         const Text(
-                          'SirfBill Bill Karo, Befikar Raho',
+                          'SirfBill • Smart Billing, Complete Peace of Mind',
                           style: TextStyle(color: Colors.white70, fontSize: 12),
                         )
                       else
@@ -308,54 +308,54 @@ class _RoleLoginScreenState extends ConsumerState<RoleLoginScreen> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             const Text(
-                              '© 2026 SirfBill Bill Karo, Befikar Raho. All rights reserved.',
-                                      style: TextStyle(
-                                        color: Color(0xFF94A3B8),
-                                        fontSize: 12,
-                                      ),
-                                    ),
-                                    Row(
-                                      children: [
-                                        const Text(
-                                          'Together for a Healthier Tomorrow',
-                                          style: TextStyle(
-                                            color: Color(0xFF94A3B8),
-                                            fontSize: 12,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Icon(Icons.eco, size: 14, color: widget.themeColor),
-                                      ],
-                                    ),
-                                  ],
-                                )
-                              : Column(
-                                  children: [
-                                    const Text(
-                                      '© 2026 SirfBill Bill Karo, Befikar Raho. All rights reserved.',
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(
-                                        color: Color(0xFF94A3B8),
-                                        fontSize: 12,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        const Text(
-                                          'Together for a Healthier Tomorrow',
-                                          style: TextStyle(
-                                            color: Color(0xFF94A3B8),
-                                            fontSize: 12,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Icon(Icons.eco, size: 14, color: widget.themeColor),
-                                      ],
-                                    ),
-                                  ],
+                              '© 2026 SirfBill. Smart Billing, Complete Peace of Mind. All rights reserved.',
+                              style: TextStyle(
+                                color: Color(0xFF94A3B8),
+                                fontSize: 12,
+                              ),
+                            ),
+                            Row(
+                              children: [
+                                const Text(
+                                  'SirfBill Pharma — Naiyo24',
+                                  style: TextStyle(
+                                    color: Color(0xFF94A3B8),
+                                    fontSize: 12,
+                                  ),
                                 ),
+                                const SizedBox(width: 8),
+                                Icon(Icons.eco, size: 14, color: widget.themeColor),
+                              ],
+                            ),
+                          ],
+                        )
+                      : Column(
+                          children: [
+                            const Text(
+                              '© 2026 SirfBill. Smart Billing, Complete Peace of Mind. All rights reserved.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: Color(0xFF94A3B8),
+                                fontSize: 12,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Text(
+                                  'SirfBill Pharma — Naiyo24',
+                                  style: TextStyle(
+                                    color: Color(0xFF94A3B8),
+                                    fontSize: 12,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Icon(Icons.eco, size: 14, color: widget.themeColor),
+                              ],
+                            ),
+                          ],
+                        ),
                 ),
               ],
             ),
