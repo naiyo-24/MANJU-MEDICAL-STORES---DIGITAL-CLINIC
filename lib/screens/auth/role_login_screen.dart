@@ -344,7 +344,7 @@ class _RoleLoginScreenState extends ConsumerState<RoleLoginScreen> {
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 const Text(
-                                  'SirfBill — Naiyo24',
+                                  'SirfBill Pharma — Naiyo24',
                                   style: TextStyle(
                                     color: Color(0xFF94A3B8),
                                     fontSize: 12,
@@ -406,8 +406,8 @@ class _RoleLoginScreenState extends ConsumerState<RoleLoginScreen> {
         ),
         SizedBox(height: vSpacing * 0.7),
         Text(
-          widget.roleName == 'Counter'
-              ? 'Manage your pharmacy, billing, inventory\nand daily operations with ease.'
+          (widget.roleName == 'Counter' || widget.roleName == 'Billing Counter')
+              ? 'Streamline your Pharmacy Billing, Inventory Tracking,\nand Daily Counter Operations.'
               : widget.roleName == 'Lab Test'
               ? 'Manage your lab test bookings, reports\nand patient records effortlessly.'
               : 'Manage patients, follow-ups and\ncustomer relationships efficiently.',
@@ -419,7 +419,7 @@ class _RoleLoginScreenState extends ConsumerState<RoleLoginScreen> {
           ),
         ),
         SizedBox(height: vSpacing),
-        if (widget.roleName == 'Counter') ...[
+        if (widget.roleName == 'Counter' || widget.roleName == 'Billing Counter') ...[
           _buildFeatureItem(
             Icons.medication,
             'Faster Billing',
