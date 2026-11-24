@@ -519,7 +519,7 @@ class DashboardScreen extends ConsumerWidget {
                                       text: '© 2026 SirfBill Pharna — ',
                                     ),
                                     TextSpan(
-                                      text: 'Naiyo24',
+                                      text: 'Naiyo24 Pvt. Ltd.',
                                       style: GoogleFonts.jaldi(
                                         color: isDark
                                             ? const Color(0xFF4ADE80)
