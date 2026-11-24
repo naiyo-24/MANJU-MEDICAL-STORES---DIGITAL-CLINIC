@@ -387,7 +387,7 @@ class _GstFilingScreenState extends ConsumerState<GstFilingScreen> {
               ),
               const SizedBox(height: 4),
               Text(
-                'Upload your pharmacy bills for hassle-free GST return filing',
+                'Upload Your Pharmacy Bills for Hassle-Free GST Return Filing',
                 style: TextStyle(
                   fontSize: 13,
                   color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
@@ -465,7 +465,7 @@ class _GstFilingScreenState extends ConsumerState<GstFilingScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Hassle-Free GST Return Filing',
+                  'Expert GST Return Filing at just ₹249/month',
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.bold,
@@ -474,7 +474,7 @@ class _GstFilingScreenState extends ConsumerState<GstFilingScreen> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Just upload your bills here (from 1 month up to 12 months) — our finance team will handle your complete GST filing!',
+                  'Upload Your Pharmacy Bills And Let Our Certified Tax Experts Handle Your Complete Return. Flat ₹249/month (Incl. GST). Pay Only For The Months You File, No Hidden Charges!',
                   style: TextStyle(
                     fontSize: 13,
                     height: 1.35,
