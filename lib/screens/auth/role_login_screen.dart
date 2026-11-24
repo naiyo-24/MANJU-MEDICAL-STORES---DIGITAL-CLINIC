@@ -242,45 +242,64 @@ class _RoleLoginScreenState extends ConsumerState<RoleLoginScreen> {
                     horizontal: 16,
                   ),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      TextButton.icon(
-                        onPressed: () => Navigator.pop(context),
-                        icon: const Icon(
-                          Icons.arrow_back,
-                          color: Colors.white,
-                          size: 18,
-                        ),
-                        label: const Text(
-                          'Back',
-                          style: TextStyle(color: Colors.white),
+                      // Left: Back button
+                      SizedBox(
+                        width: 90,
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: TextButton.icon(
+                            onPressed: () => Navigator.pop(context),
+                            icon: const Icon(
+                              Icons.arrow_back,
+                              color: Colors.white,
+                              size: 18,
+                            ),
+                            label: const Text(
+                              'Back',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                          ),
                         ),
                       ),
+
+                      // Center: Role Login Title
                       Expanded(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              '${widget.roleName} Login',
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                              ),
+                        child: Center(
+                          child: Text(
+                            '${widget.roleName} Login',
+                            textAlign: TextAlign.center,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
                             ),
-                            const Text(
-                              'Smart Billing, Complete Peace of Mind',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                color: Colors.white70,
-                                fontSize: 11,
-                              ),
-                            ),
-                          ],
+                          ),
                         ),
                       ),
-                      const SizedBox(width: 80), // Balance the back button
+
+                      // Right: Slogan (Right-aligned, responsive across Desktop, Web & Mobile)
+                      ConstrainedBox(
+                        constraints: BoxConstraints(
+                          maxWidth: isWide ? 260 : 130,
+                        ),
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: Text(
+                            'Smart Billing, Complete Peace of Mind',
+                            textAlign: TextAlign.right,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: isWide ? 12 : 10,
+                              fontWeight: FontWeight.w400,
+                            ),
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 ),
