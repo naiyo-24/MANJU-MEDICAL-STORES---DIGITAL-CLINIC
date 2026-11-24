@@ -256,21 +256,31 @@ class _RoleLoginScreenState extends ConsumerState<RoleLoginScreen> {
                           style: TextStyle(color: Colors.white),
                         ),
                       ),
-                      Text(
-                        '${widget.roleName} Login',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
+                      Expanded(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              '${widget.roleName} Login',
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
+                            const Text(
+                              'Smart Billing, Complete Peace of Mind',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: Colors.white70,
+                                fontSize: 11,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      if (isWide)
-                        const Text(
-                          'Smart Billing, Complete Peace of Mind',
-                          style: TextStyle(color: Colors.white70, fontSize: 12),
-                        )
-                      else
-                        const SizedBox(width: 60), // Balance the row
+                      const SizedBox(width: 80), // Balance the back button
                     ],
                   ),
                 ),
@@ -297,65 +307,29 @@ class _RoleLoginScreenState extends ConsumerState<RoleLoginScreen> {
                   ),
                 ),
 
-                // Footer
+                // Footer (Universally Centered and Responsive)
                 Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: isWide ? 48 : 24,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
                     vertical: 12,
                   ),
-                  child: isWide
-                      ? Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text(
-                              'Smart Billing, Complete Peace of Mind. All rights reserved.',
-                              style: TextStyle(
-                                color: Color(0xFF94A3B8),
-                                fontSize: 12,
-                              ),
-                            ),
-                            Row(
-                              children: [
-                                const Text(
-                                  'SirfBill Pharma — Naiyo24',
-                                  style: TextStyle(
-                                    color: Color(0xFF94A3B8),
-                                    fontSize: 12,
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                Icon(Icons.eco, size: 14, color: widget.themeColor),
-                              ],
-                            ),
-                          ],
-                        )
-                      : Column(
-                          children: [
-                            const Text(
-                              '© 2026 SirfBill: Smart Billing, Complete Peace of Mind. All rights reserved.',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                color: Color(0xFF94A3B8),
-                                fontSize: 12,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const Text(
-                                  'SirfBill Pharma — Naiyo24',
-                                  style: TextStyle(
-                                    color: Color(0xFF94A3B8),
-                                    fontSize: 12,
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                Icon(Icons.eco, size: 14, color: widget.themeColor),
-                              ],
-                            ),
-                          ],
+                  alignment: Alignment.center,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text(
+                        'SirfBill Pharma — Naiyo24',
+                        style: TextStyle(
+                          color: Color(0xFF94A3B8),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
                         ),
+                      ),
+                      const SizedBox(width: 8),
+                      Icon(Icons.eco, size: 14, color: widget.themeColor),
+                    ],
+                  ),
                 ),
               ],
             ),
