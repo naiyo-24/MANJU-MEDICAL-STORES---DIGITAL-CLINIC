@@ -245,25 +245,36 @@ class _RoleLoginScreenState extends ConsumerState<RoleLoginScreen> {
                     children: [
                       // Left: Back button
                       SizedBox(
-                        width: 90,
+                        width: isWide ? 90 : 50,
                         child: Align(
                           alignment: Alignment.centerLeft,
-                          child: TextButton.icon(
-                            onPressed: () => Navigator.pop(context),
-                            icon: const Icon(
-                              Icons.arrow_back,
-                              color: Colors.white,
-                              size: 18,
-                            ),
-                            label: const Text(
-                              'Back',
-                              style: TextStyle(color: Colors.white),
-                            ),
-                          ),
+                          child: isWide
+                              ? TextButton.icon(
+                                  onPressed: () => Navigator.pop(context),
+                                  icon: const Icon(
+                                    Icons.arrow_back,
+                                    color: Colors.white,
+                                    size: 18,
+                                  ),
+                                  label: const Text(
+                                    'Back',
+                                    style: TextStyle(color: Colors.white),
+                                  ),
+                                )
+                              : IconButton(
+                                  padding: EdgeInsets.zero,
+                                  constraints: const BoxConstraints(),
+                                  onPressed: () => Navigator.pop(context),
+                                  icon: const Icon(
+                                    Icons.arrow_back,
+                                    color: Colors.white,
+                                    size: 20,
+                                  ),
+                                ),
                         ),
                       ),
 
-                      // Center: Role Login Title
+                      // Center: Role Login Title (Full width & clear on Mobile)
                       Expanded(
                         child: Center(
                           child: Text(
@@ -271,35 +282,36 @@ class _RoleLoginScreenState extends ConsumerState<RoleLoginScreen> {
                             textAlign: TextAlign.center,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
+                            style: TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.bold,
-                              fontSize: 16,
+                              fontSize: isWide ? 16 : 15,
                             ),
                           ),
                         ),
                       ),
 
-                      // Right: Slogan (Right-aligned, responsive across Desktop, Web & Mobile)
-                      ConstrainedBox(
-                        constraints: BoxConstraints(
-                          maxWidth: isWide ? 260 : 130,
-                        ),
-                        child: Align(
-                          alignment: Alignment.centerRight,
-                          child: Text(
-                            'Smart Billing, Complete Peace of Mind',
-                            textAlign: TextAlign.right,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              color: Colors.white70,
-                              fontSize: isWide ? 12 : 10,
-                              fontWeight: FontWeight.w400,
+                      // Right: Slogan on Desktop/Web; Balanced Spacer on Mobile
+                      if (isWide)
+                        ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 280),
+                          child: const Align(
+                            alignment: Alignment.centerRight,
+                            child: Text(
+                              'Smart Billing, Complete Peace of Mind',
+                              textAlign: TextAlign.right,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: Colors.white70,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w400,
+                              ),
                             ),
                           ),
-                        ),
-                      ),
+                        )
+                      else
+                        const SizedBox(width: 50), // Perfectly balances the back button
                     ],
                   ),
                 ),
