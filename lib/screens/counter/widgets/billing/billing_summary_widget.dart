@@ -290,6 +290,131 @@ class BillingSummaryWidget extends StatelessWidget {
               ),
             ],
             const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Round Off',
+                  style: TextStyle(
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? Colors.grey[400]
+                        : const Color(0xFF64748B),
+                    fontSize: 12,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Flexible(
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: () {
+                            final current = billingState.grandTotal;
+                            final floored = current.floorToDouble();
+                            final target = (current - floored).abs() > 0.001
+                                ? floored
+                                : floored - 1.0;
+                            notifier.setRoundOff(
+                              double.parse(
+                                (target - billingState.rawGrandTotal).toStringAsFixed(2),
+                              ),
+                            );
+                          },
+                          borderRadius: BorderRadius.circular(6),
+                          child: Container(
+                            width: 32,
+                            height: 32,
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              border: Border.all(color: Theme.of(context).dividerColor),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: const Text(
+                              '-',
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      SizedBox(
+                        width: 68,
+                        height: 32,
+                        child: TextFormField(
+                          key: ValueKey('roundOff_${billingState.roundOff}'),
+                          initialValue: billingState.roundOff.toStringAsFixed(2),
+                          keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true,
+                            signed: true,
+                          ),
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                          inputFormatters: [
+                            FilteringTextInputFormatter.allow(RegExp(r'^-?\d*\.?\d{0,2}')),
+                          ],
+                          onChanged: (val) {
+                            final parsed = double.tryParse(val);
+                            if (parsed != null) {
+                              notifier.setRoundOff(parsed);
+                            } else if (val.isEmpty || val == '-') {
+                              notifier.setRoundOff(0.0);
+                            }
+                          },
+                          decoration: InputDecoration(
+                            isDense: true,
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(6),
+                              borderSide: BorderSide(color: Theme.of(context).dividerColor),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(6),
+                              borderSide: BorderSide(color: Theme.of(context).dividerColor),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: () {
+                            final current = billingState.grandTotal;
+                            final ceiled = current.ceilToDouble();
+                            final target = (ceiled - current).abs() > 0.001
+                                ? ceiled
+                                : ceiled + 1.0;
+                            notifier.setRoundOff(
+                              double.parse(
+                                (target - billingState.rawGrandTotal).toStringAsFixed(2),
+                              ),
+                            );
+                          },
+                          borderRadius: BorderRadius.circular(6),
+                          child: Container(
+                            width: 32,
+                            height: 32,
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              border: Border.all(color: Theme.of(context).dividerColor),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: const Text(
+                              '+',
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
             Container(
               padding: const EdgeInsets.symmetric(
                 horizontal: 16,

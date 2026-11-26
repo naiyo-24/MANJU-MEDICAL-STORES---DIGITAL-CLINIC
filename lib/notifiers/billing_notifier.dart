@@ -17,11 +17,13 @@ class BillingState {
   final String selectedFormat;
   final bool isGstEnabled;
   final String gstNumber;
+  final double roundOff;
 
   BillingState({
     this.currentBill = const [],
     this.isGstEnabled = false,
     this.gstNumber = '',
+    this.roundOff = 0.0,
     this.discountValue = 0.0,
     this.isDiscountPercentage = true,
     this.receivedAmount = 0.0,
@@ -54,6 +56,7 @@ class BillingState {
     String? selectedFormat,
     bool? isGstEnabled,
     String? gstNumber,
+    double? roundOff,
   }) {
     return BillingState(
       currentBill: currentBill ?? this.currentBill,
@@ -73,6 +76,7 @@ class BillingState {
       selectedFormat: selectedFormat ?? this.selectedFormat,
       isGstEnabled: isGstEnabled ?? this.isGstEnabled,
       gstNumber: gstNumber ?? this.gstNumber,
+      roundOff: roundOff ?? this.roundOff,
     );
   }
 
@@ -99,13 +103,18 @@ class BillingState {
   }
 
   double get gstAmount => isGstEnabled ? itemGstAmount : 0.0;
-  double get grandTotal => totalAfterDiscount + gstAmount;
+  double get rawGrandTotal => totalAfterDiscount + gstAmount;
+  double get grandTotal => rawGrandTotal + roundOff;
 }
 
 class BillingNotifier extends Notifier<BillingState> {
   @override
   BillingState build() {
     return BillingState();
+  }
+
+  void setRoundOff(double value) {
+    state = state.copyWith(roundOff: value);
   }
 
   bool addItem(Map<String, dynamic> item) {
