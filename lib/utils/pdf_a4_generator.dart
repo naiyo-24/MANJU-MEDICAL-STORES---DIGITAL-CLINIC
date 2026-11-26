@@ -376,7 +376,12 @@ class PdfA4Generator {
                           horizontal: 4,
                         ),
                         child: pw.Text(
-                          (item['mrp'] ?? 0.0).toStringAsFixed(2),
+                          (() {
+                            final gstRate = ((item['cgst'] ?? 0.0) as num).toDouble() + ((item['sgst'] ?? 0.0) as num).toDouble();
+                            final rawMrp = ((item['mrp'] ?? 0.0) as num).toDouble();
+                            final baseMrp = gstRate > 0 ? rawMrp / (1 + gstRate / 100) : rawMrp;
+                            return baseMrp.toStringAsFixed(2);
+                          })(),
                           style: pw.TextStyle(
                             fontSize: format == 'A4' ? 8 : 7,
                           ),
@@ -428,7 +433,12 @@ class PdfA4Generator {
                           horizontal: 4,
                         ),
                         child: pw.Text(
-                          (item['total'] ?? 0.0).toStringAsFixed(2),
+                          (() {
+                            final gstRate = ((item['cgst'] ?? 0.0) as num).toDouble() + ((item['sgst'] ?? 0.0) as num).toDouble();
+                            final rawTotal = ((item['total'] ?? 0.0) as num).toDouble();
+                            final baseTotal = gstRate > 0 ? rawTotal / (1 + gstRate / 100) : rawTotal;
+                            return baseTotal.toStringAsFixed(2);
+                          })(),
                           style: pw.TextStyle(
                             fontSize: format == 'A4' ? 8 : 7,
                           ),

@@ -351,11 +351,14 @@ class DocxGenerator {
       final String expiry = _escapeXml(item['expiry']?.toString() ?? '-');
       final String hsn = _escapeXml(item['hsn']?.toString() ?? '-');
       final String qtyStr = FormatUtils.formatQty(item);
-      final double mrp = _parseDouble(item['mrp']);
+      final double gstRate = _parseDouble(item['cgst']) + _parseDouble(item['sgst']);
+      final double rawMrp = _parseDouble(item['mrp']);
+      final double mrp = gstRate > 0 ? rawMrp / (1 + gstRate / 100) : rawMrp;
       final String disc = '${item['discount']?.toString() ?? '0'}%';
       final String cgst = '${item['cgst']?.toString() ?? '0'}%';
       final String sgst = '${item['sgst']?.toString() ?? '0'}%';
-      final double total = _parseDouble(item['total']);
+      final double rawTotal = _parseDouble(item['total']);
+      final double total = gstRate > 0 ? rawTotal / (1 + gstRate / 100) : rawTotal;
 
       buffer.write('      <w:tr>\r\n');
       buffer.write(_buildTableCell('${i + 1}', colWidths[0], 'center'));

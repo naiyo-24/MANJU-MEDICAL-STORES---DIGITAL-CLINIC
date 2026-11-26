@@ -208,37 +208,53 @@ class BillingSummaryWidget extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  children: [
-                    SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: Checkbox(
-                        value: billingState.isGstEnabled,
-                        onChanged: (val) {
-                          notifier.toggleGst(val);
-                        },
-                        materialTapTargetSize:
-                            MaterialTapTargetSize.shrinkWrap,
-                        activeColor: const Color(0xFF22C55E),
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      'Total Tax (GST)',
-                      style: TextStyle(
-                        color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B),
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
+                Text(
+                  'Total Tax (GST)',
+                  style: TextStyle(
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? Colors.grey[400]
+                        : const Color(0xFF64748B),
+                    fontSize: 12,
+                  ),
                 ),
                 Text(
                   '+ ₹ ${billingState.gstAmount.toStringAsFixed(2)}',
                   style: TextStyle(
-                    color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? Colors.white
+                        : const Color(0xFF1E293B),
                     fontWeight: FontWeight.bold,
                     fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: Checkbox(
+                    value: !billingState.isGstEnabled,
+                    onChanged: (val) {
+                      notifier.toggleGst(!(val ?? false));
+                    },
+                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    activeColor: const Color(0xFF22C55E),
+                  ),
+                ),
+                const SizedBox(width: 4),
+                GestureDetector(
+                  onTap: () => notifier.toggleGst(!billingState.isGstEnabled),
+                  child: Text(
+                    'Exclude GST',
+                    style: TextStyle(
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? Colors.grey[400]
+                          : const Color(0xFF64748B),
+                      fontSize: 12,
+                    ),
                   ),
                 ),
               ],

@@ -21,7 +21,7 @@ class BillingState {
 
   BillingState({
     this.currentBill = const [],
-    this.isGstEnabled = false,
+    this.isGstEnabled = true,
     this.gstNumber = '',
     this.roundOff = 0.0,
     this.discountValue = 0.0,
@@ -80,10 +80,14 @@ class BillingState {
     );
   }
 
-  double get subtotal => currentBill.fold(
-    0.0,
-    (sum, item) => sum + ((item['total'] ?? 0.0) as num).toDouble(),
-  );
+  double get subtotal => currentBill.fold(0.0, (sum, item) {
+    double cgst = (item['cgst'] as num?)?.toDouble() ?? 0.0;
+    double sgst = (item['sgst'] as num?)?.toDouble() ?? 0.0;
+    double gstRate = cgst + sgst;
+    double total = ((item['total'] ?? 0.0) as num).toDouble();
+    double base = gstRate > 0 ? total / (1 + gstRate / 100) : total;
+    return sum + base;
+  });
   double get discountAmount =>
       isDiscountPercentage ? (subtotal * (discountValue / 100)) : discountValue;
   double get totalAfterDiscount => subtotal - discountAmount;
@@ -92,13 +96,15 @@ class BillingState {
     return currentBill.fold(0.0, (sum, item) {
       double cgst = (item['cgst'] as num?)?.toDouble() ?? 0.0;
       double sgst = (item['sgst'] as num?)?.toDouble() ?? 0.0;
+      double gstRate = cgst + sgst;
       double total = (item['total'] as num?)?.toDouble() ?? 0.0;
-      // Subtract proportional item discount from the item total
+      double base = gstRate > 0 ? total / (1 + gstRate / 100) : total;
+      // Subtract proportional item discount from the item taxable base
       double proportionalDiscount = subtotal > 0
-          ? (total / subtotal) * discountAmount
+          ? (base / subtotal) * discountAmount
           : 0.0;
-      double itemTotalAfterDiscount = total - proportionalDiscount;
-      return sum + (itemTotalAfterDiscount * (cgst + sgst) / 100);
+      double itemBaseAfterDiscount = base - proportionalDiscount;
+      return sum + (itemBaseAfterDiscount * gstRate / 100);
     });
   }
 

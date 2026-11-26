@@ -397,7 +397,16 @@ class PdfA5Generator {
               ),
               pw.Padding(
                 padding: const pw.EdgeInsets.symmetric(vertical: 1.5, horizontal: 2),
-                child: pw.Text(_parseDouble(item['mrp']).toStringAsFixed(2), style: const pw.TextStyle(fontSize: 7), textAlign: pw.TextAlign.right),
+                child: pw.Text(
+                  (() {
+                    final gstRate = _parseDouble(item['cgst']) + _parseDouble(item['sgst']);
+                    final rawMrp = _parseDouble(item['mrp']);
+                    final baseMrp = gstRate > 0 ? rawMrp / (1 + gstRate / 100) : rawMrp;
+                    return baseMrp.toStringAsFixed(2);
+                  })(),
+                  style: const pw.TextStyle(fontSize: 7),
+                  textAlign: pw.TextAlign.right,
+                ),
               ),
               pw.Padding(
                 padding: const pw.EdgeInsets.symmetric(vertical: 1.5, horizontal: 2),
@@ -413,7 +422,16 @@ class PdfA5Generator {
               ),
               pw.Padding(
                 padding: const pw.EdgeInsets.symmetric(vertical: 1.5, horizontal: 2),
-                child: pw.Text(_parseDouble(item['total']).toStringAsFixed(2), style: const pw.TextStyle(fontSize: 7), textAlign: pw.TextAlign.right),
+                child: pw.Text(
+                  (() {
+                    final gstRate = _parseDouble(item['cgst']) + _parseDouble(item['sgst']);
+                    final rawTotal = _parseDouble(item['total']);
+                    final baseTotal = gstRate > 0 ? rawTotal / (1 + gstRate / 100) : rawTotal;
+                    return baseTotal.toStringAsFixed(2);
+                  })(),
+                  style: const pw.TextStyle(fontSize: 7),
+                  textAlign: pw.TextAlign.right,
+                ),
               ),
             ],
           );
