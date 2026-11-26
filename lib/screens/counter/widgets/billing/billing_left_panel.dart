@@ -4,6 +4,7 @@ import 'package:linked_scroll_controller/linked_scroll_controller.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../providers/counter_providers.dart';
+import '../../../../services/rack_service.dart';
 import '../../../../../utils/format_utils.dart';
 
 class BillingLeftPanel extends ConsumerStatefulWidget {
@@ -285,7 +286,7 @@ class _BillingLeftPanelState extends ConsumerState<BillingLeftPanel> {
                         child: SingleChildScrollView(
                           scrollDirection: Axis.horizontal,
                         child: SizedBox(
-                          width: widget.isDesktopWidth ? 1000 : 700, // Fixed width for scrollable area
+                          width: widget.isDesktopWidth ? 1100 : 780, // Fixed width for scrollable area
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
@@ -300,6 +301,7 @@ class _BillingLeftPanelState extends ConsumerState<BillingLeftPanel> {
                                     Expanded(flex: 2, child: Text('Batch No', style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[300] : const Color(0xFF475569), fontSize: 12))),
                                     Expanded(flex: 2, child: Text('Expiry', style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[300] : const Color(0xFF475569), fontSize: 12))),
                                     Expanded(flex: 2, child: Text('HSN Code', style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[300] : const Color(0xFF475569), fontSize: 12))),
+                                    Expanded(flex: 2, child: Text('Rack', style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[300] : const Color(0xFF475569), fontSize: 12))),
                                     Expanded(flex: 2, child: Text('MRP', style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[300] : const Color(0xFF475569), fontSize: 12))),
                                     Expanded(flex: 2, child: Text('GST (%)', style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[300] : const Color(0xFF475569), fontSize: 12))),
                                     Expanded(flex: 2, child: Text('Stock', style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[300] : const Color(0xFF475569), fontSize: 12))),
@@ -333,6 +335,27 @@ class _BillingLeftPanelState extends ConsumerState<BillingLeftPanel> {
                                           Expanded(flex: 2, child: Align(alignment: Alignment.centerLeft, child: Text(item['batch_number'] ?? '', style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B), fontSize: 12), overflow: TextOverflow.ellipsis))),
                                           Expanded(flex: 2, child: Align(alignment: Alignment.centerLeft, child: Text(item['expiry_date'] ?? '', style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B), fontSize: 12), overflow: TextOverflow.ellipsis))),
                                           Expanded(flex: 2, child: Align(alignment: Alignment.centerLeft, child: Text(item['hsn_code'] ?? '-', style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B), fontSize: 12), overflow: TextOverflow.ellipsis))),
+                                          Expanded(
+                                            flex: 2,
+                                            child: Align(
+                                              alignment: Alignment.centerLeft,
+                                              child: Text(
+                                                (() {
+                                                  final rackId = item['rack_id']?.toString();
+                                                  if (rackId == null || rackId.isEmpty) return '-';
+                                                  final racks = ref.watch(rackProvider).value ?? [];
+                                                  return racks
+                                                      .firstWhere(
+                                                        (r) => r.id == rackId,
+                                                        orElse: () => Rack(id: '', rackNumber: '-'),
+                                                      )
+                                                      .rackNumber;
+                                                })(),
+                                                style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : const Color(0xFF64748B), fontSize: 12),
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                          ),
                                           Expanded(flex: 2, child: Align(alignment: Alignment.centerLeft, child: Text('₹${(item['mrp'] ?? 0).toStringAsFixed(2)}', style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B), fontSize: 12), overflow: TextOverflow.ellipsis))),
                                           Expanded(
                                             flex: 2, 
