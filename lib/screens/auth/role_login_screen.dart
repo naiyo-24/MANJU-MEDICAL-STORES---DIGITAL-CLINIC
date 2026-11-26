@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../services/auth_service.dart';
 import '../../utils/responsive.dart';
 import '../../providers/counter_providers.dart';
@@ -26,8 +27,44 @@ class _RoleLoginScreenState extends ConsumerState<RoleLoginScreen> {
   final _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   bool _obscurePassword = true;
+  bool _rememberMe = false;
 
   bool _isLoading = false;
+
+  String get _roleStorageKey => widget.roleName.toLowerCase().replaceAll(' ', '_');
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSavedCredentials();
+  }
+
+  Future<void> _loadSavedCredentials() async {
+    final prefs = await SharedPreferences.getInstance();
+    final key = _roleStorageKey;
+    final remember = prefs.getBool('remember_me_$key') ?? false;
+    if (remember && mounted) {
+      setState(() {
+        _rememberMe = true;
+        _userIdController.text = prefs.getString('saved_userid_$key') ?? '';
+        _passwordController.text = prefs.getString('saved_password_$key') ?? '';
+      });
+    }
+  }
+
+  Future<void> _saveOrClearCredentials() async {
+    final prefs = await SharedPreferences.getInstance();
+    final key = _roleStorageKey;
+    if (_rememberMe) {
+      await prefs.setBool('remember_me_$key', true);
+      await prefs.setString('saved_userid_$key', _userIdController.text.trim());
+      await prefs.setString('saved_password_$key', _passwordController.text);
+    } else {
+      await prefs.remove('remember_me_$key');
+      await prefs.remove('saved_userid_$key');
+      await prefs.remove('saved_password_$key');
+    }
+  }
 
   Future<void> _login() async {
     if (_formKey.currentState!.validate()) {
@@ -92,6 +129,8 @@ class _RoleLoginScreenState extends ConsumerState<RoleLoginScreen> {
         );
 
         if (success && mounted) {
+          await _saveOrClearCredentials();
+          if (!mounted) return;
           // Invalidate all providers so fresh data for the newly authenticated tenant is loaded
           resetAllSessionProviders(ref);
           context.go(widget.nextRoute);
@@ -641,7 +680,44 @@ class _RoleLoginScreenState extends ConsumerState<RoleLoginScreen> {
               ),
               validator: (v) => v!.isEmpty ? 'Enter password' : null,
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                SizedBox(
+                  height: 24,
+                  width: 24,
+                  child: Checkbox(
+                    value: _rememberMe,
+                    activeColor: widget.themeColor,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    onChanged: (value) {
+                      setState(() {
+                        _rememberMe = value ?? false;
+                      });
+                    },
+                  ),
+                ),
+                const SizedBox(width: 8),
+                GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      _rememberMe = !_rememberMe;
+                    });
+                  },
+                  child: Text(
+                    'Remember Me (Save User ID & Password)',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: subtitleColor,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
             SizedBox(
               width: double.infinity,
               height: 50,
