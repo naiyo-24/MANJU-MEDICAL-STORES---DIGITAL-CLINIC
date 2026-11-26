@@ -344,9 +344,14 @@ class _BillingCartTableState extends State<BillingCartTable> {
                                   Expanded(
                                     flex: 2,
                                     child: Text(
-                                      ((item['is_loose'] == true) 
-                                          ? (item['price'] / (item['pack_size'] ?? 1)) 
-                                          : item['price']).toStringAsFixed(2),
+                                      (() {
+                                        final gstRate = ((item['cgst'] as num? ?? 0.0) + (item['sgst'] as num? ?? 0.0)).toDouble();
+                                        final rawPrice = ((item['is_loose'] == true)
+                                            ? (item['price'] / (item['pack_size'] ?? 1))
+                                            : item['price']).toDouble();
+                                        final basePrice = gstRate > 0 ? rawPrice / (1 + gstRate / 100) : rawPrice;
+                                        return basePrice.toStringAsFixed(2);
+                                      })(),
                                       style: TextStyle(
                                         color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
                                         fontSize: 11,
@@ -371,7 +376,12 @@ class _BillingCartTableState extends State<BillingCartTable> {
                                   Expanded(
                                     flex: 2,
                                     child: Text(
-                                      item['total'].toStringAsFixed(2),
+                                      (() {
+                                        final gstRate = ((item['cgst'] as num? ?? 0.0) + (item['sgst'] as num? ?? 0.0)).toDouble();
+                                        final rawTotal = (item['total'] as num).toDouble();
+                                        final baseTotal = gstRate > 0 ? rawTotal / (1 + gstRate / 100) : rawTotal;
+                                        return baseTotal.toStringAsFixed(2);
+                                      })(),
                                       style: TextStyle(
                                         color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
                                         fontSize: 11,
