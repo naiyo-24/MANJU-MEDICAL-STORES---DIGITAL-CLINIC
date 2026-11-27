@@ -853,9 +853,11 @@ class _BillCustomizationScreenState
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
                               if (isDesktop) ...[
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                Wrap(
+                                  alignment: WrapAlignment.spaceBetween,
+                                  crossAxisAlignment: WrapCrossAlignment.center,
+                                  spacing: 12,
+                                  runSpacing: 8,
                                   children: [
                                     Text(
                                       'Live Preview',
@@ -865,7 +867,10 @@ class _BillCustomizationScreenState
                                         color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
                                       ),
                                     ),
-                                    Row(
+                                    Wrap(
+                                      crossAxisAlignment: WrapCrossAlignment.center,
+                                      spacing: 12,
+                                      runSpacing: 8,
                                       children: [
                                         ToggleButtons(
                                           isSelected: [
