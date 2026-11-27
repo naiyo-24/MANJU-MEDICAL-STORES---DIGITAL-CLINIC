@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:qr/qr.dart';
 import '../../models/settings_models.dart';
 
 import 'package:file_picker/file_picker.dart';
@@ -39,6 +40,7 @@ class _BillCustomizationScreenState
   final TextEditingController _acHolderCtrl = TextEditingController();
   final TextEditingController _acNumberCtrl = TextEditingController();
   final TextEditingController _ifscCtrl = TextEditingController();
+  final TextEditingController _upiIdCtrl = TextEditingController();
 
   final TextEditingController _terms1Ctrl = TextEditingController();
   final TextEditingController _terms2Ctrl = TextEditingController();
@@ -87,6 +89,7 @@ class _BillCustomizationScreenState
       _acHolderCtrl.text = settings['ac_holder_name'] ?? '';
       _acNumberCtrl.text = settings['ac_number'] ?? '';
       _ifscCtrl.text = settings['ifsc_code'] ?? '';
+      _upiIdCtrl.text = settings['upi_id'] ?? '';
 
       _terms1Ctrl.text = settings['terms_1'] ?? '';
       _terms2Ctrl.text = settings['terms_2'] ?? '';
@@ -138,6 +141,7 @@ class _BillCustomizationScreenState
         'ac_holder_name': _acHolderCtrl.text,
         'ac_number': _acNumberCtrl.text,
         'ifsc_code': _ifscCtrl.text,
+        'upi_id': _upiIdCtrl.text.trim(),
         'terms_1': _terms1Ctrl.text,
         'terms_2': _terms2Ctrl.text,
         'terms_3': _terms3Ctrl.text,
@@ -713,6 +717,18 @@ class _BillCustomizationScreenState
                                     color: Theme.of(context).brightness == Brightness.dark ? Colors.white : const Color(0xFF1E293B),
                                   ),
                                 ),
+                                const SizedBox(height: 12),
+                                TextFormField(
+                                  controller: _upiIdCtrl,
+                                  onChanged: (_) => setState(() {}),
+                                  decoration: const InputDecoration(
+                                    labelText: 'UPI ID (for Dynamic QR)',
+                                    hintText: 'e.g. pharmacy@okaxis',
+                                    prefixIcon: Icon(Icons.qr_code_2),
+                                    border: OutlineInputBorder(),
+                                    isDense: true,
+                                  ),
+                                ),
                                 const SizedBox(height: 16),
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -796,19 +812,32 @@ class _BillCustomizationScreenState
                                                 ),
                                                 borderRadius: BorderRadius.circular(8),
                                               ),
-                                              child: _qrUrl != null
+                                              child: _upiIdCtrl.text.trim().isNotEmpty
                                                   ? ClipRRect(
                                                       borderRadius: BorderRadius.circular(8),
-                                                      child: Image.network(
-                                                        '${ApiConstants.baseUrl}$_qrUrl',
-                                                        fit: BoxFit.contain,
+                                                      child: Container(
+                                                        color: Colors.white,
+                                                        padding: const EdgeInsets.all(6),
+                                                        child: CustomPaint(
+                                                          painter: _DynamicQrPainter(
+                                                            'upi://pay?pa=${_upiIdCtrl.text.trim()}&pn=${Uri.encodeComponent(_shopNameCtrl.text.trim())}&cu=INR',
+                                                          ),
+                                                        ),
                                                       ),
                                                     )
-                                                  : const Icon(
-                                                      Icons.qr_code,
-                                                      size: 40,
-                                                      color: Colors.grey,
-                                                    ),
+                                                  : (_qrUrl != null
+                                                      ? ClipRRect(
+                                                          borderRadius: BorderRadius.circular(8),
+                                                          child: Image.network(
+                                                            '${ApiConstants.baseUrl}$_qrUrl',
+                                                            fit: BoxFit.contain,
+                                                          ),
+                                                        )
+                                                      : const Icon(
+                                                          Icons.qr_code,
+                                                          size: 40,
+                                                          color: Colors.grey,
+                                                        )),
                                             ),
                                             if (_qrUrl != null)
                                               Positioned(
@@ -1073,4 +1102,42 @@ class _BillCustomizationScreenState
       ),
     );
   }
+}
+
+class _DynamicQrPainter extends CustomPainter {
+  final String data;
+
+  _DynamicQrPainter(this.data);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final qrCode = QrCode.fromData(
+      data: data,
+      errorCorrectLevel: QrErrorCorrectLevel.M,
+    );
+    final qrImage = QrImage(qrCode);
+    final moduleCount = qrImage.moduleCount;
+    final cellSize = size.width / moduleCount;
+    final paint = Paint()..color = Colors.black;
+
+    for (int row = 0; row < moduleCount; row++) {
+      for (int col = 0; col < moduleCount; col++) {
+        if (qrImage.isDark(row, col)) {
+          canvas.drawRect(
+            Rect.fromLTWH(
+              col * cellSize,
+              row * cellSize,
+              cellSize + 0.5,
+              cellSize + 0.5,
+            ),
+            paint,
+          );
+        }
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _DynamicQrPainter oldDelegate) =>
+      oldDelegate.data != data;
 }
