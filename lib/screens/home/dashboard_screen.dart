@@ -1,8 +1,11 @@
+import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../providers/theme_provider.dart';
+import '../../services/windows_auto_updater.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -269,6 +272,68 @@ class DashboardScreen extends ConsumerWidget {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: [
+                            if (!kIsWeb &&
+                                (Platform.isWindows ||
+                                    Platform.isMacOS ||
+                                    Platform.isLinux)) ...[
+                              OutlinedButton.icon(
+                                onPressed: () async {
+                                  final messenger = ScaffoldMessenger.of(context);
+                                  final checkResult =
+                                      await WindowsAutoUpdater
+                                          .checkForUpdateDetailed();
+                                  if (!context.mounted) return;
+                                  if (checkResult.isAvailable &&
+                                      checkResult.updateInfo != null) {
+                                    WindowsAutoUpdater.showUpdateDialog(
+                                      context,
+                                      checkResult.updateInfo!,
+                                    );
+                                  } else {
+                                    messenger.showSnackBar(
+                                      SnackBar(
+                                        content: Text(checkResult.message),
+                                        backgroundColor: checkResult.isError
+                                            ? Colors.red.shade700
+                                            : const Color(0xFF166534),
+                                        behavior: SnackBarBehavior.floating,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(10),
+                                        ),
+                                        margin: const EdgeInsets.all(16),
+                                      ),
+                                    );
+                                  }
+                                },
+                                icon: const Icon(
+                                  Icons.install_desktop_rounded,
+                                  size: 16,
+                                ),
+                                label: const Text(
+                                  'Check for Updates',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: isDark
+                                      ? const Color(0xFF4ADE80)
+                                      : const Color(0xFF166534),
+                                  side: BorderSide(
+                                    color: isDark
+                                        ? const Color(0xFF059669)
+                                            .withValues(alpha: 0.5)
+                                        : const Color(0xFF86EFAC),
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                            ],
                             IconButton(
                               onPressed: () => ref
                                   .read(themeProvider.notifier)
