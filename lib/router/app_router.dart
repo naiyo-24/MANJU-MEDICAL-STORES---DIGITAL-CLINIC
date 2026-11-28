@@ -5,6 +5,7 @@ import '../models/lab_models.dart';
 import '../screens/splash/splash_screen.dart';
 import '../screens/home/dashboard_screen.dart';
 import '../screens/auth/role_login_screen.dart';
+import '../screens/subscription/subscription_screen.dart';
 import '../screens/counter/counter_dashboard.dart';
 import '../screens/counter/inventory_screen.dart';
 import '../screens/counter/billing_screen.dart';
@@ -108,6 +109,10 @@ final goRouter = GoRouter(
         themeColor: Color(0xFF166534),
         nextRoute: '/subscription',
       ),
+    ),
+    GoRoute(
+      path: '/subscription',
+      builder: (context, state) => const SubscriptionScreen(),
     ),
     StatefulShellRoute.indexedStack(
       builder: (context, state, navigationShell) {
