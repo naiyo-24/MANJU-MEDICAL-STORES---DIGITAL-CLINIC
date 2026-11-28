@@ -68,9 +68,9 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
     return Scaffold(
       backgroundColor: bgColor,
       appBar: AppBar(
-        toolbarHeight: 72,
+        toolbarHeight: 88,
         automaticallyImplyLeading: false,
-        leadingWidth: 130,
+        leadingWidth: 150,
         leading: Padding(
           padding: const EdgeInsets.only(left: 16, top: 8, bottom: 8),
           child: Image.asset(
@@ -121,7 +121,7 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
           ),
           const SizedBox(width: 6),
           Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16),
+            padding: const EdgeInsets.symmetric(vertical: 22),
             child: OutlinedButton.icon(
               onPressed: () => context.go('/dashboard'),
               icon: const Icon(Icons.logout_rounded, size: 16, color: Colors.red),
