@@ -520,7 +520,7 @@ class SubscriptionEnquiryDesk extends StatelessWidget {
                 onPressed: onWhatsAppTap,
                 icon: const Icon(Icons.chat_rounded, size: 17),
                 label: const Text(
-                  'WhatsApp: 9836723590',
+                  'WhatsApp',
                   style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
                 ),
                 style: ElevatedButton.styleFrom(
