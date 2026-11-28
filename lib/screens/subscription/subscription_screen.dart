@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../providers/theme_provider.dart';
 import 'widgets/subscription_pricing_widgets.dart';
+import 'widgets/subscription_status_widgets.dart';
 
 class SubscriptionScreen extends ConsumerStatefulWidget {
   const SubscriptionScreen({super.key});
@@ -14,6 +15,18 @@ class SubscriptionScreen extends ConsumerStatefulWidget {
 
 class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
   String? _selectedPlanId;
+  bool _isRefreshing = false;
+
+  final List<SubscriptionInvoiceRecord> _mockInvoices = const [
+    SubscriptionInvoiceRecord(
+      invoiceNo: 'INV-SUB-20261128-01',
+      date: '2026-11-28',
+      planCycle: 'SirfBill Pharma (1 Month)',
+      amount: '₹353',
+      paymentRef: 'pay_Phase2Mock001',
+      status: 'ACTIVE',
+    ),
+  ];
 
   void _handleSubscribe(SubscriptionPlan plan) {
     setState(() => _selectedPlanId = plan.id);
@@ -29,6 +42,13 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
     );
   }
 
+  Future<void> _handleRefresh() async {
+    setState(() => _isRefreshing = true);
+    await Future<void>.delayed(const Duration(milliseconds: 500));
+    if (!mounted) return;
+    setState(() => _isRefreshing = false);
+  }
+
   Future<void> _openWhatsApp() async {
     final uri = Uri.parse(
       'https://wa.me/919836723590?text=${Uri.encodeComponent('Hi SirfBill Pharma Team, I have an enquiry regarding the Subscription plans. Please assist.')}',
@@ -37,8 +57,7 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
   }
 
   Future<void> _openDialer() async {
-    final uri = Uri.parse('tel:+919836723590');
-    await launchUrl(uri);
+    await launchUrl(Uri.parse('tel:+919836723590'));
   }
 
   @override
@@ -61,6 +80,27 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
           ),
         ),
         actions: [
+          if (MediaQuery.of(context).size.width >= 600) ...[
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 6),
+              child: SubscriptionLiveClock(isDark: isDark),
+            ),
+            const SizedBox(width: 8),
+          ],
+          IconButton(
+            tooltip: 'Refresh',
+            onPressed: _isRefreshing ? null : _handleRefresh,
+            icon: _isRefreshing
+                ? const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : Icon(
+                    Icons.refresh_rounded,
+                    color: isDark ? Colors.white : const Color(0xFF1E293B),
+                  ),
+          ),
           IconButton(
             onPressed: () => ref.read(themeProvider.notifier).toggleTheme(),
             icon: Icon(
@@ -99,18 +139,27 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
           return SingleChildScrollView(
             padding: EdgeInsets.symmetric(
               horizontal: isCompact ? 16 : 32,
-              vertical: isCompact ? 20 : 32,
+              vertical: isCompact ? 20 : 28,
             ),
             child: Center(
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 1180),
                 child: Column(
                   children: [
+                    SubscriptionLicenseBanner(
+                      isDark: isDark,
+                      planName: 'SirfBill Pharma Suite (1 Month)',
+                      validUntil: '2026-12-28',
+                      daysRemaining: 30,
+                      latestInvoiceNo: _mockInvoices.first.invoiceNo,
+                      onViewInvoice: () {},
+                    ),
+                    const SizedBox(height: 28),
                     SubscriptionHeaderSection(
                       isDark: isDark,
                       isCompact: isCompact,
                     ),
-                    const SizedBox(height: 28),
+                    const SizedBox(height: 24),
                     SubscriptionPricingGrid(
                       isDark: isDark,
                       selectedPlanId: _selectedPlanId,
@@ -118,6 +167,12 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
                     ),
                     const SizedBox(height: 24),
                     SubscriptionSummaryBar(isDark: isDark),
+                    const SizedBox(height: 20),
+                    SubscriptionInvoicesTable(
+                      isDark: isDark,
+                      invoices: _mockInvoices,
+                      onViewInvoice: (_) {},
+                    ),
                     const SizedBox(height: 20),
                     SubscriptionEnquiryDesk(
                       isDark: isDark,

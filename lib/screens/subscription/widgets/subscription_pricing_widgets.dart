@@ -29,7 +29,6 @@ const List<SubscriptionPlan> kSubscriptionPlans = [
       'Full Billing Counter Access',
       'Lab Test & CRM Modules',
       'GST-Ready Invoices & Reports',
-      'Standard Support',
     ],
   ),
   SubscriptionPlan(
@@ -40,7 +39,6 @@ const List<SubscriptionPlan> kSubscriptionPlans = [
       'Full Billing Counter Access',
       'Lab Test & CRM Modules',
       'GST-Ready Invoices & Reports',
-      'Priority Support',
     ],
   ),
   SubscriptionPlan(
@@ -52,7 +50,6 @@ const List<SubscriptionPlan> kSubscriptionPlans = [
       'Full Billing Counter Access',
       'Lab Test & CRM Modules',
       'Cloud Sync Across Devices',
-      'Priority Support',
     ],
   ),
   SubscriptionPlan(
@@ -65,7 +62,6 @@ const List<SubscriptionPlan> kSubscriptionPlans = [
       'Full Billing Counter Access',
       'Lab Test & CRM Modules',
       'Cloud Sync Across Devices',
-      'Dedicated Priority Support',
     ],
   ),
 ];
@@ -406,11 +402,6 @@ class SubscriptionSummaryBar extends StatelessWidget {
           _SummaryItem(
             icon: Icons.groups_rounded,
             label: 'CRM',
-            color: textColor,
-          ),
-          _SummaryItem(
-            icon: Icons.support_agent_rounded,
-            label: 'Priority Support',
             color: textColor,
           ),
         ],
