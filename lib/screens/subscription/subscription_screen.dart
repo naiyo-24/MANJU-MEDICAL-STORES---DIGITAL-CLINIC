@@ -69,6 +69,16 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
       backgroundColor: bgColor,
       appBar: AppBar(
         automaticallyImplyLeading: false,
+        leadingWidth: 130,
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 16, top: 8, bottom: 8),
+          child: Image.asset(
+            isDark ? 'assets/LOGO_DM.png' : 'assets/LOGO.png',
+            fit: BoxFit.contain,
+            alignment: Alignment.centerLeft,
+          ),
+        ),
+        centerTitle: true,
         backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
         elevation: 0,
         title: Text(
