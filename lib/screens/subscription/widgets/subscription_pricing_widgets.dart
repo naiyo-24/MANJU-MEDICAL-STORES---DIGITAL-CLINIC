@@ -449,3 +449,131 @@ class _SummaryItem extends StatelessWidget {
     );
   }
 }
+
+class SubscriptionEnquiryDesk extends StatelessWidget {
+  final bool isDark;
+  final VoidCallback onWhatsAppTap;
+  final VoidCallback onCallTap;
+
+  const SubscriptionEnquiryDesk({
+    super.key,
+    required this.isDark,
+    required this.onWhatsAppTap,
+    required this.onCallTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final cardBg = isDark ? const Color(0xFF1E293B) : Colors.white;
+    final borderColor =
+        isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
+    final titleColor = isDark ? Colors.white : const Color(0xFF0F172A);
+    final subColor =
+        isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+      decoration: BoxDecoration(
+        color: cardBg,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: borderColor, width: 1.2),
+        boxShadow: [
+          if (!isDark)
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 14,
+              offset: const Offset(0, 4),
+            ),
+        ],
+      ),
+      child: Wrap(
+        alignment: WrapAlignment.spaceBetween,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        spacing: 16,
+        runSpacing: 14,
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Need Help? Subscription Enquiry Desk',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w800,
+                  color: titleColor,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Reach out to our team for plan guidance, GST invoices, or renewals.',
+                style: TextStyle(fontSize: 12.5, color: subColor),
+              ),
+            ],
+          ),
+          Wrap(
+            spacing: 12,
+            runSpacing: 10,
+            children: [
+              ElevatedButton.icon(
+                onPressed: onWhatsAppTap,
+                icon: const Icon(Icons.chat_rounded, size: 17),
+                label: const Text(
+                  'WhatsApp: 9836723590',
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF16A34A),
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              ),
+              OutlinedButton.icon(
+                onPressed: onCallTap,
+                icon: Icon(
+                  Icons.call_rounded,
+                  size: 17,
+                  color: isDark
+                      ? const Color(0xFF4ADE80)
+                      : const Color(0xFF166534),
+                ),
+                label: Text(
+                  'Call: 9836723590',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: isDark
+                        ? const Color(0xFF4ADE80)
+                        : const Color(0xFF166534),
+                  ),
+                ),
+                style: OutlinedButton.styleFrom(
+                  side: BorderSide(
+                    color: isDark
+                        ? const Color(0xFF22C55E)
+                        : const Color(0xFF166534),
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}

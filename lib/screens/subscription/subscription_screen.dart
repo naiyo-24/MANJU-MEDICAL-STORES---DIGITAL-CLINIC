@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../providers/theme_provider.dart';
 import 'widgets/subscription_pricing_widgets.dart';
 
@@ -15,9 +16,7 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
   String? _selectedPlanId;
 
   void _handleSubscribe(SubscriptionPlan plan) {
-    setState(() {
-      _selectedPlanId = plan.id;
-    });
+    setState(() => _selectedPlanId = plan.id);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
@@ -30,29 +29,29 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
     );
   }
 
+  Future<void> _openWhatsApp() async {
+    final uri = Uri.parse(
+      'https://wa.me/919836723590?text=${Uri.encodeComponent('Hi SirfBill Pharma Team, I have an enquiry regarding the Subscription plans. Please assist.')}',
+    );
+    await launchUrl(uri, mode: LaunchMode.externalApplication);
+  }
+
+  Future<void> _openDialer() async {
+    final uri = Uri.parse('tel:+919836723590');
+    await launchUrl(uri);
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bgColor = isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC);
+    final bgColor = isDark ? const Color(0xFF0F172A) : const Color(0xFFF4FBF7);
 
     return Scaffold(
       backgroundColor: bgColor,
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
         elevation: 0,
-        leading: IconButton(
-          icon: Icon(
-            Icons.arrow_back_rounded,
-            color: isDark ? Colors.white : const Color(0xFF1E293B),
-          ),
-          onPressed: () {
-            if (context.canPop()) {
-              context.pop();
-            } else {
-              context.go('/dashboard');
-            }
-          },
-        ),
         title: Text(
           'Subscription Plans',
           style: TextStyle(
@@ -69,7 +68,29 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
               color: isDark ? Colors.white : const Color(0xFF1E293B),
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 6),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 10),
+            child: OutlinedButton.icon(
+              onPressed: () => context.go('/dashboard'),
+              icon: const Icon(Icons.logout_rounded, size: 16, color: Colors.red),
+              label: const Text(
+                'Logout',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.red,
+                ),
+              ),
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: Colors.red),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 14),
         ],
       ),
       body: LayoutBuilder(
@@ -97,6 +118,12 @@ class _SubscriptionScreenState extends ConsumerState<SubscriptionScreen> {
                     ),
                     const SizedBox(height: 24),
                     SubscriptionSummaryBar(isDark: isDark),
+                    const SizedBox(height: 20),
+                    SubscriptionEnquiryDesk(
+                      isDark: isDark,
+                      onWhatsAppTap: _openWhatsApp,
+                      onCallTap: _openDialer,
+                    ),
                   ],
                 ),
               ),
