@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../providers/theme_provider.dart';
 import '../../services/windows_auto_updater.dart';
+import 'widgets/subscription_dashboard_button.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -272,6 +273,11 @@ class DashboardScreen extends ConsumerWidget {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: [
+                            SubscriptionDashboardButton(
+                              isDark: isDark,
+                              onTap: () => context.push('/subscription-login'),
+                            ),
+                            const SizedBox(width: 12),
                             if (!kIsWeb &&
                                 (Platform.isWindows ||
                                     Platform.isMacOS ||
