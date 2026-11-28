@@ -187,10 +187,20 @@ class _RoleLoginScreenState extends ConsumerState<RoleLoginScreen> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: widget.themeColor.withValues(alpha: 0.15),
+              color: (Theme.of(context).brightness == Brightness.dark &&
+                      widget.roleName == 'Subscription')
+                  ? const Color(0xFF4ADE80).withValues(alpha: 0.15)
+                  : widget.themeColor.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(icon, color: widget.themeColor, size: 24),
+            child: Icon(
+              icon,
+              color: (Theme.of(context).brightness == Brightness.dark &&
+                      widget.roleName == 'Subscription')
+                  ? const Color(0xFF4ADE80)
+                  : widget.themeColor,
+              size: 24,
+            ),
           ),
           const SizedBox(width: 16),
           Column(
@@ -447,7 +457,9 @@ class _RoleLoginScreenState extends ConsumerState<RoleLoginScreen> {
           style: TextStyle(
             fontSize: titleFontSize,
             fontWeight: FontWeight.w900,
-            color: widget.themeColor,
+            color: (isDark && widget.roleName == 'Subscription')
+                ? const Color(0xFF4ADE80)
+                : widget.themeColor,
             height: 1.15,
           ),
         ),
@@ -620,13 +632,17 @@ class _RoleLoginScreenState extends ConsumerState<RoleLoginScreen> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: widget.themeColor.withValues(alpha: 0.1),
+                color: (isDark && widget.roleName == 'Subscription')
+                    ? const Color(0xFF4ADE80).withValues(alpha: 0.15)
+                    : widget.themeColor.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 Icons.admin_panel_settings,
                 size: 64,
-                color: widget.themeColor,
+                color: (isDark && widget.roleName == 'Subscription')
+                    ? const Color(0xFF4ADE80)
+                    : widget.themeColor,
               ),
             ),
             const SizedBox(height: 16),
