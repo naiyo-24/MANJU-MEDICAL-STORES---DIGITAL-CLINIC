@@ -62,6 +62,7 @@ final goRouter = GoRouter(
     
     final isLoginRoute = state.matchedLocation == '/role_login' ||
         state.matchedLocation == '/subscription-login' ||
+        state.matchedLocation == '/subscription' ||
         state.matchedLocation == '/splash' ||
         state.matchedLocation == '/dashboard';
 

@@ -737,7 +737,9 @@ class _RoleLoginScreenState extends ConsumerState<RoleLoginScreen> {
                   width: 24,
                   child: Checkbox(
                     value: _rememberMe,
-                    activeColor: widget.themeColor,
+                    activeColor: (isDark && widget.roleName == 'Subscription')
+                        ? const Color(0xFF22C55E)
+                        : widget.themeColor,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(4),
                     ),
@@ -773,7 +775,9 @@ class _RoleLoginScreenState extends ConsumerState<RoleLoginScreen> {
               child: ElevatedButton(
                 onPressed: _isLoading ? null : _login,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: widget.themeColor,
+                  backgroundColor: (isDark && widget.roleName == 'Subscription')
+                      ? const Color(0xFF22C55E)
+                      : widget.themeColor,
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
