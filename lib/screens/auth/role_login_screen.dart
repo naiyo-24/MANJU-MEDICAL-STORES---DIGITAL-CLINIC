@@ -457,6 +457,8 @@ class _RoleLoginScreenState extends ConsumerState<RoleLoginScreen> {
               ? 'Streamline your Pharmacy Billing, Inventory Tracking,\nand Daily Counter Operations.'
               : widget.roleName == 'Lab Test'
               ? 'Manage your lab test bookings, reports\nand patient records effortlessly.'
+              : widget.roleName == 'Subscription'
+              ? 'Manage your All-in-One Pharmacy Suite plans,\nbilling access, and renewals effortlessly.'
               : 'Manage patients, follow-ups and\ncustomer relationships efficiently.',
           textAlign: isCompact ? TextAlign.center : TextAlign.start,
           style: TextStyle(
@@ -497,6 +499,22 @@ class _RoleLoginScreenState extends ConsumerState<RoleLoginScreen> {
             Icons.people,
             'Patient Support',
             'Keep records organized',
+          ),
+        ] else if (widget.roleName == 'Subscription') ...[
+          _buildFeatureItem(
+            Icons.workspace_premium_rounded,
+            'All-in-One Access',
+            'Unlock Billing Counter, Lab Test & CRM',
+          ),
+          _buildFeatureItem(
+            Icons.calendar_month_rounded,
+            'Flexible Plans',
+            'Choose 1, 3, 6, or 12-month plans',
+          ),
+          _buildFeatureItem(
+            Icons.verified_rounded,
+            'Instant Activation',
+            'Seamless renewal & uninterrupted service',
           ),
         ] else ...[
           _buildFeatureItem(
