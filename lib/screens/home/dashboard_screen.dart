@@ -243,13 +243,15 @@ class DashboardScreen extends ConsumerWidget {
                 0xFFE6F4F1, // Soft Medical Mint
               ),
         body: SafeArea(
-          child: CustomPaint(
-            painter: _DotGridPainter(
-              color: isDark
-                  ? Colors.white.withValues(alpha: 0.05)
-                  : const Color(0xFFB5DCD1),
-            ),
-            child: LayoutBuilder(
+          child: RepaintBoundary(
+            child: CustomPaint(
+              painter: _DotGridPainter(
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.05)
+                    : const Color(0xFFB5DCD1),
+              ),
+              child: RepaintBoundary(
+                child: LayoutBuilder(
               builder: (context, constraints) {
               final isWeb = constraints.maxWidth > 800;
 
@@ -613,7 +615,9 @@ class DashboardScreen extends ConsumerWidget {
               );
             },
           ),
+          ), // RepaintBoundary
           ), // CustomPaint
+          ), // RepaintBoundary
         ), // SafeArea
       ), // Scaffold
     ); // PopScope

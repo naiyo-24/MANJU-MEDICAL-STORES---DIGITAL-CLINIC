@@ -254,7 +254,8 @@ class _RoleLoginScreenState extends ConsumerState<RoleLoginScreen> {
         ),
         // Background Image (Blurred)
         Positioned.fill(
-          child: ShaderMask(
+          child: RepaintBoundary(
+            child: ShaderMask(
             shaderCallback: (rect) {
               return LinearGradient(
                 begin: isWide ? Alignment.centerLeft : Alignment.topCenter,
@@ -273,6 +274,7 @@ class _RoleLoginScreenState extends ConsumerState<RoleLoginScreen> {
               errorBuilder: (context, error, stackTrace) =>
                   Container(color: isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0)),
             ),
+          ),
           ),
         ),
         // Gradient Overlay
