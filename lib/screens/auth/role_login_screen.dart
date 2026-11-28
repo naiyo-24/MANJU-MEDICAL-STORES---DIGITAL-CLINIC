@@ -126,6 +126,16 @@ class _RoleLoginScreenState extends ConsumerState<RoleLoginScreen> {
       }
 
       try {
+        // Phase 2 frontend-only test bypass for Subscription
+        if (widget.roleName == 'Subscription' &&
+            userId == 'xyz_subscription' &&
+            _passwordController.text == '123') {
+          await _saveOrClearCredentials();
+          if (!mounted) return;
+          context.go(widget.nextRoute);
+          return;
+        }
+
         final success = await AuthService.adminLogin(
           _userIdController.text,
           _passwordController.text,
