@@ -89,6 +89,9 @@ class _RoleLoginScreenState extends ConsumerState<RoleLoginScreen> {
       } else if (widget.roleName == 'Lab Test' && !userId.contains('lab')) {
         isValidRole = false;
         errorMsg = 'Unauthorized: Only Lab admins can access this module.';
+      } else if (widget.roleName == 'Subscription' && !userId.contains('subscription')) {
+        isValidRole = false;
+        errorMsg = 'Unauthorized: Only Subscription admins can access this module.';
       }
 
       if (!isValidRole) {

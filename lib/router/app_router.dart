@@ -59,7 +59,10 @@ final goRouter = GoRouter(
     final token = prefs.getString('access_token');
     final isLoggedIn = token != null && token.isNotEmpty;
     
-    final isLoginRoute = state.matchedLocation == '/role_login' || state.matchedLocation == '/splash' || state.matchedLocation == '/dashboard';
+    final isLoginRoute = state.matchedLocation == '/role_login' ||
+        state.matchedLocation == '/subscription-login' ||
+        state.matchedLocation == '/splash' ||
+        state.matchedLocation == '/dashboard';
 
     // If not logged in and not on login/dashboard/splash, redirect to dashboard
     if (!isLoggedIn && !isLoginRoute) {
@@ -97,6 +100,14 @@ final goRouter = GoRouter(
               : '/counter/billing',
         );
       },
+    ),
+    GoRoute(
+      path: '/subscription-login',
+      builder: (context, state) => const RoleLoginScreen(
+        roleName: 'Subscription',
+        themeColor: Color(0xFF166534),
+        nextRoute: '/subscription',
+      ),
     ),
     StatefulShellRoute.indexedStack(
       builder: (context, state, navigationShell) {
